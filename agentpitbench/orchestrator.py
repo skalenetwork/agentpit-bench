@@ -320,9 +320,13 @@ class Round:
         except Exception as e:  # never leak internals beyond a message
             log.exception("bench call failed for %s", agent)
             resp = {"ok": False, "error": f"{type(e).__name__}: {e}"}
-        writer.write(json.dumps(resp).encode() + b"\n")
-        await writer.drain()
-        writer.close()
+        try:
+            writer.write(json.dumps(resp).encode() + b"\n")
+            await writer.drain()
+        except ConnectionError:  # the agent hung up before reading the reply; the bet is already recorded
+            log.info("%s disconnected before reading the bench reply", agent)
+        finally:
+            writer.close()
 
     def _token(self, outcome: str) -> tuple[str, str]:
         labels = self.market["outcomes_list"]
@@ -392,7 +396,11 @@ class Round:
                 raise BetError(f"order did not fill: no asks at or below {limit}")
         else:
             try:
-                resp = await self.clients[agent].buy_fak(tok, limit, self._stake(), coid)
+                # size by walking the live book: sizing at the limit price under-spends when it fills lower
+                plan = simulate_fill(book, limit, self._stake())
+                if not plan["shares"]:
+                    raise BetError(f"order would not fill: no asks at or below {limit}")
+                resp = await self.clients[agent].buy_fak(tok, limit, self._stake(), coid, size=plan["shares"])
             except OrderRejected as e:
                 raise BetError(f"order rejected: {e}")
             fill, order_id = resp["fill"], resp.get("orderID")

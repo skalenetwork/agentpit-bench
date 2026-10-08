@@ -386,3 +386,25 @@ def test_home_model_reads_agy_log(tmp_path):
     (d / "cli-20261008_180456.log").write_text(
         'I1008 model_config_manager.go:327] Propagating selected model override to backend: label="Gemini 3.8 Flash (High)"\n')
     assert home_model("agy", tmp_path) == "Gemini 3.8 Flash (High)" and home_model("codex", tmp_path) is None
+
+
+async def test_live_order_sized_by_walking_the_book(s, db, monkeypatch):
+    """Sizing at the limit price under-spent (93 of 100) in the live canary; size by the book instead."""
+    from agentpitbench import agentpit
+    seen = {}
+
+    async def fake_buy(self, token_id, price, stake, coid, size=None):
+        seen.update(price=price, size=size)
+        return {"orderID": "o1", "fill": {"shares": size, "cost": 100.0, "avg_price": 100.0 / size, "tx_hashes": []}}
+
+    monkeypatch.setattr(agentpit.Agentpit, "buy_fak", fake_buy)
+    s.dry_run = False
+    r = Round(s, db, FakeAPI([gamma(1)]), gamma(1), NullPublisher(), agents=["claude"])
+    r.round_id = db.create_round(gamma(1))
+    r.run_ids["claude"] = db.create_run(r.round_id, "claude")
+    import asyncio, time
+    r.bet_done["claude"] = asyncio.Event()
+    r.launched_at["claude"] = time.time()
+    await r._place("claude", {"outcome": "Yes", "rationale": "x", "confidence": 0.6})
+    assert seen["price"] == pytest.approx(0.67)                       # best ask 0.62 + 5c slippage
+    assert seen["size"] == pytest.approx(100 + 38 / 0.65)              # 100 @ .62, rest @ .65 = 100 tokens

@@ -65,9 +65,11 @@ class Agentpit:
     async def trades(self, asset_id: str, limit: int = 100) -> list[dict]:
         return (await self._get("/data/trades", asset_id=asset_id, limit=limit)).get("data", [])
 
-    async def buy_fak(self, token_id: str, price: float, stake: float, client_order_id: str) -> dict:
-        """BUY up to `stake` apUSD at `price` or better, fill-and-kill. Returns order response + fill summary."""
-        size = math.floor(stake / price * 1e6) / 1e6
+    async def buy_fak(self, token_id: str, price: float, stake: float, client_order_id: str,
+                      size: float | None = None) -> dict:
+        """BUY up to `stake` apUSD at `price` or better, fill-and-kill. Returns order response + fill summary.
+        `size` (shares) defaults to stake/price; callers pass the book-walked size so the stake is spent."""
+        size = math.floor(min(size or stake / price, stake / price * 1.25) * 1e6) / 1e6
         body = {"token_id": token_id, "side": "BUY", "price": round(price, 3), "size": size,
                 "order_type": "FAK", "client_order_id": client_order_id}
         r = await self.http.post("/order", json=body)
@@ -88,6 +90,7 @@ class Agentpit:
         log.info("trades for %s (order %s): %s", token_id[:12], oid, json.dumps(rows[:10])[:3000])
         fills = [t for t in rows if t.get("taker_order_id") == oid]
         txs = [t["transaction_hash"] for t in fills if t.get("transaction_hash")]
+        txs += [h for h in (resp.get("transactionsHashes") or resp.get("transactionHashes") or []) if h]
         if fills:
             shares = sum(float(t["size"]) for t in fills)
             cost = sum(float(t["size"]) * float(t["price"]) for t in fills)
