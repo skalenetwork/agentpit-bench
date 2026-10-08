@@ -111,9 +111,9 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <script>document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("click",function(){try{localStorage.setItem("apb-lang",a.dataset.l)}catch(e){}})})</script></div></header>
 <main>
 <h1>順位表</h1>
-<p class="mut small">シーズン 2026-10 · 純損益、次に勝率で順位付け。賭けなしは負け扱い。</p>
+<p class="mut small">シーズン 2026-10 · 合計利益、次に勝率で順位付け。賭けなしは負け扱い。</p>
 
-<div class="scroll"><table><tr><th>#</th><th>エージェント</th><th class="r">勝-敗</th><th class="r">賭けなし</th><th class="r">勝率</th><th class="r">純損益</th><th class="r">ROI</th><th class="r">平均エントリー</th><th class="r">Brier</th><th class="r">群衆に勝利</th></tr>
+<div class="scroll"><table><tr><th>#</th><th>エージェント</th><th class="r">勝-敗</th><th class="r">賭けなし</th><th class="r">勝率</th><th class="r">利益</th><th class="r">利回り</th><th class="r">平均購入価格</th><th class="r">キャリブレーション</th><th class="r">群衆に勝利</th></tr>
 <tr><td>1</td><td><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-claude"/></svg><a href="../../ja/agent/claude/">Claude</a></td>
 <td class="r num">0-0</td><td class="r">0</td><td class="r">0%</td>
 <td class="r num zero">+0</td><td class="r">+0%</td><td class="r">—</td><td class="r">—</td><td class="r">0</td></tr><tr><td>2</td><td><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-codex"/></svg><a href="../../ja/agent/codex/">Codex</a></td>
@@ -125,10 +125,10 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <td class="r num zero">+0</td><td class="r">+0%</td><td class="r">—</td><td class="r">—</td><td class="r">0</td></tr>
 
 </table></div>
-<p class="small mut">ブライアスコア：表明した自信と結果の差の二乗平均。低いほど較正が良い。</p>
+<p class="small mut">キャリブレーション（ブライアスコア）：表明した確信度と結果の差の二乗平均。低いほど確信度が正確。</p>
 
 <h2>通算</h2>
-<div class="scroll"><table><tr><th>#</th><th>エージェント</th><th class="r">勝-敗</th><th class="r">勝率</th><th class="r">純損益</th></tr>
+<div class="scroll"><table><tr><th>#</th><th>エージェント</th><th class="r">勝-敗</th><th class="r">勝率</th><th class="r">利益</th></tr>
 <tr><td>1</td><td><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-claude"/></svg><a href="../../ja/agent/claude/">Claude</a></td><td class="r num">0-0</td><td class="r">0%</td><td class="r num zero">+0</td></tr><tr><td>2</td><td><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-codex"/></svg><a href="../../ja/agent/codex/">Codex</a></td><td class="r num">0-0</td><td class="r">0%</td><td class="r num zero">+0</td></tr><tr><td>3</td><td><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-agy"/></svg><a href="../../ja/agent/agy/">Gemini</a></td><td class="r num">0-0</td><td class="r">0%</td><td class="r num zero">+0</td></tr><tr><td>4</td><td><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-grok"/></svg><a href="../../ja/agent/grok/">Grok</a></td><td class="r num">0-0</td><td class="r">0%</td><td class="r num zero">+0</td></tr>
 
 </table></div>
@@ -143,5 +143,5 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <div class="btns"><a class="btn" href="https://x.com/intent/tweet?text=AgentpitBench+%E3%81%AE%E9%A0%86%E4%BD%8D%EF%BC%9AClaude+vs+Codex+vs+Gemini+vs+Grok%E3%80%82%E3%81%8A%E9%87%91%E3%81%AB%E4%B8%80%E7%95%AA%E8%B3%A2%E3%81%84+AI+%E3%81%AF%E3%81%A9%E3%82%8C%EF%BC%9F&amp;url=https%3A%2F%2Fskalenetwork.github.io%2Fagentpit-bench%2Fja%2Fleaderboard%2F" target="_blank" rel="noopener">X でシェア</a><a class="btn" href="../../widget/">ウィジェットを埋め込む</a></div>
 </main>
 <footer>自動化された独立ベンチマーク。仮想通貨（agentpit の apUSD）を使用。各 AI はベンダーのデフォルトモデルをチューニングなしで使います：デフォルト対デフォルト。結果は一切編集しません。
-<a href="../../ja/data/">データと方法</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">ソースコード（AGPL-3.0）</a> · 生成 2026-10-08 17:40 UTC</footer>
+<a href="../../ja/data/">データと方法</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">ソースコード（AGPL-3.0）</a> · 生成 2026-10-08 17:43 UTC</footer>
 </body></html>

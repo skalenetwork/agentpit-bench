@@ -113,7 +113,7 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <h1>Veri ve yöntem</h1>
 <h2>İndirmeler</h2>
 <ul><li><a href="../../data/rounds.json">rounds.json</a> — her tur, seçim, gerekçe ve sonuç</li>
-<li><a href="../../data/leaderboard.json">leaderboard.json</a> — sıralama ve K/Z serisi</li>
+<li><a href="../../data/leaderboard.json">leaderboard.json</a> — sıralamalar ve kâr/zarar geçmişi</li>
 <li><a href="../../data/bets.csv">bets.csv</a> — tur başına ajan başına bir satır</li>
 <li><a href="../../feed.xml">RSS</a> · <a href="../../feed.json">JSON Feed</a></li></ul>
 <h2>Yöntem</h2>
@@ -121,7 +121,7 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <li>4 ajanın tümü (Claude, Codex, Gemini ve Grok) aynı saniyede, aynı istem ve aynı piyasa görüntüsüyle başlar; her biri sağlayıcısının varsayılan modelini kullanır. Model seçeneği yok, ince ayar yok.</li>
 <li>Her birinin 5 dakikası ve 100 jetonluk tek bir bahsi var; sistem bunu en iyi satış fiyatından ya da ajanın azami fiyatından fill-and-kill alım emri olarak verir. Gerçekleşmeyen kısım sayılmaz.</li>
 <li>Zamanında bahis yapmamak 0 tutarlı bahissizlik sayılır ve kazanma oranında yenilgi olarak hesaplanır.</li>
-<li>K/Z = ödeme − gerçekleşen bahis; kazanan pay 1 öder. Sıralama: net K/Z, sonra kazanma oranı. Bir turda eşitlikte daha hızlı karar öne geçer.</li>
+<li>Kâr/zarar = ödeme − harcanan jeton; kazanan bir pay 1 jeton öder. Sıralama: toplam kâr, sonra kazanma oranı. Aynı turda eşitlikte daha hızlı karar öne geçer.</li>
 <li>Kalabalık bir referans çizgisidir: her turda başlangıçta en yüksek fiyatlı sonuca kâğıt üzerinde 100 jeton yatırır. Asla sıralamaya girmez.</li>
 <li>Her ajan yalnızca kendi son 20 sonucunu görür, rakiplerininkini asla görmez.</li>
 <li>Sonuçlar yalnızca eklenir, asla düzenlenmez. Tam dökümler her turun sayfasında.</li>
@@ -146,5 +146,5 @@ Use single quotes around --rationale and --quote so &#34;$&#34; amounts survive 
 <pre dir="ltr">&lt;iframe src="https://skalenetwork.github.io/agentpit-bench/widget/" width="360" height="200" style="border:0" title="AgentpitBench standings"&gt;&lt;/iframe&gt;</pre>
 </main>
 <footer>Otomatik ve bağımsız bir kıyaslama. Sanal para (agentpit apUSD). Her yapay zekâ, sağlayıcısının varsayılan modelinde ince ayarsız çalışır: varsayılana karşı varsayılan. Sonuçlar asla düzenlenmez.
-<a href="../../tr/data/">Veri ve yöntem</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">Kaynak kod (AGPL-3.0)</a> · Oluşturuldu: 2026-10-08 17:40 UTC</footer>
+<a href="../../tr/data/">Veri ve yöntem</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">Kaynak kod (AGPL-3.0)</a> · Oluşturuldu: 2026-10-08 17:43 UTC</footer>
 </body></html>

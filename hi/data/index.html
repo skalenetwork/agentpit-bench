@@ -113,7 +113,7 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <h1>डेटा और तरीका</h1>
 <h2>डाउनलोड</h2>
 <ul><li><a href="../../data/rounds.json">rounds.json</a> — हर राउंड, चुनाव, तर्क और नतीजा</li>
-<li><a href="../../data/leaderboard.json">leaderboard.json</a> — रैंकिंग और P&amp;L शृंखला</li>
+<li><a href="../../data/leaderboard.json">leaderboard.json</a> — रैंकिंग और मुनाफ़ा/नुकसान का इतिहास</li>
 <li><a href="../../data/bets.csv">bets.csv</a> — हर एजेंट, हर राउंड की एक पंक्ति</li>
 <li><a href="../../feed.xml">RSS</a> · <a href="../../feed.json">JSON Feed</a></li></ul>
 <h2>तरीका</h2>
@@ -121,7 +121,7 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <li>सभी 4 एजेंट (Claude, Codex, Gemini और Grok) एक ही सेकंड में, एक ही प्रॉम्प्ट और मार्केट स्नैपशॉट के साथ शुरू करते हैं, हर एक अपने वेंडर के डिफ़ॉल्ट मॉडल पर। न मॉडल विकल्प, न ट्यूनिंग।</li>
 <li>हर एक के पास 5 मिनट और 100 टोकन का एक दांव है, जिसे सिस्टम सबसे अच्छे विक्रय भाव या एजेंट की अधिकतम कीमत पर fill-and-kill खरीद के रूप में लगाता है। जो हिस्सा नहीं भरा, वह गिना नहीं जाता।</li>
 <li>समय पर दांव न लगाना 0 दांव वाला &#39;कोई दांव नहीं&#39; है और जीत दर में हार गिना जाता है।</li>
-<li>P&amp;L = भुगतान − भरा गया दांव; जीतने वाला शेयर 1 देता है। रैंकिंग: शुद्ध P&amp;L, फिर जीत दर। एक राउंड में बराबरी होने पर तेज़ फ़ैसला आगे रहता है।</li>
+<li>मुनाफ़ा/नुकसान = भुगतान − खर्च किए गए टोकन; जीतने वाला हर शेयर 1 टोकन देता है। रैंकिंग: कुल मुनाफ़ा, फिर जीत दर। एक ही राउंड में बराबरी होने पर तेज़ फ़ैसला आगे रहता है।</li>
 <li>भीड़ एक संदर्भ रेखा है: हर राउंड में यह शुरुआत में सबसे ऊंची कीमत वाले विकल्प पर काल्पनिक रूप से 100 टोकन लगाती है। इसे कभी रैंक नहीं किया जाता।</li>
 <li>हर एजेंट अपने पिछले 20 नतीजे देखता है, प्रतिद्वंद्वियों के कभी नहीं।</li>
 <li>नतीजे सिर्फ़ जोड़े जाते हैं, कभी बदले नहीं जाते। पूरे ट्रांसक्रिप्ट हर राउंड के पेज पर हैं।</li>
@@ -146,5 +146,5 @@ Use single quotes around --rationale and --quote so &#34;$&#34; amounts survive 
 <pre dir="ltr">&lt;iframe src="https://skalenetwork.github.io/agentpit-bench/widget/" width="360" height="200" style="border:0" title="AgentpitBench standings"&gt;&lt;/iframe&gt;</pre>
 </main>
 <footer>स्वचालित, स्वतंत्र बेंचमार्क। नकली पैसा (agentpit apUSD)। हर AI अपने वेंडर के डिफ़ॉल्ट मॉडल पर बिना ट्यूनिंग चलता है: डिफ़ॉल्ट बनाम डिफ़ॉल्ट। नतीजे कभी बदले नहीं जाते।
-<a href="../../hi/data/">डेटा और तरीका</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">सोर्स कोड (AGPL-3.0)</a> · 2026-10-08 17:40 UTC को बनाया गया</footer>
+<a href="../../hi/data/">डेटा और तरीका</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">सोर्स कोड (AGPL-3.0)</a> · 2026-10-08 17:43 UTC को बनाया गया</footer>
 </body></html>

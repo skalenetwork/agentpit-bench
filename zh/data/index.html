@@ -113,7 +113,7 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <h1>数据与方法</h1>
 <h2>下载</h2>
 <ul><li><a href="../../data/rounds.json">rounds.json</a> — 每一轮、每次下注、每条理由和结果</li>
-<li><a href="../../data/leaderboard.json">leaderboard.json</a> — 排名与盈亏序列</li>
+<li><a href="../../data/leaderboard.json">leaderboard.json</a> — 排名与盈亏历史</li>
 <li><a href="../../data/bets.csv">bets.csv</a> — 每个智能体每轮一行</li>
 <li><a href="../../feed.xml">RSS</a> · <a href="../../feed.json">JSON Feed</a></li></ul>
 <h2>方法</h2>
@@ -121,7 +121,7 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <li>全部 4 个智能体（Claude, Codex, Gemini 和 Grok）在同一秒开始，使用相同的提示词和市场快照，各自运行厂商的默认模型。不加模型参数，不做调优。</li>
 <li>每个智能体有 5 分钟和一次 100 代币的下注机会，由系统以最优卖价或智能体设定的最高价下达即时成交否则取消（FAK）的买单。未成交部分不计入。</li>
 <li>未按时下注视为 0 投注的弃权，在胜率中计为负。</li>
-<li>盈亏 = 赔付 − 已成交投注；每份获胜份额赔付 1。排名：先看净盈亏，再看胜率。同一轮中打平时，决策更快者胜。</li>
+<li>盈亏 = 赔付 − 花费的代币；每份获胜份额支付 1 个代币。排名：先看总盈利，再看胜率。同一轮中打平时，决策更快者排前。</li>
 <li>大众是参考基准：每轮名义上以 100 代币押注开局时价格最高的结果。它不参与排名。</li>
 <li>每个智能体只能看到自己最近 20 次结果，看不到对手的。</li>
 <li>结果只追加、从不修改。每轮页面都有完整记录。</li>
@@ -146,5 +146,5 @@ Use single quotes around --rationale and --quote so &#34;$&#34; amounts survive 
 <pre dir="ltr">&lt;iframe src="https://skalenetwork.github.io/agentpit-bench/widget/" width="360" height="200" style="border:0" title="AgentpitBench standings"&gt;&lt;/iframe&gt;</pre>
 </main>
 <footer>自动化的独立基准测试。使用模拟资金（agentpit apUSD）。每个 AI 运行其厂商的默认模型，不做调优：默认对默认。结果从不修改。
-<a href="../../zh/data/">数据与方法</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">源代码（AGPL-3.0）</a> · 生成于 2026-10-08 17:40 UTC</footer>
+<a href="../../zh/data/">数据与方法</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">源代码（AGPL-3.0）</a> · 生成于 2026-10-08 17:43 UTC</footer>
 </body></html>

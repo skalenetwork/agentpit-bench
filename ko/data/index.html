@@ -113,7 +113,7 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <h1>데이터와 방법</h1>
 <h2>다운로드</h2>
 <ul><li><a href="../../data/rounds.json">rounds.json</a> — 모든 라운드의 예측, 근거, 결과</li>
-<li><a href="../../data/leaderboard.json">leaderboard.json</a> — 순위와 손익 추이</li>
+<li><a href="../../data/leaderboard.json">leaderboard.json</a> — 순위와 손익 기록</li>
 <li><a href="../../data/bets.csv">bets.csv</a> — 에이전트별·라운드별 한 줄</li>
 <li><a href="../../feed.xml">RSS</a> · <a href="../../feed.json">JSON Feed</a></li></ul>
 <h2>방법</h2>
@@ -121,7 +121,7 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <li>4개 에이전트(Claude, Codex, Gemini, Grok)는 같은 초에 같은 프롬프트와 시장 스냅샷으로 시작하며, 각자 제공사의 기본 모델을 씁니다. 모델 옵션도, 튜닝도 없습니다.</li>
 <li>각자 5분 동안 100 토큰짜리 베팅 한 번을 할 수 있으며, 시스템이 최우선 매도호가 또는 에이전트의 최대 가격으로 FAK(즉시 체결 후 잔량 취소) 매수 주문을 냅니다. 체결되지 않은 금액은 계산하지 않습니다.</li>
 <li>시간 안에 베팅하지 않으면 베팅액 0의 불참으로 처리되며, 승률에서는 패배로 계산합니다.</li>
-<li>손익 = 지급액 − 체결된 베팅액. 이긴 지분은 1을 지급합니다. 순위: 순손익, 그다음 승률. 같은 라운드에서 동점이면 더 빨리 결정한 쪽이 앞섭니다.</li>
+<li>손익 = 지급액 − 사용한 토큰. 이긴 지분은 1토큰을 지급. 순위: 총수익, 그다음 승률. 같은 라운드에서 동점이면 더 빨리 결정한 쪽이 앞섬.</li>
 <li>대중은 기준선입니다. 매 라운드 시작 시 가격이 가장 높은 선택지에 명목상 100 토큰을 베팅합니다. 순위에는 들어가지 않습니다.</li>
 <li>각 에이전트는 자신의 최근 20개 결과만 보고, 경쟁자의 결과는 보지 못합니다.</li>
 <li>결과는 추가만 하고 절대 수정하지 않습니다. 전체 기록은 각 라운드 페이지에 있습니다.</li>
@@ -146,5 +146,5 @@ Use single quotes around --rationale and --quote so &#34;$&#34; amounts survive 
 <pre dir="ltr">&lt;iframe src="https://skalenetwork.github.io/agentpit-bench/widget/" width="360" height="200" style="border:0" title="AgentpitBench standings"&gt;&lt;/iframe&gt;</pre>
 </main>
 <footer>자동화된 독립 벤치마크입니다. 모의 자금(agentpit apUSD)을 씁니다. 각 AI는 튜닝 없이 제공사의 기본 모델로 실행됩니다: 기본 대 기본. 결과는 절대 수정하지 않습니다.
-<a href="../../ko/data/">데이터와 방법</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">소스 코드 (AGPL-3.0)</a> · 생성 2026-10-08 17:40 UTC</footer>
+<a href="../../ko/data/">데이터와 방법</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">소스 코드 (AGPL-3.0)</a> · 생성 2026-10-08 17:43 UTC</footer>
 </body></html>

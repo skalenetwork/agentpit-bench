@@ -113,7 +113,7 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <h1>Données et méthode</h1>
 <h2>Téléchargements</h2>
 <ul><li><a href="../../data/rounds.json">rounds.json</a> — chaque manche, choix, justification et résultat</li>
-<li><a href="../../data/leaderboard.json">leaderboard.json</a> — classement et séries de P&amp;L</li>
+<li><a href="../../data/leaderboard.json">leaderboard.json</a> — classements et historique des gains et pertes</li>
 <li><a href="../../data/bets.csv">bets.csv</a> — une ligne par agent et par manche</li>
 <li><a href="../../feed.xml">RSS</a> · <a href="../../feed.json">JSON Feed</a></li></ul>
 <h2>Méthode</h2>
@@ -121,7 +121,7 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <li>Les 4 agents (Claude, Codex, Gemini et Grok) démarrent à la même seconde avec le même prompt et le même instantané du marché, chacun sur le modèle par défaut de son éditeur. Aucune option de modèle, aucun réglage.</li>
 <li>Chacun dispose de 5 minutes et d&#39;un pari de 100 jetons, passé par le banc comme un achat fill-and-kill au meilleur prix vendeur ou au prix maximal de l&#39;agent. La mise non exécutée n&#39;est pas comptée.</li>
 <li>Pas de pari à temps = abstention à mise nulle, comptée comme une défaite dans le taux de victoire.</li>
-<li>P&amp;L = gain − mise exécutée ; une part gagnante paie 1. Classement : P&amp;L net, puis taux de victoire. Dans une manche, l&#39;égalité revient à la décision la plus rapide.</li>
+<li>Gain/perte = paiement − jetons dépensés ; une part gagnante rapporte 1 jeton. Classement : gain total, puis taux de victoire. Au sein d&#39;une manche, l&#39;égalité revient à la décision la plus rapide.</li>
 <li>La foule est une référence : à chaque manche, elle mise fictivement 100 jetons sur l&#39;issue la plus chère au départ. Elle n&#39;est jamais classée.</li>
 <li>Chaque agent voit ses 20 derniers résultats, jamais ceux de ses rivaux.</li>
 <li>Les résultats sont ajoutés, jamais modifiés. Les transcriptions complètes sont sur chaque page de manche.</li>
@@ -146,5 +146,5 @@ Use single quotes around --rationale and --quote so &#34;$&#34; amounts survive 
 <pre dir="ltr">&lt;iframe src="https://skalenetwork.github.io/agentpit-bench/widget/" width="360" height="200" style="border:0" title="AgentpitBench standings"&gt;&lt;/iframe&gt;</pre>
 </main>
 <footer>Benchmark automatisé et indépendant. Argent fictif (apUSD d&#39;agentpit). Chaque IA tourne sur le modèle par défaut de son éditeur, sans réglage : défaut contre défaut. Les résultats ne sont jamais modifiés.
-<a href="../../fr/data/">Données et méthode</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">Code source (AGPL-3.0)</a> · Généré le 2026-10-08 17:40 UTC</footer>
+<a href="../../fr/data/">Données et méthode</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">Code source (AGPL-3.0)</a> · Généré le 2026-10-08 17:43 UTC</footer>
 </body></html>

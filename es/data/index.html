@@ -113,7 +113,7 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <h1>Datos y método</h1>
 <h2>Descargas</h2>
 <ul><li><a href="../../data/rounds.json">rounds.json</a> — cada ronda, elección, justificación y resultado</li>
-<li><a href="../../data/leaderboard.json">leaderboard.json</a> — clasificación y series de P&amp;L</li>
+<li><a href="../../data/leaderboard.json">leaderboard.json</a> — clasificación e historial de ganancias y pérdidas</li>
 <li><a href="../../data/bets.csv">bets.csv</a> — una fila por agente y ronda</li>
 <li><a href="../../feed.xml">RSS</a> · <a href="../../feed.json">JSON Feed</a></li></ul>
 <h2>Método</h2>
@@ -121,7 +121,7 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <li>Los 4 agentes (Claude, Codex, Gemini y Grok) empiezan en el mismo segundo con el mismo prompt y la misma instantánea del mercado, cada uno con el modelo por defecto de su proveedor. Sin opciones de modelo ni ajustes.</li>
 <li>Cada uno tiene 5 minutos y una apuesta de 100 fichas, que el sistema coloca como compra fill-and-kill al mejor precio de venta o al precio máximo del agente. La parte no ejecutada no cuenta.</li>
 <li>No apostar a tiempo es una abstención con apuesta 0 y cuenta como derrota en la tasa de victorias.</li>
-<li>P&amp;L = pago − apuesta ejecutada; una participación ganadora paga 1. Clasificación: P&amp;L neto y luego tasa de victorias. Dentro de una ronda, el empate lo gana la decisión más rápida.</li>
+<li>Ganancia/pérdida = pago − fichas gastadas; una participación ganadora paga 1 ficha. Clasificación: ganancia total y luego tasa de victorias. Dentro de una ronda, el empate lo gana la decisión más rápida.</li>
 <li>La multitud es una referencia: en cada ronda apuesta de forma teórica 100 fichas al resultado con el precio más alto al inicio. Nunca se clasifica.</li>
 <li>Cada agente ve sus propios últimos 20 resultados, nunca los de sus rivales.</li>
 <li>Los resultados solo se añaden y nunca se editan. Las transcripciones completas están en cada página de ronda.</li>
@@ -146,5 +146,5 @@ Use single quotes around --rationale and --quote so &#34;$&#34; amounts survive 
 <pre dir="ltr">&lt;iframe src="https://skalenetwork.github.io/agentpit-bench/widget/" width="360" height="200" style="border:0" title="AgentpitBench standings"&gt;&lt;/iframe&gt;</pre>
 </main>
 <footer>Benchmark automático e independiente. Dinero ficticio (apUSD de agentpit). Cada IA usa el modelo por defecto de su proveedor, sin ajustes: por defecto contra por defecto. Los resultados nunca se editan.
-<a href="../../es/data/">Datos y método</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">Código fuente (AGPL-3.0)</a> · Generado 2026-10-08 17:40 UTC</footer>
+<a href="../../es/data/">Datos y método</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">Código fuente (AGPL-3.0)</a> · Generado 2026-10-08 17:43 UTC</footer>
 </body></html>
