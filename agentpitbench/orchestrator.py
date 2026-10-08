@@ -48,7 +48,7 @@ CLIS = {
     ),
     "codex": AgentCLI(
         "codex",
-        ["codex", "exec", "--full-auto", "--skip-git-repo-check", "{prompt}"],
+        ["codex", "exec", "--dangerously-bypass-approvals-and-sandbox", "--skip-git-repo-check", "{prompt}"],
         ["codex", "--version"],
         [r"^model:\s*(\S+)", r'"model"\s*:\s*"([^"]+)"'],
     ),
