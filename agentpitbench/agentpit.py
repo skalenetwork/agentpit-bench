@@ -2,9 +2,12 @@
 from __future__ import annotations
 
 import json
+import logging
 import math
 
 import httpx
+
+log = logging.getLogger(__name__)
 
 
 def parse_market(m: dict) -> dict:
@@ -73,13 +76,17 @@ class Agentpit:
         resp = r.json()
         if not resp.get("success", True):
             raise OrderRejected(resp.get("errorMsg") or "order failed")
+        log.info("order %s response: %s", client_order_id, json.dumps(resp)[:1500])
         resp["fill"] = await self._fill_summary(token_id, resp)
+        log.info("order %s fill: %s", client_order_id, resp["fill"])
         return resp
 
     async def _fill_summary(self, token_id: str, resp: dict) -> dict:
         """Shares and apUSD actually filled, read from our trade fills for this order."""
         oid = resp.get("orderID")
-        fills = [t for t in await self.trades(token_id) if t.get("taker_order_id") == oid]
+        rows = await self.trades(token_id)
+        log.info("trades for %s (order %s): %s", token_id[:12], oid, json.dumps(rows[:10])[:3000])
+        fills = [t for t in rows if t.get("taker_order_id") == oid]
         txs = [t["transaction_hash"] for t in fills if t.get("transaction_hash")]
         if fills:
             shares = sum(float(t["size"]) for t in fills)
