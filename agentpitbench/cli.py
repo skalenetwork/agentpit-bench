@@ -152,7 +152,11 @@ def x_login(s: config.Settings, redirected: str | None, redirect_uri: str | None
     print("1. While logged into X as the bench account, open:\n")
     print(p.oauth2.authorize_url(redirect_uri or s.site_url))
     print("\n2. Click Authorize. You land on a page (it may 404) whose URL contains ?state=...&code=...")
-    print("3. Copy that whole URL and run:  agentpitbench x-login --url '<that URL>'   (right away: the code expires quickly)")
+    if sys.stdin.isatty():
+        redirected = input("3. Paste that whole URL here and press Enter (the code expires in ~30 s):\n> ")
+        print("logged in; scopes:", " ".join(sorted(p.oauth2.finish_login(redirected))))
+    else:
+        print("3. Copy that whole URL and run:  agentpitbench x-login --url '<that URL>'   (right away: the code expires quickly)")
 
 
 def _probe_png() -> bytes:
