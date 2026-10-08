@@ -183,7 +183,7 @@ class OAuth2Token:
             raise PermanentError(f"no code in URL: {q.get('error', ['?'])[0]}")
         r = self.http.post(TOKEN_URL, auth=(self.client_id, self.client_secret), timeout=30, data={
             "grant_type": "authorization_code", "code": q["code"][0], "redirect_uri": pending["redirect_uri"],
-            "code_verifier": pending["verifier"], "client_id": self.client_id})
+            "code_verifier": pending["verifier"]})  # client authenticates via Basic auth, as on refresh
         _check(r)
         j = r.json()
         with _refresh_lock:
@@ -266,9 +266,9 @@ class Poster:
         return self.oauth2.http.request(method, url, headers={"Authorization": f"Bearer {tok}"}, timeout=60, **kw)
 
     def upload(self, image: Path) -> str:
-        with open(image, "rb") as f:
-            r = self._call("POST", UPLOAD2_URL, files={"media": (image.name, f, "image/png")},
-                           data={"media_category": "tweet_image"})
+        # bytes, not a file handle: a 401 retry must resend the whole image
+        r = self._call("POST", UPLOAD2_URL, files={"media": (image.name, image.read_bytes(), "image/png")},
+                       data={"media_category": "tweet_image"})
         return r.json()["data"]["id"]
 
     def _post_sync(self, text, image, reply_to) -> str:

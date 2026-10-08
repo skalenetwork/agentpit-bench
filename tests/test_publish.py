@@ -262,6 +262,7 @@ class FakeX:
             return FakeResp(401, {"title": "Unauthorized"})
         if url.endswith("/media/upload"):
             assert kw["data"] == {"media_category": "tweet_image"}
+            assert kw["files"]["media"][1] == b"png"                           # full bytes, also on a retry
             return FakeResp(200, {"data": {"id": "m1"}})
         return FakeResp(201, {"data": {"id": f"t{len(self.calls)}", "text": kw["json"]["text"]}})
 
@@ -292,7 +293,7 @@ async def test_oauth2_rotation_persisted_and_posting(env, monkeypatch, tmp_path)
     assert [c for c in fake.calls if c[0] == "token"] == [("token", "r0")]
     p2 = Poster(env[0], env[1]); p2.oauth2.http = fake                           # new process: reads file, not env seed
     fake.valid_access = "revoked"                                              # server-side expiry -> 401
-    assert await p2.post("k3", "results", "third")
+    assert await p2.post("k3", "results", "third", image=img)
     assert [c[1] for c in fake.calls if c[0] == "token"] == ["r0", "r1"]       # one forced refresh, chain intact
 
 
