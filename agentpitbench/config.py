@@ -25,8 +25,11 @@ class Settings:
     max_concurrent_rounds: int = 3
     daily_round_cap: int = 10
     max_days_to_close: int = 7
+    max_category_share: float = 0.4     # no category above this share of the rounds started in 7 days
+    press_timeout_s: int = 60           # post-match statement: per losing agent
     void_after_days: int = 14
     deploy_debounce_s: int = 30
+    sandbox: bool = True             # run agents inside bubblewrap (bwrap); never disable in production
     dry_run: bool = True
     posting_paused: bool = False
     agents: list[str] = field(default_factory=lambda: ["claude", "codex", "agy", "grok"])

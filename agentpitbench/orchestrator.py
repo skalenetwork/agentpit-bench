@@ -115,6 +115,17 @@ def agent_env(sock: str, shim_dir: str, home: Path | None = None) -> dict:
     return env
 
 
+def home_model(agent: str, home: Path) -> str | None:
+    """Model names a CLI writes only to its own files, not its output. agy logs the label it runs on."""
+    if agent != "agy":
+        return None
+    for log_file in sorted(home.glob(".gemini/antigravity-cli/log/cli-*.log"), reverse=True):
+        m = re.search(r'selected model override to backend: label="([^"]+)"', log_file.read_text(errors="replace"))
+        if m:
+            return m.group(1)[:80]
+    return None
+
+
 def _digest(path: Path) -> str | None:
     import hashlib
     try:
@@ -189,7 +200,10 @@ async def warm_login(agent: str, timeout: float = 120) -> bool:
     home = ch.setup()
     try:
         env = agent_env("", str(home), home)
-        p = await asyncio.create_subprocess_exec(*cli.command("Reply with exactly: ok"), cwd=home, env=env,
+        argv = cli.command("Reply with exactly: ok")
+        if shutil.which("bwrap"):
+            argv = sandboxed(argv, home, home, home)
+        p = await asyncio.create_subprocess_exec(*argv, cwd=home, env=env,
                                                  stdin=asyncio.subprocess.DEVNULL, stdout=asyncio.subprocess.DEVNULL,
                                                  stderr=asyncio.subprocess.DEVNULL, start_new_session=True)
         try:
@@ -203,10 +217,44 @@ async def warm_login(agent: str, timeout: float = 120) -> bool:
 
 
 def write_shim(shim_dir: Path) -> None:
-    pkg_root = Path(__file__).resolve().parent.parent
+    """`bench` = a standalone copy of benchcli.py (stdlib only) run by the system Python, so nothing in the
+    agent's reach points back at the repo or its virtualenv."""
+    src = Path(__file__).resolve().parent / "benchcli.py"
+    shutil.copyfile(src, shim_dir / "benchcli.py")
+    py = next((p for p in ("/usr/bin/python3", "/usr/local/bin/python3") if os.path.exists(p)), sys.executable)
     shim = shim_dir / "bench"
-    shim.write_text(f'#!/bin/sh\nPYTHONPATH="{pkg_root}" exec "{sys.executable}" -m agentpitbench.benchcli "$@"\n')
+    shim.write_text(f'#!/bin/sh\nexec "{py}" -I "{shim_dir / "benchcli.py"}" "$@"\n')
     shim.chmod(0o755)
+
+
+def _program_paths(argv0: str) -> tuple[str, list[Path]]:
+    """The agent CLI's real executable and the directories it needs (read-only) inside the sandbox."""
+    real = Path(os.path.realpath(shutil.which(argv0) or argv0))
+    binds = [real.parent]
+    if real.suffix in (".js", ".mjs", ".cjs"):  # a node package (codex): the whole package plus node itself
+        binds = [next((d for d in real.parents if (d / "package.json").exists()), real.parent)]
+        node = shutil.which("node")
+        if node:
+            binds.append(Path(os.path.realpath(node)).parent)
+    return str(real), binds
+
+
+def sandboxed(cmd: list[str], home: Path, work: Path, ctl: Path) -> list[str]:
+    """Wrap an agent command in bubblewrap: the system is read-only, every home directory, /tmp and the
+    bench's own tree are hidden, and only the agent's program, clean home, work dir and bench socket show.
+    Network stays on (agents may research online)."""
+    exe, binds = _program_paths(cmd[0])
+    repo_top = "/" + Path(__file__).resolve().parts[1]
+    hide = ["/home", "/root", "/tmp", "/var/tmp", "/mnt", "/media", "/srv", repo_top]
+    a = ["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--unshare-pid", "--die-with-parent"]
+    for h in dict.fromkeys(hide):
+        if os.path.isdir(h) and h != "/":
+            a += ["--tmpfs", h]
+    for b in binds:
+        a += ["--ro-bind", str(b), str(b)]
+    for d in (home, work, ctl):
+        a += ["--bind", str(d), str(d)]
+    return a + ["--chdir", str(work), "--", exe, *cmd[1:]]
 
 
 async def cli_version(cli: AgentCLI) -> str | None:
@@ -411,8 +459,15 @@ class Round:
                         tf.write(f"[bench] {cli.argv[0]} not installed\n".encode())
                         exit_reason = "crash"
                         break
+                    argv = cli.command(prompt)
+                    if self.s.sandbox:
+                        if not shutil.which("bwrap"):
+                            tf.write(b"[bench] bwrap not installed; refusing to run the agent unsandboxed\n")
+                            exit_reason = "crash"
+                            break
+                        argv = sandboxed(argv, home, work, ctl)
                     proc = await asyncio.create_subprocess_exec(
-                        *cli.command(prompt), cwd=work, env=agent_env(sock, str(ctl), home),
+                        *argv, cwd=work, env=agent_env(sock, str(ctl), home),
                         stdin=asyncio.subprocess.DEVNULL, stdout=asyncio.subprocess.PIPE,
                         stderr=asyncio.subprocess.STDOUT, start_new_session=True)
                     out_task = asyncio.create_task(self._pump(proc, tf))
@@ -428,7 +483,7 @@ class Round:
                     self._kill(proc)
                     await asyncio.gather(out_task, return_exceptions=True)
                     bet_task.cancel()
-                    model = model or self._model(cli, tpath)
+                    model = model or self._model(cli, tpath) or home_model(agent, home)
                     if self.bet_done[agent].is_set():
                         exit_reason = "bet"
                         break

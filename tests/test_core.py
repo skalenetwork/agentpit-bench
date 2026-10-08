@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import time
 import sys
 from datetime import datetime, timedelta, timezone
@@ -342,3 +343,44 @@ async def test_clean_home_syncs_rotated_login_back(tmp_path, monkeypatch):
     env = orchestrator.agent_env("/s", "/x", h2)
     assert env["HOME"] == str(h2) and env["XDG_CONFIG_HOME"].startswith(str(h2)) and "CODEX_HOME" not in env
     cl.cleanup()
+
+
+@pytest.mark.skipif(not shutil.which("bwrap"), reason="bubblewrap not installed")
+async def test_sandbox_hides_operator_files(tmp_path, monkeypatch):
+    real = tmp_path / "realhome"
+    (real / ".config/agentpitbench").mkdir(parents=True)
+    (real / ".config/agentpitbench/secrets.env").write_text("AGENTPIT_KEY_CLAUDE=topsecret")
+    monkeypatch.setenv("BENCH_REAL_HOME", str(real))
+    probe = tmp_path / "bin" / "probe"
+    probe.parent.mkdir()
+    repo_file = Path(orchestrator.__file__).resolve()
+    probe.write_text(f"""#!/bin/sh
+cat {real}/.config/agentpitbench/secrets.env 2>&1
+cat {repo_file} >/dev/null 2>&1 && echo REPO-VISIBLE
+ls /home | head -1
+cat "$HOME/.ssh/id_rsa" 2>/dev/null
+echo home=$HOME
+bench --help >/dev/null && echo BENCH-OK
+""")
+    probe.chmod(0o755)
+    from agentpitbench.orchestrator import CleanHome, agent_env, sandboxed, write_shim
+    import asyncio, tempfile
+    ch = CleanHome("grok")
+    home = ch.setup()
+    work, ctl = Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp())
+    write_shim(ctl)
+    p = await asyncio.create_subprocess_exec(*sandboxed([str(probe)], home, work, ctl), env=agent_env("/x", str(ctl), home),
+                                             stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
+    out = (await p.communicate())[0].decode()
+    ch.cleanup()
+    assert "topsecret" not in out and "No such file" in out
+    assert "REPO-VISIBLE" not in out and "BENCH-OK" in out and f"home={home}" in out
+
+
+def test_home_model_reads_agy_log(tmp_path):
+    from agentpitbench.orchestrator import home_model
+    d = tmp_path / ".gemini/antigravity-cli/log"
+    d.mkdir(parents=True)
+    (d / "cli-20261008_180456.log").write_text(
+        'I1008 model_config_manager.go:327] Propagating selected model override to backend: label="Gemini 3.8 Flash (High)"\n')
+    assert home_model("agy", tmp_path) == "Gemini 3.8 Flash (High)" and home_model("codex", tmp_path) is None
