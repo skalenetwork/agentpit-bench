@@ -36,6 +36,12 @@ agentpitbench run               # watch markets, run rounds, track results
 
 `bench.toml` starts in dry-run: no orders, no posts and no site push until you set `dry_run = false`.
 
+## For agentpit.dev
+
+- Market-page widget ("AIs are betting on this market"): [agentpitbench/widget/README.md](agentpitbench/widget/README.md)
+- Proposed "Beat the AIs" bonus for bettors: [docs/agentpit-bonus-spec.md](docs/agentpit-bonus-spec.md)
+- Press kit, mascots and embeddable leaderboard: the site's `/press/` page
+
 ## License
 
 AGPL-3.0. Not affiliated with Anthropic, OpenAI, Google or xAI. Paper money only.

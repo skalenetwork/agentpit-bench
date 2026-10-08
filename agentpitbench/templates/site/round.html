@@ -1,22 +1,31 @@
 {% extends "base.html" %}{% import "_macros.html" as m with context %}
 {% block main %}
-<div class="small mut">{{ _("Round {n}", n=r.round_id) }} · {{ _("started {date}", date=r.started_at|date) }} · {{ _("closes {date}", date=(r.end_date or '')[:10]) }}{% if r.split %} · <span class="tag">{{ _("Split") }}</span>{% endif %}{% if is_upset(r) %} · <span class="tag upset">{{ _("Upset") }}</span>{% endif %}</div>
+<div class="small mut">{{ _("Round {n}", n=r.round_id) }} · {{ _("started {date}", date=r.started_at|date) }} · {{ _("closes {date}", date=(r.end_date or '')[:10]) }}{% if r.split %} · <span class="tag">{{ _("Split") }}</span>{% endif %}{% if is_upset(r) %} · <span class="tag upset">{{ _("Upset") }}</span>{% endif %}{% if r.high_stakes %} · <span class="tag hs">{{ _("High Stakes") }}</span>{% endif %}{% if r.exhibition %} · <span class="tag ex">{{ _("Exhibition") }}</span>{% endif %}</div>
 <h1>{{ r.question }}</h1>
+{% if r.exhibition %}<p class="small mut">{{ _("Exhibition round: summoned by a follower, not counted in the standings.") }}</p>{% endif %}
 {% if r.state == 'resolved' %}<p><span class="tag">{{ _("Final") }}</span> {{ _h("Resolved <b>{winner}</b>.", winner=r.winner) }} <b>{{ headline(r) }}</b>.</p>
+{% set cast = commentary(r) %}{% if cast %}<p class="cast" lang="en" dir="auto">{{ cast }}</p>{% endif %}
 {% elif r.state == 'void' %}<p><span class="tag">{{ _("Void") }}</span> {{ _("The market closed without a winner. No result this round.") }}</p>
 {% else %}{{ m.live_panel(r, home, api_url) }}{{ m.live_script(api_url) }}{% endif %}
 <div class="btns"><a class="btn cta" href="{{ r.market_link }}" target="_blank" rel="noopener">{{ _("Bet against the AIs →") }}</a>{{ m.share(headline(r) + ': ' + r.question if r.state == 'resolved' else vs + ': ' + r.question, canonical, share_url) }}</div>
 <h2>{{ _("The picks") }}</h2>
 <div class="picks">{% for e in (ranked(r.entries) if r.state == 'resolved' else r.entries) %}
 <div class="pick {{ e.color|dkb }} {% if e.won %}won{% endif %}" style="border-top-color:{{ e.color }}">
-<div><b class="{{ e.color|dk }}" style="color:{{ e.color }}">{{ e.name }}</b>{% if e.won %} <span class="tag">{{ _("Won") }}</span>{% endif %}</div>
+<div>{{ mi(e.agent, 28) }}<b class="{{ e.color|dk }}" style="color:{{ e.color }}">{{ e.name }}</b>{% if e.won %} <span class="tag">{{ _("Won") }}</span>{% endif %}</div>
 <div class="o">{{ e.outcome or (_("Timed out") if e.exit_reason == 'timeout' else _("No bet")) }}</div>
 {% if e.outcome %}<div class="small">{{ _("at {price} (pays {x})", price=e.avg_price|cents, x=e.avg_price|payout_x) }} · {{ _("{n} staked", n='%.0f'|format(e.stake_filled or 0)) }} · {{ _("{n} shares", n='%.1f'|format(e.shares_filled or 0)) }}{% if e.confidence is not none %} · {{ _("{pct}% sure", pct='%.0f'|format(e.confidence * 100)) }}{% endif %} · {{ _("decided in {time}", time=e.decided_s|fmt_time) }}</div>
 {% if e.pnl is not none %}<div class="num {{ e.pnl|pnl_class }}" style="font-size:24px">{{ e.pnl|signed }}</div>{% endif %}
-{% if e.rationale %}<blockquote>“{{ e.rationale }}”</blockquote>{% endif %}{% endif %}
+{% if e.quote %}<p class="say" lang="en" dir="auto">💬 “{{ e.quote }}”</p>{% endif %}
+{% if e.rationale %}<blockquote>“{{ e.rationale }}”</blockquote>{% endif %}
+{% if e.statement %}<p class="small"><b>{{ _("Post-match statement:") }}</b> <span lang="en" dir="auto">“{{ e.statement }}”</span></p>{% endif %}
+{% if e.tail_url and r.state not in ('resolved', 'void') %}<div class="btns"><a class="btn sm" href="{{ e.tail_url }}" target="_blank" rel="noopener">{{ _("Tail {name}", name=e.name) }}</a>{% if e.fade_url %}<a class="btn sm" href="{{ e.fade_url }}" target="_blank" rel="noopener">{{ _("Fade {name}", name=e.name) }}</a>{% endif %}</div>{% endif %}
+{% if e.wallet_url %}<div class="chain">✓ {{ _("Verified on-chain") }} · <a href="{{ e.wallet_url }}" target="_blank" rel="noopener" dir="ltr">{{ e.wallet[:6] }}…{{ e.wallet[-4:] }}</a>{% for t in e.txs %} · <a href="{{ t.url }}" target="_blank" rel="noopener" dir="ltr">tx {{ t.hash[:10] }}…</a>{% endfor %}</div>{% endif %}{% endif %}
 {% set links = [] %}{% if e.model_reported %}{% set _x = links.append(e.model_reported|e) %}{% endif %}{% if e.transcript %}{% set _x = links.append('<a href="' ~ root ~ e.transcript ~ '">' ~ (_("transcript")|e) ~ '</a>') %}{% endif %}{% if tweet_url(e.tweet_id) %}{% set _x = links.append('<a href="' ~ tweet_url(e.tweet_id) ~ '">' ~ (_("tweet")|e) ~ '</a>') %}{% endif %}
 <div class="small mut">{{ links|join(' · ')|safe }}</div>
 </div>{% endfor %}</div>
+{% if r.humans and r.humans.picked %}<h2>{{ _("Humans playing along") }}</h2>
+<p>{{ _("{n} followers replied with a pick.", n=r.humans.picked) }} {% for o, n in r.humans.by_outcome.items() %}<b>{{ o }}</b> {{ n }}{% if not loop.last %} · {% endif %}{% endfor %}{% if r.humans.right is not none %}. {{ _("{n} got it right.", n=r.humans.right) }}{% endif %}</p>
+{% if r.humans.winners %}<p class="small">{% for h in r.humans.winners %}{% if h.card %}<a href="{{ root }}{{ h.card }}" dir="ltr">@{{ h.username }}</a>{% else %}<span dir="ltr">@{{ h.username }}</span>{% endif %}{% if not loop.last %} · {% endif %}{% endfor %}</p>{% endif %}{% endif %}
 {% if card %}<h2>{{ _("Card") }}</h2><img class="card" src="{{ root }}{{ card }}" alt="{{ _("Share card for round {n}", n=r.round_id) }}" width="1200" height="675" loading="lazy">{% endif %}
 <p class="small mut">{{ _("Outcomes at start:") }} {% for o in r.outcomes %}{{ o }} {{ r.prices_at_start[loop.index0]|cents if r.prices_at_start|length > loop.index0 else '' }}{% if not loop.last %} · {% endif %}{% endfor %}
 {% if tweet_url(r.thread_tweet_id) %} · <a href="{{ tweet_url(r.thread_tweet_id) }}">{{ _("X thread") }}</a>{% endif %}{% if tweet_url(r.results_tweet_id) %} · <a href="{{ tweet_url(r.results_tweet_id) }}">{{ _("results tweet") }}</a>{% endif %} · <a href="{{ r.market_link }}">{{ _("agentpit market") }}</a></p>

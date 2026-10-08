@@ -4,7 +4,7 @@ rounds.json = list (newest first) of:
   {round_id, market_id, slug, question, outcomes[], prices_at_start[], end_date, started_at (unix),
    state, winner, resolved_at, market_link, thread_tweet_id, results_tweet_id, split (bool),
    entries: [{agent, name, color, outcome|null, avg_price, shares_filled, stake_filled, confidence,
-              rationale, quote|null, decided_s, exit_reason, model_reported, cli_version, payout, pnl,
+              rationale, quote|null, statement|null (post-match line, losers only), decided_s, exit_reason, model_reported, cli_version, payout, pnl,
               won (bool|null), tweet_id, transcript (site-relative path or null), tail_url, fade_url,
               wallet|null, wallet_url|null, txs: [{hash, url}]}]}
   stake, high_stakes (bool)                                  -- High-Stakes Friday rounds carry a bigger stake
@@ -18,7 +18,8 @@ leaderboard.json = {updated_at, season (YYYY-MM, UTC month of resolution; tables
                     crowd: {name, played, wins, losses, win_rate, net_pnl, series: [[resolved_at, cumulative_pnl], ...]},
                     all_time: {agents: [...], crowd: {...}},
                     humans: [{rank, username, picks, wins, accuracy}],  -- all-time, top humans_board_size
-                    by_model: [{agent, name, model, played, wins, losses, win_rate, net_pnl}]}  -- all time
+                    by_model: [{agent, name, model, played, wins, losses, win_rate, net_pnl}],  -- all time
+                    by_category: {agent: [{category, played, wins, win_rate, net_pnl}]}}      -- all time
 
 The Crowd is a reference baseline, not a contestant: each round it notionally stakes 100 tokens on the
 outcome priced highest at the start snapshot, filled at that price. Tied top prices mean no pick. It has no
@@ -34,7 +35,7 @@ from pathlib import Path
 
 from .config import AGENT_COLORS, AGENT_NAMES, Settings
 from .db import DB, leaderboard
-from .virality import season_bounds, season_of, tail_fade
+from .virality import category, season_bounds, season_of, tail_fade
 
 
 CROWD_NAME = "The Crowd"
@@ -71,7 +72,7 @@ def round_record(s: Settings, db: DB, r) -> dict:
             "color": AGENT_COLORS.get(e["agent"], "#888"),
             "outcome": e["outcome"], "avg_price": e["avg_price"], "shares_filled": e["shares_filled"],
             "stake_filled": e["stake_filled"], "confidence": e["confidence"], "rationale": e["rationale"],
-            "quote": e["quote"],
+            "quote": e["quote"], "statement": e["statement"],
             "decided_s": e["decided_s"], "exit_reason": e["exit_reason"], "model_reported": e["model_reported"],
             "cli_version": e["cli_version"], "payout": e["payout"], "pnl": e["pnl"], "won": won,
             "tweet_id": e["tweet_id"],
@@ -157,6 +158,24 @@ def by_model(db: DB) -> list[dict]:
             for r in rows]
 
 
+def by_category(rounds: list[dict], agents: list[str]) -> dict[str, list[dict]]:
+    """All-time record per agent per market category (season rounds only), so the category cap's effect
+    and each agent's strengths are visible."""
+    acc: dict[str, dict[str, list]] = {a: {} for a in agents}
+    for r in rounds:
+        if r["state"] != "resolved" or r["exhibition"]:
+            continue
+        cat = category(r["question"])
+        for e in r["entries"]:
+            if e["agent"] in acc:
+                c = acc[e["agent"]].setdefault(cat, [0, 0, 0.0])
+                c[0] += 1
+                c[1] += bool(e["won"])
+                c[2] += e["pnl"] or 0
+    return {a: [{"category": k, "played": v[0], "wins": v[1], "win_rate": round(v[1] / v[0], 4),
+                 "net_pnl": round(v[2], 2)} for k, v in sorted(cats.items())] for a, cats in acc.items()}
+
+
 def humans_board(db: DB, size: int) -> list[dict]:
     rows = db.q("SELECT h.username, COUNT(*) picks, SUM(h.won) wins FROM humans h JOIN rounds ro USING(round_id)"
                 " WHERE ro.state='resolved' AND ro.exhibition=0 AND h.won IS NOT NULL"
@@ -174,7 +193,8 @@ def export(s: Settings, db: DB) -> dict:
     all_time = standings(s, db, rounds, None)
     lb = {"updated_at": time.time(), "season": season, **cur,
           "all_time": {"agents": all_time["agents"], "crowd": all_time["crowd"]},
-          "humans": humans_board(db, s.humans_board_size), "by_model": by_model(db)}
+          "humans": humans_board(db, s.humans_board_size), "by_model": by_model(db),
+          "by_category": by_category(rounds, s.agents)}
     _write(out / "rounds.json", json.dumps(rounds, indent=1))
     _write(out / "leaderboard.json", json.dumps(lb, indent=1))
     cols = ["round_id", "market_id", "question", "state", "winner", "agent", "outcome", "avg_price",

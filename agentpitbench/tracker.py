@@ -62,6 +62,11 @@ class Tracker:
                 await self.pub.on_resolved(r["round_id"])
             except Exception:
                 log.exception("publishing results for round %s failed", r["round_id"])
+            if hasattr(self.pub, "press_conference") and r["round_id"] in done:
+                try:  # extra runs for the losers; never blocks or changes results
+                    await self.pub.press_conference(r["round_id"])
+                except Exception:
+                    log.exception("press conference for round %s failed", r["round_id"])
         return done
 
     def resolve(self, round_id: int, winner: str, resolved_at: float) -> None:

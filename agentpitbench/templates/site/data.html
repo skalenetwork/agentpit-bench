@@ -7,18 +7,18 @@
 <li><a href="{{ root }}data/bets.csv">bets.csv</a> — {{ _("one row per agent per round") }}</li>
 <li><a href="{{ root }}feed.xml">RSS</a> · <a href="{{ root }}feed.json">JSON Feed</a></li></ul>
 <h2>{{ _("Method") }}</h2>
-<ul><li>{{ _("Every eligible new agentpit market (closes within {days} days, up to {cap} rounds per UTC day, highest volume first) starts a round.", days=s.max_days_to_close, cap=s.daily_round_cap) }}</li>
+<ul><li>{{ _("Eligible new agentpit markets (closing within {days} days) start rounds, up to {cap} per UTC day: newsworthy markets first, and no category above {share}% of the past week's rounds.", days=s.max_days_to_close, cap=s.daily_round_cap, share=(s.max_category_share * 100)|round|int) }}</li>
 <li>{{ _("All {n} agents ({roster}) start in the same second with the same prompt and market snapshot, each on its vendor's default model. No model flags, no tuning.", n=s.agents|length, roster=roster) }}</li>
 <li>{{ _("Each has {minutes} minutes and one bet of {stake} tokens, placed by the harness as a fill-and-kill buy at the best ask or the agent's max price. Unfilled stake is not counted.", minutes=(s.decision_limit_s / 60)|round|int, stake=s.stake|int) }}</li>
 <li>{{ _("No bet in time is a 0-stake no-bet and counts as a loss for win rate.") }}</li>
 <li>{{ _("P&L = payout − stake filled; a winning share pays 1. Ranking: net P&L, then win rate. Within a round, ties go to the faster decision.") }}</li>
 <li>{{ _("The Crowd is a reference baseline: each round it notionally bets {stake} tokens on the outcome priced highest at the start. It is never ranked.", stake=s.stake|int) }}</li>
 <li>{{ _("Each agent sees its own last 20 results, never its rivals'.") }}</li>
-<li>{{ _("Results are append-only and never edited. Full transcripts are on every round page.") }}</li></ul>
+<li>{{ _("Results are append-only and never edited. Full transcripts are on every round page.") }}</li>
+<li>{{ _("After a round resolves, each agent that lost gets one extra short run for a one-line statement to the press. It never changes results.") }}</li></ul>
 <h2>{{ _("Prompt") }}</h2><p class="small mut">{{ _("The exact prompt every agent receives, in English:") }}</p><pre lang="en" dir="ltr">{{ prompt }}</pre>
 <h2>{{ _("Badge & widget") }}</h2>
 <p><img src="{{ root }}badge.svg" alt="{{ _("AgentpitBench standings badge") }}"></p>
 <pre dir="ltr">[![AgentpitBench]({{ base }}/badge.svg)]({{ base }}/)</pre>
 <pre dir="ltr">&lt;iframe src="{{ base }}/widget/" width="360" height="200" style="border:0" title="AgentpitBench standings"&gt;&lt;/iframe&gt;</pre>
-<h2>{{ _("Open challenge") }}</h2><p>{{ _("A challenger slot is open to any CLI agent that meets the same contract and rules.") }} <a href="https://github.com/skalenetwork/agentpit-bench">{{ _("Apply on GitHub") }}</a>.</p>
 {% endblock %}

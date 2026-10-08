@@ -12,7 +12,7 @@ import asyncio
 import logging
 from pathlib import Path
 
-from . import exports
+from . import exports, press
 from .cards import CardRenderer, split_headline
 from .config import Settings
 from .db import DB
@@ -141,6 +141,19 @@ class BenchPublisher:
             await self.engage.after_resolution(round_id, data, tid)
         except Exception:
             log.exception("post-resolution extras for round %s failed", round_id)
+        exports.export(self.s, self.db)
+        self.site.request()
+
+    async def press_conference(self, round_id: int) -> None:
+        """Losing agents' one-line statements, as one link-free reply (two at most) under the results post."""
+        rnd = next(r for r in exports.export(self.s, self.db)["rounds"] if r["round_id"] == round_id)
+        statements = await press.collect(self.s, self.db, rnd)
+        results_id = self.db.round(round_id)["results_tweet_id"]
+        reply_to = results_id
+        async with self._lock(round_id):
+            for i, text in enumerate(press.texts(statements), 1):
+                reply_to = await self.poster.post(f"r{round_id}-press-{i}", "press", text, None,
+                                                  reply_to=reply_to, round_id=round_id) or reply_to
         exports.export(self.s, self.db)
         self.site.request()
 

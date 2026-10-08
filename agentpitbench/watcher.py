@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 from .agentpit import Agentpit, best_ask
 from .config import Settings
 from .db import DB
-from .virality import market_priority
+from .virality import category, category_ok, market_priority
 
 log = logging.getLogger(__name__)
 
@@ -90,17 +90,32 @@ class Watcher:
                 cands.append(m)
             else:
                 self.db.x("UPDATE seen_markets SET eligible=0 WHERE market_id=?", mid)
-        chosen = []
+        chosen, held = [], []  # held: fillable, but its category is over the weekly cap
+        recent = self.recent_categories()
         for m in sorted(cands, key=priority, reverse=True):
             if len(chosen) >= budget:
                 break
-            if await self._books_ok(m):
-                chosen.append(m)
-            else:
+            if not await self._books_ok(m):
                 self.db.x("UPDATE seen_markets SET eligible=0 WHERE market_id=?", str(m["id"]))
+                continue
+            cat = category(m.get("question", ""))
+            if category_ok(cat, recent, self.s.max_category_share):
+                chosen.append(m)
+                recent.append(cat)
+            else:
+                held.append(m)
+        if not chosen and held:  # the cap only reorders: if nothing else can run, an over-cap market still does
+            log.info("only over-cap categories eligible; starting %s anyway", held[0]["id"])
+            chosen = held[:1]
         for m in chosen:
             self.db.x("UPDATE seen_markets SET started=1 WHERE market_id=?", str(m["id"]))
         return chosen
+
+    def recent_categories(self, days: float = 7) -> list[str]:
+        """Category of every season round started in the trailing window (exhibitions don't count)."""
+        rows = self.db.q("SELECT question FROM rounds WHERE started_at>=? AND COALESCE(exhibition,0)=0",
+                         time.time() - days * 86400)
+        return [category(r["question"]) for r in rows]
 
     async def _books_ok(self, m: dict) -> bool:
         """Every outcome needs sellers, or a 100-token bet on it cannot fill."""

@@ -45,6 +45,33 @@ def news_tier(m: dict) -> int:
     return 1
 
 
+CATEGORIES = [  # first match wins; esports is checked with the stricter ESPORTS pattern first
+    ("Esports", r"counter-strike|dota|valorant|league of legends|\blol\b|esports|\bbo[135]\b"),
+    ("Crypto", r"bitcoin|\bbtc\b|ethereum|\beth\b|solana|crypto|\bxrp\b|doge"),
+    ("Sports", r" vs\.? |\bnba\b|\bnfl\b|\bmlb\b|\bnhl\b|premier league|uefa|tennis|\bufc\b|match|game \d|grand prix|open\b"),
+    ("Politics", r"election|president|senate|congress|trump|minister|parliament|vote|poll"),
+    ("Economy", r"\bfed\b|rate|inflation|\bcpi\b|gdp|stock|s&p|nasdaq|earnings|price of"),
+]
+
+
+def category(question: str) -> str:
+    """Esports, Crypto, Sports, Politics, Economy or Other, from the market question."""
+    if ESPORTS.search(question or ""):
+        return "Esports"
+    q = " " + (question or "").lower() + " "
+    for name, pat in CATEGORIES:
+        if re.search(pat, q):
+            return name
+    return "Other"
+
+
+def category_ok(cat: str, recent: list[str], share: float) -> bool:
+    """Would one more round of `cat` keep it at or under `share` of the recent rounds? The first round
+    of any category is always allowed, so a quiet week can still start."""
+    n = len(recent) + 1
+    return recent.count(cat) + 1 <= max(1.0, share * n)
+
+
 def _num(m: dict, k: str) -> float:
     try:
         return float(m.get(k) or 0)
@@ -71,15 +98,15 @@ _BLOCK = [
 _LEET = str.maketrans({"0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "@": "a", "$": "s", "!": "i"})
 
 
-def clean_quote(text: str | None) -> tuple[str | None, str | None]:
-    """(quote, reason_dropped). One line, at most 120 chars; no links, mentions, slurs or abuse."""
+def clean_quote(text: str | None, max_len: int = QUOTE_MAX) -> tuple[str | None, str | None]:
+    """(quote, reason_dropped). One line, at most max_len chars; no links, mentions, slurs or abuse."""
     if not text:
         return None, None
     q = " ".join(str(text).split())
     if not q:
         return None, None
-    if len(q) > QUOTE_MAX:
-        q = q[:QUOTE_MAX - 1].rstrip() + "…"
+    if len(q) > max_len:
+        q = q[:max_len - 1].rstrip() + "…"
     if _LINK.search(q):
         return None, "quotes can't contain links"
     if _MENTION.search(q):

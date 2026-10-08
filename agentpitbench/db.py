@@ -103,6 +103,7 @@ MIGRATIONS = [  # (table, column, definition): added when missing, so old databa
     ("rounds", "exhibition", "INTEGER NOT NULL DEFAULT 0"),
     ("rounds", "humans_collected", "INTEGER NOT NULL DEFAULT 0"),
     ("humans", "card_path", "TEXT"),                     # "@user beat X & Y" card (site only, never posted)
+    ("bets", "statement", "TEXT"),                       # losing agent's post-match line to the press
 ]
 
 
@@ -184,7 +185,7 @@ class DB:
     def round_entries(self, round_id: int) -> list[dict]:
         """One dict per agent run in a round, run + bet columns merged."""
         rows = self.q(
-            "SELECT r.*, b.outcome, b.token_id, b.rationale, b.quote, b.tx_hashes, b.confidence, b.max_price, b.order_id,"
+            "SELECT r.*, b.outcome, b.token_id, b.rationale, b.quote, b.statement, b.tx_hashes, b.confidence, b.max_price, b.order_id,"
             " b.avg_price, b.shares_filled, b.stake_filled, b.decided_s, b.placed_at, b.tweet_id,"
             " b.payout, b.pnl FROM runs r LEFT JOIN bets b USING(run_id) WHERE r.round_id=? ORDER BY r.run_id",
             round_id,

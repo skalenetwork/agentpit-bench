@@ -99,3 +99,27 @@ def mascot(agent: str, size: int = 96, color: str | None = None) -> Markup:
     edge = LIGHT if _dark(c) else INK
     design = DESIGNS.get(agent, scholar)
     return _svg(design(c, edge), size, agent)
+
+
+def sprite(agents: list[str]) -> Markup:
+    """One hidden <svg> of <symbol>s, so a page can show many small mascots for the cost of one each."""
+    parts = []
+    for a in [*agents, "crowd"]:
+        if a == "crowd":
+            body = crowd()
+        else:
+            c = AGENT_COLORS.get(a, "#888")
+            body = DESIGNS.get(a, scholar)(c, LIGHT if _dark(c) else INK)
+        parts.append(f'<symbol id="m-{a}" viewBox="0 0 100 100">{body}</symbol>')
+    return Markup('<svg width="0" height="0" style="position:absolute" aria-hidden="true">' + "".join(parts) + "</svg>")
+
+
+def use(agent: str, size: int = 22, label: str = "") -> Markup:
+    """A small mascot from the page's sprite."""
+    lab = f' role="img" aria-label="{label}"' if label else ' aria-hidden="true"'
+    return Markup(f'<svg class="mi" width="{size}" height="{size}"{lab}><use href="#m-{agent}"/></svg>')
+
+
+def svg_file(agent: str, size: int = 512) -> str:
+    """Standalone SVG document for the press kit download."""
+    return str(mascot(agent, size)).replace('class="mascot" ', "")

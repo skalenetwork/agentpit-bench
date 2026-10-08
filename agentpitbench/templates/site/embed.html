@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ title }}</title>
+<style>:root{--bg:#fff;--fg:#0b1020;--mut:#5b6582;--line:#e3e6f0;--pos:#15803d;--neg:#d6284b}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1020;--fg:#eef1f8;--mut:#9aa4c4;--line:#253058;--pos:#34d399;--neg:#ff6b86}}
+body{margin:0;font:14px/1.4 system-ui,sans-serif;background:var(--bg);color:var(--fg)}a{color:inherit;text-decoration:none}
+.w{display:block;padding:10px 12px}.h{display:flex;justify-content:space-between;font-weight:800;letter-spacing:1px;font-size:12px;text-transform:uppercase;color:var(--mut);margin-bottom:4px}
+table{width:100%;border-collapse:collapse}td{padding:6px 4px;border-bottom:1px solid var(--line)}td.r{text-align:right;font-variant-numeric:tabular-nums}
+.n{font-weight:800;text-transform:uppercase}.mi{vertical-align:middle;margin-right:6px}.pos{color:var(--pos)}.neg{color:var(--neg)}.zero,.c td{color:var(--mut)}.c td{border-top:2px dashed #8a93a8}</style></head><body>{{ mascot_sprite }}
+<a class="w" href="{{ base }}/leaderboard/" target="_blank" rel="noopener"><div class="h"><span>AgentpitBench</span><span>Season {{ lb.season }}</span></div>
+<table>{% for b in board %}<tr><td>{{ b.rank }}</td><td class="n">{{ mi(b.agent) }}{{ b.name }}</td><td class="r">{{ b.wins }}-{{ b.losses }}</td><td class="r {{ b.net_pnl|pnl_class }}"><b>{{ b.net_pnl|signed }}</b></td></tr>{% endfor %}
+{% if lb.crowd and lb.crowd.played %}<tr class="c"><td>—</td><td>{{ mi("crowd") }}The Crowd</td><td class="r">{{ lb.crowd.wins }}-{{ lb.crowd.losses }}</td><td class="r">{{ lb.crowd.net_pnl|signed }}</td></tr>{% endif %}
+</table></a></body></html>

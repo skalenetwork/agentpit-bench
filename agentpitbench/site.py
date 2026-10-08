@@ -16,6 +16,7 @@ import os
 import re
 import shutil
 import subprocess
+import threading
 import time
 from datetime import datetime, timezone
 from email.utils import formatdate
@@ -28,18 +29,13 @@ from jinja2 import Environment, PackageLoader, pass_context, select_autoescape
 from .cards import cents, is_dark, fmt_time, is_upset, payout_x, ranked, results_headline, signed, split_headline
 from .config import AGENT_COLORS, AGENT_NAMES, Settings
 from .i18n import CODES, LANGS, NAMES, Translator
+from .mascots import sprite, svg_file, use as mascot_use
+from .virality import CATEGORIES, category, commentary  # noqa: F401  (CATEGORIES: category names the site translates)
 
 log = logging.getLogger(__name__)
 
 DEFAULT_REMOTE = "git@github.com:skalenetwork/agentpit-bench.git"
 PAGES_BRANCH = "gh-pages"
-CATEGORIES = [  # crude keyword classifier until the export carries agentpit's own category
-    ("Esports", r"counter-strike|dota|valorant|league of legends|\blol\b|esports|\bbo[135]\b"),
-    ("Crypto", r"bitcoin|\bbtc\b|ethereum|\beth\b|solana|crypto|\bxrp\b|doge"),
-    ("Sports", r" vs\.? |\bnba\b|\bnfl\b|\bmlb\b|\bnhl\b|premier league|uefa|tennis|\bufc\b|match|game \d|grand prix|open\b"),
-    ("Politics", r"election|president|senate|congress|trump|minister|parliament|vote|poll"),
-    ("Economy", r"\bfed\b|rate|inflation|\bcpi\b|gdp|stock|s&p|nasdaq|earnings|price of"),
-]
 
 env = Environment(loader=PackageLoader("agentpitbench", "templates/site"), autoescape=select_autoescape())
 
@@ -62,12 +58,16 @@ env.filters.update(cents=cents, payout_x=payout_x, fmt_time=fmt_time, signed=sig
                    dkb=lambda c: "dkb" if is_dark(c) else "", urlq=lambda v: quote(str(v), safe=""))
 
 
-def category(question: str) -> str:
-    q = " " + question.lower() + " "
-    for name, pat in CATEGORIES:
-        if re.search(pat, q):
-            return name
-    return "Other"
+
+def _newest(folder: Path, pattern: str, exts: set[str] | None = None) -> str | None:
+    """Site-relative path of the newest matching file under cards/, or None."""
+    if not folder.exists():
+        return None
+    files = [p for p in folder.glob(pattern) if p.is_file() and (exts is None or p.suffix in exts)]
+    if not files:
+        return None
+    best = max(files, key=lambda p: (p.stat().st_mtime, p.name))
+    return "cards/" + best.relative_to(folder.parent).as_posix()
 
 
 def tweet_url(tweet_id: str | None) -> str | None:
@@ -244,8 +244,16 @@ def feeds(s: Settings, rounds: list[dict]) -> tuple[str, str]:
 
 # ---------- build ----------
 
+_build_lock = threading.Lock()  # builds run in worker threads; two at once would share the .new folder
+
+
 def build(s: Settings) -> Path:
     """Render the whole site into s.site_dir from the exports. Atomic: builds aside, then swaps."""
+    with _build_lock:
+        return _build(s)
+
+
+def _build(s: Settings) -> Path:
     exp = s.export_dir
     rounds = json.loads((exp / "rounds.json").read_text()) if (exp / "rounds.json").exists() else []
     lb = json.loads((exp / "leaderboard.json").read_text()) if (exp / "leaderboard.json").exists() else {
@@ -269,6 +277,13 @@ def build(s: Settings) -> Path:
     stats = {a: agent_stats(rounds, a) for a in s.agents}
     cards = {r["round_id"]: card_for(s, r) for r in rounds}
     built = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    weekly = {"race": _newest(s.cards_dir / "race", "race-*.*", {".mp4", ".gif", ".png"}),
+              "awards": _newest(s.cards_dir / "awards", "*.png")}
+    seasons = sorted(((p.stem, f"cards/seasons/{p.name}") for p in (s.cards_dir / "seasons").glob("*.png")),
+                     reverse=True) if (s.cards_dir / "seasons").exists() else []
+    press_stats = {"rounds": sum(1 for r in rounds if r["state"] == "resolved"),
+                   "bets": sum(1 for r in rounds for e in r["entries"] if e["outcome"])}
+    latest_cards = [c for c in (card_for(s, r) for r in past) if c][:6]
 
     for lang in CODES:
         _ = Translator(lang)
@@ -281,7 +296,8 @@ def build(s: Settings) -> Path:
                   "split_headline": lambda r, _=_: split_headline(r, _),
                   "is_upset": is_upset, "ranked": ranked, "category": category,
                   "_": _, "_h": _.html, "lang": lang, "rtl": _.rtl, "langs": LANGS, "lang_codes": CODES,
-                  "lang_name": NAMES[lang]}
+                  "lang_name": NAMES[lang], "mascot_sprite": sprite(s.agents), "mi": mascot_use,
+                  "commentary": commentary}
         prefix = _.prefix()
 
         def page(path: str, tpl: str, **ctx) -> None:
@@ -300,7 +316,7 @@ def build(s: Settings) -> Path:
              title=_("AgentpitBench: {vs} bet on prediction markets", vs=vs))
         page("leaderboard/index.html", "leaderboard.html",
              chart=pnl_chart(lb.get("series", {}), crowd=(lb.get("crowd") or {}).get("series"), _=_),
-             best=best, worst=worst, h2h=h2h, title=_("Leaderboard") + site_name)
+             best=best, worst=worst, h2h=h2h, weekly=weekly, seasons=seasons, title=_("Leaderboard") + site_name)
         for r in rounds:
             card = cards[r["round_id"]]
             page(f"round/{r['round_id']}/index.html", "round.html", r=r, card=card,
@@ -309,14 +325,25 @@ def build(s: Settings) -> Path:
         for a in s.agents:
             page(f"agent/{a}/index.html", "agent.html", agent=a, name=AGENT_NAMES.get(a, a),
                  row=next((b for b in board if b["agent"] == a), None), st=stats[a],
+                 cats=(lb.get("by_category") or {}).get(a, []),
                  title=AGENT_NAMES.get(a, a) + site_name)
         page("splits/index.html", "splits.html", splits=splits, h2h=h2h, title=_("Split decisions") + site_name)
         page("hall-of-shame/index.html", "shame.html", wrong=wrong, title=_("Hall of shame") + site_name)
         page("data/index.html", "data.html", prompt=prompt, title=_("Data & method") + site_name)
+        page("press/index.html", "press.html", stats=press_stats, latest_cards=latest_cards,
+             title=_("Press kit") + site_name)
         if lang == "en":  # embedded elsewhere; one shared copy
             page("widget/index.html", "widget.html", title="AgentpitBench standings")
+            page("embed/index.html", "embed.html", title="AgentpitBench leaderboard")
 
     (out / "badge.svg").write_text(badge_svg(board, lb.get("crowd")))
+    kit = out / "press" / "mascots"
+    kit.mkdir(parents=True, exist_ok=True)
+    for a in [*s.agents, "crowd"]:
+        (kit / f"{a}.svg").write_text(svg_file(a))
+    widget_src = Path(__file__).parent / "widget" / "agentpit-widget.js"
+    if widget_src.exists():  # the agentpit.dev market-page widget, served next to the standings widget
+        shutil.copy2(widget_src, out / "widget" / "agentpit-widget.js")
     rss, jf = feeds(s, rounds)
     (out / "feed.xml").write_text(rss)
     (out / "feed.json").write_text(jf)
