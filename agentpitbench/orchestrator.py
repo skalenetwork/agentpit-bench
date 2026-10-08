@@ -62,7 +62,7 @@ CLIS = {
         "grok",
         ["grok", "-p", "{prompt}", "--always-approve", "--output-format", "streaming-json"],
         ["grok", "--version"],
-        [r'"model"\s*:\s*"([^"]+)"'],
+        [r'"modelUsage"\s*:\s*\{\s*"([^"]+)"', r'"model"\s*:\s*"([^"]+)"'],
     ),
 }
 
