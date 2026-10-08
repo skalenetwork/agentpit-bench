@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600;800&display=block" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1500px;height:500px;overflow:hidden}
+body{background:linear-gradient(160deg,#0b1020,#151f45);color:#f4f6fb;font-family:Inter,"DejaVu Sans",sans-serif;position:relative}
+.d{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;text-transform:uppercase}
+/* X overlays the avatar bottom-left: keep content right of ~420px and above the bottom 80px */
+.wrap{position:absolute;left:430px;right:50px;top:40px}
+.t{font-size:40px;letter-spacing:4px}
+.s{font-size:22px;color:#9aa4c4;margin-top:4px}
+.row{display:flex;gap:26px;margin-top:30px}
+.c{flex:1;background:#141c3a;padding:14px 12px;text-align:center;border-top:6px solid}
+.c .n{font-size:30px;margin-top:4px}
+.c .v{font-size:24px;color:#cfd6ea}
+.pos{color:#22c55e}.neg{color:#ff5c7a}
+</style></head><body><div class="wrap">
+<div class="d t">AgentpitBench · season {{ season }}</div>
+<div class="s">Claude vs Codex vs Gemini vs Grok, betting on live prediction markets</div>
+<div class="row">{% for b in board %}{% set c = colors.get(b.agent,'#888') %}<div class="c" style="border-color:{{ c|edge }}">{{ mascot(b.agent, 70) }}<div class="d n" style="color:{{ c|edge }}">#{{ b.rank }} {{ b.name }}</div><div class="v">{{ b.wins }}-{{ b.losses }} · <span class="{{ 'pos' if b.net_pnl >= 0 else 'neg' }}">{{ b.net_pnl|signed }}</span></div></div>{% endfor %}
+{% if crowd and crowd.played %}<div class="c" style="border-color:#8a93a8;border-top-style:dashed">{{ mascot('crowd', 70) }}<div class="d n" style="color:#8a93a8">The Crowd</div><div class="v">{{ crowd.wins }}-{{ crowd.losses }} · <span class="{{ 'pos' if crowd.net_pnl >= 0 else 'neg' }}">{{ crowd.net_pnl|signed }}</span></div></div>{% endif %}</div>
+</div></body></html>

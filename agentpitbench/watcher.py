@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 from .agentpit import Agentpit, best_ask
 from .config import Settings
 from .db import DB
+from .virality import market_priority
 
 log = logging.getLogger(__name__)
 
@@ -34,13 +35,9 @@ def basic_eligible(s: Settings, m: dict, now: datetime | None = None) -> bool:
 
 
 def priority(m: dict) -> tuple:
-    """Highest volume first; agentpit mirrors often report volume 0, so liquidity then newest id break ties."""
-    def f(k):
-        try:
-            return float(m.get(k) or 0)
-        except (TypeError, ValueError):
-            return 0.0
-    return (f("volume"), f("liquidity"), int(m["id"]))
+    """Newsworthy first (politics, crypto, AI/tech, finals over esports and minor leagues); then volume,
+    liquidity and the newest id break ties. agentpit mirrors often report volume 0."""
+    return market_priority(m)
 
 
 class Watcher:
@@ -78,7 +75,7 @@ class Watcher:
 
     def rounds_today(self) -> int:
         day0 = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
-        return self.db.one("SELECT COUNT(*) c FROM rounds WHERE started_at>=?", day0)["c"]
+        return self.db.one("SELECT COUNT(*) c FROM rounds WHERE started_at>=? AND exhibition=0", day0)["c"]
 
     async def pick(self, free_slots: int) -> list[dict]:
         """From the pending eligible markets, pick the best ones that still fit today's cap and the free slots."""

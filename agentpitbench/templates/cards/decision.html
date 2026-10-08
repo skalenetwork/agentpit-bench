@@ -11,11 +11,16 @@
 .stat .v{font-size:46px;font-weight:700;line-height:1}
 .stat .l{font-size:17px;letter-spacing:2px;text-transform:uppercase;color:#8f9abb;margin-top:6px}
 .quote{margin-top:24px;font-size:25px;line-height:1.35;color:#e6eaf5;border-left:5px solid {{ c|edge }};padding-left:18px;max-width:1060px;font-style:italic;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.talk{margin-top:16px;display:inline-block;max-width:1060px;background:#f4f6fb;color:#0b1020;font-size:30px;font-weight:800;line-height:1.2;padding:12px 20px;border-radius:18px;position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.talk:before{content:"";position:absolute;left:28px;top:-12px;border:12px solid transparent;border-top:0;border-bottom-color:#f4f6fb}
+.form{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-weight:700;font-size:22px;letter-spacing:2px;padding:5px 14px;margin-right:18px;color:#fff}
+.form.fire{background:linear-gradient(90deg,#ff3b5c,#ff9f1c)}
+.form.tilt{background:linear-gradient(90deg,#3b82f6,#7c3aed)}
 .forfeit{font-size:110px;font-weight:700;color:#ff3b5c;line-height:1.05;margin-top:10px}
 {% endblock %}
 {% block body %}
-<div class="top"><span class="tag {% if status == 'bet' %}live{% endif %}">{% if status == 'bet' %}Bet placed{% else %}No bet{% endif %}</span><span class="disp dim" style="font-size:22px">Round {{ r.round_id }}</span></div>
-<div class="who"><span class="badge" style="background:{{ c }};{{ c|box_ring }}">{{ e.name[0] }}</span><span class="disp name">{{ e.name }}</span>{% if status == 'bet' %}<span class="disp verb">bets</span>{% endif %}</div>
+<div class="top"><span class="tag {% if status == 'bet' %}live{% endif %}">{% if status == 'bet' %}Bet placed{% else %}No bet{% endif %}</span><span class="disp dim" style="font-size:22px">{% if form == 'fire' %}<span class="form fire">🔥 On fire · {{ streak }} straight</span>{% elif form == 'tilt' %}<span class="form tilt">🥶 On tilt · {{ streak }} straight</span>{% endif %}Round {{ r.round_id }}</span></div>
+<div class="who">{{ mascot(e.agent, 96) }}<span class="disp name">{{ e.name }}</span>{% if status == 'bet' %}<span class="disp verb">bets</span>{% endif %}</div>
 {% if status == 'bet' %}
 <div class="disp pick {% if e.outcome|length > 14 %}small{% endif %}">{{ e.outcome }}</div>
 <div class="q" style="margin-top:4px">{{ r.question }}</div>
@@ -25,11 +30,12 @@
   <div class="stat"><div class="v disp">{{ '%.1f'|format(e.shares_filled or 0) }}</div><div class="l">Shares</div></div>
   {% if e.confidence is not none %}<div class="stat"><div class="v disp">{{ '%.0f'|format(e.confidence * 100) }}%</div><div class="l">Confidence</div></div>{% endif %}
 </div>
-{% if e.rationale %}<div class="quote">“{{ e.rationale|truncate(200, True, '…', 0) }}”</div>{% endif %}
+{% if e.quote %}<div><div class="talk">“{{ e.quote }}”</div></div>{% endif %}
+{% if e.rationale %}<div class="quote" {% if e.quote %}style="-webkit-line-clamp:1;margin-top:14px"{% endif %}>“{{ e.rationale|truncate(200, True, '…', 0) }}”</div>{% endif %}
 {% else %}
 <div class="disp forfeit">{% if status == 'timeout' %}Timed out{% else %}No bet{% endif %}</div>
 <div class="q" style="margin-top:10px">{{ r.question }}</div>
 <div class="quote" style="border-color:#ff3b5c;font-style:normal">{% if status == 'timeout' %}{{ e.name }} ran out the 5-minute clock and forfeited this round.{% else %}{{ e.name }} crashed before placing a bet and forfeited this round.{% endif %}</div>
 {% endif %}
 {% endblock %}
-{% block foot %}{% if status == 'bet' %}decided in {{ e.decided_s|fmt_time }}{% else %}0 tokens staked{% endif %} · closes {{ (r.end_date or '')[:10] }}{% endblock %}
+{% block foot %}{% if status == 'bet' %}decided in {{ e.decided_s|fmt_time }}{% else %}0 tokens staked{% endif %} · {% if e.wallet %}<span style="color:#7CFFCB">✓ Verified on-chain</span> {{ e.wallet[:6] }}…{{ e.wallet[-4:] }}{% else %}closes {{ (r.end_date or '')[:10] }}{% endif %}{% endblock %}

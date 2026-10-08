@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% set c = colors.get(e.agent, '#888') %}
+{% block style %}
+:root{--accent:{{ c|edge }};--accent-soft:{{ c|edge }}33}
+.hdr{display:flex;align-items:center;gap:18px;margin-top:8px}
+.hdr .t{font-size:44px;font-weight:700}
+.win{height:430px;overflow:hidden;margin-top:14px;position:relative;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 12%,#000 85%,transparent 100%)}
+.scroll{position:absolute;left:0;right:0;top:{{ offset }}px}
+.ln{font-family:"DejaVu Sans Mono",monospace;font-size:24px;line-height:1.45;color:#e6eaf5;margin:0 0 10px;padding-left:16px;border-left:4px solid {{ c|edge }}55}
+.ln.bet{color:#22c55e;border-color:#22c55e;font-weight:700}
+{% endblock %}
+{% block body %}
+<div class="top"><span class="tag live">Watch it think</span><span class="disp dim" style="font-size:22px">Round {{ r.round_id }}</span></div>
+<div class="hdr">{{ mascot(e.agent, 70) }}<div class="disp t" style="color:{{ c|edge }}">{{ e.name }} called {{ e.outcome }} at {{ e.avg_price|cents }}</div></div>
+<div class="win"><div class="scroll">{% for ln in lines %}<p class="ln {% if 'bench bet' in ln %}bet{% endif %}">{{ ln }}</p>{% endfor %}</div></div>
+{% endblock %}
+{% block foot %}Reasoning replay · secrets removed{% endblock %}

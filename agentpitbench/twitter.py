@@ -27,6 +27,10 @@ TWEET_URL = "https://api.x.com/2/tweets"
 UPLOAD2_URL = "https://api.x.com/2/media/upload"
 TOKEN_URL = "https://api.x.com/2/oauth2/token"
 ME_URL = "https://api.x.com/2/users/me"
+SEARCH_URL = "https://api.x.com/2/tweets/search/recent"
+TWEETS_URL = "https://api.x.com/2/tweets"
+MENTIONS_URL = "https://api.x.com/2/users/{id}/mentions"
+CHUNK = 4 * 1024 * 1024
 NEEDED_SCOPES = {"tweet.write", "media.write", "users.read", "offline.access"}
 URL_RE = re.compile(r"https?://\S+")
 MAX_LEN = 280
@@ -63,13 +67,23 @@ def price_str(p: float | None) -> str:
 
 
 # Links only go in results tweets: X bills a post containing a URL ~13x a plain one.
-def decision_text(s: Settings, rnd: dict, e: dict) -> str:
+def decision_text(s: Settings, rnd: dict, e: dict, invite: bool = False) -> str:
+    """invite=True for the round's opener: followers reply with their own pick (humans play along)."""
     q = clip(rnd["question"], 90)
+    lead = "Exhibition round. " if rnd.get("exhibition") else ""
+    tail = f" {TAG}"
+    if invite:
+        tail = "\nReply with your pick: " + clip(" / ".join(rnd.get("outcomes") or []), 60) + tail
     if not e["outcome"]:
         why = "timed out and forfeited" if e.get("exit_reason") == "timeout" else "crashed and forfeited"
-        return fit(f"{e['name']} {why} — no bet on \"{q}\". ", f" {TAG}")
-    head = f"{e['name']} bets {e['stake_filled'] or 0:.0f} on {e['outcome']} — \"{q}\" at {price_str(e['avg_price'])}.\n"
-    return fit(head, f" {TAG}", e.get("rationale") or "", quote=True)
+        return fit(f"{lead}{e['name']} {why} — no bet on \"{q}\". ", tail)
+    head = (f"{lead}{e['name']} bets {e['stake_filled'] or 0:.0f} on {e['outcome']} — \"{q}\" at "
+            f"{price_str(e['avg_price'])}.\n")
+    if e.get("quote"):
+        with_quote = head + f"💬 \"{e['quote']}\"\n"
+        if tweet_len(with_quote + tail) <= MAX_LEN - 20:
+            head = with_quote
+    return fit(head, tail, e.get("rationale") or "", quote=True)
 
 
 def split_text(s: Settings, rnd: dict, kind: str, headline: str) -> str:
@@ -78,7 +92,9 @@ def split_text(s: Settings, rnd: dict, kind: str, headline: str) -> str:
     return fit(f"{lead} {picks}. Who's right? ", f" {TAG}")
 
 
-def results_text(s: Settings, rnd: dict, board: list[dict], round_url: str, crowd: dict | None = None) -> str:
+def results_text(s: Settings, rnd: dict, board: list[dict], round_url: str, crowd: dict | None = None,
+                 cast: str | None = None) -> str:
+    """cast: the rule-based commentary line, kept when it fits."""
     if rnd["state"] == "void":
         head = f"Voided: \"{clip(rnd['question'], 100)}\". No result this round."
     else:
@@ -91,7 +107,31 @@ def results_text(s: Settings, rnd: dict, board: list[dict], round_url: str, crow
     if season and crowd and crowd.get("played"):
         season += f" | Crowd {crowd['wins']}-{crowd['losses']}"
     tail = (f"\nSeason: {season}." if season else "") + f" {TAG}" + (f" {tags}" if tags else "") + f"\n{round_url}"
+    if cast and tweet_len(head + " " + cast + tail) <= MAX_LEN:
+        head = f"{head}\n{cast}"
     return fit(head, tail)
+
+
+def milestone_text(headline: str, subline: str) -> str:
+    return fit(f"{headline}. {subline}. ", f" {TAG}")
+
+
+def champion_text(season: str, champ: dict, board: list[dict]) -> str:
+    rest = ", ".join(f"{b['name']} {b['net_pnl']:+.0f}" for b in board[1:])
+    return fit(f"{champ['name']} wins AgentpitBench season {season}: {champ['wins']}-{champ['losses']}, "
+               f"{champ['net_pnl']:+.0f} tokens. ", f"\nRunners-up: {rest}. A new season starts now. {TAG}")
+
+
+def race_text(week: str, board: list[dict], crowd: dict | None) -> str:
+    lead = board[0] if board else None
+    head = f"The week in one race ({week}). " + (f"{lead['name']} on top at {lead['net_pnl']:+.0f}. " if lead else "")
+    tail = (f"The Crowd: {crowd['net_pnl']:+.0f}. " if crowd and crowd.get("played") else "") + TAG
+    return fit(head, tail)
+
+
+def summon_reply_text(question: str, thread_url: str) -> str:
+    return fit(f"You summoned it. All four AIs just bet on \"{clip(question, 100)}\". Follow the round: ",
+               f"{thread_url}")
 
 
 def token_file() -> Path:
@@ -212,7 +252,8 @@ class Poster:
         return OAuth1Session(c["X_API_KEY"], c["X_API_SECRET"], c["X_ACCESS_TOKEN"], c["X_ACCESS_SECRET"])
 
     async def post(self, post_key: str, kind: str, text: str, image: Path | None = None,
-                   reply_to: str | None = None, round_id: int | None = None) -> str | None:
+                   reply_to: str | None = None, round_id: int | None = None, quote_of: str | None = None) -> str | None:
+        """quote_of: tweet id to quote (a standalone post that embeds the round's thread)."""
         row = self.db.one("SELECT tweet_id FROM tweets WHERE post_key=?", post_key)
         if row and row["tweet_id"]:
             return row["tweet_id"]
@@ -220,30 +261,31 @@ class Poster:
             log.warning("tweet %s is %d chars; clipping", post_key, tweet_len(text))
             text = clip(text, MAX_LEN)
         if self.live:
-            tweet_id = await self._post_live(text, image, reply_to)
+            tweet_id = await self._post_live(text, image, reply_to, quote_of)
         else:
-            tweet_id = self._post_outbox(post_key, kind, text, image, reply_to)
+            tweet_id = self._post_outbox(post_key, kind, text, image, reply_to, quote_of)
         if tweet_id:
             self.db.x("INSERT INTO tweets(post_key,tweet_id,kind,round_id,text,image_path,posted_at) VALUES(?,?,?,?,?,?,?)"
                       " ON CONFLICT(post_key) DO UPDATE SET tweet_id=excluded.tweet_id, posted_at=excluded.posted_at",
                       post_key, tweet_id, kind, round_id, text, str(image) if image else None, time.time())
         return tweet_id
 
-    def _post_outbox(self, post_key, kind, text, image, reply_to) -> str:
+    def _post_outbox(self, post_key, kind, text, image, reply_to, quote_of=None) -> str:
         self.s.outbox_dir.mkdir(parents=True, exist_ok=True)
         safe = re.sub(r"[^A-Za-z0-9_.-]", "_", post_key)
         tweet_id = f"dry-{safe}"
         (self.s.outbox_dir / f"{safe}.json").write_text(json.dumps({
             "post_key": post_key, "kind": kind, "text": text, "length": tweet_len(text),
-            "image": str(image) if image else None, "reply_to": reply_to, "tweet_id": tweet_id,
+            "image": str(image) if image else None, "reply_to": reply_to, "quote_of": quote_of,
+            "tweet_id": tweet_id,
             "at": time.time()}, indent=1))
         log.info("[outbox] %s: %s", post_key, text.replace("\n", " ")[:120])
         return tweet_id
 
-    async def _post_live(self, text, image, reply_to) -> str | None:
+    async def _post_live(self, text, image, reply_to, quote_of=None) -> str | None:
         for attempt in range(5):
             try:
-                return await asyncio.to_thread(self._post_sync, text, image, reply_to)
+                return await asyncio.to_thread(self._post_sync, text, image, reply_to, quote_of)
             except PermanentError:
                 log.exception("tweet rejected")
                 return None
@@ -264,19 +306,95 @@ class Poster:
     def http_request(self, method, url, tok, **kw):
         return self.oauth2.http.request(method, url, headers={"Authorization": f"Bearer {tok}"}, timeout=60, **kw)
 
+    def upload_media(self, path: Path) -> str:
+        """PNG/JPEG: one-shot upload. MP4/GIF: chunked initialize / append / finalize, then wait for processing."""
+        suffix = path.suffix.lower()
+        if suffix not in (".mp4", ".gif"):
+            return self.upload(path)
+        media_type, category = ("video/mp4", "tweet_video") if suffix == ".mp4" else ("image/gif", "tweet_gif")
+        data = path.read_bytes()
+        mid = self._call("POST", UPLOAD2_URL + "/initialize", json={
+            "media_type": media_type, "total_bytes": len(data), "media_category": category}).json()["data"]["id"]
+        for i in range(0, len(data), CHUNK):
+            self._call("POST", f"{UPLOAD2_URL}/{mid}/append",
+                       files={"media": (path.name, data[i:i + CHUNK], media_type)}, data={"segment_index": str(i // CHUNK)})
+        info = (self._call("POST", f"{UPLOAD2_URL}/{mid}/finalize").json().get("data") or {}).get("processing_info")
+        deadline = time.time() + 300
+        while info and info.get("state") in ("pending", "in_progress") and time.time() < deadline:
+            time.sleep(max(1, int(info.get("check_after_secs") or 2)))
+            r = self._call("GET", UPLOAD2_URL, params={"command": "STATUS", "media_id": mid})
+            info = (r.json().get("data") or {}).get("processing_info")
+        if info and info.get("state") == "failed":
+            raise PermanentError(f"media processing failed: {info}")
+        return mid
+
+    # reads (X bills every post read; callers cap them)
+    @property
+    def can_read(self) -> bool:
+        return not self.s.dry_run and self.oauth2.ready
+
+    def read(self, url: str, params: dict) -> dict:
+        return self._call("GET", url, params=params).json()
+
+    def my_user_id(self) -> str:
+        uid = self.db.get("x_user_id")
+        if not uid:
+            uid = self.read(ME_URL, {})["data"]["id"]
+            self.db.put("x_user_id", uid)
+        return uid
+
+    def _paged(self, url: str, params: dict, max_reads: int) -> list[dict]:
+        out, token = [], None
+        while len(out) < max_reads:
+            p = {**params, "max_results": max(10, min(100, max_reads - len(out)))}
+            if token:
+                p["pagination_token" if "/mentions" in url else "next_token"] = token
+            j = self.read(url, p)
+            users = {u["id"]: u.get("username") for u in (j.get("includes") or {}).get("users", [])}
+            for tw in j.get("data") or []:
+                tw["username"] = users.get(tw.get("author_id"))
+                out.append(tw)
+            token = (j.get("meta") or {}).get("next_token")
+            if not token:
+                break
+        return out[:max_reads]
+
+    def replies(self, conversation_id: str, max_reads: int) -> list[dict]:
+        """Replies in a thread (X recent search: the last 7 days only)."""
+        return self._paged(SEARCH_URL, {"query": f"conversation_id:{conversation_id} is:reply",
+                                        "tweet.fields": "author_id,created_at", "expansions": "author_id",
+                                        "user.fields": "username"}, max_reads)
+
+    def mentions(self, since_id: str | None, max_reads: int = 100) -> list[dict]:
+        params = {"tweet.fields": "author_id,created_at,public_metrics,entities", "expansions": "author_id",
+                  "user.fields": "username"}
+        if since_id:
+            params["since_id"] = since_id
+        return self._paged(MENTIONS_URL.format(id=self.my_user_id()), params, max_reads)
+
+    def like_counts(self, ids: list[str]) -> dict[str, int]:
+        out = {}
+        for i in range(0, len(ids), 100):
+            j = self.read(TWEETS_URL, {"ids": ",".join(ids[i:i + 100]), "tweet.fields": "public_metrics"})
+            for tw in j.get("data") or []:
+                out[tw["id"]] = int((tw.get("public_metrics") or {}).get("like_count", 0))
+        return out
+
     def upload(self, image: Path) -> str:
         # bytes, not a file handle: a 401 retry must resend the whole image
         r = self._call("POST", UPLOAD2_URL, files={"media": (image.name, image.read_bytes(), "image/png")},
                        data={"media_category": "tweet_image"})
         return r.json()["data"]["id"]
 
-    def _post_sync(self, text, image, reply_to) -> str:
+    def _post_sync(self, text, image, reply_to, quote_of=None) -> str:
         if self.oauth2.ready:
             body: dict = {"text": text}
             if image:
-                body["media"] = {"media_ids": [self.upload(Path(image))]}
+                body["media"] = {"media_ids": [self.upload_media(Path(image))]}
             if reply_to and not reply_to.startswith("dry-"):
                 body["reply"] = {"in_reply_to_tweet_id": reply_to}
+            if quote_of and not quote_of.startswith("dry-"):
+                body["quote_tweet_id"] = quote_of
             return self._call("POST", TWEET_URL, json=body).json()["data"]["id"]
         sess = self._session()
         body: dict = {"text": text}
@@ -287,6 +405,8 @@ class Poster:
             body["media"] = {"media_ids": [r.json()["media_id_string"]]}
         if reply_to and not reply_to.startswith("dry-"):
             body["reply"] = {"in_reply_to_tweet_id": reply_to}
+        if quote_of and not quote_of.startswith("dry-"):
+            body["quote_tweet_id"] = quote_of
         r = sess.post(TWEET_URL, json=body, timeout=60)
         _check(r)
         return r.json()["data"]["id"]

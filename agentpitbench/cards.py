@@ -8,6 +8,7 @@ from pathlib import Path
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 from .config import AGENT_COLORS, AGENT_NAMES, Settings
+from .mascots import mascot
 
 log = logging.getLogger(__name__)
 
@@ -59,6 +60,7 @@ def edge(color: str | None) -> str:
 
 env.filters.update(box_ring=box_ring, edge=edge)
 env.filters.update(cents=cents, payout_x=payout_x, fmt_time=fmt_time, signed=signed)
+env.globals["mascot"] = mascot
 
 
 def ranked(entries: list[dict]) -> list[dict]:
@@ -71,45 +73,51 @@ def is_upset(rnd: dict) -> bool:
     return any(e["won"] and e["avg_price"] is not None and e["avg_price"] <= UPSET_PRICE for e in rnd["entries"])
 
 
-def results_headline(rnd: dict) -> str:
+def _en(msg: str, **kw) -> str:
+    return msg.format(**kw)
+
+
+def results_headline(rnd: dict, _=_en) -> str:
+    """`_` translates a message id with {placeholders}; the site passes one per language, cards stay English."""
     if rnd["state"] == "void":
-        return "Market voided"
+        return _("Market voided")
     bettors = [e for e in rnd["entries"] if e["outcome"]]
     winners = [e for e in rnd["entries"] if e["won"]]
     if not winners:
-        return "Everyone got rekt"
+        return _("Everyone got rekt")
     if len(winners) == len(rnd["entries"]) and len(winners) > 1:
-        return "Clean sweep"
+        return _("Clean sweep")
     crowd_lost = (rnd.get("crowd") or {}).get("won") is False
     if len(winners) == 1:
         w = winners[0]
         if w["avg_price"] is not None and w["avg_price"] <= UPSET_PRICE:
-            return f"Upset! {w['name']} cashes at {cents(w['avg_price'])}"
+            return _("Upset! {name} cashes at {price}", name=w["name"], price=cents(w["avg_price"]))
         if crowd_lost:
-            return f"{w['name']} beats the crowd"
+            return _("{name} beats the crowd", name=w["name"])
         if len(bettors) > 1:
-            return f"{w['name']} takes it alone"
-        return f"{w['name']} takes it"
+            return _("{name} takes it alone", name=w["name"])
+        return _("{name} takes it", name=w["name"])
     names = " & ".join(e["name"] for e in winners)
-    return f"{names} beat the crowd" if crowd_lost else f"{names} take it"
+    return _("{names} beat the crowd", names=names) if crowd_lost else _("{names} take it", names=names)
 
 
-def split_headline(rnd: dict) -> tuple[str, str]:
+def split_headline(rnd: dict, _=_en) -> tuple[str, str]:
     """(kind, headline): kind is 'split' or 'agree'. Agents with no bet are left out of the count."""
     picks: dict[str, list[str]] = {}
     for e in rnd["entries"]:
         if e["outcome"]:
             picks.setdefault(e["outcome"], []).append(e["name"])
     if len(picks) <= 1:
-        return "agree", "They all agree"
+        return "agree", _("They all agree")
     groups = sorted(picks.values(), key=len, reverse=True)
     sizes = [len(g) for g in groups]
     score = "–".join(map(str, sizes))
     if len(groups) == 2 and sizes[1] == 1 and sizes[0] > 1:
-        return "split", f"{score}: {groups[1][0]} goes alone"
+        return "split", _("{score}: {name} goes alone", score=score, name=groups[1][0])
     if len(set(sizes)) == 1:
-        return "split", f"{score}: dead split" if len(groups) == 2 else f"{score}: nobody agrees"
-    return "split", f"{score}: {len(groups)}-way split"
+        return "split", (_("{score}: dead split", score=score) if len(groups) == 2
+                         else _("{score}: nobody agrees", score=score))
+    return "split", _("{score}: {n}-way split", score=score, n=len(groups))
 
 
 def entry_status(e: dict) -> str:
@@ -141,14 +149,14 @@ class CardRenderer:
             await self._pw.stop()
         self._browser = self._pw = None
 
-    async def render_html(self, html: str, out: Path) -> Path:
+    async def render_html(self, html: str, out: Path, width: int = W, height: int = H) -> Path:
         out.parent.mkdir(parents=True, exist_ok=True)
         async with self._lock:
             browser = await self._ensure()
-            page = await browser.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
+            page = await browser.new_page(viewport={"width": width, "height": height}, device_scale_factor=1)
             try:
                 await page.set_content(html, wait_until="load")
-                await page.screenshot(path=str(out), clip={"x": 0, "y": 0, "width": W, "height": H})
+                await page.screenshot(path=str(out), clip={"x": 0, "y": 0, "width": width, "height": height})
             finally:
                 await page.close()
         return out
@@ -161,17 +169,71 @@ class CardRenderer:
                 "site": self.s.site_url.replace("https://", "")}
 
     async def decision(self, rnd: dict, entry: dict, board: list[dict] | None = None) -> Path:
+        row = next((b for b in board or [] if b["agent"] == entry["agent"]), {})
+        streak = row.get("streak", 0)
+        form = "fire" if streak >= 3 else "tilt" if streak <= -3 else None
         html = env.get_template("decision.html").render(
-            **self._ctx(rnd, board), e=entry, status=entry_status(entry))
+            **self._ctx(rnd, board), e=entry, status=entry_status(entry), form=form, streak=abs(streak))
         return await self.render_html(html, self._dir(rnd) / f"decision-{entry['agent']}.png")
 
-    async def split(self, rnd: dict, board: list[dict] | None = None) -> Path:
-        kind, headline = split_headline(rnd)
-        html = env.get_template("split.html").render(**self._ctx(rnd, board), kind=kind, headline=headline)
+    async def split(self, rnd: dict, board: list[dict] | None = None, headline: str | None = None,
+                    grudge: dict | None = None) -> Path:
+        kind, default = split_headline(rnd)
+        html = env.get_template("split.html").render(**self._ctx(rnd, board), kind=kind,
+                                                     headline=headline or default, grudge=grudge)
         return await self.render_html(html, self._dir(rnd) / "split.png")
 
-    async def results(self, rnd: dict, board: list[dict] | None = None, crowd: dict | None = None) -> Path:
+    async def results(self, rnd: dict, board: list[dict] | None = None, crowd: dict | None = None,
+                      cast: str | None = None, top_humans: list[dict] | None = None) -> Path:
         html = env.get_template("results.html").render(
             **self._ctx(rnd, board), ranked=ranked(rnd["entries"]), headline=results_headline(rnd),
-            upset=is_upset(rnd), crowd=crowd)
+            upset=is_upset(rnd), crowd=crowd, cast=cast, top_humans=top_humans or [])
         return await self.render_html(html, self._dir(rnd) / "results.png")
+
+    def _plain(self, **kw) -> dict:
+        return {"r": None, "board": [], "colors": AGENT_COLORS, "names": AGENT_NAMES,
+                "site": self.s.site_url.replace("https://", ""), **kw}
+
+    async def trophy(self, season: str, board: list[dict], crowd: dict | None) -> Path:
+        ctx = self._plain(season=season, champ=board[0], crowd=crowd)
+        ctx["board"] = board
+        html = env.get_template("trophy.html").render(**ctx)
+        return await self.render_html(html, self.s.cards_dir / "seasons" / f"{season}.png")
+
+    async def milestone(self, key: str, headline: str, subline: str, agent: str | None, season: str) -> Path:
+        html = env.get_template("milestone.html").render(**self._plain(headline=headline, subline=subline,
+                                                                        agent=agent, season=season))
+        return await self.render_html(html, self.s.cards_dir / "milestones" / f"{key}.png")
+
+    async def human_winner(self, rnd: dict, human: dict, beaten: list[str]) -> Path:
+        html = env.get_template("human.html").render(**self._ctx(rnd, None), h=human, beaten=beaten)
+        safe = "".join(ch for ch in (human.get("username") or human["user_id"]) if ch.isalnum() or ch in "_-")
+        return await self.render_html(html, self.s.cards_dir / "humans" / str(rnd["round_id"]) / f"{safe}.png")
+
+    async def awards(self, week: str, awards: list[dict]) -> Path:
+        html = env.get_template("awards.html").render(**self._plain(week=week, awards=awards))
+        return await self.render_html(html, self.s.cards_dir / "awards" / f"{week}.png")
+
+    async def banner(self, board: list[dict], crowd: dict | None, season: str) -> Path:
+        ctx = self._plain(crowd=crowd, season=season)
+        ctx["board"] = board
+        html = env.get_template("banner.html").render(**ctx)
+        return await self.render_html(html, self.s.cards_dir / "banner.png", 1500, 500)
+
+    async def frames(self, template: str, contexts: list[dict], out_dir: Path) -> list[Path]:
+        """Render one PNG per context (video frames), reusing a single page."""
+        out_dir.mkdir(parents=True, exist_ok=True)
+        tpl = env.get_template(template)
+        paths = []
+        async with self._lock:
+            browser = await self._ensure()
+            page = await browser.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
+            try:
+                for i, ctx in enumerate(contexts):
+                    await page.set_content(tpl.render(**self._plain(**ctx)), wait_until="load")
+                    path = out_dir / f"f{i:05d}.png"
+                    await page.screenshot(path=str(path), clip={"x": 0, "y": 0, "width": W, "height": H})
+                    paths.append(path)
+            finally:
+                await page.close()
+        return paths

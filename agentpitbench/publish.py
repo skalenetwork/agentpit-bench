@@ -1,8 +1,10 @@
 """BenchPublisher: the orchestrator/tracker hooks that export data, render cards, tweet and rebuild the site.
 
-Each round has one X thread. Its first decision tweet starts the thread; every later tweet replies to it.
-Tweets for a round are serialized with a per-round lock so the thread order is stable. A failed card
-or tweet is logged and never stops the rest (a missing card means a text-only tweet).
+Each round's decisions form one X thread: the first decision tweet opens it (and invites followers to reply
+with their own pick), every later decision replies to it. The split and results cards are standalone posts
+that quote the opener, so the two most shareable moments get full reach. Tweets for a round are serialized
+with a per-round lock so the thread order is stable. A failed card or tweet is logged and never stops the
+rest (a missing card means a text-only tweet).
 """
 from __future__ import annotations
 
@@ -14,8 +16,10 @@ from . import exports
 from .cards import CardRenderer, split_headline
 from .config import Settings
 from .db import DB
+from .engage import Engage
 from .site import SiteDeployer
 from .twitter import Poster, decision_text, results_text, split_text
+from .virality import commentary, grudge, grudge_headline
 
 log = logging.getLogger(__name__)
 
@@ -26,6 +30,7 @@ class BenchPublisher:
         self.cards = CardRenderer(s)
         self.poster = Poster(s, db)
         self.site = SiteDeployer(s)
+        self.engage = Engage(s, db, self.poster, self.cards)
         self._locks: dict[int, asyncio.Lock] = {}
         self._pending: dict[int, set[asyncio.Task]] = {}  # in-flight on_bet calls per round
 
@@ -51,13 +56,22 @@ class BenchPublisher:
             log.exception("card render failed; tweeting without an image")
             return None
 
-    async def _post(self, round_id: int, key: str, kind: str, text: str, image: Path | None) -> str | None:
-        """Post into the round's thread: the first post starts it, the rest reply. Caller holds the lock."""
+    async def _post(self, round_id: int, key: str, kind: str, text: str, image: Path | None,
+                    opener_text: str | None = None) -> str | None:
+        """Post into the round's thread: the first post starts it (with opener_text), the rest reply.
+        Caller holds the lock."""
         thread = self.db.round(round_id)["thread_tweet_id"]
+        if not thread and opener_text:
+            text = opener_text
         tid = await self.poster.post(key, kind, text, image, reply_to=thread, round_id=round_id)
         if tid and not thread:
             self.db.set_round(round_id, thread_tweet_id=tid)
         return tid
+
+    async def _standalone(self, round_id: int, key: str, kind: str, text: str, image: Path | None) -> str | None:
+        """A post of its own that quotes the round's opener. Caller holds the lock."""
+        thread = self.db.round(round_id)["thread_tweet_id"]
+        return await self.poster.post(key, kind, text, image, round_id=round_id, quote_of=thread)
 
     async def on_bet(self, round_id: int, run_id: int) -> None:
         task = asyncio.current_task()
@@ -75,7 +89,8 @@ class BenchPublisher:
         png = await self._card(self.cards.decision(rnd, entry, board))
         async with self._lock(round_id):
             tid = await self._post(round_id, f"r{round_id}-decision-{entry['agent']}", "decision",
-                                   decision_text(self.s, rnd, entry), png)
+                                   decision_text(self.s, rnd, entry), png,
+                                   opener_text=decision_text(self.s, rnd, entry, invite=True))
         if tid:
             self.db.set_bet_tweet(run_id, tid)
         exports.export(self.s, self.db)
@@ -87,22 +102,45 @@ class BenchPublisher:
         others = [t for t in self._pending.get(round_id, ()) if t is not asyncio.current_task()]
         if others:
             await asyncio.gather(*others, return_exceptions=True)
-        rnd, board = self._export(round_id)
+        data = exports.export(self.s, self.db)
+        rnd = next(r for r in data["rounds"] if r["round_id"] == round_id)
+        board = data["leaderboard"]["agents"]
         if sum(1 for e in rnd["entries"] if e["outcome"]) >= 2:
             kind, headline = split_headline(rnd)
-            png = await self._card(self.cards.split(rnd, board))
+            g = grudge(rnd, data["rounds"]) if kind == "split" else None
+            if g:
+                headline = grudge_headline(g)
+            png = await self._card(self.cards.split(rnd, board, headline=headline, grudge=g))
             async with self._lock(round_id):
-                await self._post(round_id, f"r{round_id}-split", kind, split_text(self.s, rnd, kind, headline), png)
+                await self._standalone(round_id, f"r{round_id}-split", kind, split_text(self.s, rnd, kind, headline), png)
+        try:
+            await self.engage.model_changes(round_id)
+        except Exception:
+            log.exception("model-change check failed")
         self.site.request()
 
     async def on_resolved(self, round_id: int) -> None:
-        rnd, board, crowd = self._export_all(round_id)
-        png = await self._card(self.cards.results(rnd, board, crowd))
+        try:  # humans' picks: read once (if not already, after the market closed), then scored
+            await self.engage.collect_humans(round_id)
+            self.engage.score_humans(round_id)
+        except Exception:
+            log.exception("human picks for round %s failed", round_id)
+        data = exports.export(self.s, self.db)
+        rnd = next(r for r in data["rounds"] if r["round_id"] == round_id)
+        lb = data["leaderboard"]
+        board, crowd = lb["agents"], lb["crowd"]
+        cast = commentary(rnd)
+        png = await self._card(self.cards.results(rnd, board, crowd, cast=cast, top_humans=lb["humans"][:3]))
         async with self._lock(round_id):
-            tid = await self._post(round_id, f"r{round_id}-results", "results",
-                                   results_text(self.s, rnd, board, self.round_url(round_id), crowd), png)
+            tid = await self._standalone(round_id, f"r{round_id}-results", "results",
+                                         results_text(self.s, rnd, board, self.round_url(round_id), crowd, cast), png)
         if tid:
             self.db.set_round(round_id, results_tweet_id=tid)
+        data = exports.export(self.s, self.db)
+        try:
+            await self.engage.after_resolution(round_id, data, tid)
+        except Exception:
+            log.exception("post-resolution extras for round %s failed", round_id)
         exports.export(self.s, self.db)
         self.site.request()
 

@@ -8,6 +8,9 @@ dependencies = ["httpx>=0.27", "jinja2>=3.1", "playwright>=1.45", "requests-oaut
 
 [project.optional-dependencies]
 test = ["pytest>=8", "pytest-asyncio>=0.23"]
+# race/replay videos (static ffmpeg) and GIF fallback; parquet datasets and their uploads
+media = ["imageio-ffmpeg>=0.5", "pillow>=10"]
+dataset = ["pyarrow>=15", "huggingface_hub>=0.23"]
 
 [project.scripts]
 agentpitbench = "agentpitbench.cli:main"
@@ -21,7 +24,7 @@ build-backend = "setuptools.build_meta"
 include = ["agentpitbench*"]
 
 [tool.setuptools.package-data]
-agentpitbench = ["templates/**/*", "prompt.txt"]
+agentpitbench = ["templates/**/*", "prompt.txt", "i18n/*.json", "widget/*"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

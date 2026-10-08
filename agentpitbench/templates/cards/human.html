@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block style %}
+:root{--accent:#22c55e;--accent-soft:#173a2e}
+.h{font-size:84px;font-weight:700;line-height:1.02;margin-top:26px;max-width:1080px}
+.h .u{color:#22c55e;text-transform:none}
+.sub{font-size:30px;color:#cfd6ea;margin-top:16px}
+.lost{display:flex;gap:26px;margin-top:30px;align-items:center}
+.lost div{display:flex;align-items:center;gap:10px;font-size:24px;color:#ff5c7a;font-family:Oswald,"DejaVu Sans Condensed",sans-serif;text-transform:uppercase}
+{% endblock %}
+{% block body %}
+<div class="top"><span class="tag live">Human beats AI</span><span class="disp dim" style="font-size:22px">Round {{ r.round_id }}</span></div>
+<div class="disp h"><span class="u">@{{ h.username }}</span> beat {% if beaten|length > 1 %}{{ beaten[:-1]|join(', ') }} &amp; {{ beaten[-1] }}{% else %}{{ beaten[0] }}{% endif %}</div>
+<div class="sub">Called <b>{{ h.pick }}</b> on “{{ r.question|truncate(90, True, '…', 0) }}”</div>
+<div class="lost">{% for e in r.entries if e.name in beaten %}<div>{{ mascot(e.agent, 56) }}{{ e.name }}: {{ e.outcome }}</div>{% endfor %}</div>
+{% endblock %}
+{% block foot %}Reply with your pick on the next round{% endblock %}

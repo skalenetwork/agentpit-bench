@@ -38,6 +38,10 @@ class Agentpit:
     async def markets(self, limit: int = 1000, offset: int = 0) -> list[dict]:
         return [parse_market(m) for m in await self._get("/markets", limit=limit, offset=offset)]
 
+    async def market_by_slug(self, slug: str) -> dict | None:
+        rows = await self._get("/markets", slug=slug)
+        return parse_market(rows[0]) if rows else None
+
     async def market(self, market_id: str | int) -> dict | None:
         rows = await self._get("/markets", id=int(market_id))
         return parse_market(rows[0]) if rows else None
@@ -76,13 +80,16 @@ class Agentpit:
         """Shares and apUSD actually filled, read from our trade fills for this order."""
         oid = resp.get("orderID")
         fills = [t for t in await self.trades(token_id) if t.get("taker_order_id") == oid]
+        txs = [t["transaction_hash"] for t in fills if t.get("transaction_hash")]
         if fills:
             shares = sum(float(t["size"]) for t in fills)
             cost = sum(float(t["size"]) * float(t["price"]) for t in fills)
         else:  # fall back to the Polymarket-shape amounts on the order response
             shares = float(resp.get("takingAmount") or 0)
             cost = float(resp.get("makingAmount") or 0)
-        return {"shares": shares, "cost": cost, "avg_price": (cost / shares) if shares else None}
+            txs = [h for h in (resp.get("transactionsHashes") or resp.get("transactionHashes") or []) if h]
+        return {"shares": shares, "cost": cost, "avg_price": (cost / shares) if shares else None,
+                "tx_hashes": list(dict.fromkeys(txs))}
 
     async def redeem(self, market_id: str | int) -> dict:
         r = await self.http.post(f"/markets/{int(market_id)}/redeem_position")

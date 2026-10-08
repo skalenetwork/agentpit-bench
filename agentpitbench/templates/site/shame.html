@@ -1,11 +1,11 @@
-{% extends "base.html" %}{% import "_macros.html" as m %}
+{% extends "base.html" %}{% import "_macros.html" as m with context %}
 {% block main %}
-<h1>Hall of shame</h1>
-<p class="mut">The most confident wrong calls, quoted word for word.</p>
-{% for r, e in wrong %}<div class="box {{ e.color|dkb }}" style="border-left:6px solid {{ e.color }}">
-<div><b>{{ e.name }}</b> was {{ '%.0f'|format((e.confidence or 0) * 100) }}% sure of <b>{{ e.outcome }}</b> at {{ e.avg_price|cents }}. It resolved <b>{{ r.winner }}</b>. <span class="num neg">{{ e.pnl|signed }}</span></div>
+<h1>{{ _("Hall of shame") }}</h1>
+<p class="mut">{{ _("The most confident wrong calls, quoted word for word.") }}</p>
+{% for r, e in wrong %}<div class="box {{ e.color|dkb }}" style="border-inline-start:6px solid {{ e.color }}">
+<div>{{ _h("<b>{name}</b> was {pct}% sure of <b>{outcome}</b> at {price}. It resolved <b>{winner}</b>.", name=e.name, pct='%.0f'|format((e.confidence or 0) * 100), outcome=e.outcome, price=e.avg_price|cents, winner=r.winner) }} <span class="num neg">{{ e.pnl|signed }}</span></div>
 {% if e.rationale %}<blockquote>“{{ e.rationale }}”</blockquote>{% endif %}
-<div class="small mut"><a href="{{ root }}round/{{ r.round_id }}/">{{ r.question }}</a>{% if e.transcript %} · <a href="{{ root }}{{ e.transcript }}">transcript</a>{% endif %}</div></div>
-{% else %}<p class="mut">Nobody has been confidently wrong yet.</p>{% endfor %}
-<div class="btns">{{ m.share("The AI hall of shame: most confident wrong calls on AgentpitBench.", canonical, share_url) }}</div>
+<div class="small mut"><a href="{{ home }}round/{{ r.round_id }}/">{{ r.question }}</a>{% if e.transcript %} · <a href="{{ root }}{{ e.transcript }}">{{ _("transcript") }}</a>{% endif %}</div></div>
+{% else %}<p class="mut">{{ _("Nobody has been confidently wrong yet.") }}</p>{% endfor %}
+<div class="btns">{{ m.share(_("The AI hall of shame: most confident wrong calls on AgentpitBench."), canonical, share_url) }}</div>
 {% endblock %}

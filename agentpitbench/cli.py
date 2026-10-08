@@ -11,7 +11,7 @@ import sys
 from . import config, exports
 from .agentpit import Agentpit
 from .db import DB, leaderboard
-from .orchestrator import NullPublisher, Round
+from .orchestrator import NullPublisher, Round, warm_login
 from .tracker import Tracker
 from .watcher import Watcher
 
@@ -46,7 +46,10 @@ async def run_forever(s: config.Settings) -> None:
 
     async def start_batch():
         free = s.max_concurrent_rounds - len(running)
-        for m in await watcher.pick(free):
+        picked = await watcher.pick(free)
+        if picked:  # refresh each login once, before parallel rounds copy the same refresh token
+            await asyncio.gather(*(warm_login(a) for a in s.agents), return_exceptions=True)
+        for m in picked:
             t = asyncio.create_task(Round(s, db, api, m, pub).run(), name=f"market-{m['id']}")
             running.add(t)
             t.add_done_callback(running.discard)
@@ -55,6 +58,49 @@ async def run_forever(s: config.Settings) -> None:
     async def poll():
         await watcher.poll()
 
+    engage = getattr(pub, "engage", None)
+
+    def launch(m: dict, after=None) -> None:
+        async def go():
+            await asyncio.gather(*(warm_login(a) for a in s.agents), return_exceptions=True)
+            rid = await Round(s, db, api, m, pub).run()
+            if after:
+                await after(rid)
+        t = asyncio.create_task(go(), name=f"market-{m['id']}")
+        running.add(t)
+        t.add_done_callback(running.discard)
+        log.info("round started for market %s: %s", m["id"], m["question"])
+
+    async def scheduled():
+        """Hourly: High-Stakes Friday, the day's summoned round, weekly race + awards, banner, champion."""
+        if engage is None:
+            return
+        engage.api = api
+        if len(running) < s.max_concurrent_rounds:
+            m = await engage.high_stakes_market(watcher)
+            if m:
+                launch(m)
+        if len(running) < s.max_concurrent_rounds:
+            picked = await engage.pick_summon(watcher)
+            if picked:
+                row, m = picked
+                launch(m, after=lambda rid: engage.summon_reply(row, rid))
+        for job in (engage.weekly, engage.daily_banner, engage.champion_check):
+            try:
+                await job()
+            except Exception:
+                log.exception("%s failed", job.__name__)
+
+    async def humans():
+        if engage is not None:
+            await engage.collect_due()
+
+    async def summons():
+        if engage is not None:
+            await engage.poll_summons()
+
+    if engage is not None:
+        await engage.cache_wallets()
     stop = asyncio.Event()
     loop = asyncio.get_running_loop()
     for sig in (signal.SIGINT, signal.SIGTERM):
@@ -64,6 +110,9 @@ async def run_forever(s: config.Settings) -> None:
         asyncio.create_task(_every(s.poll_interval_s, poll, "watcher")),
         asyncio.create_task(_every(s.batch_interval_s, start_batch, "batch")),
         asyncio.create_task(_every(s.resolution_check_s, tracker.check, "tracker")),
+        asyncio.create_task(_every(s.resolution_check_s, humans, "humans")),
+        asyncio.create_task(_every(s.summon_poll_s, summons, "summons")),
+        asyncio.create_task(_every(3600, scheduled, "scheduled")),
     ]
     await stop.wait()
     log.info("stopping; in-flight rounds will be marked crashed on next start")
@@ -181,6 +230,8 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("export", help="write rounds.json, leaderboard.json, bets.csv")
     sub.add_parser("leaderboard", help="print standings")
     sub.add_parser("whoami", help="verify each agent's agentpit key")
+    ds = sub.add_parser("dataset", help="build the monthly open dataset (and upload if HF/Kaggle creds are set)")
+    ds.add_argument("--month", required=True, help="YYYY-MM")
     xc = sub.add_parser("x-check", help="refresh the X OAuth 2.0 token, show scopes and account (never tweets)")
     xc.add_argument("--upload", action="store_true", help="also upload a tiny test image (not attached to a tweet)")
     xl = sub.add_parser("x-login", help="authorize the X account with every scope the bench needs")
@@ -202,6 +253,9 @@ def main(argv: list[str] | None = None) -> None:
         print(f"wrote {s.export_dir}")
     elif a.cmd == "leaderboard":
         print(json.dumps(leaderboard(DB(s.db_path), s.agents), indent=1))
+    elif a.cmd == "dataset":
+        from . import dataset
+        print(dataset.build(s, DB(s.db_path), a.month))
     elif a.cmd == "whoami":
         asyncio.run(whoami(s))
     elif a.cmd == "x-login":

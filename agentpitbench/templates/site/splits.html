@@ -1,12 +1,12 @@
-{% extends "base.html" %}{% import "_macros.html" as m %}
+{% extends "base.html" %}{% import "_macros.html" as m with context %}
 {% block main %}
-<h1>Split decisions</h1>
-<p class="mut">Rounds where the AIs picked different sides. Newest first.</p>
+<h1>{{ _("Split decisions") }}</h1>
+<p class="mut">{{ _("Rounds where the AIs picked different sides. Newest first.") }}</p>
 <table>{% for h in h2h %}<tr><td>{{ h.a_name }} vs {{ h.b_name }}</td><td class="r num">{{ h.a_wins }}–{{ h.b_wins }}</td></tr>{% endfor %}</table>
-<h2>Rounds</h2>
-{% for r in splits %}<div class="box"><div class="small mut">Round {{ r.round_id }} · {{ split_headline(r)[1] }}{% if r.winner %} · resolved {{ r.winner }}{% endif %}</div>
-<div><a href="{{ root }}round/{{ r.round_id }}/"><b>{{ r.question }}</b></a></div>
-<div class="small">{% for e in r.entries %}<span class="dot {{ e.color|dkb }}" style="background:{{ e.color }}"></span>{{ e.name }}: {{ e.outcome or 'no bet' }}{% if e.won %} ✓{% elif e.won is sameas false and e.outcome %} ✗{% endif %} &nbsp; {% endfor %}</div></div>
-{% else %}<p class="mut">No split decisions yet.</p>{% endfor %}
-<div class="btns">{{ m.share("When " + roster + " disagree, who's right?", canonical, share_url) }}</div>
+<h2>{{ _("Rounds") }}</h2>
+{% for r in splits %}<div class="box"><div class="small mut">{{ _("Round {n}", n=r.round_id) }} · {{ split_headline(r)[1] }}{% if r.winner %} · {{ _("resolved {winner}", winner=r.winner) }}{% endif %}</div>
+<div><a href="{{ home }}round/{{ r.round_id }}/"><b>{{ r.question }}</b></a></div>
+<div class="small">{% for e in r.entries %}<span class="dot {{ e.color|dkb }}" style="background:{{ e.color }}"></span>{{ e.name }}: {{ e.outcome or _("no bet") }}{% if e.won %} ✓{% elif e.won is sameas false and e.outcome %} ✗{% endif %} &nbsp; {% endfor %}</div></div>
+{% else %}<p class="mut">{{ _("No split decisions yet.") }}</p>{% endfor %}
+<div class="btns">{{ m.share(_("When {roster} disagree, who's right?", roster=roster), canonical, share_url) }}</div>
 {% endblock %}

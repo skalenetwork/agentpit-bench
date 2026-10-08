@@ -31,6 +31,20 @@ class Settings:
     posting_paused: bool = False
     agents: list[str] = field(default_factory=lambda: ["claude", "codex", "agy", "grok"])
     excluded_keywords: list[str] = field(default_factory=list)
+    # engagement extras
+    x_username: str = "agentpitbench"
+    max_reply_reads: int = 100          # humans-play: replies read per round (X bills each read)
+    humans_board_size: int = 20
+    milestone_streak: int = 4
+    race_weekday: int = 6               # weekly leaderboard race: 0 = Monday ... 6 = Sunday (UTC)
+    race_hour_utc: int = 18
+    summon_poll_s: int = 900            # how often mentions are checked for summoned markets
+    summons_per_day: int = 1
+    summon_hour_utc: int = 17           # the day's most-liked summon starts at or after this hour
+    high_stakes_weekday: int = 4        # High-Stakes Friday: one round a week at a bigger stake
+    high_stakes_hour_utc: int = 16
+    high_stakes_stake: float = 500
+    explorer_url: str = "https://skale-base-explorer.skalenodes.com"   # agentpit settles on SKALE Base
 
     @property
     def db_path(self) -> Path:

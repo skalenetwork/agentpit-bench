@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import time
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -222,17 +223,22 @@ def test_leaderboard(s, db):
 
 def test_export_files(s, db):
     rid = make_round(db, 1, {"claude": ("Yes", 0.5, 0.9), "codex": ("No", 0.5, 0.7), "agy": None})
-    Tracker(s, db, None, NullPublisher()).resolve(rid, "Yes", 1000)
+    now = time.time()
+    old = make_round(db, 2, {"claude": ("No", 0.5, 0.9)})
+    Tracker(s, db, None, NullPublisher()).resolve(old, "Yes", 1000)      # a past season
+    Tracker(s, db, None, NullPublisher()).resolve(rid, "Yes", now)
     out = exports.export(s, db)
     rounds = json.loads((s.export_dir / "rounds.json").read_text())
     assert rounds == json.loads(json.dumps(out["rounds"]))
-    r = rounds[0]
+    r = next(r for r in rounds if r["round_id"] == rid)
     assert r["split"] is True and r["winner"] == "Yes" and r["market_link"].endswith("agentpitbench_r1")
     assert {e["agent"]: e["won"] for e in r["entries"]} == {"claude": True, "codex": False, "agy": False}
     lb = json.loads((s.export_dir / "leaderboard.json").read_text())
-    assert lb["series"]["claude"] == [[1000, 100.0]]
+    assert lb["series"]["claude"] == [[now, 100.0]]                        # this season only
+    at = {a["agent"]: a for a in lb["all_time"]["agents"]}
+    assert at["claude"]["played"] == 2 and at["claude"]["net_pnl"] == 0     # +100 now, -100 in 1970
     csv_lines = (s.export_dir / "bets.csv").read_text().splitlines()
-    assert len(csv_lines) == 4 and csv_lines[0].startswith("round_id,")
+    assert len(csv_lines) == 5 and csv_lines[0].startswith("round_id,") and csv_lines[0].endswith(",quote")
 
 
 # prompt / agent sandbox
@@ -249,7 +255,7 @@ def test_build_prompt_with_and_without_memory():
 def test_agent_env_strips_secrets(monkeypatch):
     monkeypatch.setenv("AGENTPIT_KEY_CLAUDE", "secret")
     for k in ("X_API_KEY", "X_ACCESS_TOKEN", "X_CLIENT_SECRET", "X_OAUTH2_REFRESH_TOKEN", "X_OAUTH2_ACCESS_TOKEN",
-              "XAI_API_KEY", "GH_PAGES_DEPLOY_KEY"):
+              "XAI_API_KEY", "GH_PAGES_DEPLOY_KEY", "HF_TOKEN", "KAGGLE_KEY", "HUGGINGFACE_TOKEN"):
         monkeypatch.setenv(k, "secret")
     env = orchestrator.agent_env("/sock", "/shim")
     assert not [k for k, v in env.items() if v == "secret"]
@@ -269,6 +275,7 @@ esac
 
 
 async def test_round_end_to_end(s, db, tmp_path, monkeypatch):
+    monkeypatch.setenv("BENCH_REAL_HOME", str(tmp_path / "realhome"))
     script = tmp_path / "fake-agent"
     script.write_text(FAKE_AGENT)
     script.chmod(0o755)
@@ -302,3 +309,36 @@ async def test_round_end_to_end(s, db, tmp_path, monkeypatch):
     assert pub.done == [rid] and sorted(pub.bets) == sorted(e["run_id"] for e in by.values())
     transcript = Path(by["claude"]["transcript_path"]).read_text()
     assert "--- prompt ---" in transcript and '"placed": true' in transcript
+
+
+# clean agent homes: only the login goes in, refreshed logins come back, nothing else does
+async def test_clean_home_syncs_rotated_login_back(tmp_path, monkeypatch):
+    real = tmp_path / "real"
+    (real / ".codex").mkdir(parents=True)
+    (real / ".codex/auth.json").write_text('{"refresh": "r0"}')
+    (real / ".codex/config.toml").write_text("operator config")
+    (real / ".claude").mkdir()
+    (real / ".claude/.credentials.json").write_text('{"t": 1}')
+    (real / ".claude/CLAUDE.md").write_text("operator instructions")
+    (real / ".claude.json").write_text('{"oauthAccount": {"a": 1}, "mcpServers": {"x": {}}, "projects": {}}')
+    monkeypatch.setenv("BENCH_REAL_HOME", str(real))
+    from agentpitbench.orchestrator import CleanHome
+    ch = CleanHome("codex")
+    home = ch.setup()
+    assert sorted(str(p.relative_to(home)) for p in home.rglob("*") if p.is_file()) == [".codex/auth.json"]
+    (home / ".codex/auth.json").write_text('{"refresh": "r1"}')          # the CLI rotated its token
+    await ch.sync()
+    assert (real / ".codex/auth.json").read_text() == '{"refresh": "r1"}'
+    assert oct((real / ".codex/auth.json").stat().st_mode & 0o777) == "0o600"
+    ch.cleanup()
+    assert not home.exists()
+    cl = CleanHome("claude")
+    h2 = cl.setup()
+    assert json.loads((h2 / ".claude.json").read_text()) == {"oauthAccount": {"a": 1}}   # no MCP, no projects
+    assert not (h2 / ".claude/CLAUDE.md").exists()
+    (h2 / ".claude.json").write_text('{"junk": 1}')
+    await cl.sync()
+    assert "mcpServers" in (real / ".claude.json").read_text()        # .claude.json is never synced back
+    env = orchestrator.agent_env("/s", "/x", h2)
+    assert env["HOME"] == str(h2) and env["XDG_CONFIG_HOME"].startswith(str(h2)) and "CODEX_HOME" not in env
+    cl.cleanup()

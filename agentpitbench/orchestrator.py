@@ -21,11 +21,20 @@ from typing import Protocol
 from .agentpit import Agentpit, OrderRejected, best_ask
 from .config import Settings
 from .db import DB
+from .virality import clean_quote
 
 log = logging.getLogger(__name__)
 
-SECRET_PREFIXES = ("AGENTPIT_", "X_", "XAI_", "GH_", "BENCH_SECRETS", "SMTP_")
-DROP_VARS = {"CLAUDECODE", "CLAUDE_CODE_ENTRYPOINT", "VIRTUAL_ENV"}
+SECRET_PREFIXES = ("AGENTPIT_", "X_", "XAI_", "GH_", "BENCH_SECRETS", "SMTP_", "HF_", "KAGGLE_", "HUGGING")
+DROP_VARS = {"CLAUDECODE", "CLAUDE_CODE_ENTRYPOINT", "VIRTUAL_ENV", "CLAUDE_CONFIG_DIR", "CODEX_HOME"}
+HOME_PREFIXES = ("GROK_", "XDG_CONFIG_", "XDG_DATA_", "XDG_CACHE_", "XDG_STATE_")
+
+# The only files an agent sees from the operator's home: its login. Everything else (config, skills,
+# MCP servers, hooks, memory) stays out. agy keeps its login in the desktop keyring (session bus).
+AUTH_FILES = {"claude": [".claude/.credentials.json"], "codex": [".codex/auth.json"],
+              "grok": [".grok/auth.json"], "agy": []}
+CLAUDE_JSON_KEYS = ("hasCompletedOnboarding", "oauthAccount", "userID", "lastOnboardingVersion")
+_auth_locks: dict[str, asyncio.Lock] = {}
 
 
 @dataclass
@@ -42,7 +51,8 @@ class AgentCLI:
 CLIS = {
     "claude": AgentCLI(
         "claude",
-        ["claude", "-p", "{prompt}", "--dangerously-skip-permissions", "--output-format", "stream-json", "--verbose"],
+        ["claude", "-p", "{prompt}", "--dangerously-skip-permissions", "--output-format", "stream-json", "--verbose",
+         "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}', "--disable-slash-commands"],
         ["claude", "--version"],
         [r'"model"\s*:\s*"([^"]+)"'],
     ),
@@ -92,12 +102,104 @@ def simulate_fill(book: dict, limit: float, stake: float) -> dict:
     return {"shares": shares, "cost": cost, "avg_price": (cost / shares) if shares else None}
 
 
-def agent_env(sock: str, shim_dir: str) -> dict:
+def agent_env(sock: str, shim_dir: str, home: Path | None = None) -> dict:
     env = {k: v for k, v in os.environ.items()
            if not k.startswith(SECRET_PREFIXES) and k not in DROP_VARS}
     env["PATH"] = shim_dir + os.pathsep + env.get("PATH", "")
     env["BENCH_SOCKET"] = sock
+    if home is not None:
+        env = {k: v for k, v in env.items() if not k.startswith(HOME_PREFIXES)}
+        env.update(HOME=str(home), XDG_CONFIG_HOME=str(home / ".config"), XDG_DATA_HOME=str(home / ".local/share"),
+                   XDG_CACHE_HOME=str(home / ".cache"), XDG_STATE_HOME=str(home / ".local/state"),
+                   DISABLE_AUTOUPDATER="1")
     return env
+
+
+def _digest(path: Path) -> str | None:
+    import hashlib
+    try:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+    except FileNotFoundError:
+        return None
+
+
+class CleanHome:
+    """A throwaway HOME holding only the agent's login, copied from the operator's home.
+
+    Logins share the operator's tokens, and some vendors rotate refresh tokens, so whenever the agent's
+    copy changes it is written straight back (atomically, 0600) to the operator's file."""
+
+    def __init__(self, agent: str, real_home: Path | None = None):
+        self.agent = agent
+        self.real = real_home or Path(os.environ.get("BENCH_REAL_HOME") or Path.home())
+        self.home: Path | None = None
+        self.seen: dict[str, str | None] = {}
+
+    def setup(self) -> Path:
+        self.home = Path(tempfile.mkdtemp(prefix=f"apbh-{self.agent}-"))
+        for rel in AUTH_FILES.get(self.agent, []):
+            src, dst = self.real / rel, self.home / rel
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            if src.exists():
+                shutil.copyfile(src, dst)
+                dst.chmod(0o600)
+            self.seen[rel] = _digest(dst)
+        if self.agent == "claude":  # just enough of ~/.claude.json to skip onboarding; never synced back
+            try:
+                full = json.loads((self.real / ".claude.json").read_text())
+            except (OSError, ValueError):
+                full = {}
+            (self.home / ".claude.json").write_text(json.dumps({k: full[k] for k in CLAUDE_JSON_KEYS if k in full}))
+        return self.home
+
+    async def sync(self) -> None:
+        lock = _auth_locks.setdefault(self.agent, asyncio.Lock())
+        async with lock:
+            for rel, seen in self.seen.items():
+                cur = _digest(self.home / rel)
+                if cur and cur != seen:
+                    dst = self.real / rel
+                    tmp = dst.with_name(dst.name + ".apb-tmp")
+                    shutil.copyfile(self.home / rel, tmp)
+                    tmp.chmod(0o600)
+                    os.replace(tmp, dst)
+                    self.seen[rel] = cur
+                    log.info("%s login refreshed during a run; synced back to %s", self.agent, dst)
+
+    async def watch(self, every: float = 2.0) -> None:
+        while True:
+            await asyncio.sleep(every)
+            try:
+                await self.sync()
+            except Exception:
+                log.exception("login sync for %s failed", self.agent)
+
+    def cleanup(self) -> None:
+        if self.home:
+            shutil.rmtree(self.home, ignore_errors=True)
+
+
+async def warm_login(agent: str, timeout: float = 120) -> bool:
+    """Run the agent once on a trivial prompt so any pending token refresh happens once, before parallel
+    rounds each copy the same (soon rotated) refresh token."""
+    cli = CLIS[agent]
+    if not shutil.which(cli.argv[0]):
+        return False
+    ch = CleanHome(agent)
+    home = ch.setup()
+    try:
+        env = agent_env("", str(home), home)
+        p = await asyncio.create_subprocess_exec(*cli.command("Reply with exactly: ok"), cwd=home, env=env,
+                                                 stdin=asyncio.subprocess.DEVNULL, stdout=asyncio.subprocess.DEVNULL,
+                                                 stderr=asyncio.subprocess.DEVNULL, start_new_session=True)
+        try:
+            await asyncio.wait_for(p.wait(), timeout)
+        except asyncio.TimeoutError:
+            Round._kill(p)
+        await ch.sync()
+        return p.returncode == 0
+    finally:
+        ch.cleanup()
 
 
 def write_shim(shim_dir: Path) -> None:
@@ -136,8 +238,11 @@ def build_prompt(market: dict, memory: list[dict]) -> str:
                + "\n".join(lines))
     else:
         mem = "\nThis is your first round."
+    stake = market.get("bench_stake") or 100
+    high = " HIGH STAKES round: this bet counts at full size in the season standings." if market.get("high_stakes") else ""
     return tpl.format(question=market["question"], outcomes=" / ".join(market["outcomes_list"]),
-                      prices=prices, end_date=market.get("endDate"), memory=mem).strip() + "\n"
+                      prices=prices, end_date=market.get("endDate"), memory=mem,
+                      stake=f"{stake:g}", high_stakes=high).strip() + "\n"
 
 
 class Round:
@@ -187,7 +292,7 @@ class Round:
             return {"question": m["question"], "description": m.get("description"),
                     "outcomes": m["outcomes_list"], "prices": fresh["prices_list"],
                     "best_bid": fresh.get("bestBid"), "best_ask": fresh.get("bestAsk"),
-                    "end_date": m.get("endDate"), "stake": self.s.stake,
+                    "end_date": m.get("endDate"), "stake": self._stake(),
                     "seconds_left": round(self._remaining(agent))}
         if cmd == "book":
             label, tok = self._token(req["outcome"])
@@ -232,17 +337,19 @@ class Round:
         run_id = self.run_ids[agent]
         coid = f"apb-{self.round_id}-{agent}"
         if self.s.dry_run:
-            fill, order_id = simulate_fill(book, limit, self.s.stake), f"dry-{uuid.uuid4().hex[:12]}"
+            fill, order_id = simulate_fill(book, limit, self._stake()), f"dry-{uuid.uuid4().hex[:12]}"
             if not fill["shares"]:
                 raise BetError(f"order did not fill: no asks at or below {limit}")
         else:
             try:
-                resp = await self.clients[agent].buy_fak(tok, limit, self.s.stake, coid)
+                resp = await self.clients[agent].buy_fak(tok, limit, self._stake(), coid)
             except OrderRejected as e:
                 raise BetError(f"order rejected: {e}")
             fill, order_id = resp["fill"], resp.get("orderID")
+        quote, quote_dropped = clean_quote(req.get("quote"))
         self.db.record_bet(
-            run_id, outcome=label, token_id=tok, rationale=req["rationale"][:2000],
+            run_id, outcome=label, token_id=tok, rationale=req["rationale"][:2000], quote=quote,
+            tx_hashes=json.dumps(fill.get("tx_hashes") or []),
             confidence=req.get("confidence"), max_price=req.get("max_price"), order_id=order_id,
             avg_price=fill["avg_price"], shares_filled=fill["shares"], stake_filled=round(fill["cost"], 6),
             decided_s=round(time.time() - self.launched_at[agent], 1),
@@ -250,9 +357,18 @@ class Round:
         self.bet_done[agent].set()
         log.info("round %s: %s bet %s @ %s", self.round_id, agent, label, fill["avg_price"])
         self._hook(self.pub.on_bet(self.round_id, run_id))
-        return {"placed": True, "outcome": label, "avg_price": round(fill["avg_price"], 4),
+        resp = {"placed": True, "outcome": label, "avg_price": round(fill["avg_price"], 4),
                 "shares": round(fill["shares"], 4), "stake_filled": round(fill["cost"], 2),
-                "unspent": round(self.s.stake - fill["cost"], 2)}
+                "unspent": round(self._stake() - fill["cost"], 2)}
+        if quote:
+            resp["quote"] = quote
+        elif quote_dropped:
+            resp["quote_dropped"] = quote_dropped
+        return resp
+
+    def _stake(self) -> float:
+        """High-Stakes Friday rounds carry their own stake in the market snapshot."""
+        return float(self.market.get("bench_stake") or self.s.stake)
 
     def _remaining(self, agent: str) -> float:
         return max(0.0, self.s.decision_limit_s - (time.time() - self.launched_at.get(agent, time.time())))
@@ -283,6 +399,9 @@ class Round:
         tpath = tdir / f"{agent}.txt"
         deadline = self.launched_at[agent] + self.s.decision_limit_s
         attempts, exit_reason, model = 0, "timeout", None
+        home_box = CleanHome(agent)
+        home = home_box.setup()
+        watcher = asyncio.create_task(home_box.watch())
         try:
             with tpath.open("wb") as tf:
                 tf.write(f"$ {' '.join(cli.argv[:2])} <prompt>\n--- prompt ---\n{prompt}\n--- output ---\n".encode())
@@ -293,7 +412,7 @@ class Round:
                         exit_reason = "crash"
                         break
                     proc = await asyncio.create_subprocess_exec(
-                        *cli.command(prompt), cwd=work, env=agent_env(sock, str(ctl)),
+                        *cli.command(prompt), cwd=work, env=agent_env(sock, str(ctl), home),
                         stdin=asyncio.subprocess.DEVNULL, stdout=asyncio.subprocess.PIPE,
                         stderr=asyncio.subprocess.STDOUT, start_new_session=True)
                     out_task = asyncio.create_task(self._pump(proc, tf))
@@ -323,6 +442,13 @@ class Round:
                     tf.write(f"\n[bench] process exited with {proc.returncode} before betting; restarting\n".encode())
         finally:
             server.close()
+            watcher.cancel()
+            await asyncio.gather(watcher, return_exceptions=True)
+            try:
+                await home_box.sync()  # last chance to save a refreshed login before the home goes
+            except Exception:
+                log.exception("final login sync for %s failed", agent)
+            home_box.cleanup()
             shutil.rmtree(ctl, ignore_errors=True)
             shutil.rmtree(work, ignore_errors=True)
         if not self.bet_done[agent].is_set():

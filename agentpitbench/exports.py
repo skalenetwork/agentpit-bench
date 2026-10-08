@@ -4,12 +4,21 @@ rounds.json = list (newest first) of:
   {round_id, market_id, slug, question, outcomes[], prices_at_start[], end_date, started_at (unix),
    state, winner, resolved_at, market_link, thread_tweet_id, results_tweet_id, split (bool),
    entries: [{agent, name, color, outcome|null, avg_price, shares_filled, stake_filled, confidence,
-              rationale, decided_s, exit_reason, model_reported, cli_version, payout, pnl, won (bool|null),
-              tweet_id, transcript (site-relative path or null)}]}
+              rationale, quote|null, decided_s, exit_reason, model_reported, cli_version, payout, pnl,
+              won (bool|null), tweet_id, transcript (site-relative path or null), tail_url, fade_url,
+              wallet|null, wallet_url|null, txs: [{hash, url}]}]}
+  stake, high_stakes (bool)                                  -- High-Stakes Friday rounds carry a bigger stake
   crowd: {outcome|null, price, won (bool|null), pnl|null}   -- The Crowd's notional pick, see crowd_pick
-leaderboard.json = {updated_at, season, agents: [db.leaderboard rows + name, color, beat_crowd],
+  exhibition (bool)                                          -- summoned round, outside every standings table
+  humans: {picked, right (null until resolved), by_outcome: {label: n},
+           winners: [{username, pick, card (site-relative PNG or null)}]}
+leaderboard.json = {updated_at, season (YYYY-MM, UTC month of resolution; tables below are this season's),
+                    agents: [db.leaderboard rows + name, color, beat_crowd],
                     series: {agent: [[resolved_at, cumulative_pnl], ...]},
-                    crowd: {name, played, wins, losses, win_rate, net_pnl, series: [[resolved_at, cumulative_pnl], ...]}}
+                    crowd: {name, played, wins, losses, win_rate, net_pnl, series: [[resolved_at, cumulative_pnl], ...]},
+                    all_time: {agents: [...], crowd: {...}},
+                    humans: [{rank, username, picks, wins, accuracy}],  -- all-time, top humans_board_size
+                    by_model: [{agent, name, model, played, wins, losses, win_rate, net_pnl}]}  -- all time
 
 The Crowd is a reference baseline, not a contestant: each round it notionally stakes 100 tokens on the
 outcome priced highest at the start snapshot, filled at that price. Tied top prices mean no pick. It has no
@@ -25,13 +34,16 @@ from pathlib import Path
 
 from .config import AGENT_COLORS, AGENT_NAMES, Settings
 from .db import DB, leaderboard
+from .virality import season_bounds, season_of, tail_fade
 
 
 CROWD_NAME = "The Crowd"
 
 
-def crowd_pick(s: Settings, outcomes: list[str], prices: list[float], state: str, winner: str | None) -> dict:
-    """The favourite at round start, scored like a 100-token bet filled at that price."""
+def crowd_pick(s: Settings, outcomes: list[str], prices: list[float], state: str, winner: str | None,
+               stake: float | None = None) -> dict:
+    """The favourite at round start, scored like a bet of the round's stake filled at that price."""
+    stake = stake or s.stake
     pick = {"outcome": None, "price": None, "won": None, "pnl": None}
     if not prices or len(prices) != len(outcomes):
         return pick
@@ -41,12 +53,14 @@ def crowd_pick(s: Settings, outcomes: list[str], prices: list[float], state: str
     pick["outcome"], pick["price"] = outcomes[prices.index(top)], top
     if state == "resolved":
         pick["won"] = pick["outcome"] == winner
-        pick["pnl"] = round(s.stake / top - s.stake, 2) if pick["won"] else -float(s.stake)
+        pick["pnl"] = round(stake / top - stake, 2) if pick["won"] else -float(stake)
     return pick
 
 
 def round_record(s: Settings, db: DB, r) -> dict:
     snap = json.loads(r["snapshot_json"])
+    outcomes = json.loads(r["outcomes"])
+    link = s.market_link(r["slug"] or "", f"r{r['round_id']}")
     entries = []
     for e in db.round_entries(r["round_id"]):
         won = None
@@ -57,21 +71,35 @@ def round_record(s: Settings, db: DB, r) -> dict:
             "color": AGENT_COLORS.get(e["agent"], "#888"),
             "outcome": e["outcome"], "avg_price": e["avg_price"], "shares_filled": e["shares_filled"],
             "stake_filled": e["stake_filled"], "confidence": e["confidence"], "rationale": e["rationale"],
+            "quote": e["quote"],
             "decided_s": e["decided_s"], "exit_reason": e["exit_reason"], "model_reported": e["model_reported"],
             "cli_version": e["cli_version"], "payout": e["payout"], "pnl": e["pnl"], "won": won,
             "tweet_id": e["tweet_id"],
             "transcript": f"transcripts/{r['round_id']}/{e['agent']}.txt" if e["transcript_path"] else None,
         })
+        entries[-1]["tail_url"], entries[-1]["fade_url"] = tail_fade(link, outcomes, e["outcome"])
+        wallet = db.get(f"wallet_{e['agent']}")
+        hashes = json.loads(e["tx_hashes"] or "[]")
+        entries[-1].update(wallet=wallet, wallet_url=f"{s.explorer_url}/address/{wallet}" if wallet else None,
+                           txs=[{"hash": h, "url": f"{s.explorer_url}/tx/{h}"} for h in hashes])
     picks = {e["outcome"] for e in entries if e["outcome"]}
-    outcomes = json.loads(r["outcomes"])
+    hp = db.q("SELECT username, pick, won, card_path FROM humans WHERE round_id=?", r["round_id"])
+    by_outcome: dict[str, int] = {}
+    for h in hp:
+        by_outcome[h["pick"]] = by_outcome.get(h["pick"], 0) + 1
     return {
         "round_id": r["round_id"], "market_id": r["market_id"], "slug": r["slug"], "question": r["question"],
         "outcomes": outcomes, "prices_at_start": snap.get("prices_list", []),
         "end_date": r["end_date"], "started_at": r["started_at"], "state": r["state"], "winner": r["winner"],
-        "resolved_at": r["resolved_at"], "market_link": s.market_link(r["slug"] or "", f"r{r['round_id']}"),
+        "resolved_at": r["resolved_at"], "market_link": link, "exhibition": bool(r["exhibition"]),
         "thread_tweet_id": r["thread_tweet_id"], "results_tweet_id": r["results_tweet_id"],
         "split": len(picks) > 1, "entries": entries,
-        "crowd": crowd_pick(s, outcomes, snap.get("prices_list", []), r["state"], r["winner"]),
+        "stake": float(snap.get("bench_stake") or s.stake), "high_stakes": bool(snap.get("high_stakes")),
+        "crowd": crowd_pick(s, outcomes, snap.get("prices_list", []), r["state"], r["winner"], snap.get("bench_stake")),
+        "humans": {"picked": len(hp), "by_outcome": by_outcome,
+                   "right": sum(1 for h in hp if h["won"]) if r["state"] == "resolved" else None,
+                   "winners": [{"username": h["username"], "pick": h["pick"],
+                                "card": _site_card(s, h["card_path"])} for h in hp if h["won"]]},
     }
 
 
@@ -83,30 +111,75 @@ def season_label(ts: float | None = None) -> str:
     return datetime.fromtimestamp(ts or time.time(), timezone.utc).strftime("%Y-%m")
 
 
-def export(s: Settings, db: DB) -> dict:
-    out = s.export_dir
-    out.mkdir(parents=True, exist_ok=True)
-    rounds = all_rounds(s, db)
-    board = leaderboard(db, s.agents)
+def standings(s: Settings, db: DB, rounds: list[dict], season: str | None) -> dict:
+    """Agents, P&L series and Crowd for one season (YYYY-MM by resolution time), or all time when None."""
+    since, until = season_bounds(season) if season else (None, None)
+    board = leaderboard(db, s.agents, since, until)
     for row in board:
         row["name"] = AGENT_NAMES.get(row["agent"], row["agent"])
         row["color"] = AGENT_COLORS.get(row["agent"], "#888")
+    counted = [r for r in rounds if r["state"] == "resolved" and not r["exhibition"]
+               and (season is None or season_of(r["resolved_at"]) == season)]
     series: dict[str, list] = {a: [] for a in s.agents}
-    for r in sorted((r for r in rounds if r["state"] == "resolved"), key=lambda r: r["resolved_at"] or 0):
+    for r in sorted(counted, key=lambda r: r["resolved_at"] or 0):
         for e in r["entries"]:
             if e["agent"] in series:
                 prev = series[e["agent"]][-1][1] if series[e["agent"]] else 0
                 series[e["agent"]].append([r["resolved_at"], round(prev + (e["pnl"] or 0), 2)])
-    crowd = crowd_record(rounds)
+    crowd = crowd_record(counted)
     for row in board:
         row["beat_crowd"] = crowd["beat"].get(row["agent"], 0)
     del crowd["beat"]
-    lb = {"updated_at": time.time(), "season": season_label(), "agents": board, "series": series, "crowd": crowd}
+    return {"agents": board, "series": series, "crowd": crowd}
+
+
+def _site_card(s: Settings, path: str | None) -> str | None:
+    """Card path relative to the site root (the site copies s.cards_dir to /cards/)."""
+    if not path:
+        return None
+    try:
+        return "cards/" + Path(path).relative_to(s.cards_dir).as_posix()
+    except ValueError:
+        return None
+
+
+def by_model(db: DB) -> list[dict]:
+    """All-time record per (agent, reported model), so a model upgrade starts a fresh line."""
+    rows = db.q(
+        "SELECT r.agent, COALESCE(r.model_reported, 'unknown') model, COUNT(*) played,"
+        " SUM(CASE WHEN b.outcome IS NOT NULL AND b.outcome = ro.winner THEN 1 ELSE 0 END) wins,"
+        " ROUND(SUM(COALESCE(b.pnl, 0)), 2) net FROM runs r JOIN rounds ro USING(round_id)"
+        " LEFT JOIN bets b USING(run_id) WHERE ro.state='resolved' AND ro.exhibition=0"
+        " GROUP BY r.agent, model ORDER BY net DESC")
+    return [{"agent": r["agent"], "name": AGENT_NAMES.get(r["agent"], r["agent"]), "model": r["model"],
+             "played": r["played"], "wins": r["wins"], "losses": r["played"] - r["wins"],
+             "win_rate": round(r["wins"] / r["played"], 4) if r["played"] else 0.0, "net_pnl": r["net"]}
+            for r in rows]
+
+
+def humans_board(db: DB, size: int) -> list[dict]:
+    rows = db.q("SELECT h.username, COUNT(*) picks, SUM(h.won) wins FROM humans h JOIN rounds ro USING(round_id)"
+                " WHERE ro.state='resolved' AND ro.exhibition=0 AND h.won IS NOT NULL"
+                " GROUP BY h.user_id ORDER BY wins DESC, CAST(wins AS REAL)/COUNT(*) DESC, picks DESC LIMIT ?", size)
+    return [{"rank": i, "username": r["username"], "picks": r["picks"], "wins": r["wins"],
+             "accuracy": round(r["wins"] / r["picks"], 4)} for i, r in enumerate(rows, 1)]
+
+
+def export(s: Settings, db: DB) -> dict:
+    out = s.export_dir
+    out.mkdir(parents=True, exist_ok=True)
+    rounds = all_rounds(s, db)
+    season = season_label()
+    cur = standings(s, db, rounds, season)
+    all_time = standings(s, db, rounds, None)
+    lb = {"updated_at": time.time(), "season": season, **cur,
+          "all_time": {"agents": all_time["agents"], "crowd": all_time["crowd"]},
+          "humans": humans_board(db, s.humans_board_size), "by_model": by_model(db)}
     _write(out / "rounds.json", json.dumps(rounds, indent=1))
     _write(out / "leaderboard.json", json.dumps(lb, indent=1))
     cols = ["round_id", "market_id", "question", "state", "winner", "agent", "outcome", "avg_price",
             "shares_filled", "stake_filled", "confidence", "decided_s", "exit_reason", "model_reported",
-            "payout", "pnl", "rationale"]
+            "payout", "pnl", "rationale", "quote"]
     tmp = out / "bets.csv.tmp"
     with tmp.open("w", newline="") as f:
         w = csv.writer(f)
@@ -119,8 +192,10 @@ def export(s: Settings, db: DB) -> dict:
 
 
 def crowd_record(rounds: list[dict]) -> dict:
-    """The Crowd's season line, plus how often each agent won a round The Crowd lost."""
-    done = sorted((r for r in rounds if r["state"] == "resolved" and r["crowd"]["outcome"]),
+    """The Crowd's line over the given rounds (exhibitions never count), plus how often each agent won a
+    round The Crowd lost."""
+    done = sorted((r for r in rounds if r["state"] == "resolved" and r["crowd"]["outcome"]
+                   and not r.get("exhibition")),
                   key=lambda r: r["resolved_at"] or 0)
     wins = sum(1 for r in done if r["crowd"]["won"])
     series, net = [], 0.0

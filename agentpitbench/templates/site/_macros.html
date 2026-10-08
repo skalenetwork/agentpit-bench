@@ -3,25 +3,25 @@
 <a class="team {{ b.color|dkb }}" href="{{ root }}agent/{{ b.agent }}/" style="border-top-color:{{ b.color }}">
 <div class="n {{ b.color|dk }}" style="color:{{ b.color }}">{{ b.name }}</div>
 <div class="big {{ b.net_pnl|pnl_class }}">{{ b.net_pnl|signed }}</div>
-<div class="mut small">{{ b.wins }}-{{ b.losses }}{% if b.no_bets %} ({{ b.no_bets }} no-bet){% endif %} · {{ '%.0f'|format(b.win_rate * 100) }}% win rate{% if b.streak > 1 %} · W{{ b.streak }} streak{% elif b.streak < -1 %} · L{{ -b.streak }} streak{% endif %}</div>
+<div class="mut small">{{ b.wins }}-{{ b.losses }}{% if b.no_bets %} ({{ _("{n} no-bet", n=b.no_bets) }}){% endif %} · {{ _("{pct}% win rate", pct='%.0f'|format(b.win_rate * 100)) }}{% if b.streak > 1 %} · {{ _("W{n} streak", n=b.streak) }}{% elif b.streak < -1 %} · {{ _("L{n} streak", n=-b.streak) }}{% endif %}</div>
 </a>{% endfor %}</div>
 {% endmacro %}
 
 {% macro result_row(r, root, headline) %}
-<div class="box"><div class="small mut">{{ r.resolved_at|date }} · Round {{ r.round_id }}{% if r.state == 'void' %} · <span class="tag">Void</span>{% endif %}</div>
+<div class="box"><div class="small mut">{{ r.resolved_at|date }} · {{ _("Round {n}", n=r.round_id) }}{% if r.state == 'void' %} · <span class="tag">{{ _("Void") }}</span>{% endif %}</div>
 <div><a href="{{ root }}round/{{ r.round_id }}/"><b>{{ headline(r) }}</b></a> — {{ r.question }}</div>
-<div class="small">{% if r.winner %}Resolved <b>{{ r.winner }}</b>: {% endif %}{% for e in r.entries %}<span class="dot {{ e.color|dkb }}" style="background:{{ e.color }}"></span>{{ e.name }} {{ e.outcome or 'no bet' }} <span class="{{ e.pnl|pnl_class }}">{% if e.outcome and e.pnl is not none %}{{ e.pnl|signed }}{% endif %}</span>{% if not loop.last %} &nbsp; {% endif %}{% endfor %}</div></div>
+<div class="small">{% if r.winner %}{{ _h("Resolved <b>{winner}</b>:", winner=r.winner) }} {% endif %}{% for e in r.entries %}<span class="dot {{ e.color|dkb }}" style="background:{{ e.color }}"></span>{{ e.name }} {{ e.outcome or _("no bet") }} <span class="{{ e.pnl|pnl_class }}">{% if e.outcome and e.pnl is not none %}{{ e.pnl|signed }}{% endif %}</span>{% if not loop.last %} &nbsp; {% endif %}{% endfor %}</div></div>
 {% endmacro %}
 
-{% macro share(text, url, share_url) %}<a class="btn" href="{{ share_url(text, url) }}" target="_blank" rel="noopener">Share on X</a>{% endmacro %}
+{% macro share(text, url, share_url) %}<a class="btn" href="{{ share_url(text, url) }}" target="_blank" rel="noopener">{{ _("Share on X") }}</a>{% endmacro %}
 
 {% macro live_panel(r, root, api_url) %}
 <div class="box live" data-live data-market="{{ r.market_id }}" data-end="{{ r.end_date or '' }}" data-outcomes='{{ r.outcomes|tojson }}'>
-<div><span class="tag live">Live</span> <span class="small mut">Round {{ r.round_id }} · closes in <b data-countdown>{{ (r.end_date or '')[:16]|replace('T', ' ') }} UTC</b></span></div>
+<div><span class="tag live">{{ _("Live") }}</span> <span class="small mut">{{ _("Round {n}", n=r.round_id) }} · {{ _("closes in") }} <b data-countdown>{{ (r.end_date or '')[:16]|replace('T', ' ') }} UTC</b></span></div>
 <div><a href="{{ root }}round/{{ r.round_id }}/"><b>{{ r.question }}</b></a></div>
-<table class="small"><tr><th>Agent</th><th>Pick</th><th class="r">Entry</th><th class="r">Now</th><th class="r">Live P&amp;L</th></tr>
+<table class="small"><tr><th>{{ _("Agent") }}</th><th>{{ _("Pick") }}</th><th class="r">{{ _("Entry") }}</th><th class="r">{{ _("Now") }}</th><th class="r">{{ _("Live P&L") }}</th></tr>
 {% for e in r.entries %}<tr data-outcome="{{ e.outcome or '' }}" data-shares="{{ e.shares_filled or 0 }}" data-stake="{{ e.stake_filled or 0 }}">
-<td class="nw"><span class="dot {{ e.color|dkb }}" style="background:{{ e.color }}"></span>{{ e.name }}</td><td>{% if e.outcome %}{{ e.outcome }}{% elif e.exit_reason %}no bet{% else %}<span class="mut">thinking…</span>{% endif %}</td>
+<td class="nw"><span class="dot {{ e.color|dkb }}" style="background:{{ e.color }}"></span>{{ e.name }}</td><td>{% if e.outcome %}{{ e.outcome }}{% elif e.exit_reason %}{{ _("no bet") }}{% else %}<span class="mut">{{ _("thinking…") }}</span>{% endif %}</td>
 <td class="r">{{ e.avg_price|cents }}</td>{% set px = r.prices_at_start[r.outcomes.index(e.outcome)] if e.outcome in r.outcomes and r.prices_at_start|length == r.outcomes|length else none %}{% set lp = (e.shares_filled or 0) * px - (e.stake_filled or 0) if px is not none else none %}
 <td class="r" data-now>{{ px|cents }}</td><td class="r {{ lp|pnl_class }}" data-pnl>{{ lp|signed if lp is not none else '—' }}</td></tr>{% endfor %}
 </table></div>
@@ -29,9 +29,9 @@
 
 {% macro live_script(api_url) %}
 <script>
-(function(){var A={{ api_url|tojson }};function f(c){return(c>=0?"+":"−")+Math.abs(c).toFixed(0)}
+(function(){var A={{ api_url|tojson }},CL={{ _("closed")|tojson }};function f(c){return(c>=0?"+":"−")+Math.abs(c).toFixed(0)}
 document.querySelectorAll("[data-live]").forEach(function(b){var end=Date.parse(b.dataset.end),cd=b.querySelector("[data-countdown]"),outs=JSON.parse(b.dataset.outcomes||"[]");
-function tick(){if(!end||!cd)return;var s=Math.max(0,(end-Date.now())/1e3|0),d=s/86400|0,h=s%86400/3600|0,m=s%3600/60|0;cd.textContent=s?(d?d+"d ":"")+h+"h "+m+"m "+(s%60)+"s":"closed"}
+function tick(){if(!end||!cd)return;var s=Math.max(0,(end-Date.now())/1e3|0),d=s/86400|0,h=s%86400/3600|0,m=s%3600/60|0;cd.textContent=s?(d?d+"d ":"")+h+"h "+m+"m "+(s%60)+"s":CL}
 tick();setInterval(tick,1000);
 fetch(A+"/markets?id="+encodeURIComponent(b.dataset.market)).then(function(r){return r.json()}).then(function(j){var m=Array.isArray(j)?j[0]:j;if(!m)return;var p=m.outcomePrices;if(typeof p=="string")p=JSON.parse(p);
 b.querySelectorAll("tr[data-outcome]").forEach(function(tr){var i=outs.indexOf(tr.dataset.outcome);if(i<0||!p)return;var px=+p[i],sh=+tr.dataset.shares,st=+tr.dataset.stake;

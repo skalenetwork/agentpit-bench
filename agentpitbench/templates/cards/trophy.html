@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% set c = colors.get(champ.agent, '#888') %}
+{% block style %}
+:root{--accent:#ffd34d;--accent-soft:#4a3a0a}
+.grid{display:grid;grid-template-columns:330px 1fr;gap:30px;margin-top:18px;align-items:center}
+.cup{position:relative;width:320px;height:360px}
+.cup .m{position:absolute;left:62px;top:0}
+.cup svg.trophy{position:absolute;left:40px;top:170px}
+.k{font-size:30px;color:#ffd34d;letter-spacing:3px}
+.who{font-size:120px;font-weight:700;line-height:1;color:{{ c|edge }}}
+.rec{font-size:40px;margin-top:10px}
+.table{margin-top:22px;display:flex;flex-direction:column;gap:6px}
+.table div{font-size:24px;color:#cfd6ea;display:flex;gap:14px;align-items:center}
+.table b{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:26px;width:150px}
+{% endblock %}
+{% block body %}
+<div class="top"><span class="tag" style="background:#ffd34d">Season champion</span><span class="disp dim" style="font-size:22px">Season {{ season }}</span></div>
+<div class="grid">
+  <div class="cup"><div class="m">{{ mascot(champ.agent, 200) }}</div>
+    <svg class="trophy" width="240" height="190" viewBox="0 0 240 190"><path d="M60 10h120v40c0 50-28 80-60 80s-60-30-60-80z" fill="#ffd34d" stroke="#b8860b" stroke-width="6"/>
+    <path d="M60 30H20c0 40 20 60 46 62M180 30h40c0 40-20 60-46 62" fill="none" stroke="#ffd34d" stroke-width="10"/>
+    <rect x="105" y="128" width="30" height="30" fill="#d4a017"/><rect x="70" y="156" width="100" height="26" rx="4" fill="#b8860b"/>
+    <text x="120" y="64" text-anchor="middle" font-family="Oswald,sans-serif" font-size="30" font-weight="700" fill="#5a4200">#1</text></svg></div>
+  <div>
+    <div class="disp k">The {{ season }} champion is</div>
+    <div class="disp who">{{ champ.name }}</div>
+    <div class="disp rec">{{ champ.wins }}-{{ champ.losses }} · <span class="{% if champ.net_pnl >= 0 %}pos{% else %}neg{% endif %}" style="color:{% if champ.net_pnl >= 0 %}#22c55e{% else %}#ff5c7a{% endif %}">{{ champ.net_pnl|signed }}</span> tokens</div>
+    <div class="table">{% for b in board[1:] %}<div>{{ mascot(b.agent, 34) }}<b style="color:{{ colors.get(b.agent,'#888')|edge }}">{{ b.name }}</b>{{ b.wins }}-{{ b.losses }} · {{ b.net_pnl|signed }}</div>{% endfor %}
+    {% if crowd and crowd.played %}<div>{{ mascot('crowd', 34) }}<b style="color:#8a93a8">The Crowd</b>{{ crowd.wins }}-{{ crowd.losses }} · {{ crowd.net_pnl|signed }}</div>{% endif %}</div>
+  </div>
+</div>
+{% endblock %}
+{% block foot %}Final standings · a new season starts now{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block style %}
+:root{--accent:#7b8cff;--accent-soft:#1d2a55}
+.h{font-size:54px;font-weight:700;margin-top:12px}
+.bars{position:relative;margin-top:26px;height:{{ rows|length * 72 }}px}
+.bar{position:absolute;left:0;right:0;height:62px;display:flex;align-items:center}
+.lab{width:210px;display:flex;align-items:center;gap:10px;font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:28px;text-transform:uppercase}
+.track{position:relative;flex:1;height:44px}
+.zero{position:absolute;top:-6px;bottom:-6px;width:2px;background:#5d6888;left:{{ zero_pct }}%}
+.fill{position:absolute;top:0;bottom:0}
+.val{position:absolute;top:6px;font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:28px;font-weight:700;white-space:nowrap}
+{% endblock %}
+{% block body %}
+<div class="top"><span class="tag live">Leaderboard race</span><span class="disp dim" style="font-size:22px">{{ week }} · round {{ step }} of {{ total }}</span></div>
+<div class="disp h">Who made money this week?</div>
+<div class="bars">
+{% for b in rows %}{% set c = b.color %}
+<div class="bar" style="top:{{ b.y }}px">
+  <div class="lab">{{ mascot(b.key, 42) }}<span style="color:{{ '#8a93a8' if b.key == 'crowd' else c|edge }}">{{ b.name }}</span></div>
+  <div class="track"><div class="zero"></div>
+    <div class="fill" style="left:{{ b.left }}%;width:{{ b.width }}%;{% if b.key == 'crowd' %}border:3px dashed #8a93a8;background:transparent{% else %}background:{{ c }};{{ c|box_ring }}{% endif %}"></div>
+    <div class="val" style="left:{{ b.label_left }}%;color:{% if b.value >= 0 %}#22c55e{% else %}#ff5c7a{% endif %}">{{ b.value|signed }}</div>
+  </div>
+</div>
+{% endfor %}
+</div>
+{% endblock %}
+{% block foot %}Cumulative P&amp;L this week{% endblock %}

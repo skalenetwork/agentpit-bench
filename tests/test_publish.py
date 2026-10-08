@@ -138,8 +138,12 @@ async def test_publisher_thread_and_idempotency(env):
         assert tweets[f"r{rid}-decision-claude"]["reply_to"] is None
         for k, t in tweets.items():
             assert t["length"] <= MAX_LEN
-            if k != f"r{rid}-decision-claude":
-                assert t["reply_to"] == first
+            if "decision" in k and k != f"r{rid}-decision-claude":
+                assert t["reply_to"] == first                      # decisions stay one thread
+            if k.endswith(("-split", "-results")):
+                assert t["reply_to"] is None and t["quote_of"] == first   # standalone, quoting the opener
+        assert "Reply with your pick: CYBERSHOKE / Nexus" in tweets[f"r{rid}-decision-claude"]["text"]
+        assert "Reply with your pick" not in tweets[f"r{rid}-decision-codex"]["text"]
         assert "timed out" in tweets[f"r{rid}-decision-agy"]["text"]
         assert db.round(rid)["results_tweet_id"] == f"dry-r{rid}-results"
         assert all(e["tweet_id"] for e in db.round_entries(rid))

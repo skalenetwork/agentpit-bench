@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% block style %}
-:root{--accent:{% if kind == 'split' %}#ffb020{% else %}#7b8cff{% endif %};--accent-soft:#2b2a55}
+:root{--accent:{% if grudge %}#ff3b5c{% elif kind == 'split' %}#ffb020{% else %}#7b8cff{% endif %};--accent-soft:{% if grudge %}#4a1022{% else %}#2b2a55{% endif %}}
+.vs{font-size:26px;color:#ffd34d;margin-top:8px}
+.col .hd{display:flex;align-items:center;gap:10px}
 .h{font-size:72px;font-weight:700;line-height:1.02;margin-top:20px;max-width:1080px}
 .cols{display:flex;gap:{{ 22 if r.entries|length <= 3 else 14 }}px;margin-top:30px}
 .col{flex:1;background:#141c3a;border-top:8px solid;padding:20px 22px 22px;min-width:0}
@@ -9,13 +11,14 @@
 .col .m{font-size:20px;color:#9aa4c4;margin-top:8px}
 {% endblock %}
 {% block body %}
-<div class="top"><span class="tag {% if kind == 'split' %}live{% endif %}">{% if kind == 'split' %}Split decision{% else %}Unanimous{% endif %}</span><span class="disp dim" style="font-size:22px">Round {{ r.round_id }}</span></div>
-<div class="disp h">{{ headline }}</div>
+<div class="top"><span class="tag {% if kind == 'split' %}live{% endif %}">{% if grudge %}Grudge match{% elif kind == 'split' %}Split decision{% else %}Unanimous{% endif %}</span><span class="disp dim" style="font-size:22px">Round {{ r.round_id }}</span></div>
+<div class="disp h">{% if grudge %}{{ headline|replace('GRUDGE MATCH: ', '') }}{% else %}{{ headline }}{% endif %}</div>
+{% if grudge %}<div class="disp vs">Head to head: {{ grudge.a_name }} {{ grudge.a_wins }} – {{ grudge.b_wins }} {{ grudge.b_name }}</div>{% endif %}
 <div class="q" style="margin-top:12px">{{ r.question }}</div>
 <div class="cols">
 {% for e in r.entries %}{% set c = colors.get(e.agent, '#888') %}
 <div class="col" style="border-color:{{ c|edge }}">
-  <div class="disp n" style="color:{{ c|edge }}">{{ e.name }}</div>
+  <div class="hd">{{ mascot(e.agent, 46) }}<div class="disp n" style="color:{{ c|edge }}">{{ e.name }}</div></div>
   <div class="disp p">{{ e.outcome or 'No bet' }}</div>
   <div class="m">{% if e.outcome %}at {{ e.avg_price|cents }} · {{ '%.0f'|format((e.confidence or 0) * 100) }}% sure{% else %}forfeited{% endif %}</div>
 </div>

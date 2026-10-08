@@ -1,13 +1,13 @@
-{% extends "base.html" %}{% import "_macros.html" as m %}
+{% extends "base.html" %}{% import "_macros.html" as m with context %}
 {% block main %}
 <h1 class="{{ colors.get(agent)|dk }}" style="color:{{ colors.get(agent) }}">{{ name }}</h1>
-{% if row %}<p><b class="num {{ row.net_pnl|pnl_class }}">{{ row.net_pnl|signed }}</b> net · {{ row.wins }}-{{ row.losses }} · {{ '%.0f'|format(row.win_rate * 100) }}% win rate · rank #{{ row.rank }} · longest win streak {{ st.longest_streak }}</p>{% endif %}
-{% if st.upset %}{% set ur, ue = st.upset %}<div class="box"><span class="tag upset">Biggest upset</span> {{ ue.outcome }} at {{ ue.avg_price|cents }} → {{ ue.pnl|signed }} on <a href="{{ root }}round/{{ ur.round_id }}/">{{ ur.question }}</a></div>{% endif %}
-{% if st.by_category %}<h2>Hit rate by category</h2><table>{% for c in st.by_category %}<tr><td>{{ c.name }}</td><td class="r">{{ c.wins }}/{{ c.played }}</td><td class="r num">{{ '%.0f'|format(c.rate * 100) }}%</td></tr>{% endfor %}</table>{% endif %}
-<h2>Every pick</h2>
-<div class="scroll"><table><tr><th>Round</th><th>Market</th><th>Pick</th><th class="r">Entry</th><th class="r">Conf.</th><th class="r">P&amp;L</th></tr>
-{% for r, e in st.picks %}<tr><td><a href="{{ root }}round/{{ r.round_id }}/">{{ r.round_id }}</a></td><td>{{ r.question }}</td><td>{{ e.outcome or 'no bet' }}{% if e.won %} ✓{% elif e.won is sameas false %} ✗{% endif %}</td>
-<td class="r">{{ e.avg_price|cents }}</td><td class="r">{{ '%.0f%%'|format(e.confidence * 100) if e.confidence is not none else '—' }}</td><td class="r num {{ e.pnl|pnl_class }}">{{ e.pnl|signed if e.pnl is not none else '—' }}</td></tr>{% else %}<tr><td colspan="6" class="mut">No picks yet.</td></tr>{% endfor %}
+{% if row %}<p><b class="num {{ row.net_pnl|pnl_class }}">{{ row.net_pnl|signed }}</b> {{ _("net") }} · {{ row.wins }}-{{ row.losses }} · {{ _("{pct}% win rate", pct='%.0f'|format(row.win_rate * 100)) }} · {{ _("rank #{n}", n=row.rank) }} · {{ _("longest win streak {n}", n=st.longest_streak) }}</p>{% endif %}
+{% if st.upset %}{% set ur, ue = st.upset %}<div class="box"><span class="tag upset">{{ _("Biggest upset") }}</span> {{ _("{outcome} at {price} → {pnl}", outcome=ue.outcome, price=ue.avg_price|cents, pnl=ue.pnl|signed) }} · <a href="{{ home }}round/{{ ur.round_id }}/">{{ ur.question }}</a></div>{% endif %}
+{% if st.by_category %}<h2>{{ _("Hit rate by category") }}</h2><table>{% for c in st.by_category %}<tr><td>{{ _(c.name) }}</td><td class="r">{{ c.wins }}/{{ c.played }}</td><td class="r num">{{ '%.0f'|format(c.rate * 100) }}%</td></tr>{% endfor %}</table>{% endif %}
+<h2>{{ _("Every pick") }}</h2>
+<div class="scroll"><table><tr><th>{{ _("Round") }}</th><th>{{ _("Market") }}</th><th>{{ _("Pick") }}</th><th class="r">{{ _("Entry") }}</th><th class="r">{{ _("Conf.") }}</th><th class="r">{{ _("P&L") }}</th></tr>
+{% for r, e in st.picks %}<tr><td><a href="{{ home }}round/{{ r.round_id }}/">{{ r.round_id }}</a></td><td>{{ r.question }}</td><td>{{ e.outcome or _("no bet") }}{% if e.won %} ✓{% elif e.won is sameas false %} ✗{% endif %}</td>
+<td class="r">{{ e.avg_price|cents }}</td><td class="r">{{ '%.0f%%'|format(e.confidence * 100) if e.confidence is not none else '—' }}</td><td class="r num {{ e.pnl|pnl_class }}">{{ e.pnl|signed if e.pnl is not none else '—' }}</td></tr>{% else %}<tr><td colspan="6" class="mut">{{ _("No picks yet.") }}</td></tr>{% endfor %}
 </table></div>
-<div class="btns">{{ m.share(name + " on AgentpitBench: every bet, every rationale, every result.", canonical, share_url) }}</div>
+<div class="btns">{{ m.share(_("{name} on AgentpitBench: every bet, every rationale, every result.", name=name), canonical, share_url) }}</div>
 {% endblock %}

@@ -2,6 +2,10 @@
 
 Pages use relative links, so the site works under /agentpit-bench/ on GitHub Pages and from a local folder.
 Absolute URLs (Open Graph images, feeds) use s.site_url.
+
+Every page exists in each language of i18n.LANGS: English at the root, the others under /<code>/. Data, cards,
+transcripts, feeds, the badge and the widget are shared and stay at the root. On a first visit to an English
+page, a tiny inline script sends the browser to its own language if we have it; the picker's choice sticks.
 """
 from __future__ import annotations
 
@@ -19,10 +23,11 @@ from pathlib import Path
 from urllib.parse import quote, urlencode
 from xml.sax.saxutils import escape
 
-from jinja2 import Environment, PackageLoader, select_autoescape
+from jinja2 import Environment, PackageLoader, pass_context, select_autoescape
 
 from .cards import cents, is_dark, fmt_time, is_upset, payout_x, ranked, results_headline, signed, split_headline
 from .config import AGENT_COLORS, AGENT_NAMES, Settings
+from .i18n import CODES, LANGS, NAMES, Translator
 
 log = logging.getLogger(__name__)
 
@@ -39,10 +44,13 @@ CATEGORIES = [  # crude keyword classifier until the export carries agentpit's o
 env = Environment(loader=PackageLoader("agentpitbench", "templates/site"), autoescape=select_autoescape())
 
 
-def _date(ts) -> str:
+@pass_context
+def _date(ctx, ts) -> str:
+    """'Oct 08, 2026' in English; ISO dates elsewhere, which every locale reads."""
     if not ts:
         return "—"
-    return datetime.fromtimestamp(float(ts), timezone.utc).strftime("%b %d, %Y")
+    fmt = "%b %d, %Y" if ctx.get("lang", "en") == "en" else "%Y-%m-%d"
+    return datetime.fromtimestamp(float(ts), timezone.utc).strftime(fmt)
 
 
 def _pnl_class(v) -> str:
@@ -148,7 +156,8 @@ def best_worst(rounds: list[dict], n: int = 5):
 CROWD = "crowd"
 
 
-def pnl_chart(series: dict[str, list], width: int = 640, height: int = 220, crowd: list | None = None) -> str:
+def pnl_chart(series: dict[str, list], width: int = 640, height: int = 220, crowd: list | None = None,
+              _=Translator("en")) -> str:
     """Inline SVG line chart of cumulative P&L per agent, x = resolved rounds in order. No JS.
     The Crowd baseline, when given, is drawn as a grey dashed reference line."""
     series = {**series, CROWD: crowd} if crowd else series
@@ -164,7 +173,7 @@ def pnl_chart(series: dict[str, list], width: int = 640, height: int = 220, crow
     def xy(i, v):
         return (pad + i / n * (width - pad - 8), 8 + (hi - v) / (hi - lo) * (height - 30))
 
-    parts = [f'<svg viewBox="0 0 {width} {height}" class="chart" role="img" aria-label="Net P&amp;L by round">']
+    parts = [f'<svg viewBox="0 0 {width} {height}" class="chart" role="img" aria-label="{escape(_("Net P&L by round"))}">']
     zy = xy(0, 0)[1]
     parts.append(f'<line x1="{pad}" x2="{width - 8}" y1="{zy:.1f}" y2="{zy:.1f}" class="axis"/>')
     parts.append(f'<text x="2" y="14" class="lbl">{signed(hi)}</text><text x="2" y="{height - 22}" class="lbl">{signed(lo)}</text>')
@@ -181,8 +190,8 @@ def pnl_chart(series: dict[str, list], width: int = 640, height: int = 220, crow
         parts.append(f'<polyline{cls} points="{d}" fill="none" stroke="{c}" stroke-width="2.5"/>')
         x, y = line[-1]
         parts.append(f'<circle{cls} cx="{x:.1f}" cy="{y:.1f}" r="3.5" fill="{c}"/>')
-    parts.append(f'<text x="{pad}" y="{height - 6}" class="lbl">start</text>'
-                 f'<text x="{width - 8}" y="{height - 6}" class="lbl" text-anchor="end">round {n}</text></svg>')
+    parts.append(f'<text x="{pad}" y="{height - 6}" class="lbl">{escape(_("start"))}</text>'
+                 f'<text x="{width - 8}" y="{height - 6}" class="lbl" text-anchor="end">{escape(_("round {n}", n=n))}</text></svg>')
     return "".join(parts)
 
 
@@ -252,42 +261,60 @@ def build(s: Settings) -> Path:
     past.sort(key=lambda r: -(r["resolved_at"] or 0))
     names = [AGENT_NAMES.get(a, a) for a in s.agents]
     vs = " vs ".join(names)
-    roster = ", ".join(names[:-1]) + (" and " + names[-1] if len(names) > 1 else names[0] if names else "")
-    common = {"vs": vs, "roster": roster, "s": s, "board": board, "lb": lb, "colors": AGENT_COLORS, "names": AGENT_NAMES, "base": base,
-              "api_url": s.api_url, "built": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
-              "share_url": share_url, "tweet_url": tweet_url, "headline": results_headline,
-              "split_headline": split_headline, "is_upset": is_upset, "ranked": ranked, "category": category}
-
-    def page(path: str, tpl: str, **ctx) -> None:
-        depth = path.count("/")
-        root = "../" * depth
-        ctx.setdefault("canonical", f"{base}/{path.removesuffix('index.html')}")
-        ctx.setdefault("og_image", f"{base}/og.png" if (s.cards_dir / "og.png").exists() else None)
-        html = env.get_template(tpl).render(**common, root=root, **ctx)
-        f = out / path
-        f.parent.mkdir(parents=True, exist_ok=True)
-        f.write_text(html)
-
-    page("index.html", "index.html", live=live, past=past[:30], upset=biggest_upset(rounds),
-         title=f"AgentpitBench: {vs} bet on prediction markets")
     best, worst = best_worst(rounds)
-    page("leaderboard/index.html", "leaderboard.html", chart=pnl_chart(lb.get("series", {}), crowd=(lb.get("crowd") or {}).get("series")), best=best,
-         worst=worst, h2h=head_to_head(rounds, s.agents), title="Leaderboard · AgentpitBench")
-    for r in rounds:
-        card = card_for(s, r)
-        page(f"round/{r['round_id']}/index.html", "round.html", r=r, card=card,
-             og_image=f"{base}/{card}" if card else None, title=f"Round {r['round_id']}: {r['question']}")
-    for a in s.agents:
-        page(f"agent/{a}/index.html", "agent.html", agent=a, name=AGENT_NAMES.get(a, a),
-             row=next((b for b in board if b["agent"] == a), None), st=agent_stats(rounds, a),
-             title=f"{AGENT_NAMES.get(a, a)} · AgentpitBench")
+    h2h = head_to_head(rounds, s.agents)
     splits = [r for r in rounds if r["split"]]
-    page("splits/index.html", "splits.html", splits=splits, h2h=head_to_head(rounds, s.agents),
-         title="Split decisions · AgentpitBench")
-    page("hall-of-shame/index.html", "shame.html", wrong=shame(rounds), title="Hall of shame · AgentpitBench")
     prompt = (Path(__file__).parent / "prompt.txt").read_text()
-    page("data/index.html", "data.html", prompt=prompt, title="Data & method · AgentpitBench")
-    page("widget/index.html", "widget.html", title="AgentpitBench standings")
+    upset, wrong = biggest_upset(rounds), shame(rounds)
+    stats = {a: agent_stats(rounds, a) for a in s.agents}
+    cards = {r["round_id"]: card_for(s, r) for r in rounds}
+    built = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+    for lang in CODES:
+        _ = Translator(lang)
+        roster = (_("{a} and {b}", a=", ".join(names[:-1]), b=names[-1]) if len(names) > 1
+                  else (names[0] if names else ""))
+        common = {"vs": vs, "roster": roster, "s": s, "board": board, "lb": lb, "colors": AGENT_COLORS,
+                  "names": AGENT_NAMES, "base": base, "api_url": s.api_url, "built": built,
+                  "share_url": share_url, "tweet_url": tweet_url,
+                  "headline": lambda r, _=_: results_headline(r, _),
+                  "split_headline": lambda r, _=_: split_headline(r, _),
+                  "is_upset": is_upset, "ranked": ranked, "category": category,
+                  "_": _, "_h": _.html, "lang": lang, "rtl": _.rtl, "langs": LANGS, "lang_codes": CODES,
+                  "lang_name": NAMES[lang]}
+        prefix = _.prefix()
+
+        def page(path: str, tpl: str, **ctx) -> None:
+            depth = (prefix + path).count("/")
+            root = "../" * depth                     # site root: shared assets, data, feeds
+            rel = path.removesuffix("index.html")    # this page, relative to a language root
+            ctx.setdefault("canonical", f"{base}/{prefix}{rel}")
+            ctx.setdefault("og_image", f"{base}/og.png" if (s.cards_dir / "og.png").exists() else None)
+            html = env.get_template(tpl).render(**common, root=root, home=root + prefix, rel=rel, **ctx)
+            f = out / prefix / path
+            f.parent.mkdir(parents=True, exist_ok=True)
+            f.write_text(html)
+
+        site_name = " · AgentpitBench"
+        page("index.html", "index.html", live=live, past=past[:30], upset=upset,
+             title=_("AgentpitBench: {vs} bet on prediction markets", vs=vs))
+        page("leaderboard/index.html", "leaderboard.html",
+             chart=pnl_chart(lb.get("series", {}), crowd=(lb.get("crowd") or {}).get("series"), _=_),
+             best=best, worst=worst, h2h=h2h, title=_("Leaderboard") + site_name)
+        for r in rounds:
+            card = cards[r["round_id"]]
+            page(f"round/{r['round_id']}/index.html", "round.html", r=r, card=card,
+                 og_image=f"{base}/{card}" if card else None,
+                 title=_("Round {n}", n=r["round_id"]) + f": {r['question']}")
+        for a in s.agents:
+            page(f"agent/{a}/index.html", "agent.html", agent=a, name=AGENT_NAMES.get(a, a),
+                 row=next((b for b in board if b["agent"] == a), None), st=stats[a],
+                 title=AGENT_NAMES.get(a, a) + site_name)
+        page("splits/index.html", "splits.html", splits=splits, h2h=h2h, title=_("Split decisions") + site_name)
+        page("hall-of-shame/index.html", "shame.html", wrong=wrong, title=_("Hall of shame") + site_name)
+        page("data/index.html", "data.html", prompt=prompt, title=_("Data & method") + site_name)
+        if lang == "en":  # embedded elsewhere; one shared copy
+            page("widget/index.html", "widget.html", title="AgentpitBench standings")
 
     (out / "badge.svg").write_text(badge_svg(board, lb.get("crowd")))
     rss, jf = feeds(s, rounds)

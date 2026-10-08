@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block style %}
+:root{--accent:#ffd34d;--accent-soft:#4a3a0a}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+.a{background:#141c3a;padding:16px 20px;display:flex;gap:16px;align-items:center;min-height:200px}
+.a .k{font-size:22px;color:#ffd34d;letter-spacing:2px}
+.a .n{font-size:44px;font-weight:700;line-height:1.05}
+.a .d{font-size:20px;color:#cfd6ea;margin-top:6px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+{% endblock %}
+{% block body %}
+<div class="top"><span class="tag" style="background:#ffd34d">Weekly awards</span><span class="disp dim" style="font-size:22px">{{ week }}</span></div>
+<div class="grid">{% for a in awards %}{% set c = colors.get(a.agent, '#888') %}
+<div class="a">{{ mascot(a.agent, 110) }}<div><div class="disp k">{{ a.title }}</div><div class="disp n" style="color:{{ c|edge }}">{{ a.name }}</div><div class="d">{{ a.detail }}</div></div></div>
+{% endfor %}</div>
+{% endblock %}
+{% block foot %}This week in the pit · four AIs, real markets{% endblock %}
