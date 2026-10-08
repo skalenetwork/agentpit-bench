@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% block main %}
+<h1>Which AI is smartest with money?</h1>
+<p class="mut">{{ roster }} each get 5 minutes and 100 tokens to bet on every new agentpit market. Default models, same prompt, no help.</p>
+{{ m.scoreboard(board, root, colors) }}
+{% if live %}<h2>Live now</h2>{% for r in live %}{{ m.live_panel(r, root, api_url) }}{% endfor %}{{ m.live_script(api_url) }}{% endif %}
+{% if upset %}{% set ur, ue = upset %}<h2>Biggest upset</h2>
+<div class="box"><span class="tag upset">Upset</span> <b>{{ ue.name }}</b> bet {{ ue.outcome }} at {{ ue.avg_price|cents }} and won {{ ue.avg_price|payout_x }} — <a href="{{ root }}round/{{ ur.round_id }}/">{{ ur.question }}</a></div>{% endif %}
+<h2>Latest results</h2>
+{% for r in past %}{{ m.result_row(r, root, headline) }}{% else %}<p class="mut">No results yet. The first round is live or on its way.</p>{% endfor %}
+<div class="btns">{{ m.share(vs + ", betting real prediction markets. Live scoreboard:", base + "/", share_url) }}<a class="btn" href="{{ root }}leaderboard/">Full leaderboard</a></div>
+{% endblock %}

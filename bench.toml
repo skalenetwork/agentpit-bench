@@ -1,0 +1,26 @@
+# AgentpitBench settings. Secrets never go here: see README.
+
+api_url = "https://api.agentpit.dev"
+market_url = "https://agentpit.dev/market/{slug}"
+site_url = "https://skalenetwork.github.io/agentpit-bench"
+data_dir = "var"
+
+poll_interval_s = 60
+batch_interval_s = 3600
+resolution_check_s = 300
+decision_limit_s = 300
+restart_min_remaining_s = 120
+stake = 100
+max_concurrent_rounds = 3
+daily_round_cap = 10
+max_days_to_close = 7
+void_after_days = 14
+deploy_debounce_s = 30
+
+# dry_run: everything runs except placing orders, posting tweets and pushing the site.
+dry_run = true
+# kill switch: when true, nothing is posted to X even outside dry-run.
+posting_paused = false
+
+agents = ["claude", "codex", "agy", "grok"]
+excluded_keywords = ["death", "dies", "die ", "killed", "shooting", "war ", "attack", "terror", "earthquake", "hurricane", "flood", "wildfire", "disaster", "casualt", "murder", "assassinat"]

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block style %}
+:root{--accent:{% if upset %}#ff3b5c{% else %}#22c55e{% endif %};--accent-soft:#1c3b35}
+.h{font-size:70px;font-weight:700;line-height:1;margin-top:16px;max-width:1080px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.win{font-size:26px;color:#cfd6ea;margin-top:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:1080px}
+.win b{color:#22c55e;font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:30px;text-transform:uppercase}
+.rows{margin-top:{{ 20 if ranked|length <= 3 else 14 }}px;display:flex;flex-direction:column;gap:{{ 10 if ranked|length <= 3 else 6 }}px}
+.row{display:grid;grid-template-columns:56px 220px 1fr 160px;align-items:center;background:#141c3a;height:{{ 66 if ranked|length <= 3 else (58 if ranked|length == 4 else 46) }}px;padding:0 22px 0 0}
+.row.w{background:linear-gradient(90deg,#173a2e,#141c3a)}
+.rk{font-size:34px;font-weight:700;text-align:center;color:#8f9abb}
+.row .n{font-size:{{ 36 if ranked|length <= 4 else 28 }}px;font-weight:700}
+.row .p{font-size:22px;color:#cfd6ea;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .pnl{font-size:{{ 42 if ranked|length <= 4 else 32 }}px;font-weight:700;text-align:right}
+.pos{color:#22c55e}.neg{color:#ff5c7a}.zero{color:#8f9abb}
+.strip{display:flex;gap:{{ 28 if board|length <= 3 else 18 }}px;margin-top:16px;font-size:20px;color:#9aa4c4}
+.strip b{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:24px}
+{% endblock %}
+{% block body %}
+<div class="top"><span class="tag {% if upset %}live{% endif %}">{% if r.state == 'void' %}Void{% elif upset %}Upset{% else %}Final{% endif %}</span><span class="disp dim" style="font-size:22px">Round {{ r.round_id }} · default vs default</span></div>
+<div class="disp h">{{ headline }}</div>
+<div class="win">{% if r.winner %}Winner: <b>{{ r.winner }}</b> · {% endif %}{{ r.question }}</div>
+<div class="rows">
+{% for e in ranked %}{% set c = colors.get(e.agent, '#888') %}
+<div class="row {% if e.won %}w{% endif %}" style="border-left:8px solid {{ c|edge }}">
+  <div class="disp rk">{{ loop.index }}</div>
+  <div class="disp n" style="color:{{ c|edge }}">{{ e.name }}</div>
+  <div class="p">{% if e.outcome %}{{ e.outcome }} at {{ e.avg_price|cents }}{% else %}no bet{% endif %}</div>
+  <div class="disp pnl {% if e.pnl and e.pnl > 0 %}pos{% elif e.pnl and e.pnl < 0 %}neg{% else %}zero{% endif %}">{% if e.outcome %}{{ e.pnl|signed }}{% else %}—{% endif %}</div>
+</div>
+{% endfor %}
+</div>
+{% if board %}<div class="strip">{% for b in board %}<span><b style="color:{{ colors.get(b.agent,'#888')|edge }}">{{ b.name }}</b> {{ b.wins }}-{{ b.losses }} · {{ b.net_pnl|signed }}</span>{% endfor %}</div>{% endif %}
+{% endblock %}
+{% block foot %}Season standings · default models{% endblock %}

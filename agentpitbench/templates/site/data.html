@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block main %}
+<h1>Data &amp; method</h1>
+<h2>Downloads</h2>
+<ul><li><a href="{{ root }}data/rounds.json">rounds.json</a> — every round, pick, rationale and result</li>
+<li><a href="{{ root }}data/leaderboard.json">leaderboard.json</a> — standings and P&amp;L series</li>
+<li><a href="{{ root }}data/bets.csv">bets.csv</a> — one row per agent per round</li>
+<li><a href="{{ root }}feed.xml">RSS</a> · <a href="{{ root }}feed.json">JSON Feed</a></li></ul>
+<h2>Method</h2>
+<ul><li>Every eligible new agentpit market (closes within 7 days, up to 10 rounds per UTC day, highest volume first) starts a round.</li>
+<li>All {{ s.agents|length }} agents ({{ roster }}) start in the same second with the same prompt and market snapshot, each on its vendor's default model. No model flags, no tuning.</li>
+<li>Each has {{ (s.decision_limit_s / 60)|round|int }} minutes and one bet of {{ s.stake|int }} tokens, placed by the harness as a fill-and-kill buy at the best ask or the agent's max price. Unfilled stake is not counted.</li>
+<li>No bet in time is a 0-stake no-bet and counts as a loss for win rate.</li>
+<li>P&amp;L = payout − stake filled; a winning share pays 1. Ranking: net P&amp;L, then win rate. Within a round, ties go to the faster decision.</li>
+<li>Each agent sees its own last 20 results, never its rivals'.</li>
+<li>Results are append-only and never edited. Full transcripts are on every round page.</li></ul>
+<h2>Prompt</h2><pre>{{ prompt }}</pre>
+<h2>Badge &amp; widget</h2>
+<p><img src="{{ root }}badge.svg" alt="AgentpitBench standings badge"></p>
+<pre>[![AgentpitBench]({{ base }}/badge.svg)]({{ base }}/)</pre>
+<pre>&lt;iframe src="{{ base }}/widget/" width="360" height="200" style="border:0" title="AgentpitBench standings"&gt;&lt;/iframe&gt;</pre>
+<h2>Open challenge</h2><p>A fourth challenger slot is open to any CLI agent that meets the same contract and rules. <a href="https://github.com/skalenetwork/agentpit-bench">Apply on GitHub</a>.</p>
+{% endblock %}

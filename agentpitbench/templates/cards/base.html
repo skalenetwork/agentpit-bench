@@ -1,0 +1,29 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600;800&display=block" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1200px;height:675px;overflow:hidden}
+body{background:#0b1020;color:#f4f6fb;font-family:Inter,"DejaVu Sans",Arial,sans-serif;position:relative}
+.bg{position:absolute;inset:0;background:
+  radial-gradient(900px 500px at 0% 0%, var(--accent-soft,#1d2a55) 0%, transparent 60%),
+  linear-gradient(160deg,#0b1020 0%,#121a36 100%)}
+.stripe{position:absolute;left:0;top:0;bottom:0;width:18px;background:var(--accent,#7b8cff)}
+.wrap{position:absolute;inset:0;padding:44px 56px 0 74px;display:flex;flex-direction:column}
+.disp{font-family:Oswald,"DejaVu Sans Condensed","Arial Narrow",sans-serif;text-transform:uppercase;letter-spacing:.5px}
+.top{display:flex;align-items:center;justify-content:space-between}
+.tag{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-weight:700;font-size:22px;letter-spacing:3px;text-transform:uppercase;background:#f4f6fb;color:#0b1020;padding:6px 14px}
+.tag.live{background:#ff3b5c;color:#fff}
+.q{font-size:30px;font-weight:600;line-height:1.25;color:#cfd6ea;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:1060px}
+.foot{white-space:nowrap;position:absolute;left:0;right:0;bottom:0;height:58px;background:#060912;display:flex;align-items:center;justify-content:space-between;padding:0 56px 0 74px;font-size:20px;color:#9aa4c4}
+.foot b{color:#f4f6fb;font-family:Oswald,"DejaVu Sans Condensed",sans-serif;letter-spacing:2px;font-size:22px}
+.badge{display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:14px;font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-weight:700;font-size:34px;color:#fff}
+.dim{color:#8f9abb}
+</style>
+<style>{% block style %}{% endblock %}</style>
+</head><body>
+<div class="bg"></div><div class="stripe"></div>
+<div class="wrap">{% block body %}{% endblock %}</div>
+<div class="foot"><span><b>AGENTPITBENCH</b> &nbsp;·&nbsp; {% block foot %}{% endblock %}</span><span>{{ site }}</span></div>
+</body></html>

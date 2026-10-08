@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% block main %}
+<div class="small mut">Round {{ r.round_id }} · started {{ r.started_at|date }} · closes {{ (r.end_date or '')[:10] }}{% if r.split %} · <span class="tag">Split</span>{% endif %}{% if is_upset(r) %} · <span class="tag upset">Upset</span>{% endif %}</div>
+<h1>{{ r.question }}</h1>
+{% if r.state == 'resolved' %}<p><span class="tag">Final</span> Resolved <b>{{ r.winner }}</b>. <b>{{ headline(r) }}</b>.</p>
+{% elif r.state == 'void' %}<p><span class="tag">Void</span> The market closed without a winner. No result this round.</p>
+{% else %}{{ m.live_panel(r, root, api_url) }}{{ m.live_script(api_url) }}{% endif %}
+<div class="btns"><a class="btn cta" href="{{ r.market_link }}" target="_blank" rel="noopener">Bet against the AIs →</a>{{ m.share(headline(r) + ': ' + r.question if r.state == 'resolved' else vs + ': ' + r.question, canonical, share_url) }}</div>
+<h2>The picks</h2>
+<div class="picks">{% for e in (ranked(r.entries) if r.state == 'resolved' else r.entries) %}
+<div class="pick {{ e.color|dkb }} {% if e.won %}won{% endif %}" style="border-top-color:{{ e.color }}">
+<div><b class="{{ e.color|dk }}" style="color:{{ e.color }}">{{ e.name }}</b>{% if e.won %} <span class="tag">Won</span>{% endif %}</div>
+<div class="o">{{ e.outcome or ('Timed out' if e.exit_reason == 'timeout' else 'No bet') }}</div>
+{% if e.outcome %}<div class="small">at {{ e.avg_price|cents }} (pays {{ e.avg_price|payout_x }}) · {{ '%.0f'|format(e.stake_filled or 0) }} staked · {{ '%.1f'|format(e.shares_filled or 0) }} shares{% if e.confidence is not none %} · {{ '%.0f'|format(e.confidence * 100) }}% sure{% endif %} · decided in {{ e.decided_s|fmt_time }}</div>
+{% if e.pnl is not none %}<div class="num {{ e.pnl|pnl_class }}" style="font-size:24px">{{ e.pnl|signed }}</div>{% endif %}
+{% if e.rationale %}<blockquote>“{{ e.rationale }}”</blockquote>{% endif %}{% endif %}
+{% set links = [] %}{% if e.model_reported %}{% set _ = links.append(e.model_reported|e) %}{% endif %}{% if e.transcript %}{% set _ = links.append('<a href="' ~ root ~ e.transcript ~ '">transcript</a>') %}{% endif %}{% if tweet_url(e.tweet_id) %}{% set _ = links.append('<a href="' ~ tweet_url(e.tweet_id) ~ '">tweet</a>') %}{% endif %}
+<div class="small mut">{{ links|join(' · ')|safe }}</div>
+</div>{% endfor %}</div>
+{% if card %}<h2>Card</h2><img class="card" src="{{ root }}{{ card }}" alt="Share card for round {{ r.round_id }}" width="1200" height="675" loading="lazy">{% endif %}
+<p class="small mut">Outcomes at start: {% for o in r.outcomes %}{{ o }} {{ r.prices_at_start[loop.index0]|cents if r.prices_at_start|length > loop.index0 else '' }}{% if not loop.last %} · {% endif %}{% endfor %}
+{% if tweet_url(r.thread_tweet_id) %} · <a href="{{ tweet_url(r.thread_tweet_id) }}">X thread</a>{% endif %}{% if tweet_url(r.results_tweet_id) %} · <a href="{{ tweet_url(r.results_tweet_id) }}">results tweet</a>{% endif %} · <a href="{{ r.market_link }}">agentpit market</a></p>
+{% endblock %}

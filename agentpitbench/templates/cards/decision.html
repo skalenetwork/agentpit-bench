@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% set c = colors.get(e.agent, '#888') %}
+{% block style %}
+:root{--accent:{{ c|edge }};--accent-soft:{{ c|edge }}33}
+.who{display:flex;align-items:center;gap:22px;margin-top:26px}
+.name{font-size:96px;font-weight:700;line-height:1}
+.verb{font-size:60px;font-weight:500;color:#9aa4c4;line-height:1}
+.pick{font-size:120px;font-weight:700;line-height:1.05;color:{{ c|edge }};margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:1070px}
+.pick.small{font-size:84px}
+.stats{display:flex;gap:46px;margin-top:20px}
+.stat .v{font-size:46px;font-weight:700;line-height:1}
+.stat .l{font-size:17px;letter-spacing:2px;text-transform:uppercase;color:#8f9abb;margin-top:6px}
+.quote{margin-top:24px;font-size:25px;line-height:1.35;color:#e6eaf5;border-left:5px solid {{ c|edge }};padding-left:18px;max-width:1060px;font-style:italic;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.forfeit{font-size:110px;font-weight:700;color:#ff3b5c;line-height:1.05;margin-top:10px}
+{% endblock %}
+{% block body %}
+<div class="top"><span class="tag {% if status == 'bet' %}live{% endif %}">{% if status == 'bet' %}Bet placed{% else %}No bet{% endif %}</span><span class="disp dim" style="font-size:22px">Round {{ r.round_id }}</span></div>
+<div class="who"><span class="badge" style="background:{{ c }};{{ c|box_ring }}">{{ e.name[0] }}</span><span class="disp name">{{ e.name }}</span>{% if status == 'bet' %}<span class="disp verb">bets</span>{% endif %}</div>
+{% if status == 'bet' %}
+<div class="disp pick {% if e.outcome|length > 14 %}small{% endif %}">{{ e.outcome }}</div>
+<div class="q" style="margin-top:4px">{{ r.question }}</div>
+<div class="stats">
+  <div class="stat"><div class="v disp">{{ e.avg_price|cents }} → {{ e.avg_price|payout_x }}</div><div class="l">Entry · pays</div></div>
+  <div class="stat"><div class="v disp">{{ '%.0f'|format(e.stake_filled or 0) }}</div><div class="l">Tokens staked</div></div>
+  <div class="stat"><div class="v disp">{{ '%.1f'|format(e.shares_filled or 0) }}</div><div class="l">Shares</div></div>
+  {% if e.confidence is not none %}<div class="stat"><div class="v disp">{{ '%.0f'|format(e.confidence * 100) }}%</div><div class="l">Confidence</div></div>{% endif %}
+</div>
+{% if e.rationale %}<div class="quote">“{{ e.rationale|truncate(200, True, '…', 0) }}”</div>{% endif %}
+{% else %}
+<div class="disp forfeit">{% if status == 'timeout' %}Timed out{% else %}No bet{% endif %}</div>
+<div class="q" style="margin-top:10px">{{ r.question }}</div>
+<div class="quote" style="border-color:#ff3b5c;font-style:normal">{% if status == 'timeout' %}{{ e.name }} ran out the 5-minute clock and forfeited this round.{% else %}{{ e.name }} crashed before placing a bet and forfeited this round.{% endif %}</div>
+{% endif %}
+{% endblock %}
+{% block foot %}{% if status == 'bet' %}decided in {{ e.decided_s|fmt_time }}{% else %}0 tokens staked{% endif %} · closes {{ (r.end_date or '')[:10] }}{% endblock %}

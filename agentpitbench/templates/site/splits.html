@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% block main %}
+<h1>Split decisions</h1>
+<p class="mut">Rounds where the AIs picked different sides. Newest first.</p>
+<table>{% for h in h2h %}<tr><td>{{ h.a_name }} vs {{ h.b_name }}</td><td class="r num">{{ h.a_wins }}–{{ h.b_wins }}</td></tr>{% endfor %}</table>
+<h2>Rounds</h2>
+{% for r in splits %}<div class="box"><div class="small mut">Round {{ r.round_id }} · {{ split_headline(r)[1] }}{% if r.winner %} · resolved {{ r.winner }}{% endif %}</div>
+<div><a href="{{ root }}round/{{ r.round_id }}/"><b>{{ r.question }}</b></a></div>
+<div class="small">{% for e in r.entries %}<span class="dot {{ e.color|dkb }}" style="background:{{ e.color }}"></span>{{ e.name }}: {{ e.outcome or 'no bet' }}{% if e.won %} ✓{% elif e.won is sameas false and e.outcome %} ✗{% endif %} &nbsp; {% endfor %}</div></div>
+{% else %}<p class="mut">No split decisions yet.</p>{% endfor %}
+<div class="btns">{{ m.share("When " + roster + " disagree, who's right?", canonical, share_url) }}</div>
+{% endblock %}
