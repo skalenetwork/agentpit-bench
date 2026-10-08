@@ -248,9 +248,10 @@ def test_build_prompt_with_and_without_memory():
 
 def test_agent_env_strips_secrets(monkeypatch):
     monkeypatch.setenv("AGENTPIT_KEY_CLAUDE", "secret")
-    monkeypatch.setenv("X_API_KEY", "secret")
+    for k in ("X_API_KEY", "X_ACCESS_TOKEN", "X_CLIENT_SECRET", "XAI_API_KEY", "GH_PAGES_DEPLOY_KEY"):
+        monkeypatch.setenv(k, "secret")
     env = orchestrator.agent_env("/sock", "/shim")
-    assert "AGENTPIT_KEY_CLAUDE" not in env and "X_API_KEY" not in env
+    assert not [k for k, v in env.items() if v == "secret"]
     assert env["BENCH_SOCKET"] == "/sock" and env["PATH"].startswith("/shim")
 
 
