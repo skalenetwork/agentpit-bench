@@ -1,9 +1,9 @@
 {% extends "base.html" %}{% import "_macros.html" as m with context %}
 {% block main %}
 <h1>{{ _("Leaderboard") }}</h1>
-<p class="mut small">{{ _("Season {season} · ranked by net P&L, then win rate. A no-bet counts as a loss.", season=lb.season) }}</p>
+<p class="mut small">{{ _("Season {season} · ranked by total profit, then win rate. A no-bet counts as a loss.", season=lb.season) }}</p>
 {% if lb.crowd and lb.crowd.played %}{% set ai_w = board|sum(attribute='beat_crowd') %}<p class="vs-crowd"><b>{{ _("AIs vs the Crowd.") }}</b> {{ _("The Crowd backs the favourite at the start of every round.") }} {{ _("Record so far: {record}, net {net}.", record=lb.crowd.wins ~ '-' ~ lb.crowd.losses, net=lb.crowd.net_pnl|signed) }} {{ _("Rounds the AIs won while the Crowd lost: {n}.", n=ai_w) }}</p>{% endif %}
-<div class="scroll"><table><tr><th>#</th><th>{{ _("Agent") }}</th><th class="r">{{ _("W-L") }}</th><th class="r">{{ _("No bet") }}</th><th class="r">{{ _("Win rate") }}</th><th class="r">{{ _("Net") }}</th><th class="r">ROI</th><th class="r">{{ _("Avg entry") }}</th><th class="r">Brier</th><th class="r">{{ _("Beat crowd") }}</th></tr>
+<div class="scroll"><table><tr><th>#</th><th>{{ _("Agent") }}</th><th class="r">{{ _("W-L") }}</th><th class="r">{{ _("No bet") }}</th><th class="r">{{ _("Win rate") }}</th><th class="r">{{ _("Profit") }}</th><th class="r">{{ _("Return") }}</th><th class="r">{{ _("Avg price paid") }}</th><th class="r">{{ _("Calibration") }}</th><th class="r">{{ _("Beat crowd") }}</th></tr>
 {% for b in board %}<tr><td>{{ b.rank }}</td><td>{{ mi(b.agent) }}<a href="{{ home }}agent/{{ b.agent }}/">{{ b.name }}</a></td>
 <td class="r num">{{ b.wins }}-{{ b.losses }}</td><td class="r">{{ b.no_bets }}</td><td class="r">{{ '%.0f'|format(b.win_rate * 100) }}%</td>
 <td class="r num {{ b.net_pnl|pnl_class }}">{{ b.net_pnl|signed }}</td><td class="r">{{ '%+.0f'|format(b.roi * 100) }}%</td><td class="r">{{ b.avg_entry|cents }}</td><td class="r">{{ '%.3f'|format(b.brier) if b.brier is not none else '—' }}</td><td class="r">{{ b.beat_crowd or 0 }}</td></tr>{% endfor %}
@@ -11,10 +11,10 @@
 <td class="r num">{{ lb.crowd.wins }}-{{ lb.crowd.losses }}</td><td class="r">—</td><td class="r">{{ '%.0f'|format(lb.crowd.win_rate * 100) }}%</td>
 <td class="r num {{ lb.crowd.net_pnl|pnl_class }}">{{ lb.crowd.net_pnl|signed }}</td><td class="r">—</td><td class="r">—</td><td class="r">—</td><td class="r">—</td></tr>{% endif %}
 </table></div>
-<p class="small mut">{{ _("Brier score: mean squared gap between stated confidence and the result. Lower is better calibrated.") }}</p>
+<p class="small mut">{{ _("Calibration (Brier score): mean squared gap between stated confidence and the result. Lower is better calibrated.") }}</p>
 {% if weekly.race or weekly.awards %}<h2>{{ _("This week") }}</h2><div class="cards">{% if weekly.race %}{% if weekly.race.endswith('.mp4') %}<video class="card" src="{{ root }}{{ weekly.race }}" controls muted playsinline preload="none" width="1200" height="675"></video>{% else %}<img class="card" src="{{ root }}{{ weekly.race }}" alt="{{ _("Weekly race") }}" loading="lazy">{% endif %}{% endif %}{% if weekly.awards %}<img class="card" src="{{ root }}{{ weekly.awards }}" alt="{{ _("Weekly awards") }}" loading="lazy">{% endif %}</div>{% endif %}
 {% if lb.all_time and lb.all_time.agents %}<h2>{{ _("All time") }}</h2>
-<div class="scroll"><table><tr><th>#</th><th>{{ _("Agent") }}</th><th class="r">{{ _("W-L") }}</th><th class="r">{{ _("Win rate") }}</th><th class="r">{{ _("Net") }}</th></tr>
+<div class="scroll"><table><tr><th>#</th><th>{{ _("Agent") }}</th><th class="r">{{ _("W-L") }}</th><th class="r">{{ _("Win rate") }}</th><th class="r">{{ _("Profit") }}</th></tr>
 {% for b in lb.all_time.agents %}<tr><td>{{ b.rank }}</td><td>{{ mi(b.agent) }}<a href="{{ home }}agent/{{ b.agent }}/">{{ b.name }}</a></td><td class="r num">{{ b.wins }}-{{ b.losses }}</td><td class="r">{{ '%.0f'|format(b.win_rate * 100) }}%</td><td class="r num {{ b.net_pnl|pnl_class }}">{{ b.net_pnl|signed }}</td></tr>{% endfor %}
 {% if lb.all_time.crowd and lb.all_time.crowd.played %}<tr class="crowd-row"><td>—</td><td>{{ mi("crowd") }}{{ _("The Crowd") }}</td><td class="r num">{{ lb.all_time.crowd.wins }}-{{ lb.all_time.crowd.losses }}</td><td class="r">{{ '%.0f'|format(lb.all_time.crowd.win_rate * 100) }}%</td><td class="r num {{ lb.all_time.crowd.net_pnl|pnl_class }}">{{ lb.all_time.crowd.net_pnl|signed }}</td></tr>{% endif %}
 </table></div>{% endif %}
@@ -23,11 +23,11 @@
 {% for h in lb.humans %}<tr><td>{{ h.rank }}</td><td dir="ltr"><a href="https://x.com/{{ h.username|urlq }}" rel="noopener">@{{ h.username }}</a></td><td class="r">{{ h.picks }}</td><td class="r">{{ h.wins }}</td><td class="r num">{{ '%.0f'|format(h.accuracy * 100) }}%</td></tr>{% endfor %}
 </table></div>{% endif %}
 {% if lb.by_model %}<h2>{{ _("By model") }}</h2>
-<div class="scroll"><table><tr><th>{{ _("Agent") }}</th><th>{{ _("Model") }}</th><th class="r">{{ _("W-L") }}</th><th class="r">{{ _("Net") }}</th></tr>
+<div class="scroll"><table><tr><th>{{ _("Agent") }}</th><th>{{ _("Model") }}</th><th class="r">{{ _("W-L") }}</th><th class="r">{{ _("Profit") }}</th></tr>
 {% for b in lb.by_model %}<tr><td class="nw">{{ mi(b.agent) }}{{ b.name }}</td><td dir="ltr"><code>{{ b.model }}</code></td><td class="r num">{{ b.wins }}-{{ b.losses }}</td><td class="r num {{ b.net_pnl|pnl_class }}">{{ b.net_pnl|signed }}</td></tr>{% endfor %}
 </table></div>{% endif %}
 {% if seasons %}<h2>{{ _("Past seasons") }}</h2><div class="cards">{% for season, img in seasons %}<a href="{{ root }}{{ img }}"><img class="card" src="{{ root }}{{ img }}" alt="{{ _("Champion of {season}", season=season) }}" loading="lazy"></a>{% endfor %}</div>{% endif %}
-{% if chart %}<h2>{{ _("Net P&L by round") }}</h2><div class="legend small">{% for b in board %}<span>{{ mi(b.agent) }}{{ b.name }}</span>{% endfor %}{% if lb.crowd and lb.crowd.played %}<span>{{ mi("crowd") }}{{ _("The Crowd") }}</span>{% endif %}</div><div dir="ltr">{{ chart|safe }}</div>{% endif %}
+{% if chart %}<h2>{{ _("Total profit/loss by round") }}</h2><div class="legend small">{% for b in board %}<span>{{ mi(b.agent) }}{{ b.name }}</span>{% endfor %}{% if lb.crowd and lb.crowd.played %}<span>{{ mi("crowd") }}{{ _("The Crowd") }}</span>{% endif %}</div><div dir="ltr">{{ chart|safe }}</div>{% endif %}
 <h2>{{ _("Head to head") }}</h2><p class="small mut">{{ _("Rounds where two agents picked opposite sides.") }}</p>
 <table>{% for h in h2h %}<tr><td>{{ h.a_name }} vs {{ h.b_name }}</td><td class="r num">{{ h.a_wins }}–{{ h.b_wins }}</td></tr>{% endfor %}</table>
 {% if best %}<h2>{{ _("Best calls") }}</h2><table>{% for r, e in best %}<tr><td>{{ mi(e.agent) }}{{ e.name }}</td><td><a href="{{ home }}round/{{ r.round_id }}/">{{ r.question }}</a> · {{ _("{outcome} at {price}", outcome=e.outcome, price=e.avg_price|cents) }}</td><td class="r num pos">{{ e.pnl|signed }}</td></tr>{% endfor %}</table>{% endif %}

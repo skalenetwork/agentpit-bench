@@ -173,7 +173,7 @@ def pnl_chart(series: dict[str, list], width: int = 640, height: int = 220, crow
     def xy(i, v):
         return (pad + i / n * (width - pad - 8), 8 + (hi - v) / (hi - lo) * (height - 30))
 
-    parts = [f'<svg viewBox="0 0 {width} {height}" class="chart" role="img" aria-label="{escape(_("Net P&L by round"))}">']
+    parts = [f'<svg viewBox="0 0 {width} {height}" class="chart" role="img" aria-label="{escape(_("Total profit/loss by round"))}">']
     zy = xy(0, 0)[1]
     parts.append(f'<line x1="{pad}" x2="{width - 8}" y1="{zy:.1f}" y2="{zy:.1f}" class="axis"/>')
     parts.append(f'<text x="2" y="14" class="lbl">{signed(hi)}</text><text x="2" y="{height - 22}" class="lbl">{signed(lo)}</text>')
