@@ -22,19 +22,19 @@
 <table class="small"><tr><th>{{ _("Agent") }}</th><th>{{ _("Pick") }}</th><th class="r">{{ _("Entry") }}</th><th class="r">{{ _("Now") }}</th><th class="r">{{ _("Live P&L") }}</th></tr>
 {% for e in r.entries %}<tr data-outcome="{{ e.outcome or '' }}" data-shares="{{ e.shares_filled or 0 }}" data-stake="{{ e.stake_filled or 0 }}">
 <td class="nw">{{ mi(e.agent) }}{{ e.name }}</td><td>{% if e.outcome %}{{ e.outcome }}{% elif e.exit_reason %}{{ _("no bet") }}{% else %}<span class="mut">{{ _("thinking…") }}</span>{% endif %}</td>
-<td class="r">{{ e.avg_price|cents }}</td>{% set px = r.prices_at_start[r.outcomes.index(e.outcome)] if e.outcome in r.outcomes and r.prices_at_start|length == r.outcomes|length else none %}{% set lp = (e.shares_filled or 0) * px - (e.stake_filled or 0) if px is not none else none %}
-<td class="r" data-now>{{ px|cents }}</td><td class="r {{ lp|pnl_class }}" data-pnl>{{ lp|signed if lp is not none else '—' }}</td></tr>{% endfor %}
+<td class="r">{{ ('%g¢'|format((e.avg_price * 100)|round(1))) if e.avg_price is not none else '—' }}</td>{% set px = r.prices_at_start[r.outcomes.index(e.outcome)] if e.outcome in r.outcomes and r.prices_at_start|length == r.outcomes|length else none %}{% set lp = (e.shares_filled or 0) * px - (e.stake_filled or 0) if px is not none else none %}
+<td class="r" data-now>{{ ('%g¢'|format((px * 100)|round(1))) if px is not none else '—' }}</td><td class="r {{ lp|pnl_class }}" data-pnl>{% if lp is none %}—{% else %}{{ ('+' if lp >= 0 else '−') ~ ('%.1f'|format(lp|abs) if lp|abs < 10 else '%.0f'|format(lp|abs)) }}{% endif %}</td></tr>{% endfor %}
 </table></div>
 {% endmacro %}
 
 {% macro live_script(api_url) %}
 <script>
-(function(){var A={{ api_url|tojson }},CL={{ _("closed")|tojson }};function f(c){return(c>=0?"+":"−")+Math.abs(c).toFixed(0)}
+(function(){var A={{ api_url|tojson }},CL={{ _("closed")|tojson }};function f(c){var a=Math.abs(c);return(c>=0?"+":"−")+a.toFixed(a<10?1:0)}
 document.querySelectorAll("[data-live]").forEach(function(b){var end=Date.parse(b.dataset.end),cd=b.querySelector("[data-countdown]"),outs=JSON.parse(b.dataset.outcomes||"[]");
 function tick(){if(!end||!cd)return;var s=Math.max(0,(end-Date.now())/1e3|0),d=s/86400|0,h=s%86400/3600|0,m=s%3600/60|0;cd.textContent=s?(d?d+"d ":"")+h+"h "+m+"m "+(s%60)+"s":CL}
 tick();setInterval(tick,1000);
 fetch(A+"/markets?id="+encodeURIComponent(b.dataset.market)).then(function(r){return r.json()}).then(function(j){var m=Array.isArray(j)?j[0]:j;if(!m)return;var p=m.outcomePrices;if(typeof p=="string")p=JSON.parse(p);
 b.querySelectorAll("tr[data-outcome]").forEach(function(tr){var i=outs.indexOf(tr.dataset.outcome);if(i<0||!p)return;var px=+p[i],sh=+tr.dataset.shares,st=+tr.dataset.stake;
-tr.querySelector("[data-now]").textContent=Math.round(px*100)+"¢";var v=sh*px-st,c=tr.querySelector("[data-pnl]");c.textContent=f(v);c.className="r "+(v>0?"pos":v<0?"neg":"zero")})}).catch(function(){})})})();
+tr.querySelector("[data-now]").textContent=(Math.round(px*1000)/10)+"¢";var v=sh*px-st,c=tr.querySelector("[data-pnl]");c.textContent=f(v);c.className="r "+(v>0?"pos":v<0?"neg":"zero")})}).catch(function(){})})})();
 </script>
 {% endmacro %}
