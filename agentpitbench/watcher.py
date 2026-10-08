@@ -28,6 +28,8 @@ def basic_eligible(s: Settings, m: dict, now: datetime | None = None) -> bool:
         return False
     if not timedelta(minutes=30) < end - now <= timedelta(days=s.max_days_to_close):
         return False
+    if m.get("prices_list") and max(m["prices_list"]) > s.max_favourite_price:
+        return False
     if len(m.get("outcomes_list", [])) < 2 or len(m.get("token_ids", [])) != len(m["outcomes_list"]):
         return False
     text = f" {m.get('question', '')} {m.get('description', '')} ".lower()

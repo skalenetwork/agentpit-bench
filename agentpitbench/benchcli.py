@@ -37,7 +37,7 @@ def main(argv: list[str] | None = None) -> int:
     bet.add_argument("--outcome", required=True)
     bet.add_argument("--rationale", required=True)
     bet.add_argument("--confidence", type=float, required=True, help="0 to 1")
-    bet.add_argument("--max-price", type=float, default=None, help="worst price you accept (default: best ask)")
+    bet.add_argument("--max-price", type=float, default=None, help="worst price you accept (default: best ask + 0.05)")
     bet.add_argument("--quote", default=None,
                      help="optional one-line trash talk for your rivals, shown on your card (max 120 chars, no links)")
     a = p.parse_args(argv)

@@ -110,6 +110,8 @@ def test_basic_eligible(s):
     assert not basic_eligible(s, gamma(1, question="Will the war end?"))
     assert not basic_eligible(s, gamma(1, closed=True))
     assert not basic_eligible(s, gamma(1, clobTokenIds='["only-one"]'))
+    assert not basic_eligible(s, gamma(1, outcomePrices='["0.9", "0.1"]'))   # near-certain: dead round
+    assert basic_eligible(s, gamma(1, outcomePrices='["0.85", "0.15"]'))
 
 
 async def test_watcher_skips_backlog_then_picks_new(s, db):
@@ -301,7 +303,7 @@ async def test_round_end_to_end(s, db, tmp_path, monkeypatch):
     by = {e["agent"]: e for e in db.round_entries(rid)}
     assert by["claude"]["outcome"] == "Yes" and by["claude"]["exit_reason"] == "bet"
     assert by["claude"]["model_reported"] == "fake-1"
-    assert by["claude"]["stake_filled"] == pytest.approx(62)   # FAK at best ask: partial fill per spec
+    assert by["claude"]["stake_filled"] == pytest.approx(100)  # default limit = best ask + 5c walks to 0.65
     assert by["codex"]["outcome"] == "Yes" and by["codex"]["rationale"] == "one"   # second bet refused
     assert by["agy"]["outcome"] is None and by["agy"]["exit_reason"] == "timeout"
     assert by["grok"]["outcome"] is None and by["grok"]["exit_reason"] == "crash"

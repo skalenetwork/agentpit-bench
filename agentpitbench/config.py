@@ -26,6 +26,8 @@ class Settings:
     daily_round_cap: int = 10
     max_days_to_close: int = 7
     max_category_share: float = 0.4     # no category above this share of the rounds started in 7 days
+    max_favourite_price: float = 0.85   # skip near-certain markets: they make dead rounds
+    default_slippage: float = 0.05      # a bet without --max-price may fill up to best ask + this
     press_timeout_s: int = 60           # post-match statement: per losing agent
     void_after_days: int = 14
     deploy_debounce_s: int = 30

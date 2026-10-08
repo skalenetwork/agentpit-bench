@@ -377,7 +377,9 @@ class Round:
         label, tok = self._token(req["outcome"])
         book = await self.public.book(tok)
         ask = best_ask(book)
-        limit = req.get("max_price") or ask
+        # no --max-price: accept up to default_slippage past the best ask, so a tiny top-of-book offer
+        # can't leave a 100-token bet nearly empty
+        limit = req.get("max_price") or (min(0.99, round(ask + self.s.default_slippage, 3)) if ask else None)
         if limit is None:
             raise BetError(f"no sellers for {label} right now; try another outcome or set --max-price")
         if not 0 < limit < 1:
