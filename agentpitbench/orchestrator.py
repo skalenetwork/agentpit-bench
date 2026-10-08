@@ -24,7 +24,7 @@ from .db import DB
 
 log = logging.getLogger(__name__)
 
-SECRET_PREFIXES = ("AGENTPIT_", "X_API", "X_ACCESS", "X_CLIENT", "GH_", "BENCH_SECRETS", "SMTP_", "XAI_")
+SECRET_PREFIXES = ("AGENTPIT_", "X_", "XAI_", "GH_", "BENCH_SECRETS", "SMTP_")
 DROP_VARS = {"CLAUDECODE", "CLAUDE_CODE_ENTRYPOINT", "VIRTUAL_ENV"}
 
 
