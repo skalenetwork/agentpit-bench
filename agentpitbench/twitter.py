@@ -62,21 +62,20 @@ def price_str(p: float | None) -> str:
     return "?" if p is None else f"{round(p * 100)}¢"
 
 
+# Links only go in results tweets: X bills a post containing a URL ~13x a plain one.
 def decision_text(s: Settings, rnd: dict, e: dict) -> str:
-    link = "\n" + s.market_link(rnd["slug"] or "", f"r{rnd['round_id']}")
     q = clip(rnd["question"], 90)
     if not e["outcome"]:
         why = "timed out and forfeited" if e.get("exit_reason") == "timeout" else "crashed and forfeited"
-        return fit(f"{e['name']} {why} — no bet on \"{q}\". ", f" {TAG}{link}")
+        return fit(f"{e['name']} {why} — no bet on \"{q}\". ", f" {TAG}")
     head = f"{e['name']} bets {e['stake_filled'] or 0:.0f} on {e['outcome']} — \"{q}\" at {price_str(e['avg_price'])}.\n"
-    return fit(head, f" {TAG}{link}", e.get("rationale") or "", quote=True)
+    return fit(head, f" {TAG}", e.get("rationale") or "", quote=True)
 
 
 def split_text(s: Settings, rnd: dict, kind: str, headline: str) -> str:
     picks = ", ".join(f"{e['name']}: {e['outcome'] or 'no bet'}" for e in rnd["entries"])
-    link = "\n" + s.market_link(rnd["slug"] or "", f"r{rnd['round_id']}")
     lead = headline + "."
-    return fit(f"{lead} {picks}. Who's right? ", f" {TAG}{link}", "Bet against the AIs:", 40)
+    return fit(f"{lead} {picks}. Who's right? ", f" {TAG}")
 
 
 def results_text(s: Settings, rnd: dict, board: list[dict], round_url: str, crowd: dict | None = None) -> str:

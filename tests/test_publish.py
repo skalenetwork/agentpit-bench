@@ -329,3 +329,13 @@ def test_oauth2_login_pkce(env, monkeypatch):
         "access_token": "A", "refresh_token": "R", "expires_in": 7200, "scope": "tweet.write media.write"})
     assert p.oauth2.finish_login(f"https://example.test/cb?state={q['state'][0]}&code=c") == {"tweet.write", "media.write"}
     assert p.oauth2.get() == "A" and not p.oauth2.path.with_suffix(".pending").exists()
+
+
+def test_only_results_tweets_carry_links(env):
+    s, db = env
+    rid = make_round(db, PICKS, state="resolved", winner="Nexus")
+    r = rec(s, db, rid)
+    kind, h = split_headline(r)
+    plain = [decision_text(s, r, e) for e in r["entries"]] + [split_text(s, r, kind, h)]
+    assert not any("http" in t for t in plain)          # X bills link posts ~13x
+    assert "http" in results_text(s, r, [], "https://x.test/round/1/")
