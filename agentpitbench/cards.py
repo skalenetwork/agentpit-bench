@@ -80,15 +80,18 @@ def results_headline(rnd: dict) -> str:
         return "Everyone got rekt"
     if len(winners) == len(rnd["entries"]) and len(winners) > 1:
         return "Clean sweep"
+    crowd_lost = (rnd.get("crowd") or {}).get("won") is False
     if len(winners) == 1:
         w = winners[0]
         if w["avg_price"] is not None and w["avg_price"] <= UPSET_PRICE:
             return f"Upset! {w['name']} cashes at {cents(w['avg_price'])}"
+        if crowd_lost:
+            return f"{w['name']} beats the crowd"
         if len(bettors) > 1:
             return f"{w['name']} takes it alone"
         return f"{w['name']} takes it"
     names = " & ".join(e["name"] for e in winners)
-    return f"{names} take it"
+    return f"{names} beat the crowd" if crowd_lost else f"{names} take it"
 
 
 def split_headline(rnd: dict) -> tuple[str, str]:
@@ -167,8 +170,8 @@ class CardRenderer:
         html = env.get_template("split.html").render(**self._ctx(rnd, board), kind=kind, headline=headline)
         return await self.render_html(html, self._dir(rnd) / "split.png")
 
-    async def results(self, rnd: dict, board: list[dict] | None = None) -> Path:
+    async def results(self, rnd: dict, board: list[dict] | None = None, crowd: dict | None = None) -> Path:
         html = env.get_template("results.html").render(
             **self._ctx(rnd, board), ranked=ranked(rnd["entries"]), headline=results_headline(rnd),
-            upset=is_upset(rnd))
+            upset=is_upset(rnd), crowd=crowd)
         return await self.render_html(html, self._dir(rnd) / "results.png")

@@ -14,6 +14,9 @@
 .pos{color:#22c55e}.neg{color:#ff5c7a}.zero{color:#8f9abb}
 .strip{display:flex;gap:{{ 28 if board|length <= 3 else 18 }}px;margin-top:16px;font-size:20px;color:#9aa4c4}
 .strip b{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:24px}
+.crowd{display:flex;gap:14px;align-items:baseline;margin-top:{{ 10 if ranked|length <= 3 else 6 }}px;padding:6px 22px 6px 16px;border:2px dashed #5d6888;color:#aab3cf;font-size:21px;white-space:nowrap;overflow:hidden}
+.crowd b{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:23px;text-transform:uppercase;color:#cfd6ea}
+.crowd .pnl{margin-left:auto;font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:26px}
 {% endblock %}
 {% block body %}
 <div class="top"><span class="tag {% if upset %}live{% endif %}">{% if r.state == 'void' %}Void{% elif upset %}Upset{% else %}Final{% endif %}</span><span class="disp dim" style="font-size:22px">Round {{ r.round_id }} · default vs default</span></div>
@@ -29,6 +32,8 @@
 </div>
 {% endfor %}
 </div>
+{% if r.crowd and r.crowd.outcome %}<div class="crowd"><b>The Crowd</b><span>favourite at start: {{ r.crowd.outcome }} at {{ r.crowd.price|cents }}{% if crowd and crowd.played %} · season {{ crowd.wins }}-{{ crowd.losses }}{% endif %}</span>
+{% if r.crowd.pnl is not none %}<span class="pnl {% if r.crowd.pnl > 0 %}pos{% else %}neg{% endif %}">{{ r.crowd.pnl|signed }}</span>{% endif %}</div>{% endif %}
 {% if board %}<div class="strip">{% for b in board %}<span><b style="color:{{ colors.get(b.agent,'#888')|edge }}">{{ b.name }}</b> {{ b.wins }}-{{ b.losses }} · {{ b.net_pnl|signed }}</span>{% endfor %}</div>{% endif %}
 {% endblock %}
 {% block foot %}Season standings · default models{% endblock %}

@@ -33,9 +33,13 @@ class BenchPublisher:
         return self._locks.setdefault(round_id, asyncio.Lock())
 
     def _export(self, round_id: int) -> tuple[dict, list[dict]]:
+        rnd, board, _ = self._export_all(round_id)
+        return rnd, board
+
+    def _export_all(self, round_id: int) -> tuple[dict, list[dict], dict]:
         data = exports.export(self.s, self.db)
         rnd = next(r for r in data["rounds"] if r["round_id"] == round_id)
-        return rnd, data["leaderboard"]["agents"]
+        return rnd, data["leaderboard"]["agents"], data["leaderboard"]["crowd"]
 
     def round_url(self, round_id: int) -> str:
         return f"{self.s.site_url.rstrip('/')}/round/{round_id}/"
@@ -92,11 +96,11 @@ class BenchPublisher:
         self.site.request()
 
     async def on_resolved(self, round_id: int) -> None:
-        rnd, board = self._export(round_id)
-        png = await self._card(self.cards.results(rnd, board))
+        rnd, board, crowd = self._export_all(round_id)
+        png = await self._card(self.cards.results(rnd, board, crowd))
         async with self._lock(round_id):
             tid = await self._post(round_id, f"r{round_id}-results", "results",
-                                   results_text(self.s, rnd, board, self.round_url(round_id)), png)
+                                   results_text(self.s, rnd, board, self.round_url(round_id), crowd), png)
         if tid:
             self.db.set_round(round_id, results_tweet_id=tid)
         exports.export(self.s, self.db)

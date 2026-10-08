@@ -198,3 +198,34 @@ def test_poster_idempotent(env):
     b = asyncio.run(p.post("k1", "x", "hello again"))
     assert a == b == "dry-k1"
     assert len(list(s.outbox_dir.glob("*.json"))) == 1
+
+
+# The Crowd: favourite-at-start reference baseline
+def test_crowd_pick_and_season(env):
+    s, db = env
+    upset = make_round(db, PICKS, state="resolved", winner="Nexus")              # favourite 0.62 loses
+    fav = make_round(db, PICKS, state="resolved", winner="CYBERSHOKE", market_id="m2")
+    assert exports.crowd_pick(s, ["A", "B"], [0.5, 0.5], "resolved", "A")["outcome"] is None  # tie: no pick
+    r = rec(s, db, upset)
+    assert r["crowd"] == {"outcome": "CYBERSHOKE", "price": 0.62, "won": False, "pnl": -100.0}
+    assert rec(s, db, fav)["crowd"]["pnl"] == pytest.approx(100 / 0.62 - 100, abs=0.01)
+    lb = exports.export(s, db)["leaderboard"]
+    c = lb["crowd"]
+    assert (c["played"], c["wins"], c["losses"], c["name"]) == (2, 1, 1, "The Crowd")
+    assert [len(c["series"])] == [2] and "crowd" not in lb["series"] and "beat" not in c
+    beat = {b["agent"]: b["beat_crowd"] for b in lb["agents"]}
+    assert beat == {"grok": 1, "claude": 0, "codex": 0, "agy": 0}           # crowd is never ranked
+    assert all(b["agent"] != "crowd" for b in lb["agents"])
+
+
+def test_crowd_in_headline_tweet_badge(env):
+    s, db = env
+    picks = {**PICKS, "grok": ("Nexus", 0.40, 0.55)}                           # not an upset price
+    rid = make_round(db, picks, state="resolved", winner="Nexus")
+    r = rec(s, db, rid)
+    lb = exports.export(s, db)["leaderboard"]
+    assert results_headline(r) == "Grok beats the crowd"
+    res = results_text(s, r, lb["agents"], "https://x.test/round/1/", lb["crowd"])
+    assert "Crowd 0-1" in res and tweet_len(res) <= MAX_LEN and "@xai" in res
+    assert "Crowd 0-1" in site.badge_svg(lb["agents"], lb["crowd"])
+    assert split_headline(r)[1] == "3–1: Grok goes alone"                     # crowd not counted in splits

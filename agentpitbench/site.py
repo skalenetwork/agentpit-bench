@@ -145,8 +145,13 @@ def best_worst(rounds: list[dict], n: int = 5):
     return best, [w for w in worst if w[1]["pnl"] < 0]
 
 
-def pnl_chart(series: dict[str, list], width: int = 640, height: int = 220) -> str:
-    """Inline SVG line chart of cumulative P&L per agent, x = resolved rounds in order. No JS."""
+CROWD = "crowd"
+
+
+def pnl_chart(series: dict[str, list], width: int = 640, height: int = 220, crowd: list | None = None) -> str:
+    """Inline SVG line chart of cumulative P&L per agent, x = resolved rounds in order. No JS.
+    The Crowd baseline, when given, is drawn as a grey dashed reference line."""
+    series = {**series, CROWD: crowd} if crowd else series
     if not any(series.values()):
         return ""
     n = max(len(v) for v in series.values())
@@ -168,6 +173,9 @@ def pnl_chart(series: dict[str, list], width: int = 640, height: int = 220) -> s
             continue
         line = [xy(0, 0)] + [xy(i + 1, v) for i, (_, v) in enumerate(pts)]
         d = " ".join(f"{x:.1f},{y:.1f}" for x, y in line)
+        if agent == CROWD:
+            parts.append(f'<polyline points="{d}" fill="none" stroke="#8a93a8" stroke-width="2" stroke-dasharray="6 4"/>')
+            continue
         c = AGENT_COLORS.get(agent, "#888")
         cls = ' class="dkl"' if is_dark(c) else ""
         parts.append(f'<polyline{cls} points="{d}" fill="none" stroke="{c}" stroke-width="2.5"/>')
@@ -178,10 +186,12 @@ def pnl_chart(series: dict[str, list], width: int = 640, height: int = 220) -> s
     return "".join(parts)
 
 
-def badge_svg(board: list[dict]) -> str:
+def badge_svg(board: list[dict], crowd: dict | None = None) -> str:
     """Shields-style badge: 'AgentpitBench | Claude 12-8 · Codex 10-10 · Gemini 9-11'."""
     label = "AgentpitBench"
     value = " · ".join(f"{b['name']} {b['wins']}-{b['losses']}" for b in board) or "no results yet"
+    if board and crowd and crowd.get("played"):
+        value += f" · Crowd {crowd['wins']}-{crowd['losses']}"
     lw, vw = 7 * len(label) + 12, int(6.6 * len(value)) + 14
     w = lw + vw
     return (
@@ -261,7 +271,7 @@ def build(s: Settings) -> Path:
     page("index.html", "index.html", live=live, past=past[:30], upset=biggest_upset(rounds),
          title=f"AgentpitBench: {vs} bet on prediction markets")
     best, worst = best_worst(rounds)
-    page("leaderboard/index.html", "leaderboard.html", chart=pnl_chart(lb.get("series", {})), best=best,
+    page("leaderboard/index.html", "leaderboard.html", chart=pnl_chart(lb.get("series", {}), crowd=(lb.get("crowd") or {}).get("series")), best=best,
          worst=worst, h2h=head_to_head(rounds, s.agents), title="Leaderboard · AgentpitBench")
     for r in rounds:
         card = card_for(s, r)
@@ -279,7 +289,7 @@ def build(s: Settings) -> Path:
     page("data/index.html", "data.html", prompt=prompt, title="Data & method · AgentpitBench")
     page("widget/index.html", "widget.html", title="AgentpitBench standings")
 
-    (out / "badge.svg").write_text(badge_svg(board))
+    (out / "badge.svg").write_text(badge_svg(board, lb.get("crowd")))
     rss, jf = feeds(s, rounds)
     (out / "feed.xml").write_text(rss)
     (out / "feed.json").write_text(jf)

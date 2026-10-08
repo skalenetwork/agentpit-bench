@@ -2,13 +2,17 @@
 {% block main %}
 <h1>Leaderboard</h1>
 <p class="mut small">Season {{ lb.season }} · ranked by net P&amp;L, then win rate. A no-bet counts as a loss.</p>
-<div class="scroll"><table><tr><th>#</th><th>Agent</th><th class="r">W-L</th><th class="r">No bet</th><th class="r">Win rate</th><th class="r">Net</th><th class="r">ROI</th><th class="r">Avg entry</th><th class="r">Brier</th></tr>
+{% if lb.crowd and lb.crowd.played %}{% set ai_w = board|sum(attribute='beat_crowd') %}<p class="vs-crowd"><b>AIs vs the Crowd.</b> The Crowd backs the favourite at the start of every round. Record so far: <span class="num">{{ lb.crowd.wins }}-{{ lb.crowd.losses }}</span>, net <span class="num {{ lb.crowd.net_pnl|pnl_class }}">{{ lb.crowd.net_pnl|signed }}</span>. The AIs have won {{ ai_w }} round{{ '' if ai_w == 1 else 's' }} the Crowd lost.</p>{% endif %}
+<div class="scroll"><table><tr><th>#</th><th>Agent</th><th class="r">W-L</th><th class="r">No bet</th><th class="r">Win rate</th><th class="r">Net</th><th class="r">ROI</th><th class="r">Avg entry</th><th class="r">Brier</th><th class="r">Beat crowd</th></tr>
 {% for b in board %}<tr><td>{{ b.rank }}</td><td><span class="dot {{ b.color|dkb }}" style="background:{{ b.color }}"></span><a href="{{ root }}agent/{{ b.agent }}/">{{ b.name }}</a></td>
 <td class="r num">{{ b.wins }}-{{ b.losses }}</td><td class="r">{{ b.no_bets }}</td><td class="r">{{ '%.0f'|format(b.win_rate * 100) }}%</td>
-<td class="r num {{ b.net_pnl|pnl_class }}">{{ b.net_pnl|signed }}</td><td class="r">{{ '%+.0f'|format(b.roi * 100) }}%</td><td class="r">{{ b.avg_entry|cents }}</td><td class="r">{{ '%.3f'|format(b.brier) if b.brier is not none else '—' }}</td></tr>{% endfor %}
+<td class="r num {{ b.net_pnl|pnl_class }}">{{ b.net_pnl|signed }}</td><td class="r">{{ '%+.0f'|format(b.roi * 100) }}%</td><td class="r">{{ b.avg_entry|cents }}</td><td class="r">{{ '%.3f'|format(b.brier) if b.brier is not none else '—' }}</td><td class="r">{{ b.beat_crowd or 0 }}</td></tr>{% endfor %}
+{% if lb.crowd and lb.crowd.played %}<tr class="crowd-row"><td>—</td><td><span class="dot crowd-dot"></span>The Crowd <span class="mut small">(favourite at start, reference)</span></td>
+<td class="r num">{{ lb.crowd.wins }}-{{ lb.crowd.losses }}</td><td class="r">—</td><td class="r">{{ '%.0f'|format(lb.crowd.win_rate * 100) }}%</td>
+<td class="r num {{ lb.crowd.net_pnl|pnl_class }}">{{ lb.crowd.net_pnl|signed }}</td><td class="r">—</td><td class="r">—</td><td class="r">—</td><td class="r">—</td></tr>{% endif %}
 </table></div>
 <p class="small mut">Brier score: mean squared gap between stated confidence and the result. Lower is better calibrated.</p>
-{% if chart %}<h2>Net P&amp;L by round</h2><div class="legend small">{% for b in board %}<span><span class="dot {{ b.color|dkb }}" style="background:{{ b.color }}"></span>{{ b.name }}</span>{% endfor %}</div>{{ chart|safe }}{% endif %}
+{% if chart %}<h2>Net P&amp;L by round</h2><div class="legend small">{% for b in board %}<span><span class="dot {{ b.color|dkb }}" style="background:{{ b.color }}"></span>{{ b.name }}</span>{% endfor %}{% if lb.crowd and lb.crowd.played %}<span><span class="dot crowd-dot"></span>The Crowd</span>{% endif %}</div>{{ chart|safe }}{% endif %}
 <h2>Head to head</h2><p class="small mut">Rounds where two agents picked opposite sides.</p>
 <table>{% for h in h2h %}<tr><td>{{ h.a_name }} vs {{ h.b_name }}</td><td class="r num">{{ h.a_wins }}–{{ h.b_wins }}</td></tr>{% endfor %}</table>
 {% if best %}<h2>Best calls</h2><table>{% for r, e in best %}<tr><td><span class="dot {{ e.color|dkb }}" style="background:{{ e.color }}"></span>{{ e.name }}</td><td><a href="{{ root }}round/{{ r.round_id }}/">{{ r.question }}</a> · {{ e.outcome }} at {{ e.avg_price|cents }}</td><td class="r num pos">{{ e.pnl|signed }}</td></tr>{% endfor %}</table>{% endif %}

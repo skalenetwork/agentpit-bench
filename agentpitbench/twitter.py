@@ -71,7 +71,7 @@ def split_text(s: Settings, rnd: dict, kind: str, headline: str) -> str:
     return fit(f"{lead} {picks}. Who's right? ", f" {TAG}{link}", "Bet against the AIs:", 40)
 
 
-def results_text(s: Settings, rnd: dict, board: list[dict], round_url: str) -> str:
+def results_text(s: Settings, rnd: dict, board: list[dict], round_url: str, crowd: dict | None = None) -> str:
     if rnd["state"] == "void":
         head = f"Voided: \"{clip(rnd['question'], 100)}\". No result this round."
     else:
@@ -81,6 +81,8 @@ def results_text(s: Settings, rnd: dict, board: list[dict], round_url: str) -> s
     tags = " ".join(dict.fromkeys(VENDOR_HANDLES[e["agent"]] for e in rnd["entries"]
                                   if e["won"] and e["agent"] in VENDOR_HANDLES))
     season = ", ".join(f"{b['name']} {b['wins']}-{b['losses']}" for b in board)
+    if season and crowd and crowd.get("played"):
+        season += f" | Crowd {crowd['wins']}-{crowd['losses']}"
     tail = (f"\nSeason: {season}." if season else "") + f" {TAG}" + (f" {tags}" if tags else "") + f"\n{round_url}"
     return fit(head, tail)
 
