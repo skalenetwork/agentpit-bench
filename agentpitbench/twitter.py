@@ -1,7 +1,8 @@
-"""Posting to X: v1.1 media upload + v2 tweets over OAuth 1.0a. Idempotent per post_key.
+"""Posting to X: v2 media upload + v2 tweets. Idempotent per post_key.
 
-In dry-run, when posting is paused, or without X_* credentials, tweets go to the outbox
-directory as JSON instead of X.
+Auth: OAuth 2.0 user context when X_CLIENT_ID / X_CLIENT_SECRET and a refresh token are set (preferred),
+else OAuth 1.0a (X_API_KEY / X_API_SECRET / X_ACCESS_TOKEN / X_ACCESS_SECRET, v1.1 media upload).
+In dry-run, when posting is paused, or without credentials, tweets go to the outbox directory as JSON.
 """
 from __future__ import annotations
 
@@ -10,16 +11,23 @@ import json
 import logging
 import os
 import re
+import threading
 import time
 from pathlib import Path
 
-from .config import Settings
+import requests
+
+from .config import SECRETS_FILE, Settings
 from .db import DB
 
 log = logging.getLogger(__name__)
 
-UPLOAD_URL = "https://upload.twitter.com/1.1/media/upload.json"
-TWEET_URL = "https://api.twitter.com/2/tweets"
+UPLOAD_URL = "https://upload.twitter.com/1.1/media/upload.json"   # OAuth 1.0a only
+TWEET_URL = "https://api.x.com/2/tweets"
+UPLOAD2_URL = "https://api.x.com/2/media/upload"
+TOKEN_URL = "https://api.x.com/2/oauth2/token"
+ME_URL = "https://api.x.com/2/users/me"
+NEEDED_SCOPES = {"tweet.write", "media.write", "users.read", "offline.access"}
 URL_RE = re.compile(r"https?://\S+")
 MAX_LEN = 280
 TAG = "#AgentpitBench"
@@ -87,14 +95,117 @@ def results_text(s: Settings, rnd: dict, board: list[dict], round_url: str, crow
     return fit(head, tail)
 
 
+def token_file() -> Path:
+    """One token chain per machine, independent of data_dir: a second store would fork the chain."""
+    return Path(os.environ.get("BENCH_X_TOKEN_FILE") or SECRETS_FILE.parent / "x_oauth2.json")
+
+
+_refresh_lock = threading.Lock()  # process-wide: two rounds must never spend the same refresh token
+
+
+class OAuth2Token:
+    """OAuth 2.0 user token with rotation. X invalidates a refresh token once used, so the new pair is
+    written to disk before it is used. Seeded once from X_OAUTH2_REFRESH_TOKEN when no token file exists."""
+
+    def __init__(self, path: Path, client_id: str, client_secret: str, seed_refresh: str | None,
+                 http=requests):
+        self.path, self.client_id, self.client_secret, self.http = path, client_id, client_secret, http
+        self.seed_refresh = seed_refresh
+
+    @property
+    def ready(self) -> bool:
+        return bool(self.client_id and self.client_secret and (self.path.exists() or self.seed_refresh))
+
+    def _load(self) -> dict:
+        if self.path.exists():
+            return json.loads(self.path.read_text())
+        return {"access_token": None, "refresh_token": self.seed_refresh, "expires_at": 0}
+
+    def _save(self, d: dict) -> None:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = self.path.with_suffix(".tmp")
+        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "w") as f:
+            json.dump(d, f)
+        os.replace(tmp, self.path)
+
+    def get(self, stale: str | None = None) -> str:
+        """A valid access token. Pass the token that just got a 401 as `stale` to force one refresh."""
+        with _refresh_lock:
+            d = self._load()
+            if d.get("access_token") and time.time() < d["expires_at"] and d["access_token"] != stale:
+                return d["access_token"]
+            return self._refresh(d)
+
+    def _refresh(self, d: dict) -> str:
+        if not d.get("refresh_token"):
+            raise PermanentError("no X refresh token: set X_OAUTH2_REFRESH_TOKEN")
+        r = self.http.post(TOKEN_URL, auth=(self.client_id, self.client_secret), timeout=30,
+                           data={"grant_type": "refresh_token", "refresh_token": d["refresh_token"]})
+        if r.status_code in (400, 401):
+            raise PermanentError(f"X refresh token rejected ({r.status_code}: {r.text[:200]}); "
+                                 "generate a new OAuth 2.0 token pair in the developer portal")
+        _check(r)
+        j = r.json()
+        new = {"access_token": j["access_token"], "refresh_token": j.get("refresh_token", d["refresh_token"]),
+               "expires_at": time.time() + int(j.get("expires_in", 7200)) - 300, "scope": j.get("scope", "")}
+        self._save(new)
+        missing = NEEDED_SCOPES - set(new["scope"].split())
+        if missing:
+            log.error("X token lacks scopes %s: posting or image upload will fail", sorted(missing))
+        return new["access_token"]
+
+    def authorize_url(self, redirect_uri: str) -> str:
+        """Step 1 of a PKCE login asking for every scope the bench needs. Pending state goes beside the token."""
+        import base64, hashlib, secrets
+        from urllib.parse import urlencode
+        verifier = secrets.token_urlsafe(64)
+        state = secrets.token_urlsafe(16)
+        challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b"=").decode()
+        pending = self.path.with_suffix(".pending")
+        fd = os.open(pending, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "w") as f:
+            json.dump({"verifier": verifier, "state": state, "redirect_uri": redirect_uri}, f)
+        return "https://x.com/i/oauth2/authorize?" + urlencode({
+            "response_type": "code", "client_id": self.client_id, "redirect_uri": redirect_uri,
+            "scope": " ".join(sorted(NEEDED_SCOPES | {"tweet.read"})), "state": state,
+            "code_challenge": challenge, "code_challenge_method": "S256"})
+
+    def finish_login(self, redirected_url: str) -> set[str]:
+        """Step 2: exchange the code from the redirected URL for a token pair and save it."""
+        from urllib.parse import parse_qs, urlparse
+        pending_path = self.path.with_suffix(".pending")
+        pending = json.loads(pending_path.read_text())
+        q = parse_qs(urlparse(redirected_url.strip()).query)
+        if q.get("state", [None])[0] != pending["state"]:
+            raise PermanentError("state mismatch: run `agentpitbench x-login` again and use its newest URL")
+        if "code" not in q:
+            raise PermanentError(f"no code in URL: {q.get('error', ['?'])[0]}")
+        r = self.http.post(TOKEN_URL, auth=(self.client_id, self.client_secret), timeout=30, data={
+            "grant_type": "authorization_code", "code": q["code"][0], "redirect_uri": pending["redirect_uri"],
+            "code_verifier": pending["verifier"], "client_id": self.client_id})
+        _check(r)
+        j = r.json()
+        with _refresh_lock:
+            self._save({"access_token": j["access_token"], "refresh_token": j["refresh_token"],
+                        "expires_at": time.time() + int(j.get("expires_in", 7200)) - 300, "scope": j.get("scope", "")})
+        pending_path.unlink(missing_ok=True)
+        return self.scopes()
+
+    def scopes(self) -> set[str]:
+        return set(self._load().get("scope", "").split())
+
+
 class Poster:
     def __init__(self, s: Settings, db: DB):
         self.s, self.db = s, db
         self.creds = {k: os.environ.get(k) for k in ("X_API_KEY", "X_API_SECRET", "X_ACCESS_TOKEN", "X_ACCESS_SECRET")}
+        self.oauth2 = OAuth2Token(token_file(), os.environ.get("X_CLIENT_ID", ""),
+                                  os.environ.get("X_CLIENT_SECRET", ""), os.environ.get("X_OAUTH2_REFRESH_TOKEN"))
 
     @property
     def live(self) -> bool:
-        return not self.s.dry_run and not self.s.posting_paused and all(self.creds.values())
+        return not self.s.dry_run and not self.s.posting_paused and (self.oauth2.ready or all(self.creds.values()))
 
     def _session(self):
         from requests_oauthlib import OAuth1Session
@@ -142,7 +253,32 @@ class Poster:
                 await asyncio.sleep(min(300, 5 * 2 ** attempt))
         return None
 
+    def _call(self, method: str, url: str, **kw):
+        """OAuth 2.0 request; on a 401, refresh once and retry once."""
+        tok = self.oauth2.get()
+        r = self.http_request(method, url, tok, **kw)
+        if r.status_code == 401:
+            r = self.http_request(method, url, self.oauth2.get(stale=tok), **kw)
+        _check(r)
+        return r
+
+    def http_request(self, method, url, tok, **kw):
+        return self.oauth2.http.request(method, url, headers={"Authorization": f"Bearer {tok}"}, timeout=60, **kw)
+
+    def upload(self, image: Path) -> str:
+        with open(image, "rb") as f:
+            r = self._call("POST", UPLOAD2_URL, files={"media": (image.name, f, "image/png")},
+                           data={"media_category": "tweet_image"})
+        return r.json()["data"]["id"]
+
     def _post_sync(self, text, image, reply_to) -> str:
+        if self.oauth2.ready:
+            body: dict = {"text": text}
+            if image:
+                body["media"] = {"media_ids": [self.upload(Path(image))]}
+            if reply_to and not reply_to.startswith("dry-"):
+                body["reply"] = {"in_reply_to_tweet_id": reply_to}
+            return self._call("POST", TWEET_URL, json=body).json()["data"]["id"]
         sess = self._session()
         body: dict = {"text": text}
         if image:

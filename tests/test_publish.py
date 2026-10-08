@@ -52,8 +52,10 @@ PICKS = {"claude": ("CYBERSHOKE", 0.63, 0.7), "codex": ("CYBERSHOKE", 0.63, 0.8)
 
 @pytest.fixture
 def env(tmp_path, monkeypatch):
-    for k in ("X_API_KEY", "X_API_SECRET", "X_ACCESS_TOKEN", "X_ACCESS_SECRET"):
+    for k in ("X_API_KEY", "X_API_SECRET", "X_ACCESS_TOKEN", "X_ACCESS_SECRET", "X_CLIENT_ID", "X_CLIENT_SECRET",
+              "X_OAUTH2_ACCESS_TOKEN", "X_OAUTH2_REFRESH_TOKEN"):
         monkeypatch.delenv(k, raising=False)
+    monkeypatch.setenv("BENCH_X_TOKEN_FILE", str(tmp_path / "x_oauth2.json"))
     s = Settings(data_dir=tmp_path / "var", agents=AGENTS, dry_run=True, deploy_debounce_s=0)
     return s, DB(s.db_path)
 
@@ -229,3 +231,100 @@ def test_crowd_in_headline_tweet_badge(env):
     assert "Crowd 0-1" in res and tweet_len(res) <= MAX_LEN and "@xai" in res
     assert "Crowd 0-1" in site.badge_svg(lb["agents"], lb["crowd"])
     assert split_headline(r)[1] == "3–1: Grok goes alone"                     # crowd not counted in splits
+
+
+# OAuth 2.0 token rotation and posting, against a fake X
+class FakeResp:
+    def __init__(self, status, body):
+        self.status_code, self._body, self.text = status, body, json.dumps(body)
+
+    def json(self):
+        return self._body
+
+
+class FakeX:
+    """Token endpoint rotates refresh tokens and rejects reused ones; API accepts only the current access token."""
+    def __init__(self, scope="tweet.write media.write users.read offline.access"):
+        self.n, self.valid_refresh, self.valid_access, self.scope, self.calls = 0, "r0", None, scope, []
+
+    def post(self, url, auth=None, data=None, timeout=None):
+        self.calls.append(("token", data["refresh_token"]))
+        if data["refresh_token"] != self.valid_refresh:
+            return FakeResp(400, {"error": "invalid_request"})
+        self.n += 1
+        self.valid_refresh, self.valid_access = f"r{self.n}", f"a{self.n}"
+        return FakeResp(200, {"access_token": self.valid_access, "refresh_token": self.valid_refresh,
+                              "expires_in": 7200, "scope": self.scope})
+
+    def request(self, method, url, headers=None, timeout=None, **kw):
+        self.calls.append((method, url))
+        if headers["Authorization"] != f"Bearer {self.valid_access}":
+            return FakeResp(401, {"title": "Unauthorized"})
+        if url.endswith("/media/upload"):
+            assert kw["data"] == {"media_category": "tweet_image"}
+            return FakeResp(200, {"data": {"id": "m1"}})
+        return FakeResp(201, {"data": {"id": f"t{len(self.calls)}", "text": kw["json"]["text"]}})
+
+
+def poster2(env, monkeypatch, fake):
+    s, db = env
+    s.dry_run = False
+    monkeypatch.setenv("X_CLIENT_ID", "cid")
+    monkeypatch.setenv("X_CLIENT_SECRET", "csecret")
+    monkeypatch.setenv("X_OAUTH2_REFRESH_TOKEN", "r0")
+    p = Poster(s, db)
+    p.oauth2.http = fake
+    return p
+
+
+async def test_oauth2_rotation_persisted_and_posting(env, monkeypatch, tmp_path):
+    fake = FakeX()
+    p = poster2(env, monkeypatch, fake)
+    assert p.live
+    img = tmp_path / "c.png"
+    img.write_bytes(b"png")
+    tid = await p.post("k1", "decision", "hello", image=img)
+    assert tid and tid.startswith("t")
+    store = json.loads((tmp_path / "x_oauth2.json").read_text())
+    assert store["refresh_token"] == "r1" and store["access_token"] == "a1"       # rotated pair saved
+    assert oct((tmp_path / "x_oauth2.json").stat().st_mode & 0o777) == "0o600"
+    await p.post("k2", "split", "again", reply_to=tid)                         # reuses token, no refresh
+    assert [c for c in fake.calls if c[0] == "token"] == [("token", "r0")]
+    p2 = Poster(env[0], env[1]); p2.oauth2.http = fake                           # new process: reads file, not env seed
+    fake.valid_access = "revoked"                                              # server-side expiry -> 401
+    assert await p2.post("k3", "results", "third")
+    assert [c[1] for c in fake.calls if c[0] == "token"] == ["r0", "r1"]       # one forced refresh, chain intact
+
+
+async def test_oauth2_dead_refresh_token_is_permanent(env, monkeypatch):
+    fake = FakeX()
+    fake.valid_refresh = "something-else"
+    p = poster2(env, monkeypatch, fake)
+    assert await p.post("k1", "decision", "hello") is None                     # logged, not retried 5x
+    assert len([c for c in fake.calls if c[0] == "token"]) == 1
+
+
+def test_oauth2_concurrent_refresh_spends_token_once(env, monkeypatch):
+    import threading
+    fake = FakeX()
+    p = poster2(env, monkeypatch, fake)
+    out = []
+    ts = [threading.Thread(target=lambda: out.append(p.oauth2.get())) for _ in range(5)]
+    [t.start() for t in ts]
+    [t.join() for t in ts]
+    assert out == ["a1"] * 5 and len([c for c in fake.calls if c[0] == "token"]) == 1
+
+
+def test_oauth2_login_pkce(env, monkeypatch):
+    from urllib.parse import parse_qs, urlparse
+    fake = FakeX()
+    p = poster2(env, monkeypatch, fake)
+    url = p.oauth2.authorize_url("https://example.test/cb")
+    q = parse_qs(urlparse(url).query)
+    assert "media.write" in q["scope"][0] and q["code_challenge_method"] == ["S256"]
+    with pytest.raises(Exception, match="state mismatch"):
+        p.oauth2.finish_login("https://example.test/cb?state=wrong&code=c")
+    fake.post = lambda url, auth=None, data=None, timeout=None: FakeResp(200, {
+        "access_token": "A", "refresh_token": "R", "expires_in": 7200, "scope": "tweet.write media.write"})
+    assert p.oauth2.finish_login(f"https://example.test/cb?state={q['state'][0]}&code=c") == {"tweet.write", "media.write"}
+    assert p.oauth2.get() == "A" and not p.oauth2.path.with_suffix(".pending").exists()

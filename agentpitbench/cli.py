@@ -119,6 +119,51 @@ async def whoami(s: config.Settings) -> None:
             await c.close()
 
 
+def x_check(s: config.Settings, probe_upload: bool) -> None:
+    """Refresh the X OAuth 2.0 token (rotating it), show scopes and account; optionally upload, never tweet."""
+    from .twitter import ME_URL, NEEDED_SCOPES, Poster, token_file
+    p = Poster(s, DB(s.db_path))
+    if not p.oauth2.ready:
+        sys.exit("OAuth 2.0 not configured: need X_CLIENT_ID, X_CLIENT_SECRET and X_OAUTH2_REFRESH_TOKEN")
+    if not p.oauth2.scopes():
+        p.oauth2.get(stale=p.oauth2._load().get("access_token"))  # first run: refresh so scopes are known
+    scopes = p.oauth2.scopes()
+    print(f"token file: {token_file()}  scopes: {' '.join(sorted(scopes))}")
+    missing = NEEDED_SCOPES - scopes
+    print("missing scopes:", ", ".join(sorted(missing)) if missing else "none")
+    me = p._call("GET", ME_URL).json()["data"]
+    print(f"posting as @{me['username']} ({me['name']})")
+    if probe_upload:
+        img = s.data_dir / "x-probe.png"
+        img.parent.mkdir(parents=True, exist_ok=True)
+        img.write_bytes(_probe_png())
+        print("media upload ok, id", p.upload(img), "(not attached to any tweet; expires in 24h)")
+
+
+def x_login(s: config.Settings, redirected: str | None, redirect_uri: str | None) -> None:
+    """Authorize @agentpitbench via X's login page with every scope the bench needs (incl. media.write)."""
+    from .twitter import Poster
+    p = Poster(s, DB(s.db_path))
+    if not (p.oauth2.client_id and p.oauth2.client_secret):
+        sys.exit("need X_CLIENT_ID and X_CLIENT_SECRET in the secrets file")
+    if redirected:
+        print("logged in; scopes:", " ".join(sorted(p.oauth2.finish_login(redirected))))
+        return
+    print("1. While logged into X as the bench account, open:\n")
+    print(p.oauth2.authorize_url(redirect_uri or s.site_url))
+    print("\n2. Click Authorize. You land on a page (it may 404) whose URL contains ?state=...&code=...")
+    print("3. Copy that whole URL and run:  agentpitbench x-login --url '<that URL>'   (right away: the code expires quickly)")
+
+
+def _probe_png() -> bytes:
+    import struct, zlib
+    def chunk(t, d):
+        return struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d) & 0xFFFFFFFF)
+    raw = b"".join(b"\x00" + b"\x0b\x10\x20" * 64 for _ in range(64))
+    return (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", 64, 64, 8, 2, 0, 0, 0))
+            + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b""))
+
+
 def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(prog="agentpitbench")
     p.add_argument("--config", default="bench.toml")
@@ -132,6 +177,11 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("export", help="write rounds.json, leaderboard.json, bets.csv")
     sub.add_parser("leaderboard", help="print standings")
     sub.add_parser("whoami", help="verify each agent's agentpit key")
+    xc = sub.add_parser("x-check", help="refresh the X OAuth 2.0 token, show scopes and account (never tweets)")
+    xc.add_argument("--upload", action="store_true", help="also upload a tiny test image (not attached to a tweet)")
+    xl = sub.add_parser("x-login", help="authorize the X account with every scope the bench needs")
+    xl.add_argument("--url", help="the URL X redirected you to (step 2)")
+    xl.add_argument("--redirect-uri", help="callback URL registered on the X app (default: site_url)")
     a = p.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     s = config.load(a.config)
@@ -150,6 +200,10 @@ def main(argv: list[str] | None = None) -> None:
         print(json.dumps(leaderboard(DB(s.db_path), s.agents), indent=1))
     elif a.cmd == "whoami":
         asyncio.run(whoami(s))
+    elif a.cmd == "x-login":
+        x_login(s, a.url, a.redirect_uri)
+    elif a.cmd == "x-check":
+        x_check(s, a.upload)
 
 
 if __name__ == "__main__":
