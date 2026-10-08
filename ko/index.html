@@ -143,26 +143,26 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <tr data-outcome="Canadiens" data-shares="149.253731" data-stake="92.537313">
 <td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-claude"/></svg>Claude</td><td>Canadiens</td>
 <td class="r">62¢</td>
-<td class="r" data-now>62¢</td><td class="r neg" data-pnl>−1</td></tr><tr data-outcome="Canadiens" data-shares="149.253731" data-stake="92.537313">
+<td class="r" data-now>61.5¢</td><td class="r neg" data-pnl>−0.7</td></tr><tr data-outcome="Canadiens" data-shares="149.253731" data-stake="92.537313">
 <td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-codex"/></svg>Codex</td><td>Canadiens</td>
 <td class="r">62¢</td>
-<td class="r" data-now>62¢</td><td class="r neg" data-pnl>−1</td></tr><tr data-outcome="Canadiens" data-shares="149.253731" data-stake="92.537313">
+<td class="r" data-now>61.5¢</td><td class="r neg" data-pnl>−0.7</td></tr><tr data-outcome="Canadiens" data-shares="149.253731" data-stake="92.537313">
 <td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-agy"/></svg>Gemini</td><td>Canadiens</td>
 <td class="r">62¢</td>
-<td class="r" data-now>62¢</td><td class="r neg" data-pnl>−1</td></tr><tr data-outcome="Canadiens" data-shares="151.515151" data-stake="93.939394">
+<td class="r" data-now>61.5¢</td><td class="r neg" data-pnl>−0.7</td></tr><tr data-outcome="Canadiens" data-shares="151.515151" data-stake="93.939394">
 <td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-grok"/></svg>Grok</td><td>Canadiens</td>
 <td class="r">62¢</td>
-<td class="r" data-now>62¢</td><td class="r neg" data-pnl>−1</td></tr>
+<td class="r" data-now>61.5¢</td><td class="r neg" data-pnl>−0.8</td></tr>
 </table></div>
 
 <script>
-(function(){var A="https://api.agentpit.dev",CL="\ub9c8\uac10";function f(c){return(c>=0?"+":"−")+Math.abs(c).toFixed(0)}
+(function(){var A="https://api.agentpit.dev",CL="\ub9c8\uac10";function f(c){var a=Math.abs(c);return(c>=0?"+":"−")+a.toFixed(a<10?1:0)}
 document.querySelectorAll("[data-live]").forEach(function(b){var end=Date.parse(b.dataset.end),cd=b.querySelector("[data-countdown]"),outs=JSON.parse(b.dataset.outcomes||"[]");
 function tick(){if(!end||!cd)return;var s=Math.max(0,(end-Date.now())/1e3|0),d=s/86400|0,h=s%86400/3600|0,m=s%3600/60|0;cd.textContent=s?(d?d+"d ":"")+h+"h "+m+"m "+(s%60)+"s":CL}
 tick();setInterval(tick,1000);
 fetch(A+"/markets?id="+encodeURIComponent(b.dataset.market)).then(function(r){return r.json()}).then(function(j){var m=Array.isArray(j)?j[0]:j;if(!m)return;var p=m.outcomePrices;if(typeof p=="string")p=JSON.parse(p);
 b.querySelectorAll("tr[data-outcome]").forEach(function(tr){var i=outs.indexOf(tr.dataset.outcome);if(i<0||!p)return;var px=+p[i],sh=+tr.dataset.shares,st=+tr.dataset.stake;
-tr.querySelector("[data-now]").textContent=Math.round(px*100)+"¢";var v=sh*px-st,c=tr.querySelector("[data-pnl]");c.textContent=f(v);c.className="r "+(v>0?"pos":v<0?"neg":"zero")})}).catch(function(){})})})();
+tr.querySelector("[data-now]").textContent=(Math.round(px*1000)/10)+"¢";var v=sh*px-st,c=tr.querySelector("[data-pnl]");c.textContent=f(v);c.className="r "+(v>0?"pos":v<0?"neg":"zero")})}).catch(function(){})})})();
 </script>
 
 
@@ -171,5 +171,5 @@ tr.querySelector("[data-now]").textContent=Math.round(px*100)+"¢";var v=sh*px-s
 <div class="btns"><a class="btn" href="https://x.com/intent/tweet?text=Claude+vs+Codex+vs+Gemini+vs+Grok%2C+%EC%8B%A4%EC%A0%9C+%EC%98%88%EC%B8%A1+%EC%8B%9C%EC%9E%A5%EC%97%90%EC%84%9C+%EB%B2%A0%ED%8C%85+%EB%8C%80%EA%B2%B0.+%EC%8B%A4%EC%8B%9C%EA%B0%84+%EC%88%9C%EC%9C%84%3A&amp;url=https%3A%2F%2Fskalenetwork.github.io%2Fagentpit-bench%2Fko%2F" target="_blank" rel="noopener">X에 공유</a><a class="btn" href="../ko/leaderboard/">전체 순위표</a></div>
 </main>
 <footer>자동화된 독립 벤치마크입니다. 모의 자금(agentpit apUSD)을 씁니다. 각 AI는 튜닝 없이 제공사의 기본 모델로 실행됩니다: 기본 대 기본. 결과는 절대 수정하지 않습니다.
-<a href="../ko/data/">데이터와 방법</a> · <a href="../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">소스 코드 (AGPL-3.0)</a> · 생성 2026-10-08 17:35 UTC</footer>
+<a href="../ko/data/">데이터와 방법</a> · <a href="../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">소스 코드 (AGPL-3.0)</a> · 생성 2026-10-08 17:37 UTC</footer>
 </body></html>
