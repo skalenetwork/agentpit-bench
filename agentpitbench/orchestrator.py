@@ -105,10 +105,17 @@ def simulate_fill(book: dict, limit: float, stake: float) -> dict:
     return {"shares": shares, "cost": cost, "avg_price": (cost / shares) if shares else None}
 
 
+# Agents can print their environment into a published transcript, so they get an allowlist, never the
+# operator's session (IDE, terminal, tokens). DBUS/XDG_RUNTIME_DIR reach agy's keyring login.
+ENV_ALLOW = {"LANG", "LC_ALL", "LC_CTYPE", "TERM", "TZ", "USER", "LOGNAME", "XDG_RUNTIME_DIR",
+             "DBUS_SESSION_BUS_ADDRESS"}
+AGENT_PATH = "/usr/local/bin:/usr/bin:/bin"
+
+
 def agent_env(sock: str, shim_dir: str, home: Path | None = None) -> dict:
     env = {k: v for k, v in os.environ.items()
-           if not k.startswith(SECRET_PREFIXES) and k not in DROP_VARS}
-    env["PATH"] = shim_dir + os.pathsep + env.get("PATH", "")
+           if k in ENV_ALLOW and not k.startswith(SECRET_PREFIXES) and k not in DROP_VARS}
+    env["PATH"] = shim_dir + os.pathsep + AGENT_PATH
     env["BENCH_SOCKET"] = sock
     if home is not None:
         env = {k: v for k, v in env.items() if not k.startswith(HOME_PREFIXES)}

@@ -408,3 +408,14 @@ async def test_live_order_sized_by_walking_the_book(s, db, monkeypatch):
     await r._place("claude", {"outcome": "Yes", "rationale": "x", "confidence": 0.6})
     assert seen["price"] == pytest.approx(0.67)                       # best ask 0.62 + 5c slippage
     assert seen["size"] == pytest.approx(100 + 38 / 0.65)              # 100 @ .62, rest @ .65 = 100 tokens
+
+
+def test_agent_env_is_an_allowlist(monkeypatch):
+    monkeypatch.setenv("JEDITERM_SOURCE", "/home/op/ide")
+    monkeypatch.setenv("PKG_CONFIG_PATH", "/d/repo/.venv/lib")
+    monkeypatch.setenv("SOME_RANDOM_TOKEN", "zzz")
+    monkeypatch.setenv("LANG", "C.UTF-8")
+    env = orchestrator.agent_env("/sock", "/shim", Path("/tmp/h"))
+    assert set(env) <= orchestrator.ENV_ALLOW | {"PATH", "BENCH_SOCKET", "HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME",
+                                                  "XDG_CACHE_HOME", "XDG_STATE_HOME", "DISABLE_AUTOUPDATER"}
+    assert env["LANG"] == "C.UTF-8" and env["PATH"] == "/shim:/usr/local/bin:/usr/bin:/bin"
