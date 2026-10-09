@@ -92,23 +92,41 @@ def split_text(s: Settings, rnd: dict, kind: str, headline: str) -> str:
     return fit(f"{lead} {picks}. Who's right? ", f" {TAG}")
 
 
+def results_hook(rnd: dict) -> str:
+    """The results tweet's first line, built from the picks: who backed what and the score."""
+    if rnd["state"] == "void":
+        return f"Voided: \"{clip(rnd['question'], 100)}\". No result this round."
+    w = rnd["winner"]
+    bettors = [e for e in rnd["entries"] if e.get("outcome")]
+    winners = [e for e in bettors if e.get("won")]
+    losers = [e for e in bettors if not e.get("won")]
+    n = len(bettors)
+    if not n:
+        return f"Resolved: {w}. No AI placed a bet."
+    if len({e["outcome"] for e in bettors}) == 1 and n > 1:
+        if winners:
+            return f"Resolved: {w}. All {n} AIs backed it. {n}-0."
+        return f"Resolved: {w}. All {n} AIs backed {bettors[0]['outcome']}. 0-{n}."
+    if len(winners) == 1 and n > 1:
+        return f"Resolved: {w}. {winners[0]['name']} went alone and was right. 1-{n - 1}."
+    if len(losers) == 1 and n > 1:
+        return f"Resolved: {w}. {' & '.join(e['name'] for e in winners)} cash; {losers[0]['name']} alone got it wrong."
+    if not winners:
+        return f"Resolved: {w}. Nobody had it. 0-{n}."
+    return (f"Resolved: {w}. {' & '.join(e['name'] for e in winners)} win, "
+            f"{' & '.join(e['name'] for e in losers)} lose. {len(winners)}-{len(losers)}.")
+
+
 def results_text(s: Settings, rnd: dict, board: list[dict], round_url: str, crowd: dict | None = None,
                  cast: str | None = None) -> str:
-    """cast: the rule-based commentary line, kept when it fits."""
-    if rnd["state"] == "void":
-        head = f"Voided: \"{clip(rnd['question'], 100)}\". No result this round."
-    else:
-        winners = [e for e in rnd["entries"] if e["won"]]
-        won = (" & ".join(e["name"] for e in winners) + " won.") if winners else "Nobody won."
-        head = f"Resolved: {rnd['winner']}. {won}"
+    """cast is accepted for compatibility but not repeated: the commentary line is on the card already."""
+    head = results_hook(rnd)
     tags = " ".join(dict.fromkeys(VENDOR_HANDLES[e["agent"]] for e in rnd["entries"]
                                   if e["won"] and e["agent"] in VENDOR_HANDLES))
     season = ", ".join(f"{b['name']} {b['wins']}-{b['losses']}" for b in board)
     if season and crowd and crowd.get("played"):
         season += f" | Crowd {crowd['wins']}-{crowd['losses']}"
     tail = (f"\nSeason: {season}." if season else "") + f" {TAG}" + (f" {tags}" if tags else "") + f"\n{round_url}"
-    if cast and tweet_len(head + " " + cast + tail) <= MAX_LEN:
-        head = f"{head}\n{cast}"
     return fit(head, tail)
 
 

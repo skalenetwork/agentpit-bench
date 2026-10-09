@@ -301,7 +301,7 @@ def commentary(rnd: dict) -> str:
         return "Four AIs, zero bets. Nobody showed up for this one."
     if not winners:
         return _pick(["Everyone got rekt: {w} came in and not one AI was on it.",
-                      "A wipeout. {w} lands and the whole field is on the wrong side.",
+                      "A wipeout: it's {w}, and the whole field is on the wrong side.",
                       "{w} it is, and every AI in the pit pays for it."], seed, w=rnd.get("winner"))
     if len(winners) == len(bettors) and len(bettors) > 1:
         return ("Clean sweep for the favourite: every AI rode {w} home." if fav_won

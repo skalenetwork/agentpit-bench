@@ -1,5 +1,6 @@
 """Publishing layer in dry-run: cards, outbox tweets, thread order, site build. Four agents per round."""
 import json
+from pathlib import Path
 import time
 import xml.etree.ElementTree as ET
 
@@ -56,7 +57,7 @@ def env(tmp_path, monkeypatch):
               "X_OAUTH2_ACCESS_TOKEN", "X_OAUTH2_REFRESH_TOKEN"):
         monkeypatch.delenv(k, raising=False)
     monkeypatch.setenv("BENCH_X_TOKEN_FILE", str(tmp_path / "x_oauth2.json"))
-    s = Settings(data_dir=tmp_path / "var", agents=AGENTS, dry_run=True, deploy_debounce_s=0)
+    s = Settings(data_dir=tmp_path / "var", agents=AGENTS, dry_run=True, deploy_debounce_s=0, animate=False)
     return s, DB(s.db_path)
 
 
@@ -343,3 +344,111 @@ def test_only_results_tweets_carry_links(env):
     plain = [decision_text(s, r, e) for e in r["entries"]] + [split_text(s, r, kind, h)]
     assert not any("http" in t for t in plain)          # X bills link posts ~13x
     assert "http" in results_text(s, r, [], "https://x.test/round/1/")
+
+
+
+# results hook, grammar, split replies, animated clips
+def _rec(entries, winner="Predators", state="resolved"):
+    return {"state": state, "winner": winner, "question": "Predators vs. Canadiens",
+            "entries": [{"name": n, "agent": n.lower(), "outcome": o, "won": (o == winner) if o else False}
+                        for n, o in entries]}
+
+
+def test_results_hook_from_data():
+    from agentpitbench.twitter import results_hook
+    four = ["Claude", "Codex", "Gemini", "Grok"]
+    assert results_hook(_rec([(n, "Canadiens") for n in four])) == "Resolved: Predators. All 4 AIs backed Canadiens. 0-4."
+    assert results_hook(_rec([(n, "Predators") for n in four])) == "Resolved: Predators. All 4 AIs backed it. 4-0."
+    lone = [("Claude", "Canadiens"), ("Codex", "Predators"), ("Gemini", "Canadiens"), ("Grok", "Canadiens")]
+    assert results_hook(_rec(lone)) == "Resolved: Predators. Codex went alone and was right. 1-3."
+    odd = [("Claude", "Predators"), ("Codex", "Predators"), ("Gemini", "Canadiens"), ("Grok", "Predators")]
+    assert results_hook(_rec(odd)) == "Resolved: Predators. Claude & Codex & Grok cash; Gemini alone got it wrong."
+    even = [("Claude", "Predators"), ("Codex", "Predators"), ("Gemini", "Canadiens"), ("Grok", "Canadiens")]
+    assert results_hook(_rec(even)) == "Resolved: Predators. Claude & Codex win, Gemini & Grok lose. 2-2."
+    assert results_hook(_rec([(n, None) for n in four])) == "Resolved: Predators. No AI placed a bet."
+
+
+def test_commentary_has_no_verb_on_the_outcome():
+    from agentpitbench import virality
+    for rid in range(6):
+        r = {**_rec([(n, "Canadiens") for n in ("Claude", "Codex")]), "round_id": rid, "crowd": {}}
+        line = virality.commentary(r)
+        assert "Predators lands" not in line and "Predators comes" not in line
+
+
+async def test_humans_read_from_opener_and_split(env):
+    from agentpitbench.engage import Engage
+    s, db = env
+    rid = make_round(db, PICKS)
+    db.set_round(rid, thread_tweet_id="100")
+    db.x("INSERT INTO tweets(post_key,tweet_id,kind,round_id) VALUES(?,?,?,?)", f"r{rid}-split", "200", "split", rid)
+    s.max_reply_reads = 5
+    calls = []
+
+    class P:
+        can_read = True
+        def replies(self, conv, n):
+            calls.append((conv, n))
+            if conv == "100":
+                return [{"id": "1", "author_id": "u1", "username": "a", "text": "Nexus", "created_at": "2026-10-09T10:00:00Z"},
+                        {"id": "2", "author_id": "u2", "username": "b", "text": "nexus!", "created_at": "2026-10-09T10:05:00Z"}]
+            return [{"id": "3", "author_id": "u2", "username": "b", "text": "CYBERSHOKE", "created_at": "2026-10-09T09:00:00Z"},
+                    {"id": "4", "author_id": "u3", "username": "c", "text": "cybershoke", "created_at": "2026-10-09T11:00:00Z"}]
+        def my_user_id(self):
+            return "me"
+
+    eng = Engage(s, db, P(), None)
+    assert await eng.collect_humans(rid) == 3
+    assert calls == [("100", 5), ("200", 3)]                              # one budget across both posts
+    picks = {r["user_id"]: r["pick"] for r in db.q("SELECT user_id, pick FROM humans WHERE round_id=?", rid)}
+    assert picks == {"u1": "Nexus", "u2": "CYBERSHOKE", "u3": "CYBERSHOKE"}  # earliest reply wins, either post
+
+
+async def test_split_and_results_post_video_with_png_fallback(env, monkeypatch):
+    s, db = env
+    s.animate = True
+    rid = make_round(db, PICKS)
+    pub = BenchPublisher(s, db)
+    posted = []
+    vid = s.cards_dir / "fake.mp4"
+
+    async def fake_clip(*a, **k):
+        vid.parent.mkdir(parents=True, exist_ok=True)
+        vid.write_bytes(b"mp4")
+        return vid
+
+    async def fake_post(key, kind, text, image=None, reply_to=None, round_id=None, quote_of=None):
+        posted.append((key, Path(image).suffix if image else None))
+        return None if (image and Path(image).suffix == ".mp4" and kind == "results") else f"t-{key}"
+
+    monkeypatch.setattr(pub.cards, "split_clip", fake_clip)
+    monkeypatch.setattr(pub.cards, "results_clip", fake_clip)
+    monkeypatch.setattr(pub.poster, "post", fake_post)
+    try:
+        await pub.on_bets_done(rid)
+        db.set_round(rid, state="resolved", winner="Nexus", resolved_at=time.time())
+        await pub.on_resolved(rid)
+    finally:
+        await pub.close()
+    assert (f"r{rid}-split", ".mp4") in posted
+    assert posted.count((f"r{rid}-results", ".mp4")) == 1 and (f"r{rid}-results", ".png") in posted  # fallback
+
+
+async def test_clip_renders_mp4_ending_on_the_static_card(env):
+    from agentpitbench import media
+    if not media.ffmpeg_exe():
+        pytest.skip("no ffmpeg")
+    s, db = env
+    rid = make_round(db, PICKS, state="resolved", winner="Nexus")
+    data = exports.export(s, db)
+    r = next(x for x in data["rounds"] if x["round_id"] == rid)
+    cr = CardRenderer(s)
+    try:
+        t0 = time.time()
+        out = await cr.results_clip(r, data["leaderboard"]["agents"], data["leaderboard"]["crowd"])
+        split = await cr.split_clip(r, data["leaderboard"]["agents"])
+    finally:
+        await cr.close()
+    assert out and out.suffix == ".mp4" and 0 < out.stat().st_size < 5_000_000
+    assert split and split.suffix == ".mp4" and split.stat().st_size < 5_000_000
+    assert time.time() - t0 < 120

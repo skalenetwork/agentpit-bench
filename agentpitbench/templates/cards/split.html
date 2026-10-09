@@ -3,26 +3,37 @@
 :root{--accent:{% if grudge %}#ff3b5c{% elif kind == 'split' %}#ffb020{% else %}#7b8cff{% endif %};--accent-soft:{% if grudge %}#4a1022{% else %}#2b2a55{% endif %}}
 .vs{font-size:26px;color:#ffd34d;margin-top:8px}
 .col .hd{display:flex;align-items:center;gap:10px}
-.h{font-size:72px;font-weight:700;line-height:1.02;margin-top:20px;max-width:1080px}
-.cols{display:flex;gap:{{ 22 if r.entries|length <= 3 else 14 }}px;margin-top:30px}
-.col{flex:1;background:#141c3a;border-top:8px solid;padding:20px 22px 22px;min-width:0}
+.h{font-size:{{ 60 if grudge else 68 }}px;font-weight:700;line-height:1.02;margin-top:16px;max-width:1080px}
+.cols{display:flex;gap:{{ 22 if r.entries|length <= 3 else 14 }}px;margin-top:{{ 16 if grudge else 22 }}px}
+.col{flex:1;background:#141c3a;border-top:8px solid;padding:16px 22px 18px;min-width:0}
 .col .n{font-size:40px;font-weight:700;line-height:1}
 .col .p{font-size:{{ 54 if r.entries|length <= 3 else 36 }}px;font-weight:700;line-height:1.1;margin-top:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .col .m{font-size:20px;color:#9aa4c4;margin-top:8px}
+.below{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.mk{display:flex;gap:18px;align-items:baseline;font-size:24px;color:#cfd6ea;white-space:nowrap;overflow:hidden}
+.mk b{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:28px;text-transform:uppercase;color:#f4f6fb}
+.mk .k{font-size:18px;letter-spacing:2px;text-transform:uppercase;color:#8f9abb;min-width:130px}
+.crowdpick{border:2px dashed #5d6888;padding:4px 16px;color:#aab3cf}
+.invite{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:26px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#ffd34d}
 {% endblock %}
 {% block body %}
-<div class="top"><span class="tag {% if kind == 'split' %}live{% endif %}">{% if grudge %}Grudge match{% elif kind == 'split' %}Split decision{% else %}Unanimous{% endif %}</span><span class="disp dim" style="font-size:22px">Round {{ r.round_id }}</span></div>
-<div class="disp h">{% if grudge %}{{ headline|replace('GRUDGE MATCH: ', '') }}{% else %}{{ headline }}{% endif %}</div>
-{% if grudge %}<div class="disp vs">Head to head: {{ grudge.a_name }} {{ grudge.a_wins }} – {{ grudge.b_wins }} {{ grudge.b_name }}</div>{% endif %}
-<div class="q" style="margin-top:12px">{{ r.question }}</div>
+<div class="top"><span data-a="tag" class="tag {% if kind == 'split' %}live{% endif %}">{% if grudge %}Grudge match{% elif kind == 'split' %}Split decision{% else %}Unanimous{% endif %}</span><span class="disp dim" style="font-size:22px">Round {{ r.round_id }}</span></div>
+<div class="disp h" data-a="head">{% if grudge %}{{ headline|replace('GRUDGE MATCH: ', '') }}{% else %}{{ headline }}{% endif %}</div>
+{% if grudge %}<div class="disp vs" data-a="sub">Head to head: {{ grudge.a_name }} {{ grudge.a_wins }} – {{ grudge.b_wins }} {{ grudge.b_name }}</div>{% endif %}
+<div class="q" style="margin-top:12px" data-a="sub">{{ r.question }}</div>
 <div class="cols">
 {% for e in r.entries %}{% set c = colors.get(e.agent, '#888') %}
-<div class="col" style="border-color:{{ c|edge }}">
+<div class="col" data-a="row" style="border-color:{{ c|edge }}">
   <div class="hd">{{ mascot(e.agent, 46) }}<div class="disp n" style="color:{{ c|edge }}">{{ e.name }}</div></div>
   <div class="disp p">{{ e.outcome or 'No bet' }}</div>
   <div class="m">{% if e.outcome %}at {{ e.avg_price|cents }} · {{ '%.0f'|format((e.confidence or 0) * 100) }}% sure{% else %}forfeited{% endif %}</div>
 </div>
 {% endfor %}
+</div>
+<div class="below">
+{% if r.prices_at_start and r.prices_at_start|length == r.outcomes|length %}<div class="mk" data-a="tail"><span class="k">Market</span>{% for o in r.outcomes %}<span><b>{{ o }}</b> {{ r.prices_at_start[loop.index0]|cents }}</span>{% endfor %}</div>{% endif %}
+{% if r.crowd and r.crowd.outcome %}<div class="mk crowdpick" data-a="tail"><span class="k">The Crowd</span><span>backs the favourite: <b>{{ r.crowd.outcome }}</b> at {{ r.crowd.price|cents }}</span></div>{% endif %}
+<div class="invite" data-a="tail">Reply with your pick: {{ r.outcomes|join(' / ') }}</div>
 </div>
 {% endblock %}
 {% block foot %}Who's right? Resolves {{ (r.end_date or '')[:10] }}{% endblock %}

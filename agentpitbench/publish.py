@@ -68,10 +68,28 @@ class BenchPublisher:
             self.db.set_round(round_id, thread_tweet_id=tid)
         return tid
 
-    async def _standalone(self, round_id: int, key: str, kind: str, text: str, image: Path | None) -> str | None:
-        """A post of its own that quotes the round's opener. Caller holds the lock."""
+    async def _standalone(self, round_id: int, key: str, kind: str, text: str, image: Path | None,
+                          video: Path | None = None) -> str | None:
+        """A post of its own that quotes the round's opener. With a video, a failed video post falls back to
+        the still card, so the post is never lost. Caller holds the lock."""
         thread = self.db.round(round_id)["thread_tweet_id"]
+        if video:
+            tid = await self.poster.post(key, kind, text, video, round_id=round_id, quote_of=thread)
+            if tid:
+                return tid
+            log.warning("%s: video post failed, posting the still card", key)
         return await self.poster.post(key, kind, text, image, round_id=round_id, quote_of=thread)
+
+    async def _clip(self, coro) -> Path | None:
+        """An animated card, or None (static card instead) when animation is off or rendering fails."""
+        if not self.s.animate:
+            coro.close()
+            return None
+        try:
+            return await coro
+        except Exception:
+            log.exception("card animation failed; using the still card")
+            return None
 
     async def on_bet(self, round_id: int, run_id: int) -> None:
         task = asyncio.current_task()
@@ -111,8 +129,10 @@ class BenchPublisher:
             if g:
                 headline = grudge_headline(g)
             png = await self._card(self.cards.split(rnd, board, headline=headline, grudge=g))
+            video = await self._clip(self.cards.split_clip(rnd, board, headline=headline, grudge=g))
             async with self._lock(round_id):
-                await self._standalone(round_id, f"r{round_id}-split", kind, split_text(self.s, rnd, kind, headline), png)
+                await self._standalone(round_id, f"r{round_id}-split", kind, split_text(self.s, rnd, kind, headline),
+                                       png, video)
         try:
             await self.engage.model_changes(round_id)
         except Exception:
@@ -131,9 +151,11 @@ class BenchPublisher:
         board, crowd = lb["agents"], lb["crowd"]
         cast = commentary(rnd)
         png = await self._card(self.cards.results(rnd, board, crowd, cast=cast, top_humans=lb["humans"][:3]))
+        video = await self._clip(self.cards.results_clip(rnd, board, crowd, cast=cast, top_humans=lb["humans"][:3]))
         async with self._lock(round_id):
             tid = await self._standalone(round_id, f"r{round_id}-results", "results",
-                                         results_text(self.s, rnd, board, self.round_url(round_id), crowd, cast), png)
+                                         results_text(self.s, rnd, board, self.round_url(round_id), crowd, cast),
+                                         png, video)
         if tid:
             self.db.set_round(round_id, results_tweet_id=tid)
         data = exports.export(self.s, self.db)

@@ -23,24 +23,24 @@
 .crowd .pnl{margin-left:auto;font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:26px}
 {% endblock %}
 {% block body %}
-<div class="top"><span class="tag {% if upset %}live{% endif %}">{% if r.state == 'void' %}Void{% elif upset %}Upset{% else %}Final{% endif %}</span><span class="disp dim" style="font-size:22px">Round {{ r.round_id }} · frontier vs frontier</span></div>
-<div class="disp h">{{ headline }}</div>
-{% if cast %}<div class="cast">🎙 {{ cast }}</div>{% endif %}
-<div class="win">{% if r.winner %}Winner: <b>{{ r.winner }}</b> · {% endif %}{{ r.question }}</div>
+<div class="top"><span data-a="tag" class="tag {% if upset %}live{% endif %}">{% if r.state == 'void' %}Void{% elif upset %}Upset{% else %}Final{% endif %}</span><span class="disp dim" style="font-size:22px">Round {{ r.round_id }} · frontier vs frontier</span></div>
+<div class="disp h" data-a="head">{{ headline }}</div>
+{% if cast %}<div class="cast" data-a="sub">🎙 {{ cast }}</div>{% endif %}
+<div class="win" data-a="sub">{% if r.winner %}Winner: <b>{{ r.winner }}</b> · {% endif %}{{ r.question }}</div>
 <div class="rows">
 {% for e in ranked %}{% set c = colors.get(e.agent, '#888') %}
-<div class="row {% if e.won %}w{% endif %}" style="border-left:8px solid {{ c|edge }}">
+<div data-a="row" class="row {% if e.won %}w{% endif %}" style="border-left:8px solid {{ c|edge }}">
   <div class="disp rk">{{ loop.index }}</div>
   <div class="m">{{ mascot(e.agent, 44) }}</div>
   <div class="disp n" style="color:{{ c|edge }}">{{ e.name }}</div>
   <div class="p">{% if e.outcome %}{{ e.outcome }} at {{ e.avg_price|cents }}{% else %}no bet{% endif %}</div>
-  <div class="disp pnl {% if e.pnl and e.pnl > 0 %}pos{% elif e.pnl and e.pnl < 0 %}neg{% else %}zero{% endif %}">{% if e.outcome %}{{ e.pnl|signed }}{% else %}—{% endif %}</div>
+  <div class="disp pnl {% if e.pnl and e.pnl > 0 %}pos{% elif e.pnl and e.pnl < 0 %}neg{% else %}zero{% endif %}"{% if e.outcome and e.pnl is not none %} data-pnl="{{ e.pnl }}" data-final="{{ e.pnl|signed }}"{% endif %}>{% if e.outcome %}{{ e.pnl|signed }}{% else %}—{% endif %}</div>
 </div>
 {% endfor %}
 </div>
-{% if r.crowd and r.crowd.outcome %}<div class="crowd"><b>The Crowd</b><span>favourite at start: {{ r.crowd.outcome }} at {{ r.crowd.price|cents }}{% if crowd and crowd.played %} · season {{ crowd.wins }}-{{ crowd.losses }}{% endif %}</span>
+{% if r.crowd and r.crowd.outcome %}<div class="crowd" data-a="tail"><b>The Crowd</b><span>favourite at start: {{ r.crowd.outcome }} at {{ r.crowd.price|cents }}{% if crowd and crowd.played %} · season {{ crowd.wins }}-{{ crowd.losses }}{% endif %}</span>
 {% if r.crowd.pnl is not none %}<span class="pnl {% if r.crowd.pnl > 0 %}pos{% else %}neg{% endif %}">{{ r.crowd.pnl|signed }}</span>{% endif %}</div>{% endif %}
-{% if board %}<div class="strip">{% for b in board %}<span><b style="color:{{ colors.get(b.agent,'#888')|edge }}">{{ b.name }}</b> {{ b.wins }}-{{ b.losses }} · {{ b.net_pnl|signed }}</span>{% endfor %}</div>{% endif %}
-{% if r.humans and r.humans.picked %}<div class="humans"><b>Humans:</b> {{ r.humans.picked }} picked{% if r.humans.right is not none %}, {{ (100 * r.humans.right / r.humans.picked)|round|int }}% right{% endif %}{% if top_humans %} · top pickers {% for h in top_humans %}<b>@{{ h.username }}</b> {{ h.wins }}-{{ h.picks - h.wins }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}</div>{% endif %}
+{% if board %}<div class="strip" data-a="tail">{% for b in board %}<span><b style="color:{{ colors.get(b.agent,'#888')|edge }}">{{ b.name }}</b> {{ b.wins }}-{{ b.losses }} · {{ b.net_pnl|signed }}</span>{% endfor %}</div>{% endif %}
+{% if r.humans and r.humans.picked %}<div class="humans" data-a="tail"><b>Humans:</b> {{ r.humans.picked }} picked{% if r.humans.right is not none %}, {{ (100 * r.humans.right / r.humans.picked)|round|int }}% right{% endif %}{% if top_humans %} · top pickers {% for h in top_humans %}<b>@{{ h.username }}</b> {{ h.wins }}-{{ h.picks - h.wins }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}</div>{% endif %}
 {% endblock %}
 {% block foot %}Season standings · frontier models{% endblock %}

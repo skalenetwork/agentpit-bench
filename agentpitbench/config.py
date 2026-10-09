@@ -40,6 +40,7 @@ class Settings:
     press_timeout_s: int = 60           # post-match statement: per losing agent
     void_after_days: int = 14
     deploy_debounce_s: int = 30
+    animate: bool = True             # split and results posts as short MP4s (static PNG fallback)
     sandbox: bool = True             # run agents inside bubblewrap (bwrap); never disable in production
     dry_run: bool = True
     posting_paused: bool = False

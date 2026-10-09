@@ -90,7 +90,7 @@ def env(tmp_path, monkeypatch):
     for k in ("X_CLIENT_ID", "X_CLIENT_SECRET", "X_OAUTH2_REFRESH_TOKEN", "X_API_KEY"):
         monkeypatch.delenv(k, raising=False)
     monkeypatch.setenv("BENCH_X_TOKEN_FILE", str(tmp_path / "tok.json"))
-    s = Settings(data_dir=tmp_path / "var", agents=AGENTS, dry_run=True, deploy_debounce_s=0)
+    s = Settings(data_dir=tmp_path / "var", agents=AGENTS, dry_run=True, deploy_debounce_s=0, animate=False)
     return s, DB(s.db_path)
 
 
@@ -310,7 +310,8 @@ def test_commentary_deterministic(env):
     assert v.commentary(exports.round_record(s, db, db.round(sweep))) == \
         "Clean sweep for the favourite: every AI rode CYBERSHOKE home."
     t = results_text(s, r, [], "https://x.test/round/1/", None, line)
-    assert line in t and tweet_len(t) <= MAX_LEN
+    assert line not in t and tweet_len(t) <= MAX_LEN                   # the card carries the commentary
+    assert t.startswith("Resolved: Nexus. Grok went alone and was right. 1-2.")
 
 
 # 12. high stakes
@@ -486,7 +487,7 @@ async def test_publisher_resolution_extras(env):
     finally:
         await pub.close()
     res = json.loads((s.outbox_dir / f"r{rid}-results.json").read_text())
-    assert "goes against everyone" in res["text"] or "fades the field" in res["text"] or "Long shot" in res["text"]
+    assert res["text"].startswith("Resolved: Nexus. Grok went alone and was right.")   # data hook; commentary is on the card
     assert db.get("milestone_state")["rounds"] == 1
 
 

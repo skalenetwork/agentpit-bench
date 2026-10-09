@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import shutil
 import logging
 from pathlib import Path
 
@@ -16,6 +17,37 @@ W, H = 1200, 675
 UPSET_PRICE = 0.25
 
 env = Environment(loader=PackageLoader("agentpitbench", "templates/cards"), autoescape=select_autoescape())
+
+
+# Card animation timeline (seconds). The final state is exactly the static card: every element at rest and
+# every counted number back to its formatted text.
+CLIP_JS = r"""
+(function(){
+  const q = s => Array.from(document.querySelectorAll(s));
+  const ease = x => x <= 0 ? 0 : x >= 1 ? 1 : 1 - Math.pow(1 - x, 3);
+  const T = {tag: 0.15, head: 0.55, sub: 1.0, row0: 1.35, gap: 0.42, dur: 0.45, count: 0.9, tail: 0.5};
+  const rows = () => q('[data-a=row]');
+  const tailAt = () => T.row0 + Math.max(0, rows().length - 1) * T.gap + T.dur + 0.15;
+  const fmt = v => (v >= 0 ? '+' : '\u2212') + Math.round(Math.abs(v)).toLocaleString('en-US');
+  function set(el, o, dy, sc){ el.style.opacity = o; el.style.transformOrigin = 'left center';
+    el.style.transform = (o >= 1 && !dy && sc === 1) ? '' : `translateY(${dy}px) scale(${sc})`; }
+  window.__apbEnd = () => Math.max(tailAt() + T.tail, T.row0 + (rows().length - 1) * T.gap + T.count + 0.1);
+  window.__apb = function(t){
+    q('[data-a=tag]').forEach(el => { const p = ease((t - 0) / T.tag); set(el, p, 0, 1); });
+    q('[data-a=head]').forEach(el => { const p = ease((t - 0.15) / 0.4); set(el, p, 0, 1.35 - 0.35 * p); });
+    q('[data-a=sub]').forEach(el => { const p = ease((t - 0.6) / 0.4); set(el, p, 8 * (1 - p), 1); });
+    rows().forEach((el, i) => {
+      const s = T.row0 + i * T.gap, p = ease((t - s) / T.dur);
+      set(el, p, -28 * (1 - p), 1);
+      el.querySelectorAll('[data-pnl]').forEach(c => {
+        const k = ease((t - s) / T.count);
+        c.textContent = k >= 1 ? c.dataset.final : fmt(parseFloat(c.dataset.pnl) * k);
+      });
+    });
+    q('[data-a=tail]').forEach(el => { const p = ease((t - tailAt()) / T.tail); set(el, p, 10 * (1 - p), 1); });
+  };
+})();
+"""
 
 
 def cents(p: float | None) -> str:
@@ -219,6 +251,58 @@ class CardRenderer:
         ctx["board"] = board
         html = env.get_template("banner.html").render(**ctx)
         return await self.render_html(html, self.s.cards_dir / "banner.png", 1500, 500)
+
+    async def clip(self, html: str, out_base: Path, fps: int = 12, seconds: float = 6.0) -> Path | None:
+        """Animate a finished card (split/results) into a short MP4 whose last frame equals the static card.
+        Elements marked data-a=tag|head|sub|row|tail enter in that order; data-pnl numbers count up.
+        Returns None (callers fall back to the PNG) if anything fails or no ffmpeg is available."""
+        from . import media
+        if not media.ffmpeg_exe():
+            return None
+        frames_dir = out_base.parent / f"{out_base.name}-frames"
+        shutil.rmtree(frames_dir, ignore_errors=True)
+        frames_dir.mkdir(parents=True, exist_ok=True)
+        total = int(round(seconds * fps))
+        async with self._lock:
+            browser = await self._ensure()
+            page = await browser.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
+            try:
+                await page.set_content(html, wait_until="load")
+                await page.evaluate("document.fonts && document.fonts.ready")
+                await page.add_script_tag(content=CLIP_JS)
+                end = await page.evaluate("window.__apbEnd()")
+                moving = min(total - 1, int(end * fps) + 1)   # frames before the card comes to rest
+                for i in range(moving):
+                    await page.evaluate("t => window.__apb(t)", i / fps)
+                    await page.screenshot(path=str(frames_dir / f"f{i:05d}.png"),
+                                          clip={"x": 0, "y": 0, "width": W, "height": H})
+                rest = frames_dir / f"f{moving:05d}.png"
+                await page.evaluate("window.__apb(1e9)")      # the final frame: identical to the static card
+                await page.screenshot(path=str(rest), clip={"x": 0, "y": 0, "width": W, "height": H})
+                for i in range(moving + 1, total):
+                    shutil.copyfile(rest, frames_dir / f"f{i:05d}.png")
+            finally:
+                await page.close()
+        frames = sorted(frames_dir.glob("f*.png"))
+        try:
+            out = await asyncio.to_thread(media.encode, frames, out_base, fps, False)
+        finally:
+            shutil.rmtree(frames_dir, ignore_errors=True)
+        return out
+
+    async def split_clip(self, rnd: dict, board: list[dict] | None = None, headline: str | None = None,
+                         grudge: dict | None = None) -> Path | None:
+        kind, default = split_headline(rnd)
+        html = env.get_template("split.html").render(**self._ctx(rnd, board), kind=kind,
+                                                     headline=headline or default, grudge=grudge)
+        return await self.clip(html, self._dir(rnd) / "split")
+
+    async def results_clip(self, rnd: dict, board: list[dict] | None = None, crowd: dict | None = None,
+                           cast: str | None = None, top_humans: list[dict] | None = None) -> Path | None:
+        html = env.get_template("results.html").render(
+            **self._ctx(rnd, board), ranked=ranked(rnd["entries"]), headline=results_headline(rnd),
+            upset=is_upset(rnd), crowd=crowd, cast=cast, top_humans=top_humans or [])
+        return await self.clip(html, self._dir(rnd) / "results")
 
     async def frames(self, template: str, contexts: list[dict], out_dir: Path) -> list[Path]:
         """Render one PNG per context (video frames), reusing a single page."""
