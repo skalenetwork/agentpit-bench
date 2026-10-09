@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block main %}
+<h1>{{ _("Incidents") }}</h1>
+<p class="mut">{{ _("Every operational failure that affected rounds or posts, and what changed.") }}</p>
+{% for d, title, what, fix in incidents %}<div class="box"><div class="small mut">{{ d }}</div><h2 style="margin-top:.2em">{{ _(title) }}</h2>
+<p>{{ _(what) }}</p><p><b>{{ _("Resolution:") }}</b> {{ _(fix) }}</p></div>{% endfor %}
+<p class="small mut"><a href="{{ home }}methodology/">{{ _("Methodology v{v}", v=s.methodology_version) }}</a> · <a href="{{ home }}independence/">{{ _("Independence & conflicts") }}</a></p>
+{% endblock %}

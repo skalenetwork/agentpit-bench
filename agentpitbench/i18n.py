@@ -42,7 +42,8 @@ class Translator:
     def _iso(self, kw: dict) -> dict:
         """In right-to-left pages, wrap each inserted value (names, prices, English outcomes) in a Unicode
         isolate so it keeps its own direction: otherwise '−100' renders as '100−'."""
-        return {k: f"\u2068{v}\u2069" for k, v in kw.items()} if self.rtl else kw
+        # plain digit runs stay as they are: isolating them splits "n=0" or "06:00" into reordered pieces
+        return {k: (v if str(v).isdigit() else f"\u2068{v}\u2069") for k, v in kw.items()} if self.rtl else kw
 
     def text(self, msg: str, **kw) -> str:
         """Plain text (autoescaped by Jinja like any string)."""

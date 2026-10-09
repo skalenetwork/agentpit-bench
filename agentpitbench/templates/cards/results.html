@@ -43,4 +43,4 @@
 {% if board %}<div class="strip" data-a="tail">{% for b in board %}<span><b style="color:{{ colors.get(b.agent,'#888')|edge }}">{{ b.name }}</b> {{ b.wins }}-{{ b.losses }} · {{ b.net_pnl|signed }}</span>{% endfor %}</div>{% endif %}
 {% if r.humans and r.humans.picked %}<div class="humans" data-a="tail"><b>Humans:</b> {{ r.humans.picked }} picked{% if r.humans.right is not none %}, {{ (100 * r.humans.right / r.humans.picked)|round|int }}% right{% endif %}{% if top_humans %} · top pickers {% for h in top_humans %}<b>@{{ h.username }}</b> {{ h.wins }}-{{ h.picks - h.wins }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}</div>{% endif %}
 {% endblock %}
-{% block foot %}Season standings · frontier models{% endblock %}
+{% block foot %}{% if sig %}Season · {{ sig }}{% else %}Season standings · frontier models{% endif %}{% endblock %}

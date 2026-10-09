@@ -267,6 +267,48 @@ def sandboxed(cmd: list[str], home: Path, work: Path, ctl: Path) -> list[str]:
     return a + ["--chdir", str(work), "--", exe, *cmd[1:]]
 
 
+# Failures that are not the agent's fault: the sandbox, the CLI's login, or the plan's usage limits. A round
+# with any of these is voided for everyone and posts nothing; genuine timeouts and bad bets still count.
+INFRA_PATTERNS = [
+    (r"bwrap: |setting up uid map|Creating new namespace failed|unshare failed", "sandbox"),
+    (r"\bNot signed in\b|not authenticated|Please (?:run|log ?in)\b[^\n]{0,40}login|login required|"
+     r"(?:authentication|auth) (?:failed|required|error)|invalid (?:api[_ ]key|x-api-key|credentials)|"
+     r"\b401\b[^\n]{0,30}Unauthorized|HTTP 401|status(?: code)?:? ?401|token (?:has )?expired", "auth"),
+    (r"usage limit|rate[- ]limit(?:ed| exceeded| reached)|\bquota\b|insufficient_quota|credit balance|out of credits|"
+     r"limit reached|you(?:'|’)ve hit your|you have hit your|exceeded your|429 Too Many|Too Many Requests|"
+     r"try again (?:in|after) \d+ ?(?:h|hour|min)", "quota"),
+]
+
+
+def infra_failure(output: str, tail: int = 4000) -> str | None:
+    """'sandbox', 'auth' or 'quota' when the end of an agent's output shows an infrastructure failure."""
+    text = output[-tail:]
+    for pat, kind in INFRA_PATTERNS:
+        if re.search(pat, text, re.I):
+            return kind
+    return None
+
+
+async def sandbox_ok() -> bool:
+    """Self-check before a batch or sweep: bwrap, with the agents' exact flags, can run /bin/true. Under a
+    systemd service without an AppArmor userns grant this fails, and every agent would 'crash' instantly."""
+    if not shutil.which("bwrap"):
+        return False
+    d = Path(tempfile.mkdtemp(prefix="apbcheck-"))
+    try:
+        p = await asyncio.create_subprocess_exec(*sandboxed(["/bin/true"], d, d, d), stdout=asyncio.subprocess.PIPE,
+                                                 stderr=asyncio.subprocess.STDOUT)
+        out, _ = await asyncio.wait_for(p.communicate(), 30)
+        if p.returncode != 0:
+            log.error("sandbox self-check failed: %s", out.decode(errors="replace").strip()[:300])
+        return p.returncode == 0
+    except Exception:
+        log.exception("sandbox self-check errored")
+        return False
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
 async def cli_version(cli: AgentCLI) -> str | None:
     if not shutil.which(cli.version_argv[0]):
         return None
@@ -297,7 +339,8 @@ def build_prompt(market: dict, memory: list[dict]) -> str:
     else:
         mem = "\nThis is your first round."
     stake = market.get("bench_stake") or 100
-    high = " HIGH STAKES round: this bet counts at full size in the season standings." if market.get("high_stakes") else ""
+    high = (" HIGH STAKES round: a showcase at a bigger stake. It is published like any round but kept out of"
+            " the neutral statistics.") if market.get("high_stakes") else ""
     return tpl.format(question=market["question"], outcomes=" / ".join(market["outcomes_list"]),
                       prices=prices, end_date=market.get("endDate"), memory=mem,
                       stake=f"{stake:g}", high_stakes=high).strip() + "\n"
@@ -317,6 +360,7 @@ class Round:
         self._bet_queue: list[tuple[str, dict, asyncio.Future]] = []
         self._bet_flush: asyncio.Task | None = None
         self._hooks: set[asyncio.Task] = set()
+        self.infra: dict[str, str] = {}   # agent -> sandbox / auth / quota: the round gets voided
         self.clients = {a: Agentpit(s.api_url, s.agentpit_key(a)) for a in self.agents}
 
     # bench socket
@@ -529,7 +573,14 @@ class Round:
         if not self.bet_done[agent].is_set():
             self.bet_done[agent].set()
             self.db.record_bet(self.run_ids[agent], outcome=None, decided_s=None)
-            self._hook(self.pub.on_bet(self.round_id, self.run_ids[agent]))
+            kind = infra_failure(tpath.read_text(errors="replace").split("--- output ---", 1)[-1])
+            if kind:  # not the agent's fault: no forfeit post, and run() voids the round
+                self.infra[agent] = kind
+                exit_reason = "infra"
+                log.error("round %s: %s hit an infrastructure failure (%s); the round will be voided",
+                          self.round_id, agent, kind)
+            else:
+                self._hook(self.pub.on_bet(self.round_id, self.run_ids[agent]))
         self.db.finish_run(self.run_ids[agent], exit_reason, str(tpath), model)
         log.info("round %s: %s finished (%s)", self.round_id, agent, exit_reason)
 
@@ -558,6 +609,15 @@ class Round:
                 return m.group(1)[:80]
         return None
 
+    async def void_for_infra(self) -> None:
+        """Void the round for all agents, post nothing more and take down what was already posted."""
+        why = ", ".join(f"{a}: {k}" for a, k in sorted(self.infra.items()))
+        self.db.set_round(self.round_id, state="void", exhibition=1, exclusion="infra", resolved_at=time.time())
+        log.error("round %s voided (infrastructure failure: %s)", self.round_id, why)
+        void = getattr(self.pub, "void_round", None)
+        if void:
+            await self._safe(void(self.round_id))
+
     async def run(self) -> int:
         self.round_id = self.db.create_round(self.market)
         versions = await asyncio.gather(*(cli_version(CLIS[a]) for a in self.agents))
@@ -569,9 +629,12 @@ class Round:
         for a in self.agents:
             self.launched_at[a] = now
         await asyncio.gather(*(self._run_agent(a, prompts[a]) for a in self.agents))
-        self.db.set_round(self.round_id, state="awaiting_resolution")
         await asyncio.gather(*list(self._hooks))
-        await self._safe(self.pub.on_bets_done(self.round_id))
+        if self.infra:
+            await self.void_for_infra()
+        else:
+            self.db.set_round(self.round_id, state="awaiting_resolution")
+            await self._safe(self.pub.on_bets_done(self.round_id))
         for c in self.clients.values():
             await c.close()
         return self.round_id

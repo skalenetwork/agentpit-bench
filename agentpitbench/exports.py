@@ -9,7 +9,8 @@ rounds.json = list (newest first) of:
               wallet|null, wallet_url|null, txs: [{hash, url}]}]}
   stake, high_stakes (bool)                                  -- High-Stakes Friday rounds carry a bigger stake
   crowd: {outcome|null, price, won (bool|null), pnl|null}   -- The Crowd's notional pick, see crowd_pick
-  exhibition (bool)                                          -- summoned round, outside every standings table
+  exhibition (bool), exclusion                               -- outside every neutral table and statistic, and why:
+                                                                summon / high-stakes / pre-season / infra (null = counts)
   humans: {picked, right (null until resolved), by_outcome: {label: n},
            winners: [{username, pick, card (site-relative PNG or null)}]}
 leaderboard.json = {updated_at, season (YYYY-MM, UTC month of resolution; tables below are this season's),
@@ -19,7 +20,10 @@ leaderboard.json = {updated_at, season (YYYY-MM, UTC month of resolution; tables
                     all_time: {agents: [...], crowd: {...}},
                     humans: [{rank, username, picks, wins, accuracy}],  -- all-time, top humans_board_size
                     by_model: [{agent, name, model, played, wins, losses, win_rate, net_pnl}],  -- all time
-                    by_category: {agent: [{category, played, wins, win_rate, net_pnl}]}}      -- all time
+                    by_category: {agent: [{category, played, wins, win_rate, net_pnl}]},     -- all time
+                    forecast: forecast.metrics() -- the headline metric (daily sweep, Brier score),
+                    sweeps: [{date, runs: [{agent, status, detail, n, model, transcript}]}]}
+metrics.json = paper-ready summary: methodology version, forecast metrics with CIs and tests, betting record.
 
 The Crowd is a reference baseline, not a contestant: each round it notionally stakes 100 tokens on the
 outcome priced highest at the start snapshot, filled at that price. Tied top prices mean no pick. It has no
@@ -33,7 +37,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .config import AGENT_COLORS, AGENT_NAMES, Settings
+from .config import AGENT_COLORS, AGENT_MODELS, AGENT_NAMES, Settings
 from .db import DB, leaderboard
 from .virality import category, season_bounds, season_of, tail_fade
 
@@ -93,6 +97,7 @@ def round_record(s: Settings, db: DB, r) -> dict:
         "outcomes": outcomes, "prices_at_start": snap.get("prices_list", []),
         "end_date": r["end_date"], "started_at": r["started_at"], "state": r["state"], "winner": r["winner"],
         "resolved_at": r["resolved_at"], "market_link": link, "exhibition": bool(r["exhibition"]),
+        "exclusion": r["exclusion"],
         "thread_tweet_id": r["thread_tweet_id"], "results_tweet_id": r["results_tweet_id"],
         "split": len(picks) > 1, "entries": entries,
         "stake": float(snap.get("bench_stake") or s.stake), "high_stakes": bool(snap.get("high_stakes")),
@@ -185,8 +190,10 @@ def humans_board(db: DB, size: int) -> list[dict]:
 
 
 def export(s: Settings, db: DB) -> dict:
+    from . import forecast
     out = s.export_dir
     out.mkdir(parents=True, exist_ok=True)
+    db.mark_preseason(s.season_start_ts)
     rounds = all_rounds(s, db)
     season = season_label()
     cur = standings(s, db, rounds, season)
@@ -194,9 +201,16 @@ def export(s: Settings, db: DB) -> dict:
     lb = {"updated_at": time.time(), "season": season, **cur,
           "all_time": {"agents": all_time["agents"], "crowd": all_time["crowd"]},
           "humans": humans_board(db, s.humans_board_size), "by_model": by_model(db),
-          "by_category": by_category(rounds, s.agents)}
+          "by_category": by_category(rounds, s.agents),
+          "forecast": forecast.metrics(db, s.agents), "sweeps": forecast.sweeps(db)[:60],
+          "contrarian": forecast.contrarian(db, s.agents)[:200], "duels": forecast.duels(db),
+          "sealed": forecast.sealed_list(db)[:60]}
+    lb["significance"] = forecast.significance(rounds, lb["forecast"], s.agents)
     _write(out / "rounds.json", json.dumps(rounds, indent=1))
     _write(out / "leaderboard.json", json.dumps(lb, indent=1))
+    _write(out / "metrics.json", json.dumps(paper_metrics(s, rounds, lb), indent=1))
+    reports = weekly_reports(s, db, rounds, lb)
+    _write(out / "reports.json", json.dumps(reports, indent=1))
     cols = ["round_id", "market_id", "question", "state", "winner", "agent", "outcome", "avg_price",
             "shares_filled", "stake_filled", "confidence", "decided_s", "exit_reason", "model_reported",
             "payout", "pnl", "rationale", "quote"]
@@ -208,7 +222,73 @@ def export(s: Settings, db: DB) -> dict:
             for e in r["entries"]:
                 w.writerow([r.get(c) if c in r and c not in e else e.get(c) for c in cols])
     tmp.replace(out / "bets.csv")
-    return {"rounds": rounds, "leaderboard": lb}
+    return {"rounds": rounds, "leaderboard": lb, "reports": reports}
+
+
+def _iso_week(ts: float) -> str:
+    y, w, _ = datetime.fromtimestamp(ts, timezone.utc).isocalendar()
+    return f"{y}-W{w:02d}"
+
+
+def weekly_reports(s: Settings, db: DB, rounds: list[dict], lb: dict) -> list[dict]:
+    """'State of the AIs' per ISO week, newest first: forecast accuracy on markets swept that week (resolved so
+    far), the betting record of rounds resolved that week, and the contrarian calls' hit rate."""
+    from .forecast import brier, crowd_probs
+    weeks: dict[str, dict] = {}
+
+    def wk(key: str) -> dict:
+        return weeks.setdefault(key, {"week": key, "rounds": 0, "markets": 0, "betting": {}, "fc": {}, "crowd": []})
+
+    for r in rounds:
+        if r["state"] == "resolved" and not r["exhibition"] and r["resolved_at"]:
+            w = wk(_iso_week(r["resolved_at"]))
+            w["rounds"] += 1
+            for e in r["entries"]:
+                b = w["betting"].setdefault(e["agent"], {"agent": e["agent"], "name": e["name"], "wins": 0, "losses": 0,
+                                                         "profit": 0.0})
+                b["wins" if e["won"] else "losses"] += 1
+                b["profit"] = round(b["profit"] + (e["pnl"] or 0), 2)
+    snap = {m["market_id"]: m for m in db.q("SELECT * FROM sweep_markets WHERE state='resolved'")}
+    for mid, m in snap.items():
+        ts = datetime.fromisoformat(m["sweep_date"] + "T00:00:00+00:00").timestamp()
+        w = wk(_iso_week(ts))
+        w["markets"] += 1
+        w["crowd"].append(brier(crowd_probs(json.loads(m["outcomes"]), json.loads(m["prices"])), m["winner"]))
+        for f in db.q("SELECT agent, brier FROM forecasts WHERE market_id=? AND brier IS NOT NULL", mid):
+            if f["agent"] in s.agents:
+                w["fc"].setdefault(f["agent"], []).append(f["brier"])
+    out = []
+    for key, w in sorted(weeks.items(), reverse=True):
+        fc = sorted(({"agent": a, "name": AGENT_NAMES.get(a, a), "n": len(xs), "brier": round(sum(xs) / len(xs), 4)}
+                     for a, xs in w["fc"].items()), key=lambda x: x["brier"])
+        calls = [c for c in lb.get("contrarian", []) if c["state"] == "resolved"
+                 and _iso_week(datetime.fromisoformat(c["date"] + "T00:00:00+00:00").timestamp()) == key]
+        out.append({"week": key, "rounds": w["rounds"], "markets": w["markets"], "forecast": fc,
+                    "crowd_brier": round(sum(w["crowd"]) / len(w["crowd"]), 4) if w["crowd"] else None,
+                    "betting": sorted(w["betting"].values(), key=lambda b: -b["profit"]),
+                    "contrarian": {"total": len(calls), "right": sum(1 for c in calls if c["right"])} if calls else None})
+    return out
+
+
+def paper_metrics(s: Settings, rounds: list[dict], lb: dict) -> dict:
+    """The numbers a write-up cites, with the rules that produced them."""
+    counted = [r for r in rounds if r["state"] == "resolved" and not r["exhibition"]]
+    excluded: dict[str, int] = {}
+    for r in rounds:
+        if r["exclusion"] or r["state"] == "void":
+            k = r["exclusion"] or "void"
+            excluded[k] = excluded.get(k, 0) + 1
+    return {
+        "benchmark": "AgentpitBench", "methodology_version": s.methodology_version,
+        "season_start": s.season_start, "generated_at": time.time(),
+        "contestants": {a: {"name": AGENT_NAMES.get(a, a), "model": AGENT_MODELS[a][1], "model_id": AGENT_MODELS[a][0],
+                            "reasoning": AGENT_MODELS[a][2]} for a in s.agents if a in AGENT_MODELS},
+        "forecast_accuracy": lb["forecast"], "significance": lb["significance"],
+        "sealed_forecasts": lb["sealed"], "launch_day_duels": lb["duels"],
+        "betting_record": {"rounds_counted": len(counted), "rounds_excluded": excluded,
+                           "season": lb["season"], "agents": lb["all_time"]["agents"], "crowd": lb["all_time"]["crowd"]},
+        "operator": "SKALE Labs (also operates agentpit)", "site": s.site_url,
+    }
 
 
 def crowd_record(rounds: list[dict]) -> dict:

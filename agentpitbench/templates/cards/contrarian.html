@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block style %}
+:root{--accent:#7bdcff;--accent-soft:#0f3b4a}
+.h{font-size:58px;font-weight:700;line-height:1;margin-top:16px}
+.list{display:flex;flex-direction:column;gap:12px;margin-top:20px}
+.c{display:grid;grid-template-columns:96px 1fr 180px;align-items:center;gap:18px;background:#141c3a;padding:12px 22px 12px 14px;height:{{ 150 if calls|length <= 2 else 116 }}px}
+.c .who{font-size:30px;font-weight:700}
+.c .q{font-size:20px;color:#cfd6ea;line-height:1.3;-webkit-line-clamp:2;max-width:none}
+.c .nums{font-size:26px;margin-top:4px}
+.c .nums b{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:30px}
+.res{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:30px;font-weight:700;text-align:right;text-transform:uppercase}
+.res.ok{color:#22c55e}.res.no{color:#ff5c7a}
+{% endblock %}
+{% block body %}
+<div class="top"><span class="tag" style="background:#7bdcff">Contrarian calls</span><span class="disp dim" style="font-size:22px">{{ week }}</span></div>
+<div class="disp h">AI vs the market</div>
+<div class="list">{% for c in calls %}{% set col = colors.get(c.agent, '#888') %}
+<div class="c" style="border-left:8px solid {{ col|edge }}">{{ mascot(c.agent, 84) }}
+<div><div><span class="disp who" style="color:{{ col|edge }}">{{ c.name }}: {{ '%.0f'|format(c.agent_p * 100) }}%</span> <span class="dim" style="font-size:24px">· Market: {{ '%.0f'|format(c.market_p * 100) }}% · on {{ c.outcome }}</span></div>
+<div class="q">{{ c.question }}</div></div>
+<div class="res {{ 'ok' if c.right else 'no' }}">{{ 'Right ✓' if c.right else 'Wrong ✗' }}</div></div>
+{% endfor %}</div>
+{% endblock %}
+{% block foot %}Daily forecast sweep · 30+ points from the market price{% endblock %}

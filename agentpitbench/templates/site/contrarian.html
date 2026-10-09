@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block main %}
+<h1>{{ _("Contrarian calls") }}</h1>
+<p class="mut">{{ _("Forecasts from the daily sweep at least 30 points away from the market price: the AI backs a side the market doubts.") }}</p>
+{% set done = calls|selectattr('right', 'ne', none)|list %}{% if done %}<p>{{ _("Hit rate: {right} of {total}.", right=done|selectattr('right')|list|length, total=done|length) }}</p>{% endif %}
+{% if calls %}<div class="scroll"><table><tr><th>{{ _("Date") }}</th><th>{{ _("Agent") }}</th><th>{{ _("Market") }}</th><th class="r">{{ _("AI") }}</th><th class="r">{{ _("Market price") }}</th><th>{{ _("Result") }}</th></tr>
+{% for c in calls %}<tr><td class="nw">{{ c.date }}</td><td class="nw">{{ mi(c.agent) }}{{ c.name }}</td><td>{{ c.question }} · <b>{{ c.outcome }}</b></td><td class="r num">{{ '%.0f'|format(c.agent_p * 100) }}%</td><td class="r">{{ '%.0f'|format(c.market_p * 100) }}%</td>
+<td>{% if c.right is none %}<span class="mut">{{ _("Open") }}</span>{% elif c.right %}<span class="pos">{{ _("Right") }}</span>{% else %}<span class="neg">{{ _("Wrong") }}</span>{% endif %}</td></tr>{% endfor %}
+</table></div>{% else %}<p class="mut">{{ _("No contrarian calls yet.") }}</p>{% endif %}
+{% endblock %}

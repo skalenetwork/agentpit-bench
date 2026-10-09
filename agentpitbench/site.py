@@ -195,12 +195,14 @@ def pnl_chart(series: dict[str, list], width: int = 640, height: int = 220, crow
     return "".join(parts)
 
 
-def badge_svg(board: list[dict], crowd: dict | None = None) -> str:
+def badge_svg(board: list[dict], crowd: dict | None = None, sig: str | None = None) -> str:
     """Shields-style badge: 'AgentpitBench | Claude 12-8 · Codex 10-10 · Gemini 9-11'."""
     label = "AgentpitBench"
     value = " · ".join(f"{b['name']} {b['wins']}-{b['losses']}" for b in board) or "no results yet"
     if board and crowd and crowd.get("played"):
         value += f" · Crowd {crowd['wins']}-{crowd['losses']}"
+    if sig:
+        value += f" · {sig}"
     lw, vw = 7 * len(label) + 12, int(6.6 * len(value)) + 14
     w = lw + vw
     return (
@@ -242,6 +244,40 @@ def feeds(s: Settings, rounds: list[dict]) -> tuple[str, str]:
     return rss, json.dumps(jf, indent=1)
 
 
+def _(msg: str) -> str:
+    """Marks module-level message ids for translation (the extractor looks for calls to this name);
+    pages translate them at render time with the page's Translator."""
+    return msg
+
+
+# Methodology changelog: (date, message id). Newest first; every rule change during Season 1 gets an entry.
+CHANGELOG = [
+    ("2026-10-09", _("Daily forecast sweep with the Brier score becomes the headline metric; round 1 becomes a pre-season exhibition.")),
+    ("2026-10-09", _("A failed sandbox, CLI login or usage limit voids the round for all agents; a self-check runs before every batch.")),
+    ("2026-10-09", _("Frontier vs frontier: each lab's top model at its CLI's highest reasoning setting (replaces vendor defaults).")),
+    ("2026-10-09", _("Agents run in a bubblewrap sandbox with a clean home and an allowlisted environment.")),
+    ("2026-10-09", _("Default fill limit: best ask + 5¢ (previously the best ask only).")),
+    ("2026-10-09", _("Markets whose favourite is priced above 85¢ are skipped.")),
+    ("2026-10-09", _("No market category may exceed 40% of the past week's rounds.")),
+]
+
+# Public incident log: (date, title id, what happened id, resolution id). Newest first.
+INCIDENTS = [
+    ("2026-10-09", _("Rounds 2–4 voided"),
+     _("The agent sandbox (bubblewrap) could not create user namespaces when the bench ran as a systemd user service (Ubuntu's AppArmor restriction). Every agent failed at launch, and 12 forfeit posts went out on X."),
+     _("The posts were deleted and the rounds voided. Fix: an AppArmor profile for bubblewrap, a sandbox self-check before every batch, and automatic voiding of rounds hit by infrastructure failures.")),
+]
+
+EXCLUSION_REASONS = {
+    "pre-season": _("pre-season round (earlier settings)"),
+    "high-stakes": _("High-Stakes Friday showcase"),
+    "summon": _("summoned by a follower"),
+    "infra": _("voided by an infrastructure failure"),
+}
+
+REASONING = {"max": "max reasoning", "xhigh": "extra-high reasoning", "high": "high reasoning"}
+
+
 def model_line(agent: str, _) -> str:
     """'Fable 5.1 · max reasoning' from config.AGENT_MODELS, so a model swap is one edit there."""
     if agent not in AGENT_MODELS:
@@ -250,6 +286,41 @@ def model_line(agent: str, _) -> str:
     label = {"max": _("max reasoning"), "xhigh": _("extra-high reasoning"),
              "high": _("high reasoning")}.get(effort, effort)
     return f"{name} · {label}"
+
+
+def ci_bar(rows: list[dict], crowd: dict | None, width: int = 640) -> str:
+    """Inline SVG: each agent's mean Brier score with its 95% CI, the Crowd as a dashed reference line.
+    Lower is better, so better forecasters sit further left."""
+    pts = [r for r in rows if r.get("brier") is not None and r.get("ci")]
+    if not pts:
+        return ""
+    vals = [v for r in pts for v in r["ci"]] + ([crowd["brier"]] if crowd and crowd.get("brier") is not None else [])
+    lo, hi = max(0.0, min(vals) - 0.02), min(1.0, max(vals) + 0.02)
+    pad_l, pad_r, row_h = 110, 16, 30
+    h = len(pts) * row_h + 34
+
+    def x(v):
+        return pad_l + (v - lo) / ((hi - lo) or 1) * (width - pad_l - pad_r)
+    parts = [f'<svg viewBox="0 0 {width} {h}" class="chart" role="img" aria-label="Brier score with 95% CI">']
+    if crowd and crowd.get("brier") is not None:
+        cx = x(crowd["brier"])
+        parts.append(f'<line x1="{cx:.1f}" x2="{cx:.1f}" y1="4" y2="{h - 24}" stroke="#8a93a8" stroke-dasharray="5 4"/>')
+    for i, r in enumerate(pts):
+        y = 18 + i * row_h
+        c = AGENT_COLORS.get(r["agent"], "#888")
+        cls = ' class="dkl"' if is_dark(c) else ""
+        parts.append(f'<text x="4" y="{y + 4}" class="lbl" style="font-size:13px">{escape(r["name"])}</text>')
+        parts.append(f'<line{cls} x1="{x(r["ci"][0]):.1f}" x2="{x(r["ci"][1]):.1f}" y1="{y}" y2="{y}" stroke="{c}" stroke-width="3"/>')
+        parts.append(f'<circle{cls} cx="{x(r["brier"]):.1f}" cy="{y}" r="5" fill="{c}"/>')
+    parts.append(f'<text x="{pad_l}" y="{h - 6}" class="lbl">{lo:.2f}</text>'
+                 f'<text x="{width - pad_r}" y="{h - 6}" class="lbl" text-anchor="end">{hi:.2f}</text></svg>')
+    return "".join(parts)
+
+
+def sweep_prompt_example(s: Settings) -> str:
+    from .forecast import PROMPT
+    return PROMPT.format(minutes=round(s.sweep_timeout_s / 60), n=s.sweep_markets,
+                         lines="<market id> | <question> | <outcome> <price>, ... | <close date>\n...")
 
 
 # ---------- build ----------
@@ -266,6 +337,7 @@ def build(s: Settings) -> Path:
 def _build(s: Settings) -> Path:
     exp = s.export_dir
     rounds = json.loads((exp / "rounds.json").read_text()) if (exp / "rounds.json").exists() else []
+    reports = json.loads((exp / "reports.json").read_text()) if (exp / "reports.json").exists() else []
     lb = json.loads((exp / "leaderboard.json").read_text()) if (exp / "leaderboard.json").exists() else {
         "agents": [], "series": {}, "season": "", "updated_at": time.time()}
     board = lb["agents"]
@@ -279,13 +351,15 @@ def _build(s: Settings) -> Path:
     past.sort(key=lambda r: -(r["resolved_at"] or 0))
     names = [AGENT_NAMES.get(a, a) for a in s.agents]
     vs = " vs ".join(names)
-    best, worst = best_worst(rounds)
-    h2h = head_to_head(rounds, s.agents)
+    counted = [r for r in rounds if not r.get("exhibition")]  # neutral tables never use excluded rounds
+    best, worst = best_worst(counted)
+    h2h = head_to_head(counted, s.agents)
     splits = [r for r in rounds if r["split"]]
     prompt = (Path(__file__).parent / "prompt.txt").read_text()
-    upset, wrong = biggest_upset(rounds), shame(rounds)
-    stats = {a: agent_stats(rounds, a) for a in s.agents}
-    cards = {r["round_id"]: card_for(s, r) for r in rounds}
+    upset, wrong = biggest_upset(counted), shame(counted)
+    stats = {a: agent_stats(counted, a) for a in s.agents}
+    # an infra-voided round's posts were taken down, so its cards are not shown either
+    cards = {r["round_id"]: (None if r.get("exclusion") == "infra" else card_for(s, r)) for r in rounds}
     built = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     weekly = {"race": _newest(s.cards_dir / "race", "race-*.*", {".mp4", ".gif", ".png"}),
               "awards": _newest(s.cards_dir / "awards", "*.png")}
@@ -307,7 +381,9 @@ def _build(s: Settings) -> Path:
                   "is_upset": is_upset, "ranked": ranked, "category": category,
                   "_": _, "_h": _.html, "lang": lang, "rtl": _.rtl, "langs": LANGS, "lang_codes": CODES,
                   "lang_name": NAMES[lang], "mascot_sprite": sprite(s.agents), "mi": mascot_use,
-                  "commentary": commentary, "model_line": lambda a, _=_: model_line(a, _)}
+                  "commentary": commentary, "model_line": lambda a, _=_: model_line(a, _),
+                  "models": AGENT_MODELS, "reasoning": REASONING, "exclusions": EXCLUSION_REASONS,
+                  "fc": lb.get("forecast") or {}, "sig": lb.get("significance") or {}}
         prefix = _.prefix()
 
         def page(path: str, tpl: str, **ctx) -> None:
@@ -324,7 +400,8 @@ def _build(s: Settings) -> Path:
         site_name = " · AgentpitBench"
         page("index.html", "index.html", live=live, past=past[:30], upset=upset,
              title=_("AgentpitBench: {vs} bet on prediction markets", vs=vs))
-        page("leaderboard/index.html", "leaderboard.html",
+        page("leaderboard/index.html", "leaderboard.html", ci_chart=ci_bar((lb.get("forecast") or {}).get("agents", []),
+                                                                          (lb.get("forecast") or {}).get("crowd")),
              chart=pnl_chart(lb.get("series", {}), crowd=(lb.get("crowd") or {}).get("series"), _=_),
              best=best, worst=worst, h2h=h2h, weekly=weekly, seasons=seasons, title=_("Leaderboard") + site_name)
         for r in rounds:
@@ -342,11 +419,23 @@ def _build(s: Settings) -> Path:
         page("data/index.html", "data.html", prompt=prompt, title=_("Data & method") + site_name)
         page("press/index.html", "press.html", stats=press_stats, latest_cards=latest_cards,
              title=_("Press kit") + site_name)
+        page("methodology/index.html", "methodology.html", prompt=prompt, sweep_prompt=sweep_prompt_example(s),
+             changelog=CHANGELOG, sealed=lb.get("sealed") or [], title=_("Methodology v{v}", v=s.methodology_version) + site_name)
+        page("independence/index.html", "independence.html", title=_("Independence & conflicts") + site_name)
+        page("incidents/index.html", "incidents.html", incidents=INCIDENTS, title=_("Incidents") + site_name)
+        page("contrarian/index.html", "contrarian.html", calls=lb.get("contrarian") or [],
+             title=_("Contrarian calls") + site_name)
+        page("reports/index.html", "reports.html", reports=reports, title=_("Weekly reports") + site_name)
+        for rep in reports:
+            page(f"reports/{rep['week']}/index.html", "report.html", rep=rep,
+                 chart=ci_bar([dict(a, ci=[a["brier"], a["brier"]]) for a in rep["forecast"]],
+                              {"brier": rep["crowd_brier"]} if rep.get("crowd_brier") is not None else None),
+                 title=_("State of the AIs") + f" · {rep['week']}" + site_name)
         if lang == "en":  # embedded elsewhere; one shared copy
             page("widget/index.html", "widget.html", title="AgentpitBench standings")
             page("embed/index.html", "embed.html", title="AgentpitBench leaderboard")
 
-    (out / "badge.svg").write_text(badge_svg(board, lb.get("crowd")))
+    (out / "badge.svg").write_text(badge_svg(board, lb.get("crowd"), (lb.get("significance") or {}).get("label")))
     kit = out / "press" / "mascots"
     kit.mkdir(parents=True, exist_ok=True)
     for a in [*s.agents, "crowd"]:
@@ -362,9 +451,13 @@ def _build(s: Settings) -> Path:
     if host and not host.endswith(".github.io"):  # custom domain: GitHub Pages drops it without this file
         (out / "CNAME").write_text(host + "\n")
     d = out / "data"
-    for name in ("rounds.json", "leaderboard.json", "bets.csv"):
+    for name in ("rounds.json", "leaderboard.json", "bets.csv", "metrics.json", "reports.json", "sealed.json"):
         if (exp / name).exists():
             shutil.copy2(exp / name, d / name)
+    if (exp / "forecasts").exists():  # sealed daily forecast files; their hashes are on /methodology/
+        shutil.copytree(exp / "forecasts", d / "forecasts", dirs_exist_ok=True)
+    if (s.transcripts_dir / "sweep").exists():
+        shutil.copytree(s.transcripts_dir / "sweep", out / "transcripts" / "sweep", dirs_exist_ok=True)
     if s.cards_dir.exists():
         shutil.copytree(s.cards_dir, out / "cards")
     for r in rounds:
@@ -431,6 +524,9 @@ def deploy(s: Settings) -> bool:
             _git(repo, "checkout", "-q", "--orphan", PAGES_BRANCH)
         _git(repo, "config", "user.name", "AgentpitBench bot")
         _git(repo, "config", "user.email", "agentpitbench@users.noreply.github.com")
+    # the branch may have moved since our last push (another deploy, a manual push): build on its tip
+    if _git(repo, "fetch", "-q", "--depth", "1", "origin", PAGES_BRANCH, env=env, check=False).returncode == 0:
+        _git(repo, "reset", "-q", "--soft", "FETCH_HEAD", check=False)
     for p in repo.iterdir():
         if p.name != ".git":
             shutil.rmtree(p) if p.is_dir() else p.unlink()

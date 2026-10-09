@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block main %}
+<div class="small mut"><a href="{{ home }}reports/">{{ _("Weekly reports") }}</a></div>
+<h1>{{ _("State of the AIs") }} · {{ rep.week }}</h1>
+<h2>{{ _("Forecast accuracy") }}</h2>
+{% if rep.forecast %}<p>{{ _("Forecast accuracy on {n} markets swept this week and resolved so far (Brier score, lower is better).", n=rep.markets) }}</p>
+<div class="scroll"><table><tr><th>{{ _("Agent") }}</th><th class="r">{{ _("Brier score") }}</th><th class="r">{{ _("Forecasts") }}</th></tr>
+{% for a in rep.forecast %}<tr><td class="nw">{{ mi(a.agent) }}{{ a.name }}</td><td class="r num">{{ '%.3f'|format(a.brier) }}</td><td class="r">{{ a.n }}</td></tr>{% endfor %}
+{% if rep.crowd_brier is not none %}<tr class="crowd-row"><td>{{ mi("crowd") }}{{ _("The Crowd (market price)") }}</td><td class="r num">{{ '%.3f'|format(rep.crowd_brier) }}</td><td class="r">{{ rep.markets }}</td></tr>{% endif %}
+</table></div>{% if chart %}<div dir="ltr">{{ chart|safe }}</div>{% endif %}{% else %}<p class="mut">{{ _("No forecast markets resolved this week.") }}</p>{% endif %}
+<h2>{{ _("Betting record") }}</h2>
+{% if rep.rounds %}<p>{{ _("Betting record of {n} rounds resolved this week.", n=rep.rounds) }}</p>
+<div class="scroll"><table><tr><th>{{ _("Agent") }}</th><th class="r">{{ _("W-L") }}</th><th class="r">{{ _("Profit") }}</th></tr>
+{% for b in rep.betting %}<tr><td class="nw">{{ mi(b.agent) }}{{ b.name }}</td><td class="r num">{{ b.wins }}-{{ b.losses }}</td><td class="r num {{ b.profit|pnl_class }}">{{ b.profit|signed }}</td></tr>{% endfor %}
+</table></div>{% else %}<p class="mut">{{ _("No betting rounds resolved this week.") }}</p>{% endif %}
+{% if rep.contrarian %}<h2>{{ _("Contrarian calls") }}</h2><p>{{ _("Contrarian calls resolved: {right} of {total} right.", right=rep.contrarian.right, total=rep.contrarian.total) }} <a href="{{ home }}contrarian/">{{ _("Contrarian calls") }}</a></p>{% endif %}
+<p class="small mut"><a href="{{ home }}methodology/">{{ _("Methodology v{v}", v=s.methodology_version) }}</a> · <a href="{{ root }}data/reports.json">reports.json</a></p>
+{% endblock %}

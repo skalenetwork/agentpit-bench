@@ -7,11 +7,12 @@ import json
 import logging
 import signal
 import sys
+from datetime import datetime, timezone
 
 from . import config, exports
 from .agentpit import Agentpit
 from .db import DB, leaderboard
-from .orchestrator import NullPublisher, Round, warm_login
+from .orchestrator import NullPublisher, Round, sandbox_ok, warm_login
 from .tracker import Tracker
 from .watcher import Watcher
 
@@ -47,6 +48,11 @@ async def run_forever(s: config.Settings) -> None:
     async def start_batch():
         await watcher.poll()  # scan first: at startup the batch used to run before the first scan finished
         free = s.max_concurrent_rounds - len(running)
+        if free <= 0:
+            return
+        if s.sandbox and not await sandbox_ok():  # never start rounds that would all 'crash' at launch
+            log.error("batch skipped: the agent sandbox self-check failed; no rounds started, nothing posted")
+            return
         picked = await watcher.pick(free)
         if picked:  # refresh each login once, before parallel rounds copy the same refresh token
             await asyncio.gather(*(warm_login(a) for a in s.agents), return_exceptions=True)
@@ -63,6 +69,9 @@ async def run_forever(s: config.Settings) -> None:
 
     def launch(m: dict, after=None) -> None:
         async def go():
+            if s.sandbox and not await sandbox_ok():
+                log.error("round for market %s not started: the agent sandbox self-check failed", m["id"])
+                return
             await asyncio.gather(*(warm_login(a) for a in s.agents), return_exceptions=True)
             rid = await Round(s, db, api, m, pub).run()
             if after:
@@ -86,7 +95,7 @@ async def run_forever(s: config.Settings) -> None:
             if picked:
                 row, m = picked
                 launch(m, after=lambda rid: engage.summon_reply(row, rid))
-        for job in (engage.weekly, engage.daily_banner, engage.champion_check):
+        for job in (engage.weekly, engage.sunday_extras, engage.daily_banner, engage.champion_check):
             try:
                 await job()
             except Exception:
@@ -95,6 +104,29 @@ async def run_forever(s: config.Settings) -> None:
     async def humans():
         if engage is not None:
             await engage.collect_due()
+
+    async def daily_sweep():
+        """06:00 UTC: the forecast sweep, sealed and published before any of its markets can resolve."""
+        from . import forecast
+        now = datetime.now(timezone.utc)
+        day = forecast.today()
+        if now.hour < s.sweep_hour_utc or db.get(f"sweep_{day}"):
+            return
+        status = await forecast.sweep(s, db, api)
+        if status and all(v == "skipped" for v in status.values()):
+            return  # sandbox broken: try again next hour
+        await forecast.duels_due(s, db, api)
+        forecast.seal(s, db, day)
+        db.put(f"sweep_{day}", status or "empty")
+        if hasattr(pub, "site"):
+            from . import exports as ex
+            ex.export(s, db)
+            pub.site.request()
+
+    async def score_forecasts():
+        from . import forecast
+        if await forecast.score_due(s, db, api) and engage is not None:
+            await engage.duel_results()
 
     async def summons():
         if engage is not None:
@@ -114,6 +146,8 @@ async def run_forever(s: config.Settings) -> None:
         asyncio.create_task(_every(s.resolution_check_s, humans, "humans")),
         asyncio.create_task(_every(s.summon_poll_s, summons, "summons")),
         asyncio.create_task(_every(3600, scheduled, "scheduled")),
+        asyncio.create_task(_every(1800, daily_sweep, "sweep")),
+        asyncio.create_task(_every(s.resolution_check_s, score_forecasts, "forecast scoring")),
     ]
     await stop.wait()
     log.info("stopping; in-flight rounds will be marked crashed on next start")
@@ -136,6 +170,8 @@ async def one_round(s: config.Settings, market_id: str, agents: list[str] | None
         sys.exit(f"market {market_id} is not open for orders (closed or resolved)")
     if db.one("SELECT 1 FROM rounds WHERE market_id=?", str(m["id"])):
         sys.exit(f"market {market_id} already has a round")
+    if s.sandbox and not await sandbox_ok():
+        sys.exit("the agent sandbox self-check failed (see the log); refusing to start a round")
     rid = await Round(s, db, api, m, pub, agents=agents).run()
     db.x("INSERT OR IGNORE INTO seen_markets(market_id, first_seen, eligible, started) VALUES(?,strftime('%s'),1,1)",
          str(m["id"]))
@@ -152,6 +188,24 @@ async def check(s: config.Settings) -> None:
     print("resolved:", await Tracker(s, db, api, pub).check())
     if hasattr(pub, "close"):
         await pub.close()
+    await api.close()
+
+
+async def sweep_now(s: config.Settings) -> None:
+    from . import forecast
+    db, api = DB(s.db_path), Agentpit(s.api_url)
+    day = forecast.today()
+    print(await forecast.sweep(s, db, api, day))
+    print("sealed:", forecast.seal(s, db, day))
+    exports.export(s, db)
+    await api.close()
+
+
+async def duel(s: config.Settings, agent: str, old: str, new: str) -> None:
+    from . import forecast
+    db, api = DB(s.db_path), Agentpit(s.api_url)
+    forecast.queue_duel(db, agent, old, new)
+    print(await forecast.duels_due(s, db, api))
     await api.close()
 
 
@@ -233,6 +287,11 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("export", help="write rounds.json, leaderboard.json, bets.csv")
     sub.add_parser("leaderboard", help="print standings")
     sub.add_parser("whoami", help="verify each agent's agentpit key")
+    sub.add_parser("sweep", help="run today's forecast sweep now (idempotent) and seal it")
+    du = sub.add_parser("duel", help="launch-day duel: an agent's old vs new model on today's sweep markets")
+    du.add_argument("agent")
+    du.add_argument("old_model")
+    du.add_argument("new_model")
     ds = sub.add_parser("dataset", help="build the monthly open dataset (and upload if HF/Kaggle creds are set)")
     ds.add_argument("--month", required=True, help="YYYY-MM")
     xc = sub.add_parser("x-check", help="refresh the X OAuth 2.0 token, show scopes and account (never tweets)")
@@ -261,6 +320,10 @@ def main(argv: list[str] | None = None) -> None:
         print(dataset.build(s, DB(s.db_path), a.month))
     elif a.cmd == "whoami":
         asyncio.run(whoami(s))
+    elif a.cmd == "sweep":
+        asyncio.run(sweep_now(s))
+    elif a.cmd == "duel":
+        asyncio.run(duel(s, a.agent, a.old_model, a.new_model))
     elif a.cmd == "x-login":
         x_login(s, a.url, a.redirect_uri)
     elif a.cmd == "x-check":

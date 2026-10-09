@@ -12,7 +12,7 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from . import exports, media
+from . import exports, forecast, media
 from .agentpit import Agentpit
 from .cards import CardRenderer
 from .config import AGENT_NAMES, Settings
@@ -271,9 +271,65 @@ class Engage:
         awards = weekly_awards(rounds)
         if awards:
             png = await self._card(self.cards.awards(week, awards))
-            text = fit(f"Weekly awards ({week}): " + ", ".join(f"{a['title']} {a['name']}" for a in awards) + ". ", TAG)
+            best = next((a for a in lb.get("forecast", {}).get("agents", []) if a.get("rank") == 1 and a.get("n")), None)
+            acc = f"Forecast accuracy leader: {best['name']} (Brier {best['brier']:.3f}, n={best['n']}). " if best else ""
+            text = fit(f"Weekly awards ({week}): " + ", ".join(f"{a['title']} {a['name']}" for a in awards) + ". " + acc, TAG)
             await self._post(f"awards-{week}", "awards", text, png, reply_to=tid)
         self.db.put(f"race_{week}", tid or "posted")
+
+    async def sunday_extras(self, now: float | None = None) -> None:
+        """Sunday: the contrarian-calls card, and the 'State of the AIs' report: a 3-post thread (link only in
+        the last) plus a personal-voice draft for the operator that is written to a file, never posted."""
+        now = now or time.time()
+        d = datetime.fromtimestamp(now, timezone.utc)
+        week = iso_week(now)
+        if d.weekday() != self.s.race_weekday or d.hour < self.s.race_hour_utc or self.db.get(f"report_{week}"):
+            return
+        data = exports.export(self.s, self.db)
+        lb = data["leaderboard"]
+        featured = set(self.db.get("contrarian_featured") or [])
+        calls = [c for c in lb.get("contrarian", []) if c["state"] == "resolved"
+                 and f"{c['agent']}:{c['market_id']}" not in featured]
+        calls = sorted(calls, key=lambda c: -c["gap"])[:3]
+        if calls:
+            png = await self._card(self.cards.contrarian(week, calls))
+            right = sum(1 for c in calls if c["right"])
+            lead = calls[0]
+            text = fit(f"Contrarian calls ({week}): {lead['name']}: {lead['agent_p'] * 100:.0f}%. Market: "
+                       f"{lead['market_p'] * 100:.0f}%. On \"{clip(lead['question'], 70)}\" it {'was right' if lead['right'] else 'was wrong'}. "
+                       f"{right} of {len(calls)} big disagreements with the market paid off. ", TAG)
+            await self._post(f"contrarian-{week}", "contrarian", text, png)
+            self.db.put("contrarian_featured", sorted(featured | {f"{c['agent']}:{c['market_id']}" for c in calls}))
+        report = next((r for r in data.get("reports", []) if r["week"] == week), None)
+        if report:
+            posts = report_thread(report, f"{self.s.site_url.rstrip('/')}/reports/{week}/")
+            tid = None
+            for i, text in enumerate(posts, 1):
+                tid = await self._post(f"report-{week}-{i}", "report", text, reply_to=tid) or tid
+            drafts = self.s.data_dir / "drafts"
+            drafts.mkdir(parents=True, exist_ok=True)
+            (drafts / f"{week}.txt").write_text(personal_draft(report, f"{self.s.site_url.rstrip('/')}/reports/{week}/"))
+            log.info("weekly report draft for the operator written to %s (not posted)", drafts / f"{week}.txt")
+        self.db.put(f"report_{week}", True)
+
+    async def duel_results(self) -> None:
+        """Post one paired comparison per launch-day duel, once all its markets have settled."""
+        for d in forecast.duels(self.db):
+            r = d["result"]
+            if d["status"] != "run" or r is None:
+                continue
+            tid = None
+            if r.get("n"):
+                verdict = {"new better": f"{d['new_model']} is better calibrated",
+                           "old better": f"{d['old_model']} was better calibrated",
+                           "inconclusive": "no significant difference yet"}[r["verdict"]]
+                text = fit(f"Launch-day duel: {d['name']} {d['new_model']} vs {d['old_model']} on the same {r['n']} "
+                           f"markets. Brier {r['new']:.3f} vs {r['old']:.3f} (lower is better), difference "
+                           f"{r['diff']:+.3f}, 95% CI [{r['ci'][0]:+.3f}, {r['ci'][1]:+.3f}]: {verdict}. ", TAG)
+                tid = await self._post(f"duel-{d['duel_id']}", "duel", text)
+                if not tid:
+                    continue
+            self.db.x("UPDATE duels SET status='posted', tweet_id=? WHERE duel_id=?", tid, d["duel_id"])
 
     async def daily_banner(self, now: float | None = None) -> None:
         day = datetime.fromtimestamp(now or time.time(), timezone.utc).strftime("%Y-%m-%d")
@@ -408,3 +464,40 @@ class Engage:
             text = fit(f"Watch {e['name']} think: how it found {e['outcome']} at {round((e['avg_price'] or 0) * 100)}¢. ",
                        TAG)
             await self._post(key, "replay", text, video, reply_to=results_tweet_id, round_id=rnd["round_id"])
+
+
+def report_thread(report: dict, url: str) -> list[str]:
+    """The Sunday 'State of the AIs' thread: three link-free-but-the-last posts, neutral voice."""
+    fc = [a for a in report["forecast"] if a.get("n")]
+    if fc:
+        acc = ", ".join(f"{a['name']} {a['brier']:.3f}" for a in fc)
+        crowd = report.get("crowd_brier")
+        p1 = (f"State of the AIs, {report['week']}. Forecast accuracy (Brier score, lower is better) on "
+              f"{report['markets']} resolved markets: {acc}" + (f"; the market itself {crowd:.3f}" if crowd is not None else "") + ".")
+    else:
+        p1 = f"State of the AIs, {report['week']}. No forecast markets resolved this week."
+    bets = report["betting"]
+    p2 = ("Betting this week: " + ", ".join(f"{b['name']} {b['wins']}-{b['losses']} ({b['profit']:+.0f})" for b in bets)
+          + f" over {report['rounds']} rounds." if report["rounds"] else "No betting rounds resolved this week.")
+    if report.get("contrarian"):
+        c = report["contrarian"]
+        p2 += f" Big disagreements with the market (30+ points): {c['right']} of {c['total']} right."
+    p3 = f"Full report with confidence intervals and every forecast: {url}"
+    return [fit(p1 + " ", TAG), fit(p2 + " ", ""), p3]
+
+
+def personal_draft(report: dict, url: str) -> str:
+    """A ready-to-paste post for the operator's own account (personal voice). Written to a file, never posted."""
+    fc = [a for a in report["forecast"] if a.get("n")]
+    lines = [f"Week {report['week']} in the pit:"]
+    if fc:
+        top = fc[0]
+        lines.append(f"{top['name']} is the best-calibrated AI this week (Brier {top['brier']:.3f}).")
+        if report.get("crowd_brier") is not None:
+            beat = [a["name"] for a in fc if a["brier"] < report["crowd_brier"]]
+            lines.append(("Beat the market: " + ", ".join(beat) + ".") if beat else "None of them beat the market yet.")
+    if report.get("contrarian"):
+        c = report["contrarian"]
+        lines.append(f"When they disagreed with the market by 30+ points they were right {c['right']} of {c['total']} times.")
+    lines.append(f"My take: still early, the error bars are wide. Full report: {url}")
+    return "\n".join(lines) + "\n"

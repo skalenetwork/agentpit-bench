@@ -95,6 +95,46 @@ CREATE TABLE IF NOT EXISTS summons (      -- tweets tagging the bench with a mar
     reply_tweet_id TEXT
 );
 CREATE TABLE IF NOT EXISTS exhibition_markets (market_id TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS sweep_markets (   -- the daily forecast sweep's market snapshot (one row per market)
+    market_id TEXT PRIMARY KEY,
+    sweep_date TEXT NOT NULL,                -- YYYY-MM-DD (UTC) of the sweep that first asked about it
+    question TEXT NOT NULL,
+    outcomes TEXT NOT NULL,                  -- JSON list of labels
+    prices TEXT NOT NULL,                    -- JSON list: market prices at sweep time (the Crowd's forecast)
+    end_date TEXT,
+    category TEXT,
+    winner TEXT,                             -- set at resolution
+    state TEXT NOT NULL DEFAULT 'open'       -- open / resolved / void
+);
+CREATE TABLE IF NOT EXISTS forecasts (       -- one agent's probabilities for one sweep market
+    sweep_date TEXT NOT NULL,
+    agent TEXT NOT NULL,
+    market_id TEXT NOT NULL,
+    probs TEXT NOT NULL,                     -- JSON {outcome: p}, clamped to [0.01, 0.99] and normalised
+    model_reported TEXT,
+    brier REAL,                              -- set at resolution
+    PRIMARY KEY (agent, market_id)
+);
+CREATE TABLE IF NOT EXISTS duels (           -- launch-day duels: an agent's previous vs new flagship, exhibition only
+    duel_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    agent TEXT NOT NULL,
+    old_model TEXT NOT NULL,
+    new_model TEXT NOT NULL,
+    sweep_date TEXT,
+    status TEXT NOT NULL DEFAULT 'pending',   -- pending / run / posted
+    created_at REAL NOT NULL,
+    tweet_id TEXT
+);
+CREATE TABLE IF NOT EXISTS sweep_runs (      -- per agent per day: ok / infra / failed, and the transcript
+    sweep_date TEXT NOT NULL,
+    agent TEXT NOT NULL,
+    status TEXT NOT NULL,
+    detail TEXT,
+    n_forecasts INTEGER NOT NULL DEFAULT 0,
+    model_reported TEXT,
+    transcript_path TEXT,
+    PRIMARY KEY (sweep_date, agent)
+);
 """
 
 MIGRATIONS = [  # (table, column, definition): added when missing, so old databases keep working
@@ -104,6 +144,8 @@ MIGRATIONS = [  # (table, column, definition): added when missing, so old databa
     ("rounds", "humans_collected", "INTEGER NOT NULL DEFAULT 0"),
     ("humans", "card_path", "TEXT"),                     # "@user beat X & Y" card (site only, never posted)
     ("bets", "statement", "TEXT"),                       # losing agent's post-match line to the press
+    # why a round is outside the neutral statistics: summon / high-stakes / pre-season / infra (NULL = counts)
+    ("rounds", "exclusion", "TEXT"),
 ]
 
 
@@ -137,14 +179,23 @@ class DB:
 
     # rounds
     def create_round(self, market: dict) -> int:
-        """A market queued with mark_exhibition() becomes an exhibition round, outside every standings table."""
-        exhibition = int(self.one("SELECT 1 FROM exhibition_markets WHERE market_id=?", str(market["id"])) is not None)
+        """A market queued with mark_exhibition() becomes an exhibition round, outside every standings table.
+        High-Stakes Friday rounds are exhibitions for the statistics too (a 500-token round would swing them),
+        while still being a full show on X."""
+        summoned = self.one("SELECT 1 FROM exhibition_markets WHERE market_id=?", str(market["id"])) is not None
+        exclusion = "summon" if summoned else ("high-stakes" if market.get("high_stakes") else None)
         return self.x(
             "INSERT INTO rounds(market_id,condition_id,slug,question,outcomes,snapshot_json,started_at,end_date,"
-            "exhibition) VALUES(?,?,?,?,?,?,?,?,?)",
+            "exhibition,exclusion) VALUES(?,?,?,?,?,?,?,?,?,?)",
             str(market["id"]), market.get("conditionId"), market.get("slug"), market["question"],
-            json.dumps(market["outcomes_list"]), json.dumps(market), time.time(), market.get("endDate"), exhibition,
+            json.dumps(market["outcomes_list"]), json.dumps(market), time.time(), market.get("endDate"),
+            int(exclusion is not None), exclusion,
         )
+
+    def mark_preseason(self, season_start_ts: float) -> None:
+        """Rounds started before Season 1 (other rules, e.g. pre-frontier settings) stay visible but never count."""
+        self.x("UPDATE rounds SET exhibition=1, exclusion='pre-season' WHERE started_at<? AND exclusion IS NULL",
+               season_start_ts)
 
     def mark_exhibition(self, market_id: str) -> None:
         self.x("INSERT OR IGNORE INTO exhibition_markets(market_id) VALUES(?)", str(market_id))

@@ -165,7 +165,7 @@ def rich_site(s, db):
     snap = json.loads(db.round(hs)["snapshot_json"])
     db.set_round(hs, snapshot_json=json.dumps({**snap, "high_stakes": True, "bench_stake": 500}))
     ex = make_round(db, {"grok": ("Nexus", 0.4, 0.6)}, mid="m3", q="Who wins the presidential election?")
-    db.set_round(ex, exhibition=1)
+    db.set_round(ex, exhibition=1, exclusion="summon")
     return done, hs, ex
 
 
@@ -182,7 +182,7 @@ def test_site_extras(env):
     assert "Tail Claude" not in rp                                    # resolved: no tail/fade
     live = (out / f"round/{hs}/index.html").read_text()
     assert "High Stakes" in live and "Tail Claude" in live and "Fade Claude" in live
-    assert "Exhibition round" in (out / f"round/{ex}/index.html").read_text()
+    assert "Not counted in the statistics: summoned by a follower" in (out / f"round/{ex}/index.html").read_text()
     lb = (out / "leaderboard/index.html").read_text()
     for needle in ("All time", "By model", "@alice"):
         assert needle in lb, needle

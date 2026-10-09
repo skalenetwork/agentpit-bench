@@ -36,4 +36,4 @@
 <div class="invite" data-a="tail">Reply with your pick: {{ r.outcomes|join(' / ') }}</div>
 </div>
 {% endblock %}
-{% block foot %}Who's right? Resolves {{ (r.end_date or '')[:10] }}{% endblock %}
+{% block foot %}Resolves {{ (r.end_date or '')[:10] }}{% if sig %} · {{ sig }}{% else %} · Who's right?{% endif %}{% endblock %}

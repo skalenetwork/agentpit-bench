@@ -166,6 +166,8 @@ class CardRenderer:
         self._pw = None
         self._browser = None
         self._lock = asyncio.Lock()
+        # "n=12 · not yet significant": set by the publisher from the latest export before split/results renders
+        self.significance: str | None = None
 
     async def _ensure(self):
         if self._browser is None:
@@ -198,7 +200,7 @@ class CardRenderer:
 
     def _ctx(self, rnd: dict, board: list[dict] | None) -> dict:
         return {"r": rnd, "board": board or [], "colors": AGENT_COLORS, "names": AGENT_NAMES, "models": AGENT_MODELS,
-                "site": self.s.site_url.replace("https://", "")}
+                "site": self.s.site_url.replace("https://", ""), "sig": self.significance}
 
     async def decision(self, rnd: dict, entry: dict, board: list[dict] | None = None) -> Path:
         row = next((b for b in board or [] if b["agent"] == entry["agent"]), {})
@@ -245,6 +247,10 @@ class CardRenderer:
     async def awards(self, week: str, awards: list[dict]) -> Path:
         html = env.get_template("awards.html").render(**self._plain(week=week, awards=awards))
         return await self.render_html(html, self.s.cards_dir / "awards" / f"{week}.png")
+
+    async def contrarian(self, week: str, calls: list[dict]) -> Path:
+        html = env.get_template("contrarian.html").render(**self._plain(week=week, calls=calls))
+        return await self.render_html(html, self.s.cards_dir / "contrarian" / f"{week}.png")
 
     async def banner(self, board: list[dict], crowd: dict | None, season: str) -> Path:
         ctx = self._plain(crowd=crowd, season=season)

@@ -42,6 +42,12 @@ class Settings:
     deploy_debounce_s: int = 30
     animate: bool = True             # split and results posts as short MP4s (static PNG fallback)
     sandbox: bool = True             # run agents inside bubblewrap (bwrap); never disable in production
+    # independent-standard layer
+    methodology_version: str = "1.0"
+    season_start: str = "2026-10-09T00:00:00Z"   # rounds started before this are pre-season exhibitions
+    sweep_markets: int = 30             # daily forecast sweep: markets per agent per day
+    sweep_timeout_s: int = 900          # one batched sweep run per agent
+    sweep_hour_utc: int = 6
     dry_run: bool = True
     posting_paused: bool = False
     agents: list[str] = field(default_factory=lambda: ["claude", "codex", "agy", "grok"])
@@ -88,6 +94,11 @@ class Settings:
 
     def agentpit_key(self, agent: str) -> str | None:
         return os.environ.get(f"AGENTPIT_KEY_{agent.upper()}")
+
+    @property
+    def season_start_ts(self) -> float:
+        from datetime import datetime
+        return datetime.fromisoformat(self.season_start.replace("Z", "+00:00")).timestamp()
 
     def market_link(self, slug: str, campaign: str = "round") -> str:
         url = self.market_url.format(slug=slug)

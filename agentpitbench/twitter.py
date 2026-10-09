@@ -70,7 +70,7 @@ def price_str(p: float | None) -> str:
 def decision_text(s: Settings, rnd: dict, e: dict, invite: bool = False) -> str:
     """invite=True for the round's opener: followers reply with their own pick (humans play along)."""
     q = clip(rnd["question"], 90)
-    lead = "Exhibition round. " if rnd.get("exhibition") else ""
+    lead = "Exhibition round. " if rnd.get("exclusion") == "summon" else ""
     tail = f" {TAG}"
     if invite:
         tail = "\nReply with your pick: " + clip(" / ".join(rnd.get("outcomes") or []), 60) + tail
@@ -287,6 +287,28 @@ class Poster:
                       " ON CONFLICT(post_key) DO UPDATE SET tweet_id=excluded.tweet_id, posted_at=excluded.posted_at",
                       post_key, tweet_id, kind, round_id, text, str(image) if image else None, time.time())
         return tweet_id
+
+    async def delete(self, tweet_id: str | None, post_key: str = "") -> bool:
+        """Take a post down (an infra-voided round). Outbox entries are removed; live posts deleted on X."""
+        if not tweet_id:
+            return True
+        if tweet_id.startswith("dry-"):
+            (self.s.outbox_dir / f"{re.sub(r'[^A-Za-z0-9_.-]', '_', post_key)}.json").unlink(missing_ok=True)
+            return True
+        if not (self.oauth2.ready or all(self.creds.values())):
+            log.error("cannot delete tweet %s: no X credentials", tweet_id)
+            return False
+        try:
+            if self.oauth2.ready:
+                await asyncio.to_thread(self._call, "DELETE", f"{TWEET_URL}/{tweet_id}")
+            else:
+                r = await asyncio.to_thread(lambda: self._session().delete(f"{TWEET_URL}/{tweet_id}", timeout=60))
+                _check(r)
+            log.info("deleted tweet %s (%s)", tweet_id, post_key)
+            return True
+        except Exception:
+            log.exception("could not delete tweet %s", tweet_id)
+            return False
 
     def _post_outbox(self, post_key, kind, text, image, reply_to, quote_of=None) -> str:
         self.s.outbox_dir.mkdir(parents=True, exist_ok=True)

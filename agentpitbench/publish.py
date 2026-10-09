@@ -114,6 +114,20 @@ class BenchPublisher:
         exports.export(self.s, self.db)
         self.site.request()
 
+    async def void_round(self, round_id: int) -> None:
+        """An infrastructure failure voided the round: take down everything already posted for it."""
+        await asyncio.sleep(0)
+        others = [t for t in self._pending.get(round_id, ()) if t is not asyncio.current_task()]
+        if others:
+            await asyncio.gather(*others, return_exceptions=True)
+        for row in self.db.q("SELECT post_key, tweet_id FROM tweets WHERE round_id=?", round_id):
+            if await self.poster.delete(row["tweet_id"], row["post_key"]):
+                self.db.x("DELETE FROM tweets WHERE post_key=?", row["post_key"])
+        self.db.x("UPDATE bets SET tweet_id=NULL WHERE run_id IN (SELECT run_id FROM runs WHERE round_id=?)", round_id)
+        self.db.set_round(round_id, thread_tweet_id=None)
+        exports.export(self.s, self.db)
+        self.site.request()
+
     async def on_bets_done(self, round_id: int) -> None:
         # decision tweets still in flight go first, so the split card follows every pick in the thread
         await asyncio.sleep(0)  # let on_bet tasks created just before this call register themselves
@@ -123,6 +137,7 @@ class BenchPublisher:
         data = exports.export(self.s, self.db)
         rnd = next(r for r in data["rounds"] if r["round_id"] == round_id)
         board = data["leaderboard"]["agents"]
+        self.cards.significance = data["leaderboard"]["significance"]["label"]
         if sum(1 for e in rnd["entries"] if e["outcome"]) >= 2:
             kind, headline = split_headline(rnd)
             g = grudge(rnd, data["rounds"]) if kind == "split" else None
@@ -149,6 +164,7 @@ class BenchPublisher:
         rnd = next(r for r in data["rounds"] if r["round_id"] == round_id)
         lb = data["leaderboard"]
         board, crowd = lb["agents"], lb["crowd"]
+        self.cards.significance = lb["significance"]["label"]
         cast = commentary(rnd)
         png = await self._card(self.cards.results(rnd, board, crowd, cast=cast, top_humans=lb["humans"][:3]))
         video = await self._clip(self.cards.results_clip(rnd, board, crowd, cast=cast, top_humans=lb["humans"][:3]))

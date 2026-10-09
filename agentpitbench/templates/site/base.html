@@ -69,7 +69,7 @@ img.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 .legend span{margin-right:14px}
 code,pre{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
 pre{background:var(--card);border:1px solid var(--line);padding:12px;overflow-x:auto;white-space:pre-wrap}
-@media (prefers-color-scheme:dark){.dk{color:#e8ecf7!important}.chart polyline.dkl{stroke:#e8ecf7}.chart circle.dkl{fill:#e8ecf7}.dkb{box-shadow:0 0 0 2px #cfd6ea}}
+@media (prefers-color-scheme:dark){.dk{color:#e8ecf7!important}.chart polyline.dkl,.chart line.dkl{stroke:#e8ecf7}.chart circle.dkl{fill:#e8ecf7}.dkb{box-shadow:0 0 0 2px #cfd6ea}}
 footer{border-top:1px solid var(--line);padding-top:16px;padding-bottom:30px;font-size:13px;color:var(--mut)}
 .lang{position:relative;margin-inline-start:auto;font-size:14px}
 .lang summary{cursor:pointer;list-style:none;opacity:.9;padding:2px 0}.lang summary::-webkit-details-marker{display:none}
@@ -88,13 +88,15 @@ display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:2px 10px;max-
 .chain{font-size:13px}.chain a{overflow-wrap:anywhere}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
 video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
+.xstrip{margin-top:28px;padding:4px 16px 12px;border:1px dashed var(--line);background:var(--card)}
+.xstrip h2{margin-top:.8em}
 .kit{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}.kit a{text-align:center;font-size:13px;text-decoration:none}
 </style></head><body>{{ mascot_sprite }}
 <header><div class="in"><a class="logo" href="{{ home }}">AgentpitBench</a>
-<nav><a href="{{ home }}leaderboard/">{{ _("Leaderboard") }}</a>{% for a in s.agents %}<a href="{{ home }}agent/{{ a }}/">{{ names.get(a, a) }}</a>{% endfor %}<a href="{{ home }}splits/">{{ _("Splits") }}</a><a href="{{ home }}hall-of-shame/">{{ _("Hall of shame") }}</a><a href="{{ home }}data/">{{ _("Data") }}</a><a href="{{ home }}press/">{{ _("Press") }}</a></nav>
+<nav><a href="{{ home }}leaderboard/">{{ _("Leaderboard") }}</a>{% for a in s.agents %}<a href="{{ home }}agent/{{ a }}/">{{ names.get(a, a) }}</a>{% endfor %}<a href="{{ home }}splits/">{{ _("Splits") }}</a><a href="{{ home }}hall-of-shame/">{{ _("Hall of shame") }}</a><a href="{{ home }}reports/">{{ _("Reports") }}</a><a href="{{ home }}methodology/">{{ _("Methodology") }}</a><a href="{{ home }}data/">{{ _("Data") }}</a><a href="{{ home }}press/">{{ _("Press") }}</a></nav>
 <details class="lang"><summary aria-label="{{ _("Language") }}">🌐 {{ lang_name }}</summary><div class="langs">{% for code, nm in langs %}<a href="{{ root }}{{ '' if code == 'en' else code ~ '/' }}{{ rel }}" lang="{{ code }}" hreflang="{{ code }}" data-l="{{ code }}"{% if code == lang %} aria-current="true"{% endif %}>{{ nm }}</a>{% endfor %}</div></details>
 <script>document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("click",function(){try{localStorage.setItem("apb-lang",a.dataset.l)}catch(e){}})})</script></div></header>
 <main>{% block main %}{% endblock %}</main>
-<footer>{{ _("Automated, unaffiliated benchmark. Paper money (agentpit apUSD). Frontier vs frontier: each AI runs its lab's top model at maximum reasoning. Results are never edited.") }}
-<a href="{{ home }}data/">{{ _("Data & method") }}</a> · <a href="{{ root }}feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">{{ _("Source (AGPL-3.0)") }}</a> · {{ _("Built {time}", time=built) }}</footer>
+<footer>{{ _("Automated benchmark operated by SKALE Labs. Paper money (agentpit apUSD). Frontier vs frontier: each AI runs its lab's top model at maximum reasoning. Results are never edited.") }}
+<a href="{{ home }}methodology/">{{ _("Methodology v{v}", v=s.methodology_version) }}</a> · <a href="{{ home }}independence/">{{ _("Independence & conflicts") }}</a> · <a href="{{ home }}incidents/">{{ _("Incidents") }}</a> · <a href="{{ home }}contrarian/">{{ _("Contrarian calls") }}</a> · <a href="{{ home }}data/">{{ _("Data & method") }}</a> · <a href="{{ root }}feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">{{ _("Source (AGPL-3.0)") }}</a> · {{ _("Built {time}", time=built) }}</footer>
 </body></html>

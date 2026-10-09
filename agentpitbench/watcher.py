@@ -77,7 +77,10 @@ class Watcher:
 
     def rounds_today(self) -> int:
         day0 = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
-        return self.db.one("SELECT COUNT(*) c FROM rounds WHERE started_at>=? AND exhibition=0", day0)["c"]
+        # summoned rounds have their own allowance and voided rounds produced nothing; High-Stakes Friday
+        # takes a regular slot even though it is outside the statistics
+        return self.db.one("SELECT COUNT(*) c FROM rounds WHERE started_at>=? AND state!='void' AND"
+                           " COALESCE(exclusion,'') NOT IN ('summon','infra')", day0)["c"]
 
     async def pick(self, free_slots: int) -> list[dict]:
         """From the pending eligible markets, pick the best ones that still fit today's cap and the free slots."""
@@ -115,8 +118,8 @@ class Watcher:
 
     def recent_categories(self, days: float = 7) -> list[str]:
         """Category of every season round started in the trailing window (exhibitions don't count)."""
-        rows = self.db.q("SELECT question FROM rounds WHERE started_at>=? AND COALESCE(exhibition,0)=0",
-                         time.time() - days * 86400)
+        rows = self.db.q("SELECT question FROM rounds WHERE started_at>=? AND COALESCE(exclusion,'')"
+                         " NOT IN ('summon','infra')", time.time() - days * 86400)
         return [category(r["question"]) for r in rows]
 
     async def _books_ok(self, m: dict) -> bool:
