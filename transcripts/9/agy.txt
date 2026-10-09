@@ -1,0 +1,21 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Will Ethereum dip to $2,400 October 5-11?
+Outcomes: Yes / No | prices: Yes 0.165, No 0.835 | closes: 2026-10-12T04:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+This is your first round.
+
+--- output ---
+root agent idle; waiting up to 30m0s for 1 background task(s)
+error: Individual quota reached. Please upgrade your subscription to increase your limits. Resets in 141h17m26s.
+AGY_ERROR: {"short_error":"RESOURCE_EXHAUSTED (code 429): Individual quota reached. Please upgrade your subscription to increase your limits. Resets in 141h17m26s.","status":"RESOURCE_EXHAUSTED","error_code":429,"code_kind":"http","retryable":true,"error_id":"88920829-0cc6-4e94-a949-87aa80c9cda8-13"}

@@ -1,0 +1,115 @@
+$ codex exec <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+13094 | World Championship of Legends: Australia Champions vs South Africa Champions | Australia Champions 0.500, South Africa Champions 0.500 | 2026-10-16T11:30:00Z
+13081 | Will En Avant Guingamp win on 2026-10-09? | Yes 0.275, No 0.725 | 2026-10-09T18:00:00Z
+13110 | Will Ethereum reach $2,700 October 5-11? | Yes 0.500, No 0.500 | 2026-10-12T04:00:00Z
+13047 | Counter-Strike: fnatic vs K27 (BO3) - 1win Private Club #2: Closed Qualifier Playoffs | fnatic 0.475, K27 0.525 | 2026-10-09T21:00:00Z
+13082 | Will AS Nancy-Lorraine vs. En Avant Guingamp end in a draw? | Yes 0.265, No 0.735 | 2026-10-09T18:00:00Z
+13079 | Will AS Nancy-Lorraine win on 2026-10-09? | Yes 0.455, No 0.545 | 2026-10-09T18:00:00Z
+13109 | Will the price of Bitcoin be above $90,000 on October 10? | Yes 0.500, No 0.500 | 2026-10-10T16:00:00Z
+13025 | Counter-Strike: PRIVATE vs Nuclear TigeRES (BO3) - 1win Private Club #2: Closed Qualifier Playoffs | PRIVATE 0.475, Nuclear TigeRES 0.525 | 2026-10-10T00:00:00Z
+13078 | Ducks vs. Jets | Ducks 0.465, Jets 0.535 | 2026-10-10T00:00:00Z
+13059 | Will Iceland win on 2026-10-09? | Yes 0.695, No 0.305 | 2026-10-09T16:45:00Z
+13108 | Will the price of Bitcoin be above $92,000 on October 10? | Yes 0.500, No 0.500 | 2026-10-10T16:00:00Z
+13003 | Dota 2: 1win vs PARIVISION (BO3) - BLAST Slam Playoffs | 1win 0.455, PARIVISION 0.545 | 2026-10-09T20:00:00Z
+13037 | Bangladesh Women Tour of Australia ODIs: Australia Women vs Bangladesh Women | Australia Women 0.500, Bangladesh Women 0.500 | 2026-10-16T03:50:00Z
+13053 | Will Croatia win on 2026-10-09? | Yes 0.175, No 0.825 | 2026-10-09T16:45:00Z
+13106 | Will the price of Bitcoin be above $76,000 on October 10? | Yes 0.500, No 0.500 | 2026-10-10T16:00:00Z
+12972 | Counter-Strike: GamerLegion vs Sinners (BO3) - 1win Private Club #2: Closed Qualifier Playoffs | GamerLegion 0.500, Sinners 0.500 | 2026-10-09T18:00:00Z
+12889 | Thunder vs. Hawks | Thunder 0.347, Hawks 0.652 | 2026-10-12T23:00:00Z
+13034 | Will Jimmy Lai win the Nobel Peace Prize in 2026? | Yes 0.500, No 0.500 | 2026-10-10T00:00:00Z
+13105 | Will the price of Bitcoin be above $82,000 on October 10? | Yes 0.500, No 0.500 | 2026-10-10T16:00:00Z
+12828 | Counter-Strike: FURIA vs MOUZ (BO3) - ESL Pro League Playoffs | FURIA 0.165, MOUZ 0.835 | 2026-10-09T20:15:00Z
+12649 | Will Real Betis Balompié vs. CA Osasuna end in a draw? | Yes 0.215, No 0.785 | 2026-10-11T16:30:00Z
+12797 | Will the International Peace Research Association win the Nobel Peace Prize in 2026? | Yes 0.500, No 0.500 | 2026-10-10T00:00:00Z
+13104 | Will the price of Bitcoin be above $74,000 on October 10? | Yes 0.500, No 0.500 | 2026-10-10T16:00:00Z
+12774 | Counter-Strike: Team Falcons vs Spirit (BO3) - ESL Pro League Playoffs | Team Falcons 0.415, Spirit 0.585 | 2026-10-09T22:00:00Z
+12647 | Will BV Borussia 09 Dortmund vs. SV Werder Bremen end in a draw? | Yes 0.165, No 0.835 | 2026-10-09T18:30:00Z
+12742 | Will the International Association of Judges win the Nobel Peace Prize in 2026? | Yes 0.500, No 0.500 | 2026-10-10T00:00:00Z
+13102 | Will the price of Bitcoin be above $78,000 on October 10? | Yes 0.500, No 0.500 | 2026-10-10T16:00:00Z
+12639 | Tampa Bay Rays vs. New York Yankees | Tampa Bay Rays 0.500, New York Yankees 0.500 | 2026-10-15T00:00:00Z
+12678 | Will the Parents Circle – Families Forum win the Nobel Peace Prize in 2026? | Yes 0.500, No 0.500 | 2026-10-10T00:00:00Z
+13101 | Will the price of Bitcoin be above $88,000 on October 10? | Yes 0.500, No 0.500 | 2026-10-10T16:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+WARNING: proceeding, even though we could not create PATH aliases: Refusing to create helper binaries under temporary dir "/tmp" (codex_home: AbsolutePathBuf("/tmp/apbh-codex-10lnm0s6/.codex"))
+Reading additional input from stdin...
+OpenAI Codex v0.161.0
+--------
+workdir: /tmp/apb-sweep-codex-75bididr
+model: gpt-6-luna
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: max
+reasoning summaries: none
+session id: 01a12153-55a1-7112-827e-9bbb4fb771e1
+--------
+user
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+13094 | World Championship of Legends: Australia Champions vs South Africa Champions | Australia Champions 0.500, South Africa Champions 0.500 | 2026-10-16T11:30:00Z
+13081 | Will En Avant Guingamp win on 2026-10-09? | Yes 0.275, No 0.725 | 2026-10-09T18:00:00Z
+13110 | Will Ethereum reach $2,700 October 5-11? | Yes 0.500, No 0.500 | 2026-10-12T04:00:00Z
+13047 | Counter-Strike: fnatic vs K27 (BO3) - 1win Private Club #2: Closed Qualifier Playoffs | fnatic 0.475, K27 0.525 | 2026-10-09T21:00:00Z
+13082 | Will AS Nancy-Lorraine vs. En Avant Guingamp end in a draw? | Yes 0.265, No 0.735 | 2026-10-09T18:00:00Z
+13079 | Will AS Nancy-Lorraine win on 2026-10-09? | Yes 0.455, No 0.545 | 2026-10-09T18:00:00Z
+13109 | Will the price of Bitcoin be above $90,000 on October 10? | Yes 0.500, No 0.500 | 2026-10-10T16:00:00Z
+13025 | Counter-Strike: PRIVATE vs Nuclear TigeRES (BO3) - 1win Private Club #2: Closed Qualifier Playoffs | PRIVATE 0.475, Nuclear TigeRES 0.525 | 2026-10-10T00:00:00Z
+13078 | Ducks vs. Jets | Ducks 0.465, Jets 0.535 | 2026-10-10T00:00:00Z
+13059 | Will Iceland win on 2026-10-09? | Yes 0.695, No 0.305 | 2026-10-09T16:45:00Z
+13108 | Will the price of Bitcoin be above $92,000 on October 10? | Yes 0.500, No 0.500 | 2026-10-10T16:00:00Z
+13003 | Dota 2: 1win vs PARIVISION (BO3) - BLAST Slam Playoffs | 1win 0.455, PARIVISION 0.545 | 2026-10-09T20:00:00Z
+13037 | Bangladesh Women Tour of Australia ODIs: Australia Women vs Bangladesh Women | Australia Women 0.500, Bangladesh Women 0.500 | 2026-10-16T03:50:00Z
+13053 | Will Croatia win on 2026-10-09? | Yes 0.175, No 0.825 | 2026-10-09T16:45:00Z
+13106 | Will the price of Bitcoin be above $76,000 on October 10? | Yes 0.500, No 0.500 | 2026-10-10T16:00:00Z
+12972 | Counter-Strike: GamerLegion vs Sinners (BO3) - 1win Private Club #2: Closed Qualifier Playoffs | GamerLegion 0.500, Sinners 0.500 | 2026-10-09T18:00:00Z
+12889 | Thunder vs. Hawks | Thunder 0.347, Hawks 0.652 | 2026-10-12T23:00:00Z
+13034 | Will Jimmy Lai win the Nobel Peace Prize in 2026? | Yes 0.500, No 0.500 | 2026-10-10T00:00:00Z
+13105 | Will the price of Bitcoin be above $82,000 on October 10? | Yes 0.500, No 0.500 | 2026-10-10T16:00:00Z
+12828 | Counter-Strike: FURIA vs MOUZ (BO3) - ESL Pro League Playoffs | FURIA 0.165, MOUZ 0.835 | 2026-10-09T20:15:00Z
+12649 | Will Real Betis Balompié vs. CA Osasuna end in a draw? | Yes 0.215, No 0.785 | 2026-10-11T16:30:00Z
+12797 | Will the International Peace Research Association win the Nobel Peace Prize in 2026? | Yes 0.500, No 0.500 | 2026-10-10T00:00:00Z
+13104 | Will the price of Bitcoin be above $74,000 on October 10? | Yes 0.500, No 0.500 | 2026-10-10T16:00:00Z
+12774 | Counter-Strike: Team Falcons vs Spirit (BO3) - ESL Pro League Playoffs | Team Falcons 0.415, Spirit 0.585 | 2026-10-09T22:00:00Z
+12647 | Will BV Borussia 09 Dortmund vs. SV Werder Bremen end in a draw? | Yes 0.165, No 0.835 | 2026-10-09T18:30:00Z
+12742 | Will the International Association of Judges win the Nobel Peace Prize in 2026? | Yes 0.500, No 0.500 | 2026-10-10T00:00:00Z
+13102 | Will the price of Bitcoin be above $78,000 on October 10? | Yes 0.500, No 0.500 | 2026-10-10T16:00:00Z
+12639 | Tampa Bay Rays vs. New York Yankees | Tampa Bay Rays 0.500, New York Yankees 0.500 | 2026-10-15T00:00:00Z
+12678 | Will the Parents Circle – Families Forum win the Nobel Peace Prize in 2026? | Yes 0.500, No 0.500 | 2026-10-10T00:00:00Z
+13101 | Will the price of Bitcoin be above $88,000 on October 10? | Yes 0.500, No 0.500 | 2026-10-10T16:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+codex
+I’ll check the time-sensitive match and price context, then return a complete probability vector for all 30 markets.
+web search: 
+web search: October 9 2026 sports schedule Iceland Croatia football October 9 2026 ...
+web search: 
+web search: 2026 Nobel Peace Prize laureate announcement October 9 2026 winner ...
+web search: 
+web search: October 9 2026 esports odds 1win vs PARIVISION Dota 2 BLAST Slam ...
+web search: 
+web search: Nancy Guingamp 9 October 2026 odds Nancy Guingamp 1X2 betting odds ...
+web search: 
+web search: 
+web search: 
+web search: PRIVATE vs Nuclear TigeRES October 9 2026 odds 1win Private Club ...
+web search: 
+web search: Oklahoma City Thunder Atlanta Hawks Oct 12 2026 preseason odds spread moneyline ...
+web search: 
+web search: Ethereum price October 9 2026 ETH USD reach $2,700 Oct 5-11 ...

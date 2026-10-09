@@ -1,0 +1,24 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Will Bitcoin reach $84,000 October 5-11?
+Outcomes: Yes / No | prices: Yes 0.485, No 0.515 | closes: 2026-10-12T04:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+This is your first round.
+
+--- output ---
+error: Individual quota reached. Please upgrade your subscription to increase your limits. Resets in 141h17m35s.
+AGY_ERROR: {"short_error":"RESOURCE_EXHAUSTED (code 429): Individual quota reached. Please upgrade your subscription to increase your limits. Resets in 141h17m35s.","status":"RESOURCE_EXHAUSTED","error_code":429,"code_kind":"http","retryable":true,"error_id":"68737a92-96c8-4cc6-885a-a51d50d9f14c-13"}
+
+[bench] process exited with 3 before betting; restarting
+error: Individual quota reached. Please upgrade your subscription to increase your limits. Resets in 141h17m32s.
+AGY_ERROR: {"short_error":"RESOURCE_EXHAUSTED (code 429): Individual quota reached. Please upgrade your subscription to increase your limits. Resets in 141h17m32s.","status":"RESOURCE_EXHAUSTED","error_code":429,"code_kind":"http","retryable":true,"error_id":"663e6d0d-c0f8-4e60-b1ec-a83f316ba268-1"}
