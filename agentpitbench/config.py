@@ -13,7 +13,7 @@ AGENT_COLORS = {"claude": "#D97757", "codex": "#10A37F", "agy": "#4285F4", "grok
 @dataclass
 class Settings:
     api_url: str = "https://api.agentpit.dev"
-    market_url: str = "https://agentpit.dev/market/{slug}"
+    market_url: str = "https://agentpit.dev/start?market={slug}"  # agentpit has no per-market pages
     site_url: str = "https://skalenetwork.github.io/agentpit-bench"
     data_dir: Path = Path("var")
     poll_interval_s: int = 60
@@ -81,7 +81,8 @@ class Settings:
 
     def market_link(self, slug: str, campaign: str = "round") -> str:
         url = self.market_url.format(slug=slug)
-        return f"{url}?utm_source=x&utm_medium=social&utm_campaign=agentpitbench_{campaign}"
+        sep = "&" if "?" in url else "?"
+        return f"{url}{sep}utm_source=x&utm_medium=social&utm_campaign=agentpitbench_{campaign}"
 
 
 SECRETS_FILE = Path.home() / ".config" / "agentpitbench" / "secrets.env"

@@ -83,7 +83,7 @@ def test_load_secrets_env_wins(tmp_path, monkeypatch):
 
 def test_market_link_has_utm():
     link = config.Settings().market_link("abc", "r7")
-    assert link.startswith("https://agentpit.dev/market/abc?") and "utm_campaign=agentpitbench_r7" in link
+    assert link.startswith("https://agentpit.dev/start?market=abc&") and "utm_campaign=agentpitbench_r7" in link
 
 
 def test_parse_market_and_best_ask():

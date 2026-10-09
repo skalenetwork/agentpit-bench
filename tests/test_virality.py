@@ -259,7 +259,7 @@ async def test_summon_flow(env):
 
     mentions = [
         {"id": "900", "author_id": "x", "username": "fan", "text": "@agentpitbench do this https://t.co/abc",
-         "created_at": "2026-10-09T10:00:00Z", "entities": {"urls": [{"expanded_url": "https://agentpit.dev/market/s-77?ref=1"}]}},
+         "created_at": "2026-10-09T10:00:00Z", "entities": {"urls": [{"expanded_url": "https://polymarket.com/market/s-77?ref=1"}]}},
         {"id": "901", "author_id": "y", "username": "fan2", "text": "@agentpitbench hi", "created_at": "2026-10-09T10:00:00Z"},
     ]
     p = FakePoster(mentions=mentions, likes={"900": 12})
@@ -488,3 +488,12 @@ async def test_publisher_resolution_extras(env):
     res = json.loads((s.outbox_dir / f"r{rid}-results.json").read_text())
     assert "goes against everyone" in res["text"] or "fades the field" in res["text"] or "Long shot" in res["text"]
     assert db.get("milestone_state")["rounds"] == 1
+
+
+
+def test_market_refs_reads_our_link_and_polymarket():
+    from agentpitbench.virality import market_refs
+    url = "https://agentpit.dev/start?market={slug}"
+    assert market_refs(["https://agentpit.dev/start?market=nhl-a&utm_source=x"], "", url) == ["nhl-a"]
+    assert market_refs([], "bet on https://polymarket.com/market/btc-84k please", url) == ["btc-84k"]
+    assert market_refs(["https://example.com/market/x"], "", url) == []

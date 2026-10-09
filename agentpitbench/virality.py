@@ -258,17 +258,22 @@ def detect_milestones(prev: dict | None, cur: dict, round_id: int, streak_min: i
 
 # ---------- summon ----------
 
+# agentpit mirrors Polymarket markets under the same slug, so a shared Polymarket link works too
+EXTRA_MARKET_BASES = ("polymarket.com/market/", "www.polymarket.com/market/")
+
+
 def market_refs(urls: list[str], text: str, market_url: str) -> list[str]:
-    """Slugs (or numeric ids) of agentpit markets linked in a tweet."""
-    base = market_url.split("{slug}")[0]
-    host_path = re.sub(r"^https?://", "", base)
+    """Slugs (or numeric ids) of markets linked in a tweet: our own bet link or a Polymarket market link."""
+    bases = [re.sub(r"^https?://", "", market_url.split("{slug}")[0]), *EXTRA_MARKET_BASES]
     found = []
     for u in list(urls) + re.findall(r"\S+", text or ""):
         u2 = re.sub(r"^https?://", "", u)
-        if u2.startswith(host_path):
-            slug = re.split(r"[?#/\s]", u2[len(host_path):])[0]
-            if slug and slug not in found:
-                found.append(slug)
+        for host_path in bases:
+            if u2.startswith(host_path):
+                slug = re.split(r"[?#/&\s]", u2[len(host_path):])[0]
+                if slug and slug not in found:
+                    found.append(slug)
+                break
     return found
 
 
