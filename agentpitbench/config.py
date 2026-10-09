@@ -41,6 +41,7 @@ class Settings:
     void_after_days: int = 14
     deploy_debounce_s: int = 30
     animate: bool = True             # split and results posts as short MP4s (static PNG fallback)
+    site_hide_void: bool = True       # TEMP (2026-10-09): hide void rounds on the site until operations are stable
     infra_cooldown_s: int = 6 * 3600  # after a quota/infra failure, start no new rounds for this long
     sandbox: bool = True             # run agents inside bubblewrap (bwrap); never disable in production
     # independent-standard layer

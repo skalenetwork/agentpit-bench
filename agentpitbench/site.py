@@ -337,6 +337,8 @@ def build(s: Settings) -> Path:
 def _build(s: Settings) -> Path:
     exp = s.export_dir
     rounds = json.loads((exp / "rounds.json").read_text()) if (exp / "rounds.json").exists() else []
+    if s.site_hide_void:  # temporary while operations stabilise: void rounds get no page, row or feed item
+        rounds = [r for r in rounds if r.get("state") != "void"]
     reports = json.loads((exp / "reports.json").read_text()) if (exp / "reports.json").exists() else []
     lb = json.loads((exp / "leaderboard.json").read_text()) if (exp / "leaderboard.json").exists() else {
         "agents": [], "series": {}, "season": "", "updated_at": time.time()}
