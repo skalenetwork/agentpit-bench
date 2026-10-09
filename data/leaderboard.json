@@ -1,5 +1,5 @@
 {
- "updated_at": 1791562802.6225643,
+ "updated_at": 1791585351.1013863,
  "season": "2026-10",
  "agents": [
   {
@@ -186,26 +186,70 @@
  "forecast": {
   "agents": [
    {
-    "agent": "claude",
-    "name": "Claude",
-    "n": 0,
-    "offered": 0,
-    "coverage": null,
-    "brier": null,
-    "ci": null,
-    "vs_crowd": null,
-    "rank": null
-   },
-   {
     "agent": "codex",
     "name": "Codex",
-    "n": 0,
-    "offered": 0,
-    "coverage": null,
-    "brier": null,
-    "ci": null,
-    "vs_crowd": null,
-    "rank": null
+    "n": 10,
+    "offered": 10,
+    "coverage": 1.0,
+    "brier": 0.1417,
+    "ci": [
+     0.0374,
+     0.2713
+    ],
+    "vs_crowd": {
+     "mean_diff": -0.0607,
+     "ci": [
+      -0.1158,
+      -0.0163
+     ],
+     "sign_test_p": 0.0215,
+     "verdict": "better"
+    },
+    "rank": 1
+   },
+   {
+    "agent": "claude",
+    "name": "Claude",
+    "n": 10,
+    "offered": 10,
+    "coverage": 1.0,
+    "brier": 0.1837,
+    "ci": [
+     0.0829,
+     0.3044
+    ],
+    "vs_crowd": {
+     "mean_diff": -0.0186,
+     "ci": [
+      -0.0482,
+      0.0082
+     ],
+     "sign_test_p": 0.7539,
+     "verdict": "inconclusive"
+    },
+    "rank": 2
+   },
+   {
+    "agent": "grok",
+    "name": "Grok",
+    "n": 10,
+    "offered": 10,
+    "coverage": 1.0,
+    "brier": 0.1837,
+    "ci": [
+     0.0805,
+     0.3205
+    ],
+    "vs_crowd": {
+     "mean_diff": -0.0186,
+     "ci": [
+      -0.0364,
+      -0.0037
+     ],
+     "sign_test_p": 0.1094,
+     "verdict": "better"
+    },
+    "rank": 3
    },
    {
     "agent": "agy",
@@ -217,27 +261,19 @@
     "ci": null,
     "vs_crowd": null,
     "rank": null
-   },
-   {
-    "agent": "grok",
-    "name": "Grok",
-    "n": 0,
-    "offered": 0,
-    "coverage": null,
-    "brier": null,
-    "ci": null,
-    "vs_crowd": null,
-    "rank": null
    }
   ],
   "crowd": {
    "name": "The Crowd",
-   "n": 0,
-   "brier": null,
-   "ci": null
+   "n": 10,
+   "brier": 0.2024,
+   "ci": [
+    0.1006,
+    0.327
+   ]
   },
-  "markets_resolved": 0,
-  "markets_open": 30,
+  "markets_resolved": 10,
+  "markets_open": 20,
   "sweeps": 1,
   "metric": "Brier score, \u00bd\u00b7\u03a3(p\u2212y)\u00b2, lower is better; 95% bootstrap CI; paired vs the Crowd (market price at sweep time)"
  },
@@ -333,9 +369,9 @@
    "agent_p": 0.85,
    "market_p": 0.545,
    "gap": 0.305,
-   "state": "open",
-   "winner": null,
-   "right": null
+   "state": "resolved",
+   "winner": "PARIVISION",
+   "right": true
   },
   {
    "agent": "codex",
@@ -375,9 +411,9 @@
    "agent_p": 0.99,
    "market_p": 0.5,
    "gap": 0.49,
-   "state": "open",
-   "winner": null,
-   "right": null
+   "state": "resolved",
+   "winner": "GamerLegion",
+   "right": true
   },
   {
    "agent": "codex",
@@ -895,10 +931,17 @@
   }
  ],
  "significance": {
-  "n": 0,
+  "n": 30,
   "n_rounds": 0,
-  "n_forecasts": 0,
-  "significant": [],
-  "label": "n=0 \u00b7 not yet significant"
+  "n_forecasts": 30,
+  "significant": [
+   {
+    "agent": "codex",
+    "test": "forecast",
+    "p": 0.0215,
+    "direction": "better"
+   }
+  ],
+  "label": "n=30 \u00b7 significant vs the Crowd (p<0.05)"
  }
 }
