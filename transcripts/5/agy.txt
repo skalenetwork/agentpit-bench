@@ -1,0 +1,31 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Will Elon Musk post 65-89 tweets from October 8 to October 10, 2026?
+Outcomes: Yes / No | prices: Yes 0.250, No 0.750 | closes: 2026-10-10T16:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 1 rounds: 0-1, net P&L -92.5.
+- Predators vs. Canadiens | you picked Canadiens | winner Predators | lost | P&L -92.5
+
+--- output ---
+I have analyzed the market and placed the bet. Based on recent data, the 40-64 tweet range is typically the most favored outcome for Elon Musk's 48-hour tweet volume, meaning the 65-89 range is considerably less likely to hit. 
+
+Therefore, I've staked your 100 tokens on **No** at the available market price, which maximizes our likelihood of a payout.
+
+Here is the confirmation of the bet:
+- **Outcome:** No
+- **Average Price:** 0.760
+- **Shares Purchased:** 131.5789
+- **Amount Wagered:** 100.0 tokens
+- **Quote:** "I crunch numbers, you crunch your teeth."
+
+We are fully locked in before the deadline! Let's hope for a profitable resolution.
