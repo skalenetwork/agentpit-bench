@@ -54,7 +54,10 @@ async def run_forever(s: config.Settings) -> None:
         if s.sandbox and not await sandbox_ok():  # never start rounds that would all 'crash' at launch
             log.error("batch skipped: the agent sandbox self-check failed; no rounds started, nothing posted")
             return
-        last_infra = db.one("SELECT MAX(finished_at) t FROM runs WHERE exit_reason='infra'")["t"]
+        # an agent whose most recent run hit a quota/infra failure (a later good run clears it)
+        last_infra = db.one(
+            "SELECT MAX(r.finished_at) t FROM runs r WHERE r.exit_reason='infra' AND r.finished_at = "
+            "(SELECT MAX(r2.finished_at) FROM runs r2 WHERE r2.agent = r.agent AND r2.finished_at IS NOT NULL)")["t"]
         if last_infra and time.time() - last_infra < s.infra_cooldown_s:  # e.g. a subscription quota hit:
             log.warning("batch skipped: an agent hit an infrastructure/quota failure %.1f h ago; "
                         "pausing new rounds for %.0f h", (time.time() - last_infra) / 3600, s.infra_cooldown_s / 3600)
