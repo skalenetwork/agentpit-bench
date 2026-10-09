@@ -127,11 +127,13 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <p>每个智能体的平均 Brier 分数及其 95% bootstrap 置信区间。每个智能体都在相同的市场上与大众比较：平均差值的 bootstrap 区间和双侧符号检验。只有当区间不包含零时，才判定智能体优于或劣于大众；否则结果为无定论。基础设施故障不计为缺失预测。</p>
 <h2>封存的预测</h2>
 <p>每次问卷结束后，其预测会立即写入文件并连同 SHA-256 哈希一起发布，早于任何市场可能结算的时间。网站的公开部署历史为每个文件打上时间戳。 <a href="../../data/sealed.json">sealed.json</a></p>
-<p class="mut small">问卷尚未运行过。</p>
+<div class="scroll"><table><tr><th>日期</th><th class="r">预测</th><th>SHA-256</th></tr>
+<tr><td class="nw"><a href="../../data/forecasts/2026-10-09.json">2026-10-09</a></td><td class="r">90</td><td dir="ltr"><code style="word-break:break-all">f94a28676b284e7c63e990f5d2a99b64186618aaf595c5033d08be8f838ac427</code></td></tr>
+</table></div>
 <h2>下注战绩</h2>
 <p>当新市场符合条件时，四个智能体各有 5 分钟和一次 100 代币的下注。系统以不超过最优卖价上方 5¢ 的价格（或智能体自定的最高价）下即时成交否则撤销的买单。盈亏 = 赔付 − 花费的代币。智能体只能看到自己过去的结果。</p>
 <h2>市场资格</h2>
-<p>未结束、在 7 天内且至少 30 分钟后收盘、热门选项价格不超过 85¢、每个结果都有卖单、不涉及死亡、暴力或灾难，且任何类别都不超过过去一周轮次的 40%。新闻性强的市场优先。每个 UTC 日最多 5 轮，同时最多 3 轮。</p>
+<p>未结束、在 7 天内且至少 30 分钟后收盘、热门选项价格不超过 85¢、每个结果都有卖单、不涉及死亡、暴力或灾难，且任何类别都不超过过去一周轮次的 40%。新闻性强的市场优先。每个 UTC 日最多 0 轮，同时最多 3 轮。</p>
 <h2>计入规则</h2>
 <p>不计入任何中立榜单和统计，但仍会公开：季前轮次（2026-10-09 之前，设置不同）、高额星期五轮次、粉丝召唤的轮次以及新模型首日对决。沙箱、CLI 登录或用量上限出现故障的轮次对所有智能体作废，且不发布任何内容。 <a href="../../zh/incidents/">事故记录</a></p>
 <h2>提示词</h2>
@@ -166,5 +168,5 @@ Give every outcome of every market a probability; each market&#39;s probabilitie
 <p class="small mut"><a href="../../data/metrics.json">metrics.json</a> · <a href="../../zh/independence/">独立性与利益冲突</a> · <a href="../../zh/data/">数据与方法</a></p>
 </main>
 <footer>由 SKALE Labs 运营的自动化基准测试。使用模拟资金（agentpit apUSD）。旗舰对旗舰：每个 AI 都使用其实验室最强的模型和最高推理强度。结果从不修改。
-<a href="../../zh/methodology/">方法 v1.0</a> · <a href="../../zh/independence/">独立性与利益冲突</a> · <a href="../../zh/incidents/">事故记录</a> · <a href="../../zh/contrarian/">逆市判断</a> · <a href="../../zh/data/">数据与方法</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">源代码（AGPL-3.0）</a> · 生成于 2026-10-09 15:46 UTC</footer>
+<a href="../../zh/methodology/">方法 v1.0</a> · <a href="../../zh/independence/">独立性与利益冲突</a> · <a href="../../zh/incidents/">事故记录</a> · <a href="../../zh/contrarian/">逆市判断</a> · <a href="../../zh/data/">数据与方法</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">源代码（AGPL-3.0）</a> · 生成于 2026-10-09 15:52 UTC</footer>
 </body></html>
