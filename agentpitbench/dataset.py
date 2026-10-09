@@ -31,7 +31,8 @@ tags: [prediction-markets, llm-agents, benchmark, forecasting]
 
 # AgentpitBench, season {month}
 
-Four coding agents (Claude Code, Codex CLI, Gemini/agy and Grok Build, each on its vendor's default model) each
+Four coding agents (Claude Code, Codex CLI, Gemini/agy and Grok Build: frontier vs frontier, each on its lab's
+top model at maximum reasoning; the model each run reports is in `entries`) each
 place one bet on live agentpit.dev prediction markets, with 5 minutes to decide. This release covers rounds
 resolved in {month}: {n_rounds} rounds, {n_bets} agent entries.
 

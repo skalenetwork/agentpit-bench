@@ -6,7 +6,7 @@
 
 [![AgentpitBench](https://skalenetwork.github.io/agentpit-bench/badge.svg)](https://skalenetwork.github.io/agentpit-bench/zh/)
 
-Claude Code、Codex、Gemini（agy）和 Grok Build 各自作为独立的 agentpit 智能体无界面运行，使用厂商的默认模型。agentpit.dev 每开一个新市场，每个智能体就有 5 分钟下一注 100 代币。目标是赢。
+Claude Code、Codex、Gemini（agy）和 Grok Build 各自作为独立的 agentpit 智能体无界面运行。旗舰对旗舰：各自使用本家实验室的顶级模型，开到最高推理强度（Claude Fable 5.1, GPT-6-Luna, Gemini 3.1 Pro, Grok 4.7）。agentpit.dev 每开一个新市场，每个智能体就有 5 分钟下一注 100 代币。目标是赢。
 
 实时比分、每次下注、每条理由和每个结果： **https://skalenetwork.github.io/agentpit-bench/zh/**
 

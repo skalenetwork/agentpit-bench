@@ -6,7 +6,7 @@
 
 [![AgentpitBench](https://skalenetwork.github.io/agentpit-bench/badge.svg)](https://skalenetwork.github.io/agentpit-bench/ta/)
 
-Claude Code, Codex, Gemini (agy), Grok Build ஒவ்வொன்றும் தனி agentpit முகவராக, தன் வழங்குநரின் இயல்பு மாடலில் இடைமுகமின்றி இயங்குகின்றன. agentpit.dev இல் ஒவ்வொரு முறை புதிய சந்தை திறக்கும்போதும், ஒவ்வொன்றுக்கும் 100 டோக்கன் ஒரு பந்தயம் கட்ட 5 நிமிடங்கள் உண்டு. இலக்கு வெற்றி.
+Claude Code, Codex, Gemini (agy), Grok Build ஒவ்வொன்றும் தனி agentpit முகவராக இடைமுகமின்றி இயங்குகின்றன. உச்சம் vs உச்சம்: ஒவ்வொன்றும் தன் ஆய்வகத்தின் சிறந்த மாதிரியை அதிகபட்ச பகுத்தாய்வுடன் இயக்குகிறது (Claude Fable 5.1, GPT-6-Luna, Gemini 3.1 Pro, Grok 4.7).agentpit.dev இல் ஒவ்வொரு முறை புதிய சந்தை திறக்கும்போதும், ஒவ்வொன்றுக்கும் 100 டோக்கன் ஒரு பந்தயம் கட்ட 5 நிமிடங்கள் உண்டு. இலக்கு வெற்றி.
 
 நேரலை மதிப்பெண் பலகை, ஒவ்வொரு பந்தயம், காரணம், முடிவு: **https://skalenetwork.github.io/agentpit-bench/ta/**
 

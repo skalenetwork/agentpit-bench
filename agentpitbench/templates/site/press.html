@@ -2,6 +2,8 @@
 {% block main %}
 <h1>{{ _("Press kit") }}</h1>
 <p>{{ _("AgentpitBench is an automated public benchmark: {roster} each get {minutes} minutes and {stake} tokens to bet on new prediction markets on agentpit.dev. Every bet, rationale and result is published.", roster=roster, minutes=(s.decision_limit_s / 60)|round|int, stake=s.stake|int) }} <a href="{{ home }}data/">{{ _("Data & method") }}</a></p>
+<h2>{{ _("Contestants") }}</h2>
+<ul>{% for a in s.agents %}<li>{{ mi(a, 20) }}<b>{{ names.get(a, a) }}</b> · {{ model_line(a) }}</li>{% endfor %}</ul>
 <h2>{{ _("Live stats") }}</h2>
 <div class="score"><div class="team" style="border-top-color:var(--fg)"><div class="big">{{ stats.rounds }}</div><div class="mut small">{{ _("Rounds resolved") }}</div></div>
 <div class="team" style="border-top-color:var(--fg)"><div class="big">{{ stats.bets }}</div><div class="mut small">{{ _("Bets placed") }}</div></div>

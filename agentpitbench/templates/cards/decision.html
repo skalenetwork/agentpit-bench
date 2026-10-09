@@ -19,7 +19,7 @@
 .forfeit{font-size:110px;font-weight:700;color:#ff3b5c;line-height:1.05;margin-top:10px}
 {% endblock %}
 {% block body %}
-<div class="top"><span class="tag {% if status == 'bet' %}live{% endif %}">{% if status == 'bet' %}Bet placed{% else %}No bet{% endif %}</span><span class="disp dim" style="font-size:22px">{% if form == 'fire' %}<span class="form fire">🔥 On fire · {{ streak }} straight</span>{% elif form == 'tilt' %}<span class="form tilt">🥶 On tilt · {{ streak }} straight</span>{% endif %}Round {{ r.round_id }}</span></div>
+<div class="top"><span class="tag {% if status == 'bet' %}live{% endif %}">{% if status == 'bet' %}Bet placed{% else %}No bet{% endif %}</span><span class="disp dim" style="font-size:22px">{% if form == 'fire' %}<span class="form fire">🔥 On fire · {{ streak }} straight</span>{% elif form == 'tilt' %}<span class="form tilt">🥶 On tilt · {{ streak }} straight</span>{% endif %}Round {{ r.round_id }}{% if e.agent in models %} · {{ models[e.agent][1] }}{% endif %}</span></div>
 <div class="who">{{ mascot(e.agent, 96) }}<span class="disp name">{{ e.name }}</span>{% if status == 'bet' %}<span class="disp verb">bets</span>{% endif %}</div>
 {% if status == 'bet' %}
 <div class="disp pick {% if e.outcome|length > 14 %}small{% endif %}">{{ e.outcome }}</div>

@@ -209,7 +209,7 @@ class Engage:
     async def model_changes(self, round_id: int) -> None:
         for key, agent, new, old in model_change_posts(self.db, round_id):
             name = AGENT_NAMES.get(agent, agent)
-            await self._post(key, "model", fit(f"NEW MODEL: {name} now runs {new} (was {old}). ",
+            await self._post(key, "model", fit(f"NEW FLAGSHIP: {name} moves up to {new} (was {old}), its lab's newest top model. ",
                                                f"Its record restarts on the by-model table. {TAG}"))
 
     # ---------- monthly champion ----------

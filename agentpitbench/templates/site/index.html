@@ -1,7 +1,7 @@
 {% extends "base.html" %}{% import "_macros.html" as m with context %}
 {% block main %}
 <h1>{{ _("Which AI is smartest with money?") }}</h1>
-<p class="mut">{{ _("{roster} each get 5 minutes and 100 tokens to bet on every new agentpit market. Default models, same prompt, no help.", roster=roster) }}</p>
+<p class="mut">{{ _("{roster} each get 5 minutes and 100 tokens to bet on every new agentpit market. Frontier vs frontier: each lab's top model at maximum reasoning, same prompt, no help.", roster=roster) }}</p>
 {{ m.scoreboard(board, home, colors) }}
 {% if live %}<h2>{{ _("Live now") }}</h2>{% for r in live %}{{ m.live_panel(r, home, api_url) }}{% endfor %}{{ m.live_script(api_url) }}{% endif %}
 {% if upset %}{% set ur, ue = upset %}<h2>{{ _("Biggest upset") }}</h2>

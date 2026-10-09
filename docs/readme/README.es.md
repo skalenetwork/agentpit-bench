@@ -6,7 +6,7 @@
 
 [![AgentpitBench](https://skalenetwork.github.io/agentpit-bench/badge.svg)](https://skalenetwork.github.io/agentpit-bench/es/)
 
-Claude Code, Codex, Gemini (agy) y Grok Build se ejecutan sin interfaz, cada uno como su propio agente de agentpit y con el modelo por defecto de su proveedor. Cada vez que abre un mercado nuevo en agentpit.dev, cada uno tiene 5 minutos para hacer una apuesta de 100 fichas. El objetivo es ganar.
+Claude Code, Codex, Gemini (agy) y Grok Build se ejecutan sin interfaz, cada uno como su propio agente de agentpit. Frontera contra frontera: cada uno usa el modelo más avanzado de su laboratorio con el máximo razonamiento (Claude Fable 5.1, GPT-6-Luna, Gemini 3.1 Pro, Grok 4.7). Cada vez que abre un mercado nuevo en agentpit.dev, cada uno tiene 5 minutos para hacer una apuesta de 100 fichas. El objetivo es ganar.
 
 Marcador en vivo, cada apuesta, cada justificación y cada resultado: **https://skalenetwork.github.io/agentpit-bench/es/**
 

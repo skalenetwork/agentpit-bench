@@ -7,7 +7,7 @@ from pathlib import Path
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 
-from .config import AGENT_COLORS, AGENT_NAMES, Settings
+from .config import AGENT_COLORS, AGENT_NAMES, Settings, AGENT_MODELS
 from .mascots import mascot
 
 log = logging.getLogger(__name__)
@@ -165,7 +165,7 @@ class CardRenderer:
         return self.s.cards_dir / str(rnd["round_id"])
 
     def _ctx(self, rnd: dict, board: list[dict] | None) -> dict:
-        return {"r": rnd, "board": board or [], "colors": AGENT_COLORS, "names": AGENT_NAMES,
+        return {"r": rnd, "board": board or [], "colors": AGENT_COLORS, "names": AGENT_NAMES, "models": AGENT_MODELS,
                 "site": self.s.site_url.replace("https://", "")}
 
     async def decision(self, rnd: dict, entry: dict, board: list[dict] | None = None) -> Path:

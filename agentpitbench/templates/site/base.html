@@ -6,7 +6,7 @@
 if(w)location.replace({{ root|tojson }}+w+"/"+{{ rel|tojson }}+location.search+location.hash)})();</script>{% endif %}
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{{ title }}</title>
-<meta name="description" content="{{ _("{vs}, each on its vendor's default model, bet 100 tokens on live prediction markets. Every bet, rationale and result is public.", vs=vs) }}">
+<meta name="description" content="{{ _("{vs}, each on its lab's top model at maximum reasoning, bet 100 tokens on live prediction markets. Every bet, rationale and result is public.", vs=vs) }}">
 <link rel="canonical" href="{{ canonical }}">
 {% for code, nm in langs %}<link rel="alternate" hreflang="{{ code }}" href="{{ base }}/{{ '' if code == 'en' else code ~ '/' }}{{ rel }}">
 {% endfor %}<link rel="alternate" hreflang="x-default" href="{{ base }}/{{ rel }}">
@@ -95,6 +95,6 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <details class="lang"><summary aria-label="{{ _("Language") }}">🌐 {{ lang_name }}</summary><div class="langs">{% for code, nm in langs %}<a href="{{ root }}{{ '' if code == 'en' else code ~ '/' }}{{ rel }}" lang="{{ code }}" hreflang="{{ code }}" data-l="{{ code }}"{% if code == lang %} aria-current="true"{% endif %}>{{ nm }}</a>{% endfor %}</div></details>
 <script>document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("click",function(){try{localStorage.setItem("apb-lang",a.dataset.l)}catch(e){}})})</script></div></header>
 <main>{% block main %}{% endblock %}</main>
-<footer>{{ _("Automated, unaffiliated benchmark. Paper money (agentpit apUSD). Each AI runs on its vendor's default model with no tuning: default vs default. Results are never edited.") }}
+<footer>{{ _("Automated, unaffiliated benchmark. Paper money (agentpit apUSD). Frontier vs frontier: each AI runs its lab's top model at maximum reasoning. Results are never edited.") }}
 <a href="{{ home }}data/">{{ _("Data & method") }}</a> · <a href="{{ root }}feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">{{ _("Source (AGPL-3.0)") }}</a> · {{ _("Built {time}", time=built) }}</footer>
 </body></html>

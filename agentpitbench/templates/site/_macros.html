@@ -2,6 +2,7 @@
 <div class="score">{% for b in board %}
 <a class="team {{ b.color|dkb }}" href="{{ root }}agent/{{ b.agent }}/" style="border-top-color:{{ b.color }}">
 <div class="hd">{{ mi(b.agent, 40) }}<div class="n {{ b.color|dk }}" style="color:{{ b.color }}">{{ b.name }}</div></div>
+<div class="mut small">{{ model_line(b.agent) }}</div>
 <div class="big {{ b.net_pnl|pnl_class }}">{{ b.net_pnl|signed }}</div>
 <div class="mut small">{{ b.wins }}-{{ b.losses }}{% if b.no_bets %} ({{ _("{n} no-bet", n=b.no_bets) }}){% endif %} · {{ _("{pct}% win rate", pct='%.0f'|format(b.win_rate * 100)) }}{% if b.streak > 1 %} · {{ _("W{n} streak", n=b.streak) }}{% elif b.streak < -1 %} · {{ _("L{n} streak", n=-b.streak) }}{% endif %}</div>
 </a>{% endfor %}</div>

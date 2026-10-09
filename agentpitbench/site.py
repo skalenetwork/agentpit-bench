@@ -27,7 +27,7 @@ from xml.sax.saxutils import escape
 from jinja2 import Environment, PackageLoader, pass_context, select_autoescape
 
 from .cards import cents, is_dark, fmt_time, is_upset, payout_x, ranked, results_headline, signed, split_headline
-from .config import AGENT_COLORS, AGENT_NAMES, Settings
+from .config import AGENT_COLORS, AGENT_NAMES, Settings, AGENT_MODELS
 from .i18n import CODES, LANGS, NAMES, Translator
 from .mascots import sprite, svg_file, use as mascot_use
 from .virality import CATEGORIES, category, commentary  # noqa: F401  (CATEGORIES: category names the site translates)
@@ -242,6 +242,16 @@ def feeds(s: Settings, rounds: list[dict]) -> tuple[str, str]:
     return rss, json.dumps(jf, indent=1)
 
 
+def model_line(agent: str, _) -> str:
+    """'Fable 5.1 · max reasoning' from config.AGENT_MODELS, so a model swap is one edit there."""
+    if agent not in AGENT_MODELS:
+        return ""
+    _id, name, effort = AGENT_MODELS[agent]
+    label = {"max": _("max reasoning"), "xhigh": _("extra-high reasoning"),
+             "high": _("high reasoning")}.get(effort, effort)
+    return f"{name} · {label}"
+
+
 # ---------- build ----------
 
 _build_lock = threading.Lock()  # builds run in worker threads; two at once would share the .new folder
@@ -297,7 +307,7 @@ def _build(s: Settings) -> Path:
                   "is_upset": is_upset, "ranked": ranked, "category": category,
                   "_": _, "_h": _.html, "lang": lang, "rtl": _.rtl, "langs": LANGS, "lang_codes": CODES,
                   "lang_name": NAMES[lang], "mascot_sprite": sprite(s.agents), "mi": mascot_use,
-                  "commentary": commentary}
+                  "commentary": commentary, "model_line": lambda a, _=_: model_line(a, _)}
         prefix = _.prefix()
 
         def page(path: str, tpl: str, **ctx) -> None:

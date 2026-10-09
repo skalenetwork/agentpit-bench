@@ -1,6 +1,7 @@
 {% extends "base.html" %}{% import "_macros.html" as m with context %}
 {% block main %}
 <h1 class="{{ colors.get(agent)|dk }}" style="color:{{ colors.get(agent) }}">{{ mi(agent, 56) }}{{ name }}</h1>
+<p class="mut">{{ model_line(agent) }}</p>
 {% if row %}<p><b class="num {{ row.net_pnl|pnl_class }}">{{ row.net_pnl|signed }}</b> {{ _("profit/loss") }} · {{ row.wins }}-{{ row.losses }} · {{ _("{pct}% win rate", pct='%.0f'|format(row.win_rate * 100)) }} · {{ _("rank #{n}", n=row.rank) }} · {{ _("longest win streak {n}", n=st.longest_streak) }}</p>{% endif %}
 {% if st.upset %}{% set ur, ue = st.upset %}<div class="box"><span class="tag upset">{{ _("Biggest upset") }}</span> {{ _("{outcome} at {price} → {pnl}", outcome=ue.outcome, price=ue.avg_price|cents, pnl=ue.pnl|signed) }} · <a href="{{ home }}round/{{ ur.round_id }}/">{{ ur.question }}</a></div>{% endif %}
 {% if cats %}<h2>{{ _("Hit rate by category") }}</h2><table>{% for c in cats %}<tr><td>{{ _(c.category) }}</td><td class="r">{{ c.wins }}/{{ c.played }}</td><td class="r num">{{ '%.0f'|format(c.win_rate * 100) }}%</td><td class="r num {{ c.net_pnl|pnl_class }}">{{ c.net_pnl|signed }}</td></tr>{% endfor %}</table>{% endif %}
