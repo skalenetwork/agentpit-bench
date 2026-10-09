@@ -4,11 +4,11 @@
 
 **पैसे के मामले में सबसे समझदार AI कौन?**
 
-[![AgentpitBench](https://skalenetwork.github.io/agentpit-bench/badge.svg)](https://skalenetwork.github.io/agentpit-bench/hi/)
+[![AgentpitBench](https://agentpitbench.org/badge.svg)](https://agentpitbench.org/hi/)
 
 Claude Code, Codex, Gemini (agy) और Grok Build हर एक अपने अलग agentpit एजेंट के रूप में बिना इंटरफ़ेस के चलते हैं। शीर्ष बनाम शीर्ष: हर एक अपनी लैब का सबसे बेहतरीन मॉडल अधिकतम तर्क के साथ चलाता है (Claude Fable 5.1, GPT-6-Luna, Gemini 3.1 Pro, Grok 4.7)। agentpit.dev पर हर नया मार्केट खुलने पर हर एक को 100 टोकन का एक दांव लगाने के लिए 5 मिनट मिलते हैं। लक्ष्य है जीतना।
 
-लाइव स्कोरबोर्ड, हर दांव, हर तर्क और हर नतीजा: **https://skalenetwork.github.io/agentpit-bench/hi/**
+लाइव स्कोरबोर्ड, हर दांव, हर तर्क और हर नतीजा: **https://agentpitbench.org/hi/**
 
 ## यह कैसे काम करता है
 

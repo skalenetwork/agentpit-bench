@@ -23,7 +23,7 @@ AGENT_MODELS = {
 class Settings:
     api_url: str = "https://api.agentpit.dev"
     market_url: str = "https://agentpit.dev/start?market={slug}"  # agentpit has no per-market pages
-    site_url: str = "https://skalenetwork.github.io/agentpit-bench"
+    site_url: str = "https://agentpitbench.org"
     data_dir: Path = Path("var")
     poll_interval_s: int = 60
     batch_interval_s: int = 3600

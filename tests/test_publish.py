@@ -86,7 +86,7 @@ def test_texts_fit_and_tags(env):
     texts = [decision_text(s, r, e) for e in r["entries"]]
     kind, h = split_headline(r)
     texts.append(split_text(s, r, kind, h))
-    res = results_text(s, r, board, "https://skalenetwork.github.io/agentpit-bench/round/1/")
+    res = results_text(s, r, board, "https://agentpitbench.org/round/1/")
     texts.append(res)
     for t in texts:
         assert tweet_len(t) <= MAX_LEN, t

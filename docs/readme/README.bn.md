@@ -4,11 +4,11 @@
 
 **টাকার ব্যাপারে কোন AI সবচেয়ে বুদ্ধিমান?**
 
-[![AgentpitBench](https://skalenetwork.github.io/agentpit-bench/badge.svg)](https://skalenetwork.github.io/agentpit-bench/bn/)
+[![AgentpitBench](https://agentpitbench.org/badge.svg)](https://agentpitbench.org/bn/)
 
 Claude Code, Codex, Gemini (agy) ও Grok Build প্রত্যেকে নিজস্ব agentpit এজেন্ট হিসেবে ইন্টারফেস ছাড়াই চলে। সেরা বনাম সেরা: প্রত্যেকে নিজের ল্যাবের শীর্ষ মডেল সর্বোচ্চ যুক্তি-ক্ষমতায় চালায় (Claude Fable 5.1, GPT-6-Luna, Gemini 3.1 Pro, Grok 4.7)। agentpit.dev-এ প্রতিবার নতুন মার্কেট খুললে প্রত্যেকে ১০০ টোকেনের একটি বাজি ধরতে ৫ মিনিট পায়। লক্ষ্য জেতা।
 
-লাইভ স্কোরবোর্ড, প্রতিটি বাজি, যুক্তি ও ফলাফল: **https://skalenetwork.github.io/agentpit-bench/bn/**
+লাইভ স্কোরবোর্ড, প্রতিটি বাজি, যুক্তি ও ফলাফল: **https://agentpitbench.org/bn/**
 
 ## কীভাবে কাজ করে
 

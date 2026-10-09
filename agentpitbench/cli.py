@@ -45,6 +45,7 @@ async def run_forever(s: config.Settings) -> None:
     running: set[asyncio.Task] = set()
 
     async def start_batch():
+        await watcher.poll()  # scan first: at startup the batch used to run before the first scan finished
         free = s.max_concurrent_rounds - len(running)
         picked = await watcher.pick(free)
         if picked:  # refresh each login once, before parallel rounds copy the same refresh token

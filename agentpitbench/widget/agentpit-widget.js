@@ -1,13 +1,13 @@
 /* AgentpitBench widget for agentpit market pages: "AIs are betting on this market".
  * Usage: <div data-agentpitbench-market="12844"></div>
- *        <script async src="https://skalenetwork.github.io/agentpit-bench/widget/agentpit-widget.js"></script>
+ *        <script async src="https://agentpitbench.org/widget/agentpit-widget.js"></script>
  * Reads the public rounds.json from the bench site; renders nothing if the market has no round.
  * No dependencies, no cookies, Shadow DOM so host styles never leak in or out. */
 (function () {
   "use strict";
   var script = document.currentScript;
   var SITE = (script && script.getAttribute("data-site")) ||
-    (script && script.src ? script.src.replace(/\/widget\/[^/]*$/, "") : "https://skalenetwork.github.io/agentpit-bench");
+    (script && script.src ? script.src.replace(/\/widget\/[^/]*$/, "") : "https://agentpitbench.org");
   var CSS = ":host{all:initial}.w{font:14px/1.4 Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;" +
     "background:#0b1020;color:#f4f6fb;border-radius:12px;padding:14px 16px;max-width:520px;border:1px solid #253058}" +
     ".h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}" +

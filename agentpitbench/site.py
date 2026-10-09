@@ -21,7 +21,7 @@ import time
 from datetime import datetime, timezone
 from email.utils import formatdate
 from pathlib import Path
-from urllib.parse import quote, urlencode
+from urllib.parse import urlparse, quote, urlencode
 from xml.sax.saxutils import escape
 
 from jinja2 import Environment, PackageLoader, pass_context, select_autoescape
@@ -358,6 +358,9 @@ def _build(s: Settings) -> Path:
     (out / "feed.xml").write_text(rss)
     (out / "feed.json").write_text(jf)
     (out / ".nojekyll").write_text("")
+    host = urlparse(s.site_url).hostname or ""
+    if host and not host.endswith(".github.io"):  # custom domain: GitHub Pages drops it without this file
+        (out / "CNAME").write_text(host + "\n")
     d = out / "data"
     for name in ("rounds.json", "leaderboard.json", "bets.csv"):
         if (exp / name).exists():
