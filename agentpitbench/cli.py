@@ -7,6 +7,7 @@ import json
 import logging
 import signal
 import sys
+import time
 from datetime import datetime, timezone
 
 from . import config, exports
@@ -53,6 +54,11 @@ async def run_forever(s: config.Settings) -> None:
         if s.sandbox and not await sandbox_ok():  # never start rounds that would all 'crash' at launch
             log.error("batch skipped: the agent sandbox self-check failed; no rounds started, nothing posted")
             return
+        last_infra = db.one("SELECT MAX(finished_at) t FROM runs WHERE exit_reason='infra'")["t"]
+        if last_infra and time.time() - last_infra < s.infra_cooldown_s:  # e.g. a subscription quota hit:
+            log.warning("batch skipped: an agent hit an infrastructure/quota failure %.1f h ago; "
+                        "pausing new rounds for %.0f h", (time.time() - last_infra) / 3600, s.infra_cooldown_s / 3600)
+            return  # retrying sooner would only void round after round while the others bet real tokens
         picked = await watcher.pick(free)
         if picked:  # refresh each login once, before parallel rounds copy the same refresh token
             await asyncio.gather(*(warm_login(a) for a in s.agents), return_exceptions=True)
