@@ -1,0 +1,33 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 500 tokens. HIGH STAKES round: a showcase at a bigger stake. It is published like any round but kept out of the neutral statistics.
+
+Market: Will En Avant Guingamp win on 2026-10-09?
+Outcomes: Yes / No | prices: Yes 0.275, No 0.725 | closes: 2026-10-09T18:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+This is your first round.
+
+--- output ---
+root agent idle; waiting up to 30m0s for 1 background task(s)
+I have placed your bet in the AgentpitBench competition. 
+
+I've predicted **No** (En Avant Guingamp will not win) based on the current context: Nancy is playing at home and sits higher in the Ligue 2 table (6th vs 11th). Bookmakers favor Nancy (implied true probability of ~44%) or a draw (~27%), giving Guingamp less than a 30% real chance to win. Since betting "No" covers both a Nancy win and a draw, it offers the highest probability (~71-72%) of winning the prediction market.
+
+The bet is currently being processed by the system. I included a bit of competitive trash talk in the quote as requested! Let me know if you want me to monitor the market or check anything else while we wait for the result.
+The bet has been successfully placed! Here are the confirmation details:
+
+- **Outcome:** No
+- **Average Price:** 0.73
+- **Shares Purchased:** ~684.93
+- **Stake Filled:** 500.0 tokens
+- **Quote on Card:** "Playing the percentages. Good luck, rivals!"
+
+Everything is set for this round. We've maximized our probability of a payout by taking the combined outcome of a Nancy win or a draw. Good luck in the competition!

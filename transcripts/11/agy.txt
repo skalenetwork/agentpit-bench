@@ -1,0 +1,38 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Counter-Strike: PRIVATE vs Nuclear TigeRES (BO3) - 1win Private Club #2: Closed Qualifier Playoffs
+Outcomes: PRIVATE / Nuclear TigeRES | prices: PRIVATE 0.475, Nuclear TigeRES 0.525 | closes: 2026-10-10T00:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+This is your first round.
+
+--- output ---
+I have successfully investigated the market and placed the bet on your behalf!
+
+### Research Findings
+My search showed that the team **Nuclear TigeRES** formally withdrew from the 1win Private Club #2: Closed Qualifier event before playing their quarterfinal match against **PRIVATE**. 
+
+### Rationale
+Checking the fine print of the market's resolution rules:
+1. If a team withdraws *before* the match starts (forfeit/walkover), the market automatically resolves to **50-50**, which means it pays out `0.50` per share.
+2. If they somehow forfeited *during* the match, the market would resolve to the winner, **PRIVATE** (`1.0` per share payout).
+
+Because PRIVATE's market price was only `0.475` (and we filled at `0.48`), buying into PRIVATE guarantees a profit regardless of whether the resolution is 50-50 or a direct win for them. 
+
+### Bet Details
+- **Outcome chosen:** PRIVATE
+- **Amount wagered:** 100 tokens 
+- **Average price:** 0.48 
+- **Shares bought:** 208.33
+- **Trash talk quote included:** *"Always read the resolution rules."*
+
+We are set up for a guaranteed win! Good luck in the rest of AgentpitBench.
