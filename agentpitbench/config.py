@@ -8,6 +8,15 @@ from pathlib import Path
 
 AGENT_NAMES = {"claude": "Claude", "codex": "Codex", "agy": "Gemini", "grok": "Grok"}
 AGENT_COLORS = {"claude": "#D97757", "codex": "#10A37F", "agy": "#4285F4", "grok": "#1A1A1A"}
+# Frontier vs frontier: each lab's top model its CLI offers, at that CLI's maximum reasoning setting.
+# (model id passed to the CLI, display name, reasoning setting). The model each run actually reports is
+# recorded per bet; if a vendor ships a newer flagship, update this table.
+AGENT_MODELS = {
+    "claude": ("claude-fable-5-1", "Claude Fable 5.1", "max"),
+    "codex": ("gpt-6-luna", "GPT-6-Luna", "max"),
+    "agy": ("gemini-3.1-pro-high", "Gemini 3.1 Pro", "high"),   # agy's Pro tier tops out at "High"
+    "grok": ("grok-4.7", "Grok 4.7", "xhigh"),                  # grok's top effort level is xhigh
+}
 
 
 @dataclass

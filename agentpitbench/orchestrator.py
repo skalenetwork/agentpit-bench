@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Protocol
 
 from .agentpit import Agentpit, OrderRejected, best_ask
-from .config import Settings
+from .config import Settings, AGENT_MODELS
 from .db import DB
 from .virality import clean_quote
 
@@ -52,25 +52,28 @@ CLIS = {
     "claude": AgentCLI(
         "claude",
         ["claude", "-p", "{prompt}", "--dangerously-skip-permissions", "--output-format", "stream-json", "--verbose",
-         "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}', "--disable-slash-commands"],
+         "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}', "--disable-slash-commands",
+         "--model", AGENT_MODELS["claude"][0], "--effort", AGENT_MODELS["claude"][2]],
         ["claude", "--version"],
         [r'"model"\s*:\s*"([^"]+)"'],
     ),
     "codex": AgentCLI(
         "codex",
-        ["codex", "exec", "--dangerously-bypass-approvals-and-sandbox", "--skip-git-repo-check", "{prompt}"],
+        ["codex", "exec", "--dangerously-bypass-approvals-and-sandbox", "--skip-git-repo-check",
+         "-m", AGENT_MODELS["codex"][0], "-c", f'model_reasoning_effort="{AGENT_MODELS["codex"][2]}"', "{prompt}"],
         ["codex", "--version"],
         [r"^model:\s*(\S+)", r'"model"\s*:\s*"([^"]+)"'],
     ),
     "agy": AgentCLI(
         "agy",
-        ["agy", "-p", "{prompt}", "--dangerously-skip-permissions"],
+        ["agy", "-p", "{prompt}", "--dangerously-skip-permissions", "--model", AGENT_MODELS["agy"][0]],
         ["agy", "--version"],
         [r"[Mm]odel:\s*(\S+)", r'"model"\s*:\s*"([^"]+)"'],
     ),
     "grok": AgentCLI(
         "grok",
-        ["grok", "-p", "{prompt}", "--always-approve", "--output-format", "streaming-json"],
+        ["grok", "-p", "{prompt}", "--always-approve", "--output-format", "streaming-json",
+         "-m", AGENT_MODELS["grok"][0], "--reasoning-effort", AGENT_MODELS["grok"][2]],
         ["grok", "--version"],
         [r'"modelUsage"\s*:\s*\{\s*"([^"]+)"', r'"model"\s*:\s*"([^"]+)"'],
     ),
