@@ -96,9 +96,11 @@ async def test_press_conference_stores_and_replies(env):
 
 
 def test_press_texts_split():
-    sts = [{"name": n, "statement": "x" * 190} for n in ("Claude", "Codex", "Gemini")]
+    # round 1 live: four long statements, the old two-reply cap silently dropped Grok's
+    sts = [{"name": n, "statement": "x" * 190} for n in ("Claude", "Codex", "Gemini", "Grok")]
     t = press.texts(sts)
-    assert 1 < len(t) <= 2 and all(len(x) <= 280 for x in t) and t[0].startswith("Post-match statements:")
+    assert 1 < len(t) <= 3 and all(len(x) <= 280 for x in t) and t[0].startswith("Post-match statements:")
+    assert all(any(f"{n}:" in x for x in t) for n in ("Claude", "Codex", "Gemini", "Grok"))
 
 
 async def test_press_runs_real_cli_shape(env, tmp_path, monkeypatch):

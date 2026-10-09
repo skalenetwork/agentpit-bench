@@ -108,19 +108,24 @@ async def collect(s: Settings, db: DB, rnd: dict, runner=None) -> list[dict]:
             for e in db.round_entries(rnd["round_id"]) if e["statement"]]
 
 
-def texts(statements: list[dict], limit: int = 280) -> list[str]:
-    """'Post-match statements:' plus one line per loser, in at most two link-free replies."""
+def texts(statements: list[dict], limit: int = 280, max_replies: int = 3) -> list[str]:
+    """'Post-match statements:' plus one line per loser, in link-free replies. Every loser is heard:
+    statements are trimmed so all fit in at most `max_replies` posts (4 losers x ~130 chars)."""
     from .twitter import tweet_len
     head = "Post-match statements:"
-    lines = [f"{st['name']}: “{st['statement']}”" for st in statements]
+    if not statements:
+        return []
+    per = max(60, (limit * max_replies - len(head)) // len(statements) - 8)
+    lines = []
+    for st in statements:
+        body = st["statement"] if len(st["statement"]) <= per else st["statement"][:per - 1].rstrip() + "…"
+        lines.append(f"{st['name']}: “{body}”")
     out, cur = [], head
     for line in lines:
         if tweet_len(cur + "\n" + line) <= limit:
             cur += "\n" + line
             continue
         out.append(cur)
-        cur = line if tweet_len(line) <= limit else line[:limit - 2] + "…”"
+        cur = line
     out.append(cur)
-    if len(out) > 2:  # keep it to two replies: the rest are on the round page
-        out = out[:2]
-    return out if lines else []
+    return out

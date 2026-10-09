@@ -131,6 +131,8 @@ async def one_round(s: config.Settings, market_id: str, agents: list[str] | None
     m = await api.market(market_id)
     if not m:
         sys.exit(f"market {market_id} not found")
+    if not (m.get("active") and m.get("acceptingOrders")) or m.get("closed"):
+        sys.exit(f"market {market_id} is not open for orders (closed or resolved)")
     if db.one("SELECT 1 FROM rounds WHERE market_id=?", str(m["id"])):
         sys.exit(f"market {market_id} already has a round")
     rid = await Round(s, db, api, m, pub, agents=agents).run()
