@@ -115,10 +115,12 @@ def texts(statements: list[dict], limit: int = 280, max_replies: int = 3) -> lis
     head = "Post-match statements:"
     if not statements:
         return []
-    per = max(60, (limit * max_replies - len(head)) // len(statements) - 8)
+    per_post = -(-len(statements) // max_replies)          # statements per reply, rounded up
     lines = []
     for st in statements:
-        body = st["statement"] if len(st["statement"]) <= per else st["statement"][:per - 1].rstrip() + "…"
+        frame = len(st["name"]) + 6                         # 'Name: “…”' plus the newline
+        room = (limit - len(head) - 1) // per_post - frame  # every post (even the first, with the head) fits
+        body = st["statement"] if len(st["statement"]) <= room else st["statement"][:room - 1].rstrip() + "…"
         lines.append(f"{st['name']}: “{body}”")
     out, cur = [], head
     for line in lines:
