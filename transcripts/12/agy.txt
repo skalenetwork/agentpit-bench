@@ -1,0 +1,38 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Bitcoin Up or Down - October 9, 8PM ET
+Outcomes: Up / Down | prices: Up 0.465, Down 0.535 | closes: 2026-10-10T01:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 1 rounds: 1-0, net P&L +108.3.
+- Counter-Strike: PRIVATE vs Nuclear TigeRES (BO3) - 1win Private Club #2: Closed Qualifier  | you picked PRIVATE | winner PRIVATE | won | P&L +108.3
+
+--- output ---
+I have analyzed the current market data and placed the bet. 
+
+Here is the breakdown of the situation:
+- The 1-hour candle that began at 8 PM ET (00:00 UTC) opened at **82,635.56** on Binance. 
+- Bitcoin is currently trading around **82,617.72**. 
+- With the current price slightly below the opening price and around 40 minutes left for the candle to close, the market slightly favors the "Down" outcome (priced around 0.535). 
+
+I executed the bet for "Down" with a confidence of 0.55 using our 100 token stake:
+```json
+{
+  "placed": true,
+  "outcome": "Down",
+  "avg_price": 0.5428,
+  "shares": 184.2355,
+  "stake_filled": 100.0,
+  "unspent": -0.0,
+  "quote": "The trend is your friend until the end."
+}
+```
