@@ -1,0 +1,46 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+17101 | Will Lille OSC win on 2026-10-10? | Yes 0.685, No 0.315 | 2026-10-10T15:15:00Z
+17100 | Shinshu Brave Warriors vs. SAN-EN NeoPhoenix | Shinshu Brave Warriors 0.480, SAN-EN NeoPhoenix 0.520 | 2026-10-17T05:05:00Z
+17088 | Bitcoin Up or Down - October 10, 2AM ET | Up 0.265, Down 0.735 | 2026-10-10T07:00:00Z
+17093 | Counter-Strike: GamerLegion vs PRIVATE (BO3) - 1win Private Club #2: Closed Qualifier Playoffs | GamerLegion 0.730, PRIVATE 0.270 | 2026-10-10T19:00:00Z
+17115 | Will Donald Trump post 120-139 Truth Social posts from October 6 to October 13, 2026? | Yes 0.195, No 0.805 | 2026-10-13T16:00:00Z
+16182 | Will Stockport County FC win on 2026-10-10? | Yes 0.680, No 0.320 | 2026-10-10T14:00:00Z
+17092 | Will FC Internazionale Milano win on 2026-10-13? | Yes 0.775, No 0.225 | 2026-10-13T19:00:00Z
+17094 | Will 1. FSV Mainz 05 vs. Bayer 04 Leverkusen end in a draw? | Yes 0.245, No 0.755 | 2026-10-10T13:30:00Z
+17019 | Will Bitcoin reach $83,000 on October 10? | Yes 0.770, No 0.230 | 2026-10-11T04:00:00Z
+17028 | Counter-Strike: Kaleido Gaming vs Just Swing (BO3) - ESL Challenger League Asia-Pacific Cup #3 Playoffs | Kaleido Gaming 0.520, Just Swing 0.480 | 2026-10-10T19:00:00Z
+17114 | Will Donald Trump post 100-119 Truth Social posts from October 6 to October 13, 2026? | Yes 0.300, No 0.700 | 2026-10-13T16:00:00Z
+16234 | Will monthly inflation increase by 0.7% in September? | Yes 0.160, No 0.840 | 2026-10-15T03:59:00Z
+17089 | Will 1. FC Magdeburg win on 2026-10-10? | Yes 0.415, No 0.585 | 2026-10-10T11:00:00Z
+16973 | KCC Egis vs. Wonju DB Promy | KCC Egis 0.205, Wonju DB Promy 0.795 | 2026-10-17T05:00:00Z
+16995 | Will Bitcoin dip to $82,000 on October 10? | Yes 0.235, No 0.765 | 2026-10-11T04:00:00Z
+16974 | Counter-Strike: Aurora Gaming vs Vitality - Map 2 Winner | Aurora Gaming 0.255, Vitality 0.745 | 2026-10-10T17:45:00Z
+17113 | Will Donald Trump post 80-99 Truth Social posts from October 6 to October 13, 2026? | Yes 0.236, No 0.763 | 2026-10-13T16:00:00Z
+16233 | Will monthly inflation increase by 0.5% in September? | Yes 0.370, No 0.630 | 2026-10-15T03:59:00Z
+17034 | Will CD Comerciantes Unidos win on 2026-10-10? | Yes 0.525, No 0.475 | 2026-10-10T20:30:00Z
+16904 | Hiroshima Dragonflies vs. Shiga Lakestars | Hiroshima Dragonflies 0.735, Shiga Lakestars 0.265 | 2026-10-17T05:05:00Z
+16956 | Will the price of XRP be above $1.40 on October 16? | Yes 0.525, No 0.475 | 2026-10-16T16:00:00Z
+16907 | Counter-Strike: Sangal vs PURE (BO3) - Roman Imperium Cup Playoffs | Sangal 0.665, PURE 0.335 | 2026-10-10T16:00:00Z
+16809 | Will Craig Hodge win the 2026 Coquitlam mayoral election? | Yes 0.847, No 0.153 | 2026-10-17T00:00:00Z
+16226 | Will annual inflation be 3.7% in September? | Yes 0.300, No 0.700 | 2026-10-15T03:59:00Z
+17033 | Will RB Leipzig win on 2026-10-10? | Yes 0.625, No 0.375 | 2026-10-10T16:30:00Z
+16842 | Clippers vs. Raptors | Clippers 0.385, Raptors 0.615 | 2026-10-10T22:30:00Z
+16824 | Will Bitcoin dip to $82,000 October 5-11? | Yes 0.435, No 0.565 | 2026-10-12T04:00:00Z
+16846 | Dota 2: Team Yandex vs Team Spirit - Game 1 Winner | Team Yandex 0.565, Team Spirit 0.435 | 2026-10-10T14:30:00Z
+16765 | Will Trump say "Gulf of America" during his Midterm Rally in Tennessee? | Yes 0.355, No 0.645 | 2026-10-10T19:35:00Z
+16225 | Will annual inflation be 3.6% in September? | Yes 0.455, No 0.545 | 2026-10-15T03:59:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+```json
+{"forecasts": [{"id": "17101", "probabilities": {"Yes": 0.685, "No": 0.315}}, {"id": "17100", "probabilities": {"Shinshu Brave Warriors": 0.48, "SAN-EN NeoPhoenix": 0.52}}, {"id": "17088", "probabilities": {"Up": 0.265, "Down": 0.735}}, {"id": "17093", "probabilities": {"GamerLegion": 0.73, "PRIVATE": 0.27}}, {"id": "17115", "probabilities": {"Yes": 0.195, "No": 0.805}}, {"id": "16182", "probabilities": {"Yes": 0.68, "No": 0.32}}, {"id": "17092", "probabilities": {"Yes": 0.775, "No": 0.225}}, {"id": "17094", "probabilities": {"Yes": 0.245, "No": 0.755}}, {"id": "17019", "probabilities": {"Yes": 0.77, "No": 0.23}}, {"id": "17028", "probabilities": {"Kaleido Gaming": 0.52, "Just Swing": 0.48}}, {"id": "17114", "probabilities": {"Yes": 0.3, "No": 0.7}}, {"id": "16234", "probabilities": {"Yes": 0.16, "No": 0.84}}, {"id": "17089", "probabilities": {"Yes": 0.415, "No": 0.585}}, {"id": "16973", "probabilities": {"KCC Egis": 0.205, "Wonju DB Promy": 0.795}}, {"id": "16995", "probabilities": {"Yes": 0.235, "No": 0.765}}, {"id": "16974", "probabilities": {"Aurora Gaming": 0.255, "Vitality": 0.745}}, {"id": "17113", "probabilities": {"Yes": 0.236, "No": 0.764}}, {"id": "16233", "probabilities": {"Yes": 0.37, "No": 0.63}}, {"id": "17034", "probabilities": {"Yes": 0.525, "No": 0.475}}, {"id": "16904", "probabilities": {"Hiroshima Dragonflies": 0.735, "Shiga Lakestars": 0.265}}, {"id": "16956", "probabilities": {"Yes": 0.525, "No": 0.475}}, {"id": "16907", "probabilities": {"Sangal": 0.665, "PURE": 0.335}}, {"id": "16809", "probabilities": {"Yes": 0.847, "No": 0.153}}, {"id": "16226", "probabilities": {"Yes": 0.3, "No": 0.7}}, {"id": "17033", "probabilities": {"Yes": 0.625, "No": 0.375}}, {"id": "16842", "probabilities": {"Clippers": 0.385, "Raptors": 0.615}}, {"id": "16824", "probabilities": {"Yes": 0.435, "No": 0.565}}, {"id": "16846", "probabilities": {"Team Yandex": 0.565, "Team Spirit": 0.435}}, {"id": "16765", "probabilities": {"Yes": 0.355, "No": 0.645}}, {"id": "16225", "probabilities": {"Yes": 0.455, "No": 0.545}}]}
+```

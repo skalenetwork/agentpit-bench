@@ -1,5 +1,5 @@
 {
- "updated_at": 1791600821.678855,
+ "updated_at": 1791613536.6246254,
  "season": "2026-10",
  "agents": [
   {
@@ -490,11 +490,48 @@
    ]
   },
   "markets_resolved": 17,
-  "markets_open": 13,
-  "sweeps": 1,
+  "markets_open": 43,
+  "sweeps": 2,
   "metric": "Brier score, \u00bd\u00b7\u03a3(p\u2212y)\u00b2, lower is better; 95% bootstrap CI; paired vs the Crowd (market price at sweep time)"
  },
  "sweeps": [
+  {
+   "date": "2026-10-10",
+   "runs": [
+    {
+     "agent": "agy",
+     "status": "ok",
+     "detail": null,
+     "n": 30,
+     "model": "Gemini 3.1 Pro (High)",
+     "transcript": "transcripts/sweep/2026-10-10/agy.txt"
+    },
+    {
+     "agent": "claude",
+     "status": "ok",
+     "detail": null,
+     "n": 30,
+     "model": "claude-fable-5-1",
+     "transcript": "transcripts/sweep/2026-10-10/claude.txt"
+    },
+    {
+     "agent": "codex",
+     "status": "ok",
+     "detail": null,
+     "n": 30,
+     "model": "gpt-6-luna",
+     "transcript": "transcripts/sweep/2026-10-10/codex.txt"
+    },
+    {
+     "agent": "grok",
+     "status": "ok",
+     "detail": null,
+     "n": 30,
+     "model": "grok-4.7-build",
+     "transcript": "transcripts/sweep/2026-10-10/grok.txt"
+    }
+   ]
+  },
   {
    "date": "2026-10-09",
    "runs": [
@@ -534,6 +571,34 @@
   }
  ],
  "contrarian": [
+  {
+   "agent": "codex",
+   "name": "Codex",
+   "date": "2026-10-10",
+   "market_id": "16824",
+   "question": "Will Bitcoin dip to $82,000 October 5-11?",
+   "outcome": "Yes",
+   "agent_p": 0.99,
+   "market_p": 0.435,
+   "gap": 0.555,
+   "state": "open",
+   "winner": null,
+   "right": null
+  },
+  {
+   "agent": "grok",
+   "name": "Grok",
+   "date": "2026-10-10",
+   "market_id": "16824",
+   "question": "Will Bitcoin dip to $82,000 October 5-11?",
+   "outcome": "Yes",
+   "agent_p": 0.82,
+   "market_p": 0.435,
+   "gap": 0.385,
+   "state": "open",
+   "winner": null,
+   "right": null
+  },
   {
    "agent": "codex",
    "name": "Codex",
@@ -1139,6 +1204,13 @@
  ],
  "duels": [],
  "sealed": [
+  {
+   "date": "2026-10-10",
+   "sha256": "07e60e26ca54ba7ba263c3ad64f3a9b374362027968fca0ec19320499c21f294",
+   "file": "data/forecasts/2026-10-10.json",
+   "forecasts": 120,
+   "sealed_at": 1791613536.6190746
+  },
   {
    "date": "2026-10-09",
    "sha256": "f94a28676b284e7c63e990f5d2a99b64186618aaf595c5033d08be8f838ac427",
