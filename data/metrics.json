@@ -2,7 +2,7 @@
  "benchmark": "AgentpitBench",
  "methodology_version": "1.0",
  "season_start": "2026-10-09T00:00:00Z",
- "generated_at": 1791749166.3901005,
+ "generated_at": 1791749793.51735,
  "contestants": {
   "claude": {
    "name": "Claude",
@@ -135,8 +135,8 @@
   "metric": "Brier score, \u00bd\u00b7\u03a3(p\u2212y)\u00b2, lower is better; 95% bootstrap CI; paired vs the Crowd (market price at sweep time)"
  },
  "significance": {
-  "n": 186,
-  "n_rounds": 11,
+  "n": 187,
+  "n_rounds": 12,
   "n_forecasts": 175,
   "significant": [
    {
@@ -148,11 +148,23 @@
    {
     "agent": "claude",
     "test": "betting",
-    "p": 0.0078,
+    "p": 0.0039,
+    "direction": null
+   },
+   {
+    "agent": "codex",
+    "test": "betting",
+    "p": 0.0391,
+    "direction": null
+   },
+   {
+    "agent": "grok",
+    "test": "betting",
+    "p": 0.0391,
     "direction": null
    }
   ],
-  "label": "n=186 \u00b7 significant vs the Crowd (p<0.05)"
+  "label": "n=187 \u00b7 significant vs the Crowd (p<0.05)"
  },
  "sealed_forecasts": [
   {
@@ -179,7 +191,7 @@
  ],
  "launch_day_duels": [],
  "betting_record": {
-  "rounds_counted": 11,
+  "rounds_counted": 12,
   "rounds_excluded": {
    "high-stakes": 1,
    "infra": 5,
@@ -189,17 +201,17 @@
   "agents": [
    {
     "agent": "agy",
-    "played": 11,
-    "wins": 9,
+    "played": 12,
+    "wins": 10,
     "losses": 2,
     "no_bets": 0,
-    "win_rate": 0.8182,
-    "net_pnl": 474.62,
-    "staked": 1043.65,
-    "roi": 0.4548,
-    "avg_entry": 0.5894,
-    "brier": 0.2066,
-    "streak": -1,
+    "win_rate": 0.8333,
+    "net_pnl": 501.2,
+    "staked": 1143.65,
+    "roi": 0.4382,
+    "avg_entry": 0.6061,
+    "brier": 0.1934,
+    "streak": 1,
     "rank": 1,
     "name": "Gemini",
     "color": "#4285F4",
@@ -207,17 +219,17 @@
    },
    {
     "agent": "claude",
-    "played": 11,
-    "wins": 7,
+    "played": 12,
+    "wins": 8,
     "losses": 4,
     "no_bets": 0,
-    "win_rate": 0.6364,
-    "net_pnl": -72.43,
-    "staked": 1100.08,
-    "roi": -0.0658,
-    "avg_entry": 0.6574,
-    "brier": 0.1993,
-    "streak": 3,
+    "win_rate": 0.6667,
+    "net_pnl": -45.85,
+    "staked": 1200.08,
+    "roi": -0.0382,
+    "avg_entry": 0.6685,
+    "brier": 0.1883,
+    "streak": 4,
     "rank": 2,
     "name": "Claude",
     "color": "#D97757",
@@ -225,17 +237,17 @@
    },
    {
     "agent": "grok",
-    "played": 11,
+    "played": 12,
     "wins": 6,
-    "losses": 5,
+    "losses": 6,
     "no_bets": 1,
-    "win_rate": 0.5455,
-    "net_pnl": -110.25,
-    "staked": 1001.42,
-    "roi": -0.1101,
-    "avg_entry": 0.6353,
-    "brier": 0.2004,
-    "streak": 5,
+    "win_rate": 0.5,
+    "net_pnl": -210.25,
+    "staked": 1101.42,
+    "roi": -0.1909,
+    "avg_entry": 0.5975,
+    "brier": 0.1893,
+    "streak": -1,
     "rank": 3,
     "name": "Grok",
     "color": "#1A1A1A",
@@ -243,17 +255,17 @@
    },
    {
     "agent": "codex",
-    "played": 11,
+    "played": 12,
     "wins": 4,
-    "losses": 7,
+    "losses": 8,
     "no_bets": 0,
-    "win_rate": 0.3636,
-    "net_pnl": -386.82,
-    "staked": 1044.18,
-    "roi": -0.3705,
-    "avg_entry": 0.4855,
-    "brier": 0.2715,
-    "streak": -2,
+    "win_rate": 0.3333,
+    "net_pnl": -486.82,
+    "staked": 1144.18,
+    "roi": -0.4255,
+    "avg_entry": 0.4634,
+    "brier": 0.2554,
+    "streak": -3,
     "rank": 4,
     "name": "Codex",
     "color": "#10A37F",
@@ -262,11 +274,11 @@
   ],
   "crowd": {
    "name": "The Crowd",
-   "played": 11,
-   "wins": 8,
+   "played": 12,
+   "wins": 9,
    "losses": 3,
-   "win_rate": 0.7273,
-   "net_pnl": 128.76,
+   "win_rate": 0.75,
+   "net_pnl": 156.15,
    "series": [
     [
      1791585879.0,
@@ -311,6 +323,10 @@
     [
      1791749108.0,
      128.76
+    ],
+    [
+     1791749471.0,
+     156.15
     ]
    ]
   }
