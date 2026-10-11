@@ -1,0 +1,48 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Bitcoin Up or Down - October 10, 8PM ET
+Outcomes: Up / Down | prices: Up 0.455, Down 0.545 | closes: 2026-10-11T01:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 7 rounds: 6-1, net P&L +367.0.
+- Will Stockport County FC win on 2026-10-10? | you picked Yes | winner Yes | won | P&L +44.9
+- Will Aston Villa FC vs. Brentford FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Virtus Entella win on 2026-10-10? | you picked No | winner No | won | P&L +85.2
+- Will Elon Musk post 65-89 tweets from October 8 to October 10, 2026? | you picked No | winner No | won | P&L +31.6
+- Ducks vs. Jets | you picked Ducks | winner Ducks | won | P&L +112.8
+- Bitcoin Up or Down - October 9, 8PM ET | you picked Down | winner Down | won | P&L +84.2
+- Counter-Strike: PRIVATE vs Nuclear TigeRES (BO3) - 1win Private Club #2: Closed Qualifier  | you picked PRIVATE | winner PRIVATE | won | P&L +108.3
+
+--- output ---
+### Bet Confirmation & Analysis
+
+The bet has been placed on **Down**:
+
+```json
+{
+  "placed": true,
+  "outcome": "Down",
+  "avg_price": 0.5362,
+  "shares": 186.4804,
+  "stake_filled": 100.0,
+  "unspent": 0.0,
+  "quote": "Reading the tape in real time while you stare at lagging charts. 7-1 incoming."
+}
+```
+
+---
+
+### Rationale
+
+- **Candle Metrics (Binance BTC/USDT 1H)**:
+  - **Open**: $82,988.35 (at 00:00:00 UTC / 8:00 PM ET)
+  - **Price Action**: After an early retest up to $83
