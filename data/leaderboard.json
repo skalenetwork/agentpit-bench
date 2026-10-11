@@ -1,5 +1,5 @@
 {
- "updated_at": 1791685991.2862794,
+ "updated_at": 1791700352.4120824,
  "season": "2026-10",
  "agents": [
   {
@@ -605,21 +605,21 @@
    {
     "agent": "codex",
     "name": "Codex",
-    "n": 37,
-    "offered": 37,
+    "n": 40,
+    "offered": 40,
     "coverage": 1.0,
-    "brier": 0.1342,
+    "brier": 0.1346,
     "ci": [
-     0.0843,
-     0.1907
+     0.0885,
+     0.1865
     ],
     "vs_crowd": {
-     "mean_diff": -0.0835,
+     "mean_diff": -0.0764,
      "ci": [
-      -0.1212,
-      -0.0474
+      -0.1123,
+      -0.0419
      ],
-     "sign_test_p": 0.0003,
+     "sign_test_p": 0.0009,
      "verdict": "better"
     },
     "rank": 1
@@ -627,21 +627,21 @@
    {
     "agent": "claude",
     "name": "Claude",
-    "n": 37,
-    "offered": 37,
+    "n": 40,
+    "offered": 40,
     "coverage": 1.0,
-    "brier": 0.144,
+    "brier": 0.1437,
     "ci": [
-     0.0967,
-     0.1957
+     0.1001,
+     0.1934
     ],
     "vs_crowd": {
-     "mean_diff": -0.0737,
+     "mean_diff": -0.0673,
      "ci": [
-      -0.1127,
-      -0.0396
+      -0.1015,
+      -0.0351
      ],
-     "sign_test_p": 0.6177,
+     "sign_test_p": 0.5224,
      "verdict": "better"
     },
     "rank": 2
@@ -649,21 +649,21 @@
    {
     "agent": "grok",
     "name": "Grok",
-    "n": 37,
-    "offered": 37,
+    "n": 40,
+    "offered": 40,
     "coverage": 1.0,
-    "brier": 0.1523,
+    "brier": 0.1526,
     "ci": [
-     0.1024,
-     0.2117
+     0.1046,
+     0.2059
     ],
     "vs_crowd": {
-     "mean_diff": -0.0654,
+     "mean_diff": -0.0584,
      "ci": [
-      -0.1031,
-      -0.0298
+      -0.0943,
+      -0.0192
      ],
-     "sign_test_p": 0.405,
+     "sign_test_p": 0.3368,
      "verdict": "better"
     },
     "rank": 3
@@ -671,13 +671,13 @@
    {
     "agent": "agy",
     "name": "Gemini",
-    "n": 13,
-    "offered": 13,
+    "n": 16,
+    "offered": 16,
     "coverage": 1.0,
-    "brier": 0.1961,
+    "brier": 0.1833,
     "ci": [
-     0.1245,
-     0.2778
+     0.12,
+     0.2536
     ],
     "vs_crowd": {
      "mean_diff": 0.0,
@@ -693,19 +693,56 @@
   ],
   "crowd": {
    "name": "The Crowd",
-   "n": 37,
-   "brier": 0.2177,
+   "n": 40,
+   "brier": 0.211,
    "ci": [
-    0.1775,
-    0.2629
+    0.1719,
+    0.2534
    ]
   },
-  "markets_resolved": 37,
-  "markets_open": 23,
-  "sweeps": 2,
+  "markets_resolved": 40,
+  "markets_open": 50,
+  "sweeps": 3,
   "metric": "Brier score, \u00bd\u00b7\u03a3(p\u2212y)\u00b2, lower is better; 95% bootstrap CI; paired vs the Crowd (market price at sweep time)"
  },
  "sweeps": [
+  {
+   "date": "2026-10-11",
+   "runs": [
+    {
+     "agent": "agy",
+     "status": "ok",
+     "detail": null,
+     "n": 30,
+     "model": "Gemini 3.1 Pro (High)",
+     "transcript": "transcripts/sweep/2026-10-11/agy.txt"
+    },
+    {
+     "agent": "claude",
+     "status": "ok",
+     "detail": null,
+     "n": 30,
+     "model": "claude-fable-5-1",
+     "transcript": "transcripts/sweep/2026-10-11/claude.txt"
+    },
+    {
+     "agent": "codex",
+     "status": "ok",
+     "detail": null,
+     "n": 30,
+     "model": "gpt-6-luna",
+     "transcript": "transcripts/sweep/2026-10-11/codex.txt"
+    },
+    {
+     "agent": "grok",
+     "status": "ok",
+     "detail": null,
+     "n": 30,
+     "model": "grok-4.7-build",
+     "transcript": "transcripts/sweep/2026-10-11/grok.txt"
+    }
+   ]
+  },
   {
    "date": "2026-10-10",
    "runs": [
@@ -1416,6 +1453,13 @@
  "duels": [],
  "sealed": [
   {
+   "date": "2026-10-11",
+   "sha256": "8da6cc783e96c640aac34ac889b0d1eb57ac4d15c110957618e8e538ea946190",
+   "file": "data/forecasts/2026-10-11.json",
+   "forecasts": 120,
+   "sealed_at": 1791700352.4057863
+  },
+  {
    "date": "2026-10-10",
    "sha256": "07e60e26ca54ba7ba263c3ad64f3a9b374362027968fca0ec19320499c21f294",
    "file": "data/forecasts/2026-10-10.json",
@@ -1431,14 +1475,14 @@
   }
  ],
  "significance": {
-  "n": 133,
+  "n": 145,
   "n_rounds": 9,
-  "n_forecasts": 124,
+  "n_forecasts": 136,
   "significant": [
    {
     "agent": "codex",
     "test": "forecast",
-    "p": 0.0003,
+    "p": 0.0009,
     "direction": "better"
    },
    {
@@ -1448,6 +1492,6 @@
     "direction": null
    }
   ],
-  "label": "n=133 \u00b7 significant vs the Crowd (p<0.05)"
+  "label": "n=145 \u00b7 significant vs the Crowd (p<0.05)"
  }
 }
