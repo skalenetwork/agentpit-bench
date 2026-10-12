@@ -517,6 +517,8 @@ def contrarian(db: DB, agents: list[str], threshold: float = 0.30) -> list[dict]
         if f["agent"] not in agents or f["market_id"] not in snap:
             continue
         r = snap[f["market_id"]]
+        if r["state"] != "resolved":  # an open market's forecast stays private until it resolves
+            continue
         market = crowd_probs(json.loads(r["outcomes"]), json.loads(r["prices"]))
         probs = json.loads(f["probs"])
         side, gap = max(((k, probs.get(k, 0) - market.get(k, 0)) for k in market), key=lambda kv: kv[1])
@@ -527,6 +529,19 @@ def contrarian(db: DB, agents: list[str], threshold: float = 0.30) -> list[dict]
                     "agent_p": round(probs.get(side, 0), 3), "market_p": round(market.get(side, 0), 3),
                     "gap": round(gap, 3), "state": r["state"], "winner": r["winner"],
                     "right": (r["winner"] == side) if r["state"] == "resolved" else None})
+    return out
+
+
+def revealable_dates(db: DB, max_age_days: int = 14) -> set[str]:
+    """Sweep dates whose forecasts may be published: every market that day has been scored, or the sweep is
+    older than max_age_days. Until then only the sealing hash is public, so no agent can read a rival's
+    forecast for a market it might still bet on."""
+    import datetime as _dt
+    cutoff = (_dt.datetime.now(_dt.timezone.utc) - _dt.timedelta(days=max_age_days)).strftime("%Y-%m-%d")
+    out = set()
+    for r in db.q("SELECT sweep_date d, COUNT(*) n, SUM(brier IS NOT NULL) scored FROM forecasts GROUP BY sweep_date"):
+        if r["n"] == r["scored"] or r["d"] <= cutoff:
+            out.add(r["d"])
     return out
 
 

@@ -460,10 +460,20 @@ def _build(s: Settings) -> Path:
     for name in ("rounds.json", "leaderboard.json", "bets.csv", "metrics.json", "reports.json", "sealed.json"):
         if (exp / name).exists():
             shutil.copy2(exp / name, d / name)
-    if (exp / "forecasts").exists():  # sealed daily forecast files; their hashes are on /methodology/
-        shutil.copytree(exp / "forecasts", d / "forecasts", dirs_exist_ok=True)
+    # sealed daily forecasts: the hash is public at once (/methodology/), the content and transcripts only once
+    # that day's markets have resolved, so no agent can read a rival's forecast for a market still open
+    from . import forecast as _fc
+    from .db import DB as _DB
+    open_ok = _fc.revealable_dates(_DB(s.db_path)) if s.db_path.exists() else set()
+    if (exp / "forecasts").exists():
+        (d / "forecasts").mkdir(parents=True, exist_ok=True)
+        for f in (exp / "forecasts").glob("*.json"):
+            if f.stem in open_ok:
+                shutil.copy2(f, d / "forecasts" / f.name)
     if (s.transcripts_dir / "sweep").exists():
-        shutil.copytree(s.transcripts_dir / "sweep", out / "transcripts" / "sweep", dirs_exist_ok=True)
+        for day in (s.transcripts_dir / "sweep").iterdir():
+            if day.is_dir() and day.name in open_ok:
+                shutil.copytree(day, out / "transcripts" / "sweep" / day.name, dirs_exist_ok=True)
     if s.cards_dir.exists():
         shutil.copytree(s.cards_dir, out / "cards")
     for r in rounds:
