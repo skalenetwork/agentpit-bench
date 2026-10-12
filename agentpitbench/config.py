@@ -9,6 +9,8 @@ from pathlib import Path
 # display names; "codex" shows as ChatGPT (it runs on the Codex CLI)
 AGENT_NAMES = {"claude": "Claude", "codex": "ChatGPT", "agy": "Gemini", "grok": "Grok"}
 AGENT_COLORS = {"claude": "#D97757", "codex": "#10A37F", "agy": "#4285F4", "grok": "#1A1A1A"}
+# URL slugs of the head-to-head pages (/vs/claude-vs-chatgpt/): public names, unlike the frozen /agent/<id>/ URLs
+AGENT_SLUGS = {"claude": "claude", "codex": "chatgpt", "agy": "gemini", "grok": "grok", "crowd": "crowd"}
 # Frontier vs frontier: each lab's top model its CLI offers, at that CLI's maximum reasoning setting.
 # (model id passed to the CLI, display name, reasoning setting). The model each run actually reports is
 # recorded per bet; if a vendor ships a newer flagship, update this table.
@@ -73,6 +75,12 @@ class Settings:
     high_stakes_weekday: int = 4        # High-Stakes Friday: one round a week at a bigger stake
     high_stakes_hour_utc: int = 16
     high_stakes_stake: float = 500
+    # search engines (docs/seo-spec.md §5): verification tokens from Search Console / Bing Webmaster Tools;
+    # empty = omitted. google: the meta-tag token, or the whole file name "google<token>.html" for file verification.
+    # bing: the msvalidate.01 token, served both as the meta tag and as /BingSiteAuth.xml.
+    google_site_verification: str = ""
+    bing_site_verification: str = ""
+    indexnow_enabled: bool = False      # after each deploy, POST the changed URLs to api.indexnow.org
     explorer_url: str = "https://skale-base-explorer.skalenodes.com"   # agentpit settles on SKALE Base
 
     @property
