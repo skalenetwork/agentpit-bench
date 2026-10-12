@@ -387,7 +387,8 @@ def _texts(obj, out: list[str]) -> None:
     """Assistant-visible prose from one JSON event: skip tool calls, tool results and user turns."""
     if isinstance(obj, dict):
         kind = str(obj.get("type", ""))
-        if kind in ("tool_use", "tool_result", "tool_call", "function_call", "function_call_output", "command_execution",
+        if kind in ("tool_use", "tool_result", "tool_call", "tool_call_update", "function_call", "function_call_output",
+                    "command_execution",
                     "user", "system", "result", "usage") or obj.get("role") in ("user", "tool", "system"):
             return
         for k, v in obj.items():

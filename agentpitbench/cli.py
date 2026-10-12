@@ -141,6 +141,14 @@ async def run_forever(s: config.Settings) -> None:
         if engage is not None:
             await engage.poll_summons()
 
+    async def match_of_the_day():
+        """Hourly; does nothing unless motd_enabled: at motd_hour_utc, yesterday's most dramatic round as a film."""
+        if not s.motd_enabled or not hasattr(pub, "cards"):
+            return
+        from . import motd
+        if await motd.daily(s, db, pub.cards, pub.poster):
+            pub.site.request()
+
     if engage is not None:
         await engage.cache_wallets()
     stop = asyncio.Event()
@@ -156,6 +164,7 @@ async def run_forever(s: config.Settings) -> None:
         asyncio.create_task(_every(s.summon_poll_s, summons, "summons")),
         asyncio.create_task(_every(3600, scheduled, "scheduled")),
         asyncio.create_task(_every(1800, daily_sweep, "sweep")),
+        asyncio.create_task(_every(3600, match_of_the_day, "match of the day")),
         asyncio.create_task(_every(s.resolution_check_s, score_forecasts, "forecast scoring")),
     ]
     await stop.wait()
@@ -188,6 +197,20 @@ async def one_round(s: config.Settings, market_id: str, agents: list[str] | None
     if hasattr(pub, "close"):
         await pub.close()
     await api.close()
+
+
+async def motd_render(s: config.Settings, day: str | None, round_id: int | None, out: str | None) -> None:
+    """Render a Match of the Day film for review. Never posts."""
+    from . import motd
+    from .cards import CardRenderer
+    db = DB(s.db_path)
+    day = day or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    cards = CardRenderer(s)
+    try:
+        rec = await motd.make_film(s, db, cards, day, round_id=round_id, out_dir=out)
+    finally:
+        await cards.close()
+    print(json.dumps(rec, indent=1) if rec else f"no film for {day} (quiet day or round not eligible)")
 
 
 async def check(s: config.Settings) -> None:
@@ -303,6 +326,10 @@ def main(argv: list[str] | None = None) -> None:
     du.add_argument("new_model")
     ds = sub.add_parser("dataset", help="build the monthly open dataset (and upload if HF/Kaggle creds are set)")
     ds.add_argument("--month", required=True, help="YYYY-MM")
+    mo = sub.add_parser("motd", help="render a Match of the Day film (both formats) for review; never posts")
+    mo.add_argument("--date", help="film date YYYY-MM-DD (covers rounds resolved the day before; default today UTC)")
+    mo.add_argument("--round", type=int, help="film this round instead of the day's pick")
+    mo.add_argument("--out", help="output directory (default: cards/motd/<date>/)")
     xc = sub.add_parser("x-check", help="refresh the X OAuth 2.0 token, show scopes and account (never tweets)")
     xc.add_argument("--upload", action="store_true", help="also upload a tiny test image (not attached to a tweet)")
     xl = sub.add_parser("x-login", help="authorize the X account with every scope the bench needs")
@@ -333,6 +360,8 @@ def main(argv: list[str] | None = None) -> None:
         asyncio.run(sweep_now(s))
     elif a.cmd == "duel":
         asyncio.run(duel(s, a.agent, a.old_model, a.new_model))
+    elif a.cmd == "motd":
+        asyncio.run(motd_render(s, a.date, a.round, a.out))
     elif a.cmd == "x-login":
         x_login(s, a.url, a.redirect_uri)
     elif a.cmd == "x-check":

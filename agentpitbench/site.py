@@ -372,6 +372,11 @@ def _build(s: Settings) -> Path:
     press_stats = {"rounds": sum(1 for r in rounds if r["state"] == "resolved"),
                    "bets": sum(1 for r in rounds for e in r["entries"] if e["outcome"])}
     latest_cards = [c for c in (card_for(s, r) for r in past) if c][:6]
+    from .motd import films as _films  # Match of the Day: cards/motd/<date>/film.json
+    films = _films(s)
+    film_of = {}
+    for f in films:  # newest first: a round filmed twice shows its latest film
+        film_of.setdefault(f["round_id"], f)
 
     for lang in CODES:
         _ = Translator(lang)
@@ -410,7 +415,7 @@ def _build(s: Settings) -> Path:
              best=best, worst=worst, h2h=h2h, weekly=weekly, seasons=seasons, title=_("Leaderboard") + site_name)
         for r in rounds:
             card = cards[r["round_id"]]
-            page(f"round/{r['round_id']}/index.html", "round.html", r=r, card=card,
+            page(f"round/{r['round_id']}/index.html", "round.html", r=r, card=card, film=film_of.get(r["round_id"]),
                  og_image=f"{base}/{card}" if card else None,
                  title=_("Round {n}", n=r["round_id"]) + f": {r['question']}")
         for a in s.agents:
@@ -418,6 +423,7 @@ def _build(s: Settings) -> Path:
                  row=next((b for b in board if b["agent"] == a), None), st=stats[a],
                  cats=(lb.get("by_category") or {}).get(a, []),
                  title=AGENT_NAMES.get(a, a) + site_name)
+        page("films/index.html", "films.html", films=films, title="Match of the Day" + site_name)
         page("splits/index.html", "splits.html", splits=splits, h2h=h2h, title=_("Split decisions") + site_name)
         page("hall-of-shame/index.html", "shame.html", wrong=wrong, title=_("Hall of shame") + site_name)
         page("data/index.html", "data.html", prompt=prompt, title=_("Data & method") + site_name)

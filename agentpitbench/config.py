@@ -48,6 +48,14 @@ class Settings:
     # decision posts in a burst; keeps a round at 2-3 posts (reveal, results, one press reply)
     post_decisions: bool = False
     press_max_replies: int = 1
+    # Match of the Day (docs/match-of-the-day-spec.md): the daily film of yesterday's most dramatic resolved round.
+    # Off until the first film is reviewed; gates selection, rendering and posting.
+    motd_enabled: bool = False
+    motd_hour_utc: int = 17
+    motd_min_score: float = 20
+    motd_fps: int = 15
+    motd_exhibition_factor: float = 0.5
+    motd_music: bool = True           # the CC0 music bed (static/motd/theme.m4a); false = silent films
     sandbox: bool = True             # run agents inside bubblewrap (bwrap); never disable in production
     # independent-standard layer
     methodology_version: str = "1.0"

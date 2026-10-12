@@ -53,6 +53,60 @@ def encode(frames: list[Path], out_base: Path, fps: int = 12, allow_gif: bool = 
     return out
 
 
+def mux_audio(video: Path, track: Path, out: Path, fade_in: float = 0.5, fade_out: float = 2.0,
+              volume: float = 0.8) -> Path | None:
+    """Lay a music track under a silent MP4: looped if shorter, cut to the video's length, faded in and out.
+    The video stream is copied, not re-encoded."""
+    exe = ffmpeg_exe()
+    if not exe:
+        return None
+    dur = duration(video)
+    if not dur:
+        return None
+    af = (f"volume={volume},afade=t=in:st=0:d={fade_in},"
+          f"afade=t=out:st={max(0.0, dur - fade_out):.3f}:d={fade_out}")
+    cmd = [exe, "-y", "-loglevel", "error", "-i", str(video), "-stream_loop", "-1", "-i", str(track),
+           "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy", "-af", af, "-c:a", "aac", "-b:a", "96k",
+           "-t", f"{dur:.3f}", "-movflags", "+faststart", str(out)]
+    try:
+        subprocess.run(cmd, check=True, timeout=600)
+        return out
+    except Exception:
+        log.exception("ffmpeg audio mux failed")
+        return None
+
+
+def probe(path: Path) -> dict:
+    """{duration, video: 'WxH' | None, audio: bool} from ffmpeg's banner (no ffprobe in the bundled build)."""
+    import re
+    exe = ffmpeg_exe()
+    if not exe:
+        return {}
+    r = subprocess.run([exe, "-hide_banner", "-i", str(path)], capture_output=True, text=True, timeout=60)
+    info = r.stderr
+    m = re.search(r"Duration: (\d+):(\d+):([\d.]+)", info)
+    v = re.search(r"Stream #\S+.*Video: .*?(\d{2,5})x(\d{2,5})", info)
+    return {"duration": int(m[1]) * 3600 + int(m[2]) * 60 + float(m[3]) if m else None,
+            "video": f"{v[1]}x{v[2]}" if v else None, "audio": bool(re.search(r"Stream #\S+.*Audio:", info))}
+
+
+def duration(path: Path) -> float | None:
+    return probe(path).get("duration")
+
+
+def poster_frame(video: Path, out: Path, at: float = 0.0) -> Path | None:
+    exe = ffmpeg_exe()
+    if not exe:
+        return None
+    try:
+        subprocess.run([exe, "-y", "-loglevel", "error", "-ss", f"{max(0.0, at):.2f}", "-i", str(video),
+                        "-frames:v", "1", str(out)], check=True, timeout=120)
+        return out
+    except Exception:
+        log.exception("poster frame failed")
+        return None
+
+
 def race_contexts(rounds: list[dict], agents: list[str], week: str, sub: int = 6, hold: int = 24) -> list[dict]:
     """Frame contexts for the race template: cumulative P&L per agent (and the Crowd) across the week's rounds,
     values and bar positions interpolated between rounds. rounds: resolved, oldest first."""
