@@ -1,4 +1,12 @@
-# Match of the Day: one-minute daily mini-movie (spec v0.4)
+# Match of the Day: one-minute daily mini-movie (spec v0.5)
+
+v0.5 (2026-10-12): every film is a **scripted, personalized mini-movie**. Each film has its own concept (genre, look,
+voice and score), a script written fresh by the operator AI, a narrator, and an **unexpected twist that is true**:
+code detects it from data, and the writer only dramatizes it. Facts stay locked: every number about the round is
+filled by code from the database. The v0.4 templated film remains as the fallback (see "Templated film").
+Operator decisions (2026-10-12): model knowledge allowed for background colour; tone is playful rivalry; films are
+fully automatic once on (no human review), so the code checks below are the only gate; ElevenLabs is the narrator,
+score and effects engine; post time stays 17:00 UTC; length stays 45–60 s.
 
 v0.4 (2026-10-12): operator decisions folded in (45–60 s, captions only, royalty-free music, both 9:16 and 16:9,
 every number from data) and reconciled with the same day's live changes: 2–3 X posts per round, sealed picks,
@@ -6,16 +14,156 @@ the card redesign (credibility strip, direction-aware significance), the codex a
 
 ## Goal
 Once a day, turn the most dramatic **resolved** round into a 45–60 s video, rendered both vertical (9:16) and
-wide (16:9), that tells its story: who bet what and why, what happened, and who was right. It is the bench's most
-shareable post and stays as factual as the rest of the record: every fact on screen comes from the database,
-verbatim or computed by code.
+wide (16:9), that tells its story as a small piece of cinema: who or what the market is about, the four AIs as
+characters with their picks, prices, confidence and reasons, the build-up, the result, and a twist. It stays as
+factual as the rest of the record: every fact about the round on screen or in the narration comes from the
+database, verbatim or computed by code.
 
-## Non-goals (v1)
-- No new agent runs, no model-written text anywhere (the hook is a template), no invented numbers.
-- One round per film. No voiceover (operator decision 2026-10-12: captions only; most X viewers watch muted).
-  The film carries a quiet **royalty-free music bed** (see Music); it adds nothing the captions don't say.
-- No vendor logos or real people's likenesses.
-- Cross-posting to TikTok / Reels / Shorts is a goal for later, not v1.
+## The scripted film (v0.5)
+
+### Division of labour (the credibility rule)
+| Owned by code (from the database) | Owned by the writer (operator AI) |
+|---|---|
+| Round selection (drama score, unchanged) | The concept choice among the allowed ones |
+| The twist: detected, ranked, chosen; its on-screen fact line | The dramatization of that twist |
+| Every round number: picks, prices, confidences, times, P&L, link counts, counts, dates, standings | Words around slots such as `{claude_price}` |
+| Data panels: tickers, cards, meters, results, standings, the credibility strip | Cold open, title, plain-words market line, background, character lines, misdirect, coda |
+| Staging by real picks (who stands on which side, who falls) | Optional stage hint for the cold open and misdirect |
+| The model each AI played on (from that round's `runs.model_reported`) | Nothing about models: it may not name one |
+
+### Twists (`agentpitbench/twists.py`)
+Pure detectors over (round, history, transcripts). Each returns `{type, surprise, agents, fact, setup}`. `fact` is
+the on-screen line written by code with numbers from data; `setup` tells the misdirect what expectation to plant.
+
+| Type | True when | Surprise |
+|---|---|---|
+| confident_only_wrong | ≥ 3 bettors, exactly one loser, and it alone had the top confidence | 90 |
+| same_evidence_opposite | two AIs on opposite sides cite the same distinctive figure (3+ digits, not in the question) in rationale or quote, and one of them won | 88 |
+| most_sources_lost | among transcripts that log web links, the AI with the most distinct links (≥ 10 and ≥ 1.5× the next) lost | 86 |
+| favourite_fell | the Crowd's outcome started at ≥ 70¢ and lost | 85 |
+| lone_wolf_won | one winner against ≥ 2 losers | 80 |
+| changed_mind | a pre-bet transcript line leans to an outcome the AI did not bet (no negation) | 80 |
+| upset_won | a winner paid ≤ 25¢ | 75 |
+| wipeout | ≥ 3 bettors, all wrong | 75 |
+| twins | two AIs made the identical call: same outcome, entry price and confidence | 74 |
+| own_odds_against | losers rated their own pick under 50% (bet for the price) | 72 |
+| last_seconds | a bet placed in the last 30 s of the decision limit | 65 won / 50 lost |
+| fastest_beat_slowest | the fastest decider won and the slowest lost, ≥ 60 s apart | 60 |
+| grudge_flipped | a grudge pair (virality.grudge) where the rivalry's trailing side won this one | 55 |
+| streak_ended | a ≥ 3 win (or loss) streak ended (low-tier fallback) | 40 + 2/streak, max 55 |
+| unanimous | everyone on one outcome and right | 20 |
+
+"Right for the wrong reason" is not detected: no data proves a reason wrong. Link counts compare only transcripts
+that log links (some CLIs log none), and the fact says "logs N web links", not "read".
+**Choice:** highest surprise, minus 50 for a type used in the last 4 films (other rounds' accepted scripts).
+`twist_type` is stored with the accepted script and in film.json. No true twist: templated film.
+
+### Concepts (`motd_story.CONCEPTS`)
+noir, nature_doc, heist, courtroom, broadcast, countdown, mockumentary, western, mission_control. Each sets the
+palette, display and caption fonts, the scene transition (iris, wipe, fade, flash, cut), the caption motion
+(typewriter, fade, slam), a texture (grain, vignette, blueprint, grid, stripes, scanlines, sepia), the spotlight
+card's header (WANTED, WITNESS, SUSPECT, SPECIMEN...), the narrator voice and delivery tag, the score prompt and
+the twist sting. The concepts of the last 4 films (other rounds) are not offered; the writer picks one of the rest.
+`concept_type` is stored next to `twist_type`.
+
+### Story shape (the writer's scene kinds, in order)
+| Kind | Max chars | Stage (code) |
+|---|---|---|
+| cold_open | 44 | the AIs facing off grouped by their real picks (or a lineup); the hook lands in the first 2 s |
+| title | 32 (no numbers) | the film's title card with the genre |
+| market | 90 | the question in plain words (e.g. "Will Istanbul's Beşiktaş win their league match on {q1}?"), start-price tickers counting up, the question as listed below |
+| background | 140 | "Who is this?": the subject in big type; general, stable knowledge; "Background, not round data" under it |
+| character × each agent | 90 | its card: mascot, the model it played on, pick, price paid and time to decide (tickers), confidence vs market meter, its card quote in a speech bubble |
+| misdirect × 1–2 | 80 | plants the expectation the twist overturns (`twist.setup`); may spotlight one agent's card (with its web-link count for research twists) |
+| result | 80 | the winner slams in, the losers' mascots topple and grey out, every P&L counts up |
+| twist | 120 | hard cut to black, white flash, shake, a push-in on the twist's agents, the code-written fact, the sting |
+| coda | 70 | standings (forecast accuracy, betting record), the round URL, the CTA |
+All lines together ≤ 470 characters (slots filled). Every scene has a slow camera push-in; scenes enter with the
+concept's transition, except the twist, which cuts hard.
+
+### Slots
+`{<agent>_pick|price|conf|pnl|time|links}` for Claude, ChatGPT, Gemini, Grok; `{fav}`, `{fav_price}`, `{dog}`,
+`{dog_price}`, `{winner}`, `{n_ai}`, `{n_right}`, `{stake}`, `{close_date}`, and `{q1}`, `{q2}`... for the
+question's own numbers and dates ("$2,400", "October 5-11", "2026-10-11" as "11 October"). Values are formatted as on
+the cards (78.5¢, 74%, −100, 1m 33s). The narrator reads the same values (79¢ → "79 cents").
+
+### Validator (`motd_story.validate`; strict: it is the only gate)
+Rejects: a concept not offered; structure (first cold_open, exactly one title/market/background/result/twist/coda,
+coda last, ≥ 1 misdirect before the result, result before twist, market before characters before the result, one
+character per agent with its exact name, a spotlight misdirect without a known agent); unknown slots or stray braces;
+**digits or number words outside the background** (zero..ninety, hundred, thousand, percent, cents, half,
+dozen...); in the background, digits other than plausible years (1850 to now) and any price or percent sign;
+a sentence naming one agent with an outcome it did not pick; after the result, a sentence saying an agent won when
+it lost or lost when it won; put-downs (a word list: dumb, fool, clueless, choked, pathetic...); lab or executive
+names (OpenAI, Anthropic, Google, xAI, Musk, Altman...) unless the market is about them; model or version names
+(Fable, Luna, Astra, GPT-6, Grok 4.7...); significance or superiority claims (significant, proves, smartest, beats
+the Crowd...); a twist scene that names none of the twist's agents; over-long scenes, a title over 32 characters
+or with numbers, more than 470 characters in total, or more than 60 s at the narrator's measured speed
+(10.5 characters a second) or reading speed (15). On rejection: **one retry** with the reason, then the templated
+film. Posting is never blocked.
+
+### The writer (opai task `motd_script`)
+`claude -p --model fable` (the strongest model the CLI offers; reported `claude-fable-5-1`), `--tools ""`, no MCP,
+`--safe-mode`, `--no-session-persistence`, JSON output with the task's JSON schema, prompt on stdin, an empty
+temporary cwd, a minimal environment, never in a contestant sandbox. Prompt: `agentpitbench/prompts/motd_script.v1.md`
+plus the input JSON (market, outcomes, start prices, each agent's pick, price, confidence, time, rationale, card
+quote, post-match statement and last transcript lines, the twist with its setup hint, allowed concepts, slots and
+budgets). It runs through the operator AI runner (`opai.call(task="motd_script", validate=...)`,
+ai-automation spec §2): its own login (`opai_config_dir`), an `ai_calls` row per spawn, the daily budget
+(`opai_task_budget.motd_script` = 3: one film, one retry, one spare), quota backoff, the contestant breaker and the
+sweep window. Model: `opai_model_motd_script` = "fable"; timeout `opai_motd_timeout_s` = 360. On top of opai's own
+guards, Match of the Day **never calls the writer while any round has `state='running'`** (sealed picks; the Claude
+contestant shares the quota) and calls `opai.sealed_guard` for the filmed round. The film only uses the writer when
+`opai_enabled` is on and `motd_script` is in `opai_tasks` (default list includes it); otherwise it is the templated
+film. Every answer, accepted or rejected, is tagged in `operator_ai_outputs` (model, `motd_script.v1`, timestamp,
+`call_id`, `subject='round:N'`, `public=0`; set to 1 when the film is posted is later work); the accepted row also
+carries the chosen `_twist`. A re-render of the same round reuses its newest accepted script with the same twist if
+it still passes the validator (no new call). Typical call: 1.5–3 minutes.
+
+### Narrator, score, sting (`agentpitbench/sound.py`)
+- **Narrator:** ElevenLabs text-to-speech, model `eleven_v4`, one stock voice per concept, hard-coded (the key can't
+  list voices): noir Brian, nature_doc George, heist Eric, courtroom Daniel, broadcast Liam, countdown Callum,
+  mockumentary Jessica, western Clyde, mission_control Roger; fallback George. A v4 audio tag per concept sets the
+  delivery (e.g. `[hushed, reverent]`); tags are not spoken (checked with speech-to-text). Each line is spoken from
+  the same slot values as its caption. A scene lasts at least 0.3 s + its line + 0.45 s; if the lines alone pass
+  60 s they are sped up (atempo, ≤ 1.12×), then visual holds are trimmed; if it still doesn't fit, the film drops the
+  voice and keeps captions (60 s is a hard cap). Captions stay on for silent viewing.
+- **Score:** ElevenLabs Music (`music_v1`, instrumental, 62 s) from a per-concept prompt; a library of 2 variants
+  per concept, generated once and rotated by round id, so the whole library is at most 18 generations. Fallback: the
+  procedural CC0 bed. The score is ducked under the narrator (sidechain compression), faded in 0.5 s and out 2 s.
+- **Sting:** one ElevenLabs Sound Effect per concept (gavel, vault door, ricochet, crowd roar...) at the twist's
+  flash. Fallback: none.
+- **Cache:** every clip is cached under `var/audio_cache/` by a hash of engine, model, voice, settings and text (or
+  prompt), so re-renders never re-bill. film.json `audio` records voice id, model, settings, characters and the
+  credits the API reported (`character-cost`).
+- **Budget:** about 470 narrated characters a film. Measured on the first film: 89 credits for 586 characters of v4
+  narration (v4 was on a 72% launch discount until 12 October; at list price assume ~1 credit/character, so ≤ 500
+  a film), a 2 s sound effect 20 credits. Music is not metered per call by the API (no cost header): verify on the
+  dashboard after the library is generated. 30 films × ≤ 500 narration credits + the one-off library fits the
+  35,000-credit key cap. `motd_narrator = false` turns the voice off.
+- **Licensing (to verify before the first public film):** ElevenLabs grants a commercial licence on paid plans
+  (Starter included) for voice output; ElevenLabs Music on self-serve plans is cleared for commercial online use
+  except film, TV and games (third-party summaries; the official terms page moved). No statement about YouTube
+  Content ID was found: test one film as a private or unlisted YouTube upload before relying on it. YouTube expects a
+  synthetic-content disclosure for realistic synthetic voices; the narrator is clearly a narrator, but the uploader
+  should set the "altered or synthetic content" flag.
+
+### film.json (v0.5 fields)
+`scripted`, `concept_type`, `twist_type`, `twist` (the fact line), `title`, `title_line` ("<title> · Match of the
+Day"), `hook` (≤ 70 characters, no twist spoiler: the cold open, or the market question for templated films),
+`post_hook` (the X post text: always the code template, since the ai-automation spec allows no opai-written X copy),
+`script` (filled text), `script_data` (the writer's JSON), `scenes` (kind, duration, agent, caption, fact: reusable
+for the planned weekly "Week in the Pit" episode), `model`, `prompt_version`, `output_id`, `written_at`,
+`narrated`, `audio`.
+
+## Non-goals
+- No invented numbers, no invented twists, no model-written X post text.
+- One round per film. No vendor logos, no real people's likenesses, no AI imagery (typography and the mascots only).
+- Cross-posting beyond X and YouTube Shorts is later work.
+
+## Templated film (v0.4 fallback)
+Used when the writer is unavailable (a round or sweep running, CLI missing), fails twice, or no twist is detected,
+and whenever `motd_scripted = false`. The sections below describe it.
 
 ## Prerequisites
 - Built on the **redesigned card system** (live since 2026-10-12: credibility strip with the emblem, state
@@ -139,7 +287,7 @@ scenes 3–5, the credibility strip, the EXHIBITION badge.
 ## Configuration
 `motd_enabled` (false until the first film is reviewed; gates the whole daily job: selection, render and post),
 `motd_hour_utc` = 17, `motd_min_score` = 20, `motd_fps` = 15, `motd_exhibition_factor` = 0.5, `motd_music` = true
-(false renders silent films). CLI: `agentpitbench motd [--date YYYY-MM-DD] [--round N] [--out DIR]` renders a film
+(false renders silent films). v0.5: `motd_scripted` = true (the writer; false = templated film), `opai_model_motd_script` = "fable", `opai_motd_timeout_s` = 360, `opai_task_budget.motd_script` = 3, and the opai master switch `opai_enabled`, `motd_narrator` = true (ElevenLabs when `ELEVENLABS_API_KEY` is in secrets.env). CLI: `agentpitbench motd [--date YYYY-MM-DD] [--round N] [--out DIR]` renders a film
 for review without posting.
 
 ## Tests
@@ -150,6 +298,15 @@ for review without posting.
 - Length rule: 45 s floor and 60 s cap, for the full and the most-skipped scene lists.
 - Render smoke test on a synthetic round in test mode (short scenes): both formats exist, with an audio stream.
 - Idempotency per date; disabled flag does nothing; dry-run writes the MP4 and text to the outbox.
+
+- v0.5 (`tests/test_motd_story.py`): one positive and one negative case per twist detector, ranking and recency;
+  slots from the record and the question's own numbers; the validator accepts a good script and rejects each rule
+  (digits, number words, unknown slots, wrong pick, wrong result, put-down, significance, model name, lab name,
+  implausible background numbers, a twist scene not naming the twist's agents, structure, length); staging by real
+  picks; the model shown is the round's `model_reported` (GPT-6 Luna stays Luna after the switch to Astra); the opai
+  shim refuses while a round is running and inside the sweep window, stores every answer, and a rejected draft is
+  followed by a retry; the render smoke test with the writer unavailable produces the templated film. Tests never
+  spawn `claude` or call ElevenLabs (conftest).
 
 ## Assumptions to re-check
 - X autoplays video muted in the feed (true as of 2026-10; the captions-only design depends on it only for reach;

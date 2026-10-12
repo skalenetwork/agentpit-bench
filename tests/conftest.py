@@ -89,3 +89,10 @@ def fake_claude(tmp_path, monkeypatch):
     f.chmod(0o755)
     monkeypatch.setenv("PATH", f"{d}{os.pathsep}{os.environ.get('PATH', '')}")
     return FakeClaude(d)
+
+
+@pytest.fixture(autouse=True)
+def _no_paid_calls(monkeypatch):
+    """Tests never call ElevenLabs (narrator, score, effects): the key is unset. opai is off by default
+    (opai_enabled = False), and tests that exercise it use the fake_claude fixture."""
+    monkeypatch.delenv("ELEVENLABS_API_KEY", raising=False)

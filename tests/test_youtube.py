@@ -188,7 +188,7 @@ def test_description_numbers_lines_and_limits(yt):
     for e in rnd["entries"]:
         if e["outcome"]:
             assert f"{e['outcome']} at {motd._cents(e['avg_price'])} → {motd._signed(e['pnl'])} tokens" in d
-    assert "Grok (Grok 4.7 · xhigh): Nexus at 21¢" in d
+    assert "Grok (Grok Default): Nexus at 21¢" in d  # the model the run reported (grok-default), not config
     assert "Why this round: Lone wolf won +40, Upset +35" in d
     assert "EXHIBITION" not in d
     assert lines[-1] == "#AgentpitBench #AI #PredictionMarkets"

@@ -77,6 +77,8 @@ def _clip(text: str, n: int) -> str:
 def hook(rec: dict) -> str:
     """The title's hook: the scripted film's hook line when film.json has a script, else the v0.4 `hook`.
     Defensive about the script's shape (a dict with `hook`, or a list of scenes/lines whose first hook wins)."""
+    if rec.get("scripted") and isinstance(rec.get("hook"), str) and rec["hook"].strip():
+        return _clean(rec["hook"])  # motd v0.5 film.json: `hook` is the cold open (<= 70 chars, no twist spoiler)
     sc = rec.get("script")
     cand = None
     if isinstance(sc, dict):
@@ -132,7 +134,7 @@ EXCLUSION_LABEL = {"pre-season": "pre-season", "summon": "summoned", "high-stake
 def _agent_line(e: dict) -> str:
     from .motd import _cents, _signed, full_model_line
     name = AGENT_NAMES.get(e.get("agent"), e.get("name") or e.get("agent") or "?")
-    head = f"{name} ({full_model_line(e.get('agent'))})"
+    head = f"{name} ({full_model_line(e.get('agent'), e)})"
     if not e.get("outcome"):
         reason = {"timeout": "timed out", "crash": "crashed", "infra": "infrastructure"}.get(e.get("exit_reason"),
                                                                                           "passed")
@@ -196,6 +198,8 @@ def tags(rec: dict) -> list[str]:
 
 def narrated(rec: dict) -> bool:
     """The scripted films carry a spoken narrator (ElevenLabs); v0.4 films have no speech."""
+    if "narrated" in rec:  # motd v0.5 film.json says so explicitly (a scripted film may still be unvoiced)
+        return bool(rec["narrated"])
     return any(rec.get(k) for k in ("script", "narration", "voice", "narrator"))
 
 

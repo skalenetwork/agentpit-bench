@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import shutil
+import re
 import logging
 from pathlib import Path
 
@@ -65,21 +66,77 @@ MOTD_JS = r"""
     signed: v => (v >= 0 ? '+' : '−') + Math.round(Math.abs(v)).toLocaleString('en-US'),
     time: v => { const s = Math.round(v), m = Math.floor(s / 60), r = s % 60;
                  return m ? `${m}m ${String(r).padStart(2, '0')}s` : `${r}s`; },
-    int: v => Math.round(v).toLocaleString('en-US')};
+    int: v => Math.round(v).toLocaleString('en-US'),
+    cents: v => `${Math.round(v)}¢`};
   q('[data-count]').forEach(el => { el.dataset.final = el.textContent; });
+  // v0.5 scripted scenes: 'type' (typewriter, TYPE_CPS characters a second), 'wipe' (left-to-right reveal),
+  // a scene-in transition overlay (data-trans: iris | wipe | fade | flash) and the twist's white flash + shake.
+  const TYPE_CPS = 45, CAM_S = 2.5;
+  q('[data-fx=type]').forEach(el => { el.dataset.full = el.textContent; });
+  const typeDur = el => el.dataset.full.length / TYPE_CPS;
   window.__motdDur = d => { D = d; };
   window.__motdEnd = () => {
     let end = 0.6;
-    q('[data-in]').forEach(el => { end = Math.max(end, parseFloat(el.dataset.in) + 0.55); });
+    q('[data-in]').forEach(el => { end = Math.max(end, parseFloat(el.dataset.in) + (el.dataset.fx === 'type' ? typeDur(el) : 0) + 0.55); });
     q('[data-count]').forEach(el => { end = Math.max(end, parseFloat(el.dataset.in || 0) + parseFloat(el.dataset.cd || 1) + 0.1); });
+    if (q('[data-flash]').length) end = Math.max(end, 1.0);
+    if (q('[data-cam]').length) end = Math.max(end, CAM_S);  // the push-in settles after CAM_S (render cost)
     return Math.min(end, D);
   };
   window.__motd = function(t){
     q('[data-in]').forEach(el => {
-      const p = ease((t - parseFloat(el.dataset.in)) / 0.45), fx = el.dataset.fx || 'up';
-      el.style.opacity = fx === 'slam' ? Math.min(1, p * 2) : p;
+      const t0 = parseFloat(el.dataset.in), fx = el.dataset.fx || 'up', p = ease((t - t0) / 0.45);
+      if (fx === 'type') {
+        const full = el.dataset.full, k = Math.max(0, Math.min(1, (t - t0) / typeDur(el)));
+        el.style.opacity = t >= t0 ? 1 : 0;
+        // keep the line's final layout: typed part visible, the rest transparent
+        el.innerHTML = '';
+        const a = document.createElement('span'); a.textContent = full.slice(0, Math.round(full.length * k));
+        const b = document.createElement('span'); b.textContent = full.slice(Math.round(full.length * k)); b.style.opacity = 0;
+        el.append(a, b);
+        return;
+      }
+      el.style.opacity = fx === 'slam' ? Math.min(1, p * 2) : fx === 'wipe' ? (t >= t0 ? 1 : 0) : p;
+      el.style.clipPath = fx === 'wipe' && p < 1 ? `inset(0 ${100 * (1 - p)}% 0 0)` : '';
       el.style.transform = p >= 1 ? '' : fx === 'slam' ? `scale(${1.25 - 0.25 * p})` :
-        fx === 'pop' ? `scale(${0.6 + 0.4 * p})` : fx === 'fade' ? '' : `translateY(${40 * (1 - p)}px)`;
+        fx === 'pop' ? `scale(${0.6 + 0.4 * p})` : (fx === 'fade' || fx === 'wipe') ? '' :
+        fx === 'from-left' ? `translateX(${-700 * (1 - p)}px)` : fx === 'from-right' ? `translateX(${700 * (1 - p)}px)` :
+        fx === 'drop' ? `translateY(${-500 * (1 - p)}px) rotate(${-4 * (1 - p)}deg)` : `translateY(${40 * (1 - p)}px)`;
+    });
+    // losers fall: tip over, sink and grey out
+    q('[data-fall]').forEach(el => {
+      const p = ease((t - parseFloat(el.dataset.fall)) / 0.6);
+      if (p <= 0) return;
+      el.style.transform = `translateY(${24 * p}px) rotate(${-9 * p}deg)`;
+      el.style.filter = `grayscale(${p}) brightness(${1 - 0.45 * p})`;
+    });
+    q('[data-meter]').forEach(el => {
+      const p = ease((t - parseFloat(el.dataset.in || 0)) / 1.0);
+      el.style.width = `${parseFloat(el.dataset.meter) * Math.max(0, p)}%`;
+    });
+    // camera: a slow push-in on every scene; the twist gets a fast zoom after its hard cut
+    q('[data-cam]').forEach(el => {
+      if (el.dataset.cam === 'zoom') {
+        const p = ease((t - 0.3) / 1.2);
+        el.style.transform = `scale(${1 + 0.08 * Math.max(0, p)})`;
+      } else {
+        el.style.transform = `scale(${1 + 0.035 * ease(Math.min(1, Math.max(0, t / CAM_S)))})`;
+      }
+    });
+    q('[data-trans]').forEach(el => {
+      const kind = el.dataset.trans, p = ease(t / (kind === 'flash' ? 0.25 : 0.5));
+      const main = document.querySelector('.main');
+      el.style.display = p >= 1 ? 'none' : '';
+      if (kind === 'iris') { el.style.opacity = 1 - p; main.style.clipPath = p < 1 ? `circle(${p * 120}% at 50% 45%)` : ''; }
+      else if (kind === 'wipe') { el.style.clipPath = `inset(0 0 0 ${p * 100}%)`; }
+      else if (kind === 'flash') { el.style.background = '#fff'; el.style.opacity = 1 - p; }
+      else { el.style.opacity = 1 - p; }
+    });
+    q('[data-flash]').forEach(el => {
+      const at = 0.3; // the twist lands: white flash, then a short shake
+      el.style.opacity = t < at ? 0 : Math.max(0, 1 - (t - at) / 0.35);
+      const main = document.querySelector('.main'), s = t - at - 0.1;
+      if (s > 0 && s < 0.45) main.style.transform += ` translateX(${Math.round(14 * Math.sin(s * 60) * (1 - s / 0.45))}px)`;
     });
     q('[data-count]').forEach(el => {
       const k = ease((t - parseFloat(el.dataset.in || 0)) / parseFloat(el.dataset.cd || 1));
@@ -162,12 +219,46 @@ def round_banner(r: dict | None) -> str | None:
     return None
 
 
-def model_line(agent: str | None) -> str:
-    """'Fable 5.1 · max' for one agent (its name is already big on the card); the shared line otherwise."""
-    if agent in AGENT_MODELS:
-        _, name, effort = AGENT_MODELS[agent]
-        name = name.removeprefix(AGENT_NAMES.get(agent, "") + " ")  # "Claude Fable 5.1" -> "Fable 5.1"
-        return f"{name} · {effort}"
+def _norm_id(m: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", (m or "").lower())
+
+
+def played_model(agent: str | None, reported: str | None) -> tuple[str, str | None] | None:
+    """(display name, reasoning setting or None) of the model a run REPORTED, not today's config: a round played
+    on GPT-6 Luna stays GPT-6 Luna after the switch to Astra. The setting is only known (from config) when the
+    reported model is the configured one; '(High)'-style suffixes (agy) carry their own. None if not recorded."""
+    if not reported:
+        return None
+    cfg = AGENT_MODELS.get(agent or "")
+    m = re.match(r"^(.*?)\s*\((\w+)\)\s*$", reported)
+    if m:  # 'Gemini 3.1 Pro (High)'
+        return m.group(1), m.group(2).lower()
+    n = _norm_id(reported)
+    if cfg and (n in (_norm_id(cfg[0]), _norm_id(cfg[1]))
+                or re.fullmatch(re.escape(_norm_id(cfg[0])) + r"(build|latest|stable)?", n)):  # 'grok-4.7-build'
+        return cfg[1], cfg[2]
+    if " " in reported:
+        return reported, None
+    words = []
+    for w in reported.split("-"):
+        words.append(w.upper() if w in ("gpt", "o") else w.capitalize())
+    name = " ".join(words)
+    name = re.sub(r"(GPT) (\d)", r"\1-\2", name)                 # 'GPT 6 Luna' -> 'GPT-6 Luna'
+    name = re.sub(r"(\d) (\d)(?=\b)", r"\1.\2", name)            # 'Fable 5 1' -> 'Fable 5.1'
+    return name, None
+
+
+def model_line(agent: str | None, reported: str | None = None, short: bool = True) -> str:
+    """'Fable 5.1 · max' for one agent (its name is already big on the card); the shared line otherwise. With
+    `reported` (the run's model_reported) the line names the model that round was actually played on."""
+    if reported is not None or agent in AGENT_MODELS:
+        pm = played_model(agent, reported) if reported is not None else (AGENT_MODELS[agent][1], AGENT_MODELS[agent][2])
+        if pm is None:
+            return "model not recorded"
+        name, effort = pm
+        if short:
+            name = name.removeprefix(AGENT_NAMES.get(agent, "") + " ")  # "Claude Fable 5.1" -> "Fable 5.1"
+        return f"{name} · {effort}" if effort else name
     return "frontier models · max"
 
 
@@ -354,9 +445,11 @@ class CardRenderer:
             return sig["agent_labels"][agent]
         return sig.get("multi_label") or self.sig
 
-    def _strip(self, url_path: str, agent: str | None = None) -> dict:
-        """The credibility strip every card carries: model and reasoning, n and significance, methodology, URL."""
-        url, sig, ml = f"{self.host}/{url_path}".rstrip("/"), short_sig(self._sig_for(agent)), model_line(agent)
+    def _strip(self, url_path: str, agent: str | None = None, reported: str | None = None) -> dict:
+        """The credibility strip every card carries: model and reasoning, n and significance, methodology, URL.
+        `reported` = the run's model_reported, so a re-rendered old round names the model it was played on."""
+        url, sig = f"{self.host}/{url_path}".rstrip("/"), short_sig(self._sig_for(agent))
+        ml = model_line(agent, reported) if agent and reported else model_line(agent)
         # one line at 26px holds ~107 condensed characters (with the URL); past that, multi-agent cards drop the model detail
         if agent is None and len(f"{ml} · {sig or ''} · Methodology v{self.s.methodology_version} {url}") > 107:
             ml = None
@@ -366,7 +459,9 @@ class CardRenderer:
     def _ctx(self, rnd: dict, board: list[dict] | None, agent: str | None = None) -> dict:
         return {"r": rnd, "board": board or [], "colors": AGENT_COLORS, "names": AGENT_NAMES, "models": AGENT_MODELS,
                 "site": self.host, "state": card_state(rnd), "banner": round_banner(rnd),
-                **self._strip(f"round/{rnd['round_id']}", agent)}
+                **self._strip(f"round/{rnd['round_id']}", agent,
+                              next((e.get("model_reported") for e in rnd.get("entries") or []
+                                    if e.get("agent") == agent), None) if agent else None)}
 
     async def decision(self, rnd: dict, entry: dict, board: list[dict] | None = None) -> Path:
         row = next((b for b in board or [] if b["agent"] == entry["agent"]), {})
@@ -495,7 +590,6 @@ class CardRenderer:
         frames_dir = out_base.parent / f"{out_base.name}-frames"
         shutil.rmtree(frames_dir, ignore_errors=True)
         frames_dir.mkdir(parents=True, exist_ok=True)
-        tpl = env.get_template("motd.html")
         clip = {"x": 0, "y": 0, "width": width, "height": height}
         n = 0
         async with self._lock:
@@ -504,6 +598,7 @@ class CardRenderer:
         try:
             for i, sc in enumerate(scenes):
                 strip = self._strip(f"round/{sc['round_id']}", sc.get("agent"))
+                tpl = env.get_template("motd_story.html" if sc["kind"].startswith("s_") else "motd.html")
                 html = tpl.render(sc=sc, fmt=fmt, w=width, h=height, idx=i, count=len(scenes),
                                   colors=AGENT_COLORS, names=AGENT_NAMES, **strip,
                                   sig_line=sc.get("sig") or strip["sig"],

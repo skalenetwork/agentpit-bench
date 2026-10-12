@@ -4,6 +4,7 @@ import json
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -24,7 +25,11 @@ def E(agent, outcome, won, price=0.5, conf=0.5, quote=None, pnl=None, decided=60
             "avg_price": price if outcome else None, "confidence": conf if outcome else None, "quote": quote,
             "pnl": pnl if pnl is not None else ((100 / price - 100) if won else -100.0) if outcome else None,
             "decided_s": decided if outcome else None, "statement": statement, "exit_reason": exit_reason,
-            "stake_filled": 100 if outcome else 0}
+            "stake_filled": 100 if outcome else 0, "model_reported": PLAYED.get(agent)}
+
+
+# the model each agent reported in these rounds: ChatGPT on GPT-6 Luna, though config now names GPT-6 Astra
+PLAYED = {"claude": "claude-fable-5-1", "codex": "gpt-6-luna", "agy": "Gemini 3.1 Pro (High)", "grok": "grok-4.7"}
 
 
 def R(rid, entries, winner="A", resolved_at=IN_WINDOW, exhibition=False, humans=None, collected=1, **kw):
@@ -268,6 +273,29 @@ async def test_daily_quiet_hour_idempotent_and_outbox(env, monkeypatch):
     assert link["reply_to"] == out["tweet_id"] and "/round/1/" in link["text"]
 
 
+async def test_cli_motd_post_posts_a_rendered_film_once(env, monkeypatch, tmp_path):
+    """`agentpitbench motd post --film DIR`: the production post path for an already-rendered film (dry-run here
+    goes to the outbox), the template X text, the round link as a self-reply, once per date; the daily job then
+    sees the date as done."""
+    from agentpitbench import cli
+    s, db = env
+    film = tmp_path / "film"
+    film.mkdir()
+    (film / f"motd-{DAY}-tall.mp4").write_bytes(b"\0")
+    (film / "film.json").write_text(json.dumps({
+        "date": DAY, "round_id": 9, "hook": "All rise.", "post_hook": "Gemini took No at 84.5¢.",
+        "files": {"tall": f"motd-{DAY}-tall.mp4"}}))
+    monkeypatch.setattr(cli, "make_publisher", lambda s_, db_: SimpleNamespace(poster=Poster(s_, db_)))
+    monkeypatch.setattr(cli, "DB", lambda path: db)
+    tid = await cli.motd_post(s, str(film))
+    assert tid and db.get(f"motd_{DAY}") == "done"
+    out = json.loads((s.outbox_dir / f"motd-{DAY}.json").read_text())
+    assert out["text"] == "Gemini took No at 84.5¢. Match of the Day #AgentpitBench"  # template, not the AI's hook
+    assert json.loads((s.outbox_dir / f"motd-{DAY}-link.json").read_text())["reply_to"] == tid
+    assert await cli.motd_post(s, str(film)) == tid  # idempotent: same post_key, no second post
+    assert db.one("SELECT COUNT(*) n FROM tweets WHERE post_key=?", f"motd-{DAY}")["n"] == 1
+
+
 async def test_posting_paused_records_nothing(env, monkeypatch):
     """posting_paused goes through the pause path (ai-automation spec §10): no dry- id, no tweets row."""
     s, db = env
@@ -311,7 +339,11 @@ async def test_render_both_formats_smoke(env):
     tall, wide = media.probe(out / rec["files"]["tall"]), media.probe(out / rec["files"]["wide"])
     assert tall["video"] == "1080x1920" and wide["video"] == "1920x1080"
     assert tall["audio"] and wide["audio"] and tall["duration"] > 1
-    assert json.loads((out / "film.json").read_text())["hook"] == "3 AIs said CYBERSHOKE. Claude said Nexus."
+    film = json.loads((out / "film.json").read_text())
+    # the writer is unavailable in tests: the templated film, X text from the template, hook = the question
+    assert film["scripted"] is False and film["narrated"] is False
+    assert film["post_hook"] == "3 AIs said CYBERSHOKE. Claude said Nexus."
+    assert len(film["hook"]) <= motd.HOOK_MAX and film["title_line"].endswith("Match of the Day")
     assert [f["round_id"] for f in motd.films(s)] == [rid]
     from agentpitbench import site
     built = site.build(s)

@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 # task -> active prompt version (prompts/<task>.v<N>.md). `rate` is methodology: its version comes from
 # methodology.json (selection.rater.prompt_version), never from here.
 PROMPTS = {"rate": 1, "picks": 1, "summary": 1, "report": 1, "incident": 1, "cadence": 1, "i18n": 1,
-           "proposal": 1, "translate": 1, "ab": 1}
+           "proposal": 1, "translate": 1, "ab": 1, "motd_script": 1}
 SYSTEM_PROMPT = "system.v1.md"
 LIGHT_TASKS = {"picks"}
 CHILD_PATH = "/usr/local/bin:/usr/bin:/bin"
@@ -127,7 +127,13 @@ SCHEMAS: dict[str, dict | Callable[[dict], dict]] = {
     # A/B challenger templates (ab-testing-spec.md §6): {slot: [{"situations": {...}} | {"text": "..."}]};
     # ab.validate checks each candidate
     "ab": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "object"}}},
+    "motd_script": lambda payload: _motd_schema(),
 }
+
+
+def _motd_schema() -> dict:
+    from .motd_story import SCHEMA  # Match of the Day v0.5: the film script (scenes with typed slots)
+    return SCHEMA
 
 
 def schema_for(task: str, payload: dict) -> dict:
@@ -295,6 +301,9 @@ def model_for(s: Settings, task: str) -> str:
             return s.opai_model
     if task == "ab":
         return getattr(s, "ab_gen_model", s.opai_model)
+    per_task = getattr(s, f"opai_model_{task}", None)  # e.g. opai_model_motd_script = "fable"
+    if per_task:
+        return per_task
     return s.opai_model_light if task in LIGHT_TASKS else s.opai_model
 
 
@@ -353,7 +362,8 @@ def call(s: Settings, db: DB, task: str, payload: dict, *, subject: str,
                        "prompt_sha,input_sha,status) VALUES(?,?,?,?,?,?,?,?,?,'running')",
                        task, subject, utc_day(start), start, alias, task, version, sha(ptext), sha(stdin))
         timeout = timeout or {"translate": s.opai_translate_timeout_s,
-                              "ab": getattr(s, "ab_gen_timeout_s", s.opai_timeout_s)}.get(task, s.opai_timeout_s)
+                              "ab": getattr(s, "ab_gen_timeout_s", s.opai_timeout_s),
+                              "motd_script": getattr(s, "opai_motd_timeout_s", 360)}.get(task, s.opai_timeout_s)
         status, detail, data, model = _run(s, db, task, schema, stdin, alias, config_dir, timeout)
         if status == "ok":
             err = check(data, schema) or (validate(data) if validate else None)
