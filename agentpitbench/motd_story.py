@@ -21,7 +21,7 @@ from .config import AGENT_NAMES
 
 TASK = "motd_script"
 PROMPT_VERSION = "motd_script.v1"
-RECENT_FILMS = 4          # concept and twist types of this many recent films are avoided
+RECENT_FILMS = 8          # concept and twist types of this many recent films are avoided (5 films a day)
 CPS = 15.0                # caption reading speed, characters per second (readable on a phone)
 MIN_S, MAX_S = 45.0, 60.0
 

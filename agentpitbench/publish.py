@@ -91,6 +91,28 @@ class BenchPublisher:
             log.warning("%s: video post failed, posting the still card", key)
         return await self.poster.post(key, kind, text, image, round_id=round_id, quote_of=thread)
 
+    async def _round_film(self, round_id: int) -> Path | None:
+        """Match of the Day v0.6: the round's square film for its results post (same post, same text; it replaces
+        the plain clip). None when films are off, the round isn't eligible, or it isn't ready within
+        motd_round_deadline_s: then the results go out with the plain clip and the film is never posted alone."""
+        s = self.s
+        if not (s.motd_enabled and s.motd_per_round and s.animate):
+            return None
+        from . import motd
+        try:
+            rec = await asyncio.wait_for(motd.round_film(s, self.db, self.cards, round_id),
+                                         timeout=s.motd_round_deadline_s)
+        except asyncio.TimeoutError:
+            log.warning("round %s: film not ready within %ss; results go out with the plain clip", round_id,
+                        s.motd_round_deadline_s)
+            return None
+        except Exception:
+            log.exception("round %s: film failed; results go out with the plain clip", round_id)
+            return None
+        f = (rec or {}).get("files", {}).get("square")
+        path = motd.round_film_dir(s, round_id) / f if f else None
+        return path if path and path.is_file() else None
+
     async def _clip(self, coro) -> Path | None:
         """An animated card, or None (static card instead) when animation is off or rendering fails."""
         if not self.s.animate:
@@ -266,8 +288,10 @@ class BenchPublisher:
                                                   variant=variant))
         video = None
         if media_key != "still":
-            video = await self._clip(self.cards.results_clip(rnd, board, crowd, cast=cast,
-                                                             top_humans=lb["humans"][:3], variant=variant))
+            video = await self._round_film(round_id)  # v0.6: the round's scripted square film, if ready in time
+            if video is None:
+                video = await self._clip(self.cards.results_clip(rnd, board, crowd, cast=cast,
+                                                                 top_humans=lb["humans"][:3], variant=variant))
         link = (f"{self.round_url(round_id)}?utm_source=x&utm_medium=social&utm_campaign=results"
                 f"&utm_content={variant}")
         def render(v):
