@@ -253,22 +253,25 @@ async def test_daily_quiet_hour_idempotent_and_outbox(env, monkeypatch):
     t17 = datetime(2026, 10, 12, 17, 5, tzinfo=timezone.utc).timestamp()
     calls = []
 
-    async def fake_film(s_, db_, cards, day, **kw):
-        calls.append(day)
+    async def fake_film(s_, db_, cards, day, formats=("square", "tall", "wide"), **kw):
+        calls.append((day, tuple(formats)))
         out = motd.film_dir(s_, day)
         out.mkdir(parents=True, exist_ok=True)
-        (out / f"motd-{day}-tall.mp4").write_bytes(b"\0")
-        return {"date": day, "round_id": 1, "hook": "3 AIs said A. Claude said B.", "files": {"tall": f"motd-{day}-tall.mp4"}}
+        for f in formats:
+            (out / f"motd-{day}-{f}.mp4").write_bytes(b"\0")
+        return {"date": day, "round_id": 1, "hook": "3 AIs said A. Claude said B.",
+                "files": {f: f"motd-{day}-{f}.mp4" for f in formats}}
 
     monkeypatch.setattr(motd, "make_film", fake_film)
     poster = Poster(s, db)
     assert await motd.daily(s, db, None, poster, now=t17 - 3600) is None and calls == []  # before 17:00
     rec = await motd.daily(s, db, None, poster, now=t17)
-    assert rec and calls == [DAY] and db.get(f"motd_{DAY}") == "done"
-    assert await motd.daily(s, db, None, poster, now=t17 + 3600) is None and calls == [DAY]  # once per date
+    # the X square first, posted; then 9:16 and 16:9 for YouTube and the site
+    assert rec and calls == [(DAY, ("square",)), (DAY, ("tall", "wide"))] and db.get(f"motd_{DAY}") == "done"
+    assert await motd.daily(s, db, None, poster, now=t17 + 3600) is None and len(calls) == 2  # once per date
     out = json.loads((s.outbox_dir / f"motd-{DAY}.json").read_text())
     assert out["text"].startswith("3 AIs said A. Claude said B.") and "http" not in out["text"]
-    assert out["image"].endswith("-tall.mp4")
+    assert out["image"].endswith("-square.mp4")  # X gets the square film
     link = json.loads((s.outbox_dir / f"motd-{DAY}-link.json").read_text())
     assert link["reply_to"] == out["tweet_id"] and "/round/1/" in link["text"]
 

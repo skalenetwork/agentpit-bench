@@ -1,0 +1,19 @@
+# Nightly ops agent (docs/ai-automation-spec.md §11). NOT the bench service.
+# Install with `agentpitbench ops install-timer` (copies these two files only), then enable it yourself:
+#   systemctl --user daemon-reload && systemctl --user enable --now agentpitbench-ops.timer
+# The runner reads the bench's bench.toml and var/ (trusted side: snapshot, var/ops/, var/proposals/, alerts);
+# the agent itself only ever sees a fresh clone under ~/.cache/agentpitbench/ops/, never this worktree.
+# Off unless ops_agent_enabled = true in bench.toml.
+[Unit]
+Description=AgentpitBench nightly ops agent (PRs only)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/d/PythonProject/agentpitbench-live
+Environment=PATH=/home/kladko/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/d/PythonProject/agentpitbench/.venv/bin/python -m agentpitbench.cli ops nightly
+TimeoutStartSec=3h
+Nice=10

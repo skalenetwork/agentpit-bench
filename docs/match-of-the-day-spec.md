@@ -31,6 +31,14 @@ database, verbatim or computed by code.
 | Staging by real picks (who stands on which side, who falls) | Optional stage hint for the cold open and misdirect |
 | The model each AI played on (from that round's `runs.model_reported`) | Nothing about models: it may not name one |
 
+### Formats (operator, 2026-10-12)
+Three renders of the same scene list, script and soundtrack (ElevenLabs is called once per film): **square 1:1
+(1080×1080) is the X post** (an X post carries one video, and 9:16 shows as a narrow strip on desktop; the square
+layout is stacked and dense so cards, subtitles and the credibility strip read at ~500 px in a desktop feed),
+**9:16** for YouTube Shorts, **16:9** for the site's /films/ page. The daily job renders the square first, posts
+it, then renders 9:16 and 16:9 (film.json is merged). `agentpitbench motd post --film DIR` posts an
+already-rendered film the same way (square if present, else 9:16), once per date.
+
 ### Twists (`agentpitbench/twists.py`)
 Pure detectors over (round, history, transcripts). Each returns `{type, surprise, agents, fact, setup}`. `fact` is
 the on-screen line written by code with numbers from data; `setup` tells the misdirect what expectation to plant.
@@ -115,32 +123,48 @@ sweep window. Model: `opai_model_motd_script` = "fable"; timeout `opai_motd_time
 guards, Match of the Day **never calls the writer while any round has `state='running'`** (sealed picks; the Claude
 contestant shares the quota) and calls `opai.sealed_guard` for the filmed round. The film only uses the writer when
 `opai_enabled` is on and `motd_script` is in `opai_tasks` (default list includes it); otherwise it is the templated
-film. Every answer, accepted or rejected, is tagged in `operator_ai_outputs` (model, `motd_script.v1`, timestamp,
+film. **Warm-up:** before `motd_hour_utc`, the hourly hook writes and stores the day's script in the first hour
+with no round running and opai available (at most 2 writer attempts a day, kv `motd_warm_<date>`), so the 17:00 render
+reuses it even if a round is running then. Every answer, accepted or rejected, is tagged in `operator_ai_outputs` (model, `motd_script.v1`, timestamp,
 `call_id`, `subject='round:N'`, `public=0`; set to 1 when the film is posted is later work); the accepted row also
 carries the chosen `_twist`. A re-render of the same round reuses its newest accepted script with the same twist if
 it still passes the validator (no new call). Typical call: 1.5–3 minutes.
 
 ### Narrator, score, sting (`agentpitbench/sound.py`)
-- **Narrator:** ElevenLabs text-to-speech, model `eleven_v4`, one stock voice per concept, hard-coded (the key can't
-  list voices): noir Brian, nature_doc George, heist Eric, courtroom Daniel, broadcast Liam, countdown Callum,
+- **Narrator:** ElevenLabs text-to-speech, model `eleven_v4`, one stock voice per concept, hard-coded: noir Brian, nature_doc George, heist Eric, courtroom Daniel, broadcast Liam, countdown Callum,
   mockumentary Jessica, western Clyde, mission_control Roger; fallback George. A v4 audio tag per concept sets the
   delivery (e.g. `[hushed, reverent]`); tags are not spoken (checked with speech-to-text). Each line is spoken from
   the same slot values as its caption. A scene lasts at least 0.3 s + its line + 0.45 s; if the lines alone pass
   60 s they are sped up (atempo, ≤ 1.12×), then visual holds are trimmed; if it still doesn't fit, the film drops the
   voice and keeps captions (60 s is a hard cap). Captions stay on for silent viewing.
-- **Score:** ElevenLabs Music (`music_v1`, instrumental, 62 s) from a per-concept prompt; a library of 2 variants
-  per concept, generated once and rotated by round id, so the whole library is at most 18 generations. Fallback: the
-  procedural CC0 bed. The score is ducked under the narrator (sidechain compression), faded in 0.5 s and out 2 s.
+- **Voice choice:** `motd_voice_overrides` (concept → voice id) wins; else the hard-coded voice, unless the key's
+  voice list (needs voices_read; cached a day in `audio_cache/voices.json`, a failed lookup cached too) no longer has
+  it, then the listed voice whose labels best match the concept's traits (`sound.TRAITS`). Without the list, the
+  hard-coded voice.
+- **Local narrator (fallback):** Piper (piper-tts in its own venv, `~/.local/share/agentpitbench/piper/`; voices
+  ryan-high, alan, northern_english_male, lessac-high, joe, amy) with a voice, pace and noise per concept
+  (`sound.PIPER`). Used when there's no ElevenLabs key, or when ElevenLabs fails on any line: the whole film is then
+  re-voiced locally (one engine per film, never a mix). Free, offline, ~1.5 s a line. Captions only if neither works.
+  `motd_local_voice = false` turns it off.
+- **Score:** ElevenLabs Music (`music_v1`, instrumental, 62 s) from a per-concept prompt. **One track per concept,
+  generated the first time the concept is used** and reused after that (any cached track for the concept counts),
+  so the library is at most 9 generations, filled gradually. Guard: a new track only if today's music spend plus
+  the estimate (800 credits) stays within `motd_music_daily_credits` (1,500; local ledger `audio_cache/
+  music-ledger.json`) and, when the key may read its balance, the balance after it stays above
+  `motd_narration_reserve_credits` (200). Otherwise the concept's procedural CC0 variation (`music.PRESETS`: its own
+  tempo, harmony, groove and lead: muted horn for noir, whistle for the western, brass for the broadcast, ...;
+  rendered once per concept in ~2 s and cached as `audio_cache/proc-<concept>-v<N>-62s.m4a`), else the committed theme. The score is ducked under the narrator
+  (sidechain compression), faded in 0.5 s and out 2 s.
 - **Sting:** one ElevenLabs Sound Effect per concept (gavel, vault door, ricochet, crowd roar...) at the twist's
   flash. Fallback: none.
 - **Cache:** every clip is cached under `var/audio_cache/` by a hash of engine, model, voice, settings and text (or
   prompt), so re-renders never re-bill. film.json `audio` records voice id, model, settings, characters and the
   credits the API reported (`character-cost`).
-- **Budget:** about 470 narrated characters a film. Measured on the first film: 89 credits for 586 characters of v4
-  narration (v4 was on a 72% launch discount until 12 October; at list price assume ~1 credit/character, so ≤ 500
-  a film), a 2 s sound effect 20 credits. Music is not metered per call by the API (no cost header): verify on the
-  dashboard after the library is generated. 30 films × ≤ 500 narration credits + the one-off library fits the
-  35,000-credit key cap. `motd_narrator = false` turns the voice off.
+- **Budget:** about 470 narrated characters a film: measured 81-89 credits a film (v4). A 2 s effect costs 20
+  credits. Music is not metered by the API; by balance, one 62 s track cost about 700-800 credits (the first day's
+  four tracks plus narration emptied a key capped at 3,500 credits; narration then failed with quota_exceeded and the
+  film fell back to captions only, as designed). With the key at 35,000: the one-off library (≤ 9 × ~800) plus
+  ~90 a film for narration. `motd_narrator = false` turns the voice off.
 - **Licensing (to verify before the first public film):** ElevenLabs grants a commercial licence on paid plans
   (Starter included) for voice output; ElevenLabs Music on self-serve plans is cleared for commercial online use
   except film, TV and games (third-party summaries; the official terms page moved). No statement about YouTube
@@ -306,7 +330,9 @@ for review without posting.
   picks; the model shown is the round's `model_reported` (GPT-6 Luna stays Luna after the switch to Astra); the opai
   shim refuses while a round is running and inside the sweep window, stores every answer, and a rejected draft is
   followed by a retry; the render smoke test with the writer unavailable produces the templated film. Tests never
-  spawn `claude` or call ElevenLabs (conftest).
+  call ElevenLabs (conftest unsets the key) and never spawn the real `claude` (opai_enabled is off by default; writer
+  tests use the fake_claude fixture). Also: the warm-up stores the script and the 17:00 job reuses it while a round
+  runs; `motd post --film` posts once per date; spoken numbers; voiced scenes stretch and the 60 s cap drops the voice.
 
 ## Assumptions to re-check
 - X autoplays video muted in the feed (true as of 2026-10; the captions-only design depends on it only for reach;

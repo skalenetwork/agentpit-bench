@@ -664,6 +664,9 @@ def digest(s: Settings, db: DB, now: float | None = None) -> dict:
         "reads": spend, "read_alert": spend["usd"] > s.x_read_alert_usd,
         "skipped_for_budget": len(db.get(f"x_metrics_skipped_{yday}", [])),
         "visibility_drop": visibility_drop(db, now), "health": health(db, now),
+        # docs/ai-automation-spec.md §9-§11: the latest cadence decision, open proposals, last ops-agent run
+        "cadence": db.get("cadence_last"), "selection_review": db.get("selection_review_last"),
+        "ops_agent": db.get("ops_last"),
     }
     if s.youtube_enabled:   # docs/youtube-shorts-spec.md §8: the YouTube block
         try:

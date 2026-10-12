@@ -50,14 +50,18 @@ opai_calls_per_day = 250   # raised 2026-10-12 (operator); watch for contestant 
 # Bluesky mirror (docs/bluesky-spec.md): @agentpitbench.org, login by DID from secrets.env
 bluesky_enabled = true
 bluesky_did = "did:plc:djokzafo745ypvzw5ihxghgp"
-[opai_task_budget]         # replaces the code default as a whole; translate raised from 10 for the backfill
+# Telegram channel mirror (docs/telegram-spec.md §7): TELEGRAM_BOT_TOKEN / TELEGRAM_CHANNEL in secrets.env
+telegram_enabled = false
+
+[opai_task_budget]         # overrides only the tasks named here (code defaults for the rest); translate raised for the backfill
 rate = 24
 picks = 12
 summary = 12
 incident = 4
 cadence = 1
 report = 2
-i18n = 40
+i18n = 8               # batched: up to 10 languages per call
 proposal = 1
 ab = 2
-translate = 80
+translate = 80          # 3 calls per round (13 languages each): ~26 rounds/day during the backfill
+motd_script = 3        # daily film script (one + retry + spare)

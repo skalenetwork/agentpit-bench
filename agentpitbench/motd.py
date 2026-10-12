@@ -23,7 +23,7 @@ from .virality import grudge, reasoning_lines
 log = logging.getLogger(__name__)
 
 MUSIC = Path(__file__).parent / "static" / "motd" / "theme.m4a"
-FORMATS = {"tall": (1080, 1920), "wide": (1920, 1080)}
+FORMATS = {"square": (1080, 1080), "tall": (1080, 1920), "wide": (1920, 1080)}  # X, YouTube Shorts, site
 MIN_S, MAX_S = 45.0, 60.0
 
 # signal key -> (points, public label)
@@ -465,7 +465,7 @@ def scripted(s: Settings, db, rnd: dict, rounds: list[dict], lb: dict, site: str
 
 
 async def make_film(s: Settings, db, cards, day: str, round_id: int | None = None, out_dir: Path | None = None,
-                    formats: tuple[str, ...] = ("tall", "wide"), scale: float = 1.0) -> dict | None:
+                    formats: tuple[str, ...] = ("square", "tall", "wide"), scale: float = 1.0) -> dict | None:
     """Pick (or take round_id), script and render the film for `day`. Returns the film record (film.json) or None.
     scale < 1 shortens every scene (tests only)."""
     from . import exports, media
@@ -540,8 +540,16 @@ async def make_film(s: Settings, db, cards, day: str, round_id: int | None = Non
         else:
             silent.replace(final)
         files[fmt] = final.name
+    prev = out / "film.json"  # a second pass (9:16 and 16:9 after the X square) keeps the first pass's files
+    if prev.exists():
+        try:
+            old = json.loads(prev.read_text())
+            if old.get("round_id") == rnd["round_id"]:
+                files = {**(old.get("files") or {}), **files}
+        except (OSError, ValueError):
+            pass
     poster = out / "poster.png"
-    if "wide" in files:
+    if "wide" in files and "wide" in formats:
         await asyncio.to_thread(media.poster_frame, out / files["wide"], poster, sum(x["dur"] for x in scenes) - 1.0)
     rec = {"date": day, "round_id": rnd["round_id"], "question": rnd["question"], "winner": rnd["winner"],
            "hook": film_hook(story, rnd, sc), "post_hook": hook_line(rnd, sc),
@@ -553,7 +561,8 @@ async def make_film(s: Settings, db, cards, day: str, round_id: int | None = Non
            "poster": poster.name if poster.exists() else None,
            "music": (audio.get("score") or {}).get("engine") if track else (MUSIC.name if s.motd_music else None),
            "narrated": bool(audio.get("narrator")), "audio": audio or None,
-           "scenes": [{k: x[k] for k in ("kind", "dur", "agent", "caption", "fact") if x.get(k) is not None}
+           "scenes": [{**{k: x[k] for k in ("kind", "dur", "agent", "caption", "fact") if x.get(k) is not None},
+                       **({"voice": x["voice"]["path"]} if x.get("voice") else {})}
                       for x in scenes], "made_at": time.time()}
     (out / "film.json").write_text(json.dumps(rec, indent=1))
     return rec
@@ -591,8 +600,9 @@ def link_text(s: Settings, rec: dict) -> str:
 
 
 async def post(s: Settings, db, poster, rec: dict, out: Path) -> str | None:
-    """The 9:16 film as a standalone post (hook, no link), then the round link as a self-reply."""
-    video = out / rec["files"].get("tall", "")
+    """The film as a standalone post (hook, no link), then the round link as a self-reply. X gets the SQUARE film
+    (one video per post; 9:16 shows as a narrow strip on desktop); older films without one post the 9:16."""
+    video = out / (rec["files"].get("square") or rec["files"].get("tall", ""))
     if not video.is_file():
         return None
     key = f"motd-{rec['date']}"
@@ -602,10 +612,42 @@ async def post(s: Settings, db, poster, rec: dict, out: Path) -> str | None:
         text = ab.generic_text(db, s, key, "motd", text)   # generic.cta (docs/ab-testing-spec.md section 12)
     except Exception:
         log.exception("A/B for %s failed; posting the control", key)
-    tid = await poster.post(key, "motd", text, video, round_id=rec["round_id"])
+    still = out / "poster.png"   # the mirrors' fallback when the film is over their upload limit or fails
+    tid = await poster.post(key, "motd", text, video, round_id=rec["round_id"],
+                            bsky_fallback=still if still.is_file() else None)
     if tid:
         await poster.post(f"{key}-link", "motd-link", link_text(s, rec), None, reply_to=tid, round_id=rec["round_id"])
     return tid
+
+
+WARM_TRIES = 2
+
+
+async def warm(s: Settings, db, cards, day: str) -> str | None:
+    """Before motd_hour_utc: write and store today's script early, in an hour when no round is running, so the
+    17:00 render reuses it (motd_story.reuse) even if a round is running then. At most WARM_TRIES writer attempts
+    a day; hours with a running round don't count. Returns the kv state."""
+    key = f"motd_warm_{day}"
+    st = db.get(key) or {}
+    if not s.motd_scripted or st.get("state") in ("scripted", "quiet") or st.get("tries", 0) >= WARM_TRIES:
+        return st.get("state")
+    if db.one("SELECT 1 FROM rounds WHERE state='running' LIMIT 1") is not None:
+        return None  # try again next hour
+    from . import exports, opai
+    if not opai.available(s, db, "motd_script")[0]:  # disabled, sweep window, backoff, budget: not a try
+        return None
+    data = exports.export(s, db)
+    rounds = [_round_with_flags(s, db, r) for r in data["rounds"]]
+    chosen = pick(rounds, day, s.motd_min_score, s.motd_exhibition_factor)
+    if not chosen:
+        db.put(key, {"state": "quiet"})
+        return "quiet"
+    story = await asyncio.to_thread(scripted, s, db, chosen["round"], rounds, data["leaderboard"],
+                                    getattr(cards, "host", "agentpitbench.org"))
+    state = "scripted" if story else "failed"
+    db.put(key, {"state": state, "tries": st.get("tries", 0) + 1, "round_id": chosen["round"]["round_id"]})
+    log.info("Match of the Day %s: warm-up %s (round %s)", day, state, chosen["round"]["round_id"])
+    return state
 
 
 async def daily(s: Settings, db, cards, poster, now: float | None = None) -> dict | None:
@@ -615,11 +657,17 @@ async def daily(s: Settings, db, cards, poster, now: float | None = None) -> dic
         return None
     t = datetime.fromtimestamp(now if now is not None else time.time(), timezone.utc)
     day = t.strftime("%Y-%m-%d")
-    if t.hour < s.motd_hour_utc or db.get(f"motd_{day}"):
+    if t.hour < s.motd_hour_utc:
+        try:
+            await warm(s, db, cards, day)
+        except Exception:
+            log.exception("Match of the Day %s: script warm-up failed (the 17:00 job writes or falls back)", day)
+        return None
+    if db.get(f"motd_{day}"):
         return None
     db.put(f"motd_{day}", "started")
     try:
-        rec = await make_film(s, db, cards, day)
+        rec = await make_film(s, db, cards, day, formats=("square",))  # the X film first: post it, then the rest
     except Exception:
         log.exception("Match of the Day %s: render failed; no film today", day)
         db.put(f"motd_{day}", "failed")
@@ -634,6 +682,10 @@ async def daily(s: Settings, db, cards, poster, now: float | None = None) -> dic
         db.put(f"motd_{day}", "post-failed")
         return rec
     db.put(f"motd_{day}", "done")
+    try:  # 9:16 for YouTube Shorts, 16:9 for the site: same script (reused), same cached audio, film.json merged
+        rec = await make_film(s, db, cards, day, round_id=rec["round_id"], formats=("tall", "wide")) or rec
+    except Exception:
+        log.exception("Match of the Day %s: 9:16 / 16:9 render failed (the X post is out)", day)
     return rec
 
 

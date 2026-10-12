@@ -730,17 +730,22 @@ def voice(s, scenes: list[dict], max_new: int | None = None) -> dict:
 
 
 def music_track(s) -> tuple[Path | None, dict]:
-    """The host's bed: the cached library track of HOST_MUSIC if it already exists (never generated here), else the
-    procedural CC0 bed."""
-    from . import sound
+    """The host's bed: a cached library track of HOST_MUSIC if one already exists (never generated here), else that
+    concept's procedural CC0 score (music.concept_bed, cached), else the committed CC0 theme."""
     from .motd import MUSIC
-    prompt = sound.MUSIC.get(HOST_MUSIC)
-    for variant in range(sound.MUSIC_VARIANTS):
-        rec = {"engine": "elevenlabs-music", "model": sound.MUSIC_MODEL, "prompt": prompt, "variant": variant,
-               "length_ms": sound.MUSIC_LEN_S * 1000}
-        p = Path(s.data_dir) / "audio_cache" / f"music-{HOST_MUSIC}-{sound._hash(rec)}.mp3"
-        if p.exists() and p.stat().st_size > 0:
-            return p, rec
+    cache = Path(s.data_dir) / "audio_cache"
+    cached = sorted((x for x in cache.glob(f"music-{HOST_MUSIC}-*.mp3") if x.stat().st_size > 0),
+                    key=lambda x: x.stat().st_mtime) if cache.exists() else []
+    if cached:
+        return cached[0], {"engine": "elevenlabs-music", "cached_file": cached[0].name}
+    try:
+        from .music import concept_bed
+        cache.mkdir(parents=True, exist_ok=True)
+        bed = concept_bed(cache, HOST_MUSIC)
+        if bed:
+            return bed, {"engine": "procedural", "concept": HOST_MUSIC}
+    except Exception:
+        log.exception("procedural %s bed failed; the committed theme is used", HOST_MUSIC)
     return (MUSIC, {"engine": "procedural", "file": MUSIC.name}) if MUSIC.exists() else (None, {})
 
 

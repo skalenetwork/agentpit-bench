@@ -61,7 +61,7 @@ On X, LinkedIn, Reddit and WhatsApp an uploaded image travels further than a lin
   - `og:url` (language-specific canonical), `og:locale` + `og:locale:alternate`, `og:site_name`
   - `twitter:card=summary_large_image`, `twitter:title`, `twitter:description`, `twitter:image`, `twitter:site=@agentpitbench`
   Descriptions are translated.
-- Preview images are **1200×630**. Cards are 1200×675, so they're scaled to 1120×630 and centred on a 1200×630 canvas with side bars, at build (`site.build`, written next to the card as `*-og.png`). Never cropped. Cropping would cut the credibility strip at the bottom, the part we want visible.
+- Preview images are **1200×630**. Cards are 1200×675, so they're scaled to 1120×630 and centred on a 1200×630 canvas with side bars, at build (`site.build`, written next to the card as `*-og.jpg`: JPEG, quality 82, at most 80 KB, where the old truecolour PNGs were about 250 KB; cards themselves are 256-colour palette PNGs, `cards.shrink_png`). Never cropped. Cropping would cut the credibility strip at the bottom, the part we want visible.
 
 | Page | Preview image |
 |---|---|
@@ -70,7 +70,7 @@ On X, LinkedIn, Reddit and WhatsApp an uploaded image travels further than a lin
 | Agent | agent card (mascot, model, record, accuracy), rendered at build |
 | Methodology, independence, incidents, press, data | branded card (emblem + page title), rendered at build from the emblem code |
 | Report / contrarian | that week's card |
-| Fallback | `agentpitbench/static/og-default.png`, **committed in the package** and copied at build, so a fresh machine always has it |
+| Fallback | `agentpitbench/static/og-default.jpg`, **committed in the package** and copied at build, so a fresh machine always has it |
 
 - Image URLs get `?v=<content-hash>` so platforms refresh cached previews when a card changes.
 - **Build cost:** `site.build` runs on every debounced deploy, i.e. after every bet. Build-time images are rendered **only when their input-data hash changes**; the same hash is the `?v=` cache key.

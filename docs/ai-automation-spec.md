@@ -156,9 +156,10 @@ def sealed_guard(db: DB, round_id: int) -> None                     # raises Sea
   | `incident` | 4 |
   | `cadence` | 1 |
   | `report` | 2 |
-  | `i18n` | 40 (one call per site language) |
+  | `i18n` | 8 (one call per 10 languages: a new id in all 39 is 4 calls, so two fills a day) |
   | `proposal` | 1 |
   | `ab` (A/B generator, once moved behind opai) | 2 |
+  | `translate` (market questions and outcomes, `market_i18n`) | 15 (3 calls per round, 13 languages each) |
 
   Global `opai_calls_per_day` = 60. Typical use is 20–30.
 - **Concurrency:** one opai call at a time (an `asyncio.Semaphore(1)` in-process; the ops agent is a separate
@@ -170,7 +171,8 @@ def sealed_guard(db: DB, round_id: int) -> None                     # raises Sea
 - **Files:** `agentpitbench/prompts/<task>.v<N>.md`, plus `system.v1.md`. Add `"prompts/*"` to
   `[tool.setuptools.package-data]`.
 - **Registry:** `opai.PROMPTS = {"rate": 1, "picks": 1, "summary": 1, "report": 1, "incident": 1, "cadence": 1,
-  "i18n": 1, "proposal": 1}`, plus a schema per task in `opai.SCHEMAS`.
+  "i18n": 2, "proposal": 1}`, plus a schema per task in `opai.SCHEMAS`. (`i18n.v2` asks for several languages
+  per call; `i18n.v1`, one language per call, stays in the repo for the audit trail.)
 - **Manifest:** `agentpitbench/prompts/MANIFEST.json` maps file → sha256. A test fails if a file's content
   changes without a new version file, so old versions stay in the repo forever. This is the audit trail.
 - **Methodology-bound prompts:** `rate` is methodology. Its active version is read from `methodology.json`
@@ -733,18 +735,28 @@ return (score, _num(m, "volume"), _num(m, "liquidity"), int(m["id"]))
 - **Refactor:** move `message_ids()` from `tests/test_i18n.py` into `i18n.py`. It's extended with
   `methodology.json` changelog texts and `incidents.json`. The test imports it.
 - **`i18n.fill(ids=None, langs=CODES[1:], dry=False) -> dict[lang, int]`:**
-  - for each language, gathers missing ids and makes one `i18n` call per language with up to 150 ids. An id
+  - gathers each language's missing ids and batches them: one `i18n` call covers up to 10 languages and at
+    most 300 (language, id) pairs, with up to 150 ids of one language per call (`i18n_fill.plan`), and gets
+    the translate timeout (`opai_translate_timeout_s`, 300 s). One new id in all 39 languages is 4 calls,
+    not 39. Each language's block of the answer is validated on its own: a language left out or rejected falls
+    back alone (English placeholder for explicit ids, `kv['i18n_retry']`), the other languages of that call are
+    kept. An id
     counts as missing if it's absent, **or if its value equals the English key** (the placeholder that
     `approve`/`incidents publish` write when opai is down), so those are retried. The few ids whose correct
     translation is identical to English (e.g. "95% CI" in some languages, brand names) are listed in
     `i18n.SAME_AS_EN` and skipped;
   - the prompt gives the glossary of fixed terms (agent names, "Brier", "the Crowd", "AgentpitBench" stay
-    untranslated) and the existing table's style samples (10 entries);
+    untranslated) and, per language, the existing table's style samples (5 entries);
   - the validator uses the same checks as `test_table_complete`: non-empty, the same `{fields}`, the same
     `<b>` count;
   - valid entries merge into `agentpitbench/i18n/<lang>.json` (sorted keys, `ensure_ascii=False`, indent 0 as
     today), and stale ids are removed.
-- **"Silently":** no page marking, no review step. Tagging is the `operator_ai_outputs` row per language batch.
+- **"Silently":** no page marking, no review step. Tagging is the `operator_ai_outputs` row per call (one
+  per language batch).
+- **Market texts** (`market_i18n`, task `translate`): a round's question and outcome labels are translated in 3
+  calls of about 13 languages each (`market_i18n.LANG_BATCHES`), not one call for all 39, so each call stays
+  inside the 300 s timeout. A failed or rejected batch leaves only its languages English; the next tick retries
+  just those (up to `MAX_TRIES` per round).
 - **Fallback:** missing entries keep the English fallback that `Translator` already provides. `fill` reports
   the shortfall.
 - **Where it runs:**

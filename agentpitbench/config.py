@@ -61,6 +61,12 @@ class Settings:
     opai_model_motd_script: str = "fable"   # claude CLI alias for the film writer (the strongest for creative writing)
     opai_motd_timeout_s: int = 360          # a script call takes 1.5-3 min
     motd_narrator: bool = True        # ElevenLabs narrator when ELEVENLABS_API_KEY is set; false = captions only
+    motd_local_voice: bool = True     # Piper fallback narrator when ElevenLabs is missing or fails (local, free)
+    motd_piper_bin: str = ""          # default ~/.local/share/agentpitbench/piper/venv/bin/piper
+    motd_piper_voices: str = ""       # default ~/.local/share/agentpitbench/piper/voices (*.onnx + .onnx.json)
+    motd_voice_overrides: dict = field(default_factory=dict)  # concept -> ElevenLabs voice id
+    motd_music_daily_credits: int = 1500      # ElevenLabs credits a day for NEW score tracks (cached ones are free)
+    motd_narration_reserve_credits: int = 200  # never let new music drop the key's balance below this
     motd_music: bool = True           # the CC0 music bed (static/motd/theme.m4a); false = silent films
     # Week in the Pit (docs/week-in-the-pit-spec.md): the ~5-minute narrated weekly episode, Sundays. Off until the
     # first episode is reviewed; gates the writer, the render and every post and upload.
@@ -117,6 +123,10 @@ class Settings:
     bluesky_pds_url: str = "https://bsky.social"
     bluesky_did: str = ""
     bluesky_vendor_handles: dict = field(default_factory=dict)   # agent -> verified official Bluesky handle only
+    # Telegram (docs/telegram-spec.md): mirror the X posts to a public channel. Secrets TELEGRAM_BOT_TOKEN /
+    # TELEGRAM_CHANNEL (@agentpitbench or the -100... id) in secrets.env.
+    telegram_enabled: bool = False
+    telegram_api_url: str = "https://api.telegram.org"
     # automated A/B testing (docs/ab-testing-spec.md): wording and presentation only, never facts
     ab_gen_enabled: bool = False         # gates arm creation only; posting always goes through ab.choose
     ab_max_arms: int = 3
@@ -157,12 +167,13 @@ class Settings:
     opai_model_light: str = "haiku"     # picks
     opai_ops_model: str = "opus"
     opai_timeout_s: int = 120
-    opai_translate_timeout_s: int = 300  # one translate call covers every site language
+    opai_translate_timeout_s: int = 300  # a translate call (13 languages) or a batched i18n call (10)
     opai_calls_per_day: int = 60
-    # i18n: fill makes one call per non-English site language (39), so a new id fits in one day
+    # i18n: fill batches 10 languages per call, so a new id in all 39 is 4 calls (two fills a day);
+    # translate: 3 calls per round (13 languages each), about 5 rounds a day
     opai_task_budget: dict = field(default_factory=lambda: {
-        "rate": 24, "picks": 12, "summary": 12, "incident": 4, "cadence": 1, "report": 2, "i18n": 40,
-        "proposal": 1, "ab": 2, "translate": 10, "motd_script": 3,   # motd: one film a day, one retry, one spare
+        "rate": 24, "picks": 12, "summary": 12, "incident": 4, "cadence": 1, "report": 2, "i18n": 8,
+        "proposal": 1, "ab": 2, "translate": 15, "motd_script": 3,   # motd: one film a day, one retry, one spare
         "weekly_episode": 1})  # Week in the Pit: one call a week (also capped per ISO week in week.py)
     opai_backoff_s: int = 21600
     opai_sweep_guard_min: int = 30
@@ -170,6 +181,25 @@ class Settings:
     opai_pick_threshold: float = 0.80
     anomaly_posts_per_hour: int = 20
     selection_scoring: str = "keyword"  # from methodology.json (keyword / model); never set in bench.toml
+    # §9 cadence policy: the daily 07:00 UTC decision. Off = config values only. On: shadow until a week of
+    # 24 h X snapshots exists, then a recommendation in the digest; applied (one knob a day, within
+    # policy.BOUNDS) only with cadence_apply. Also needs "cadence" in opai_tasks.
+    cadence_enabled: bool = False
+    cadence_apply: bool = False
+    # §5.3 selection review: Sunday 19:00 UTC, drafts at most one methodology proposal into var/proposals/
+    # (never applied; `method approve` is the only path). Also needs "proposal" in opai_tasks.
+    selection_review_enabled: bool = False
+    # §11 nightly ops agent (`agentpitbench ops nightly`, run by the agentpitbench-ops.timer): PRs only
+    ops_agent_enabled: bool = False
+    opai_ops_timeout_s: int = 1200
+    ops_repo: str = ""                  # local repo the agent's checkout is cloned from; "" = this package's repo
+    ops_github_repo: str = "skalenetwork/agentpit-bench"
+    ops_max_diff_lines: int = 400
+
+    def policy(self, db, key: str):
+        """A cadence knob (docs/ai-automation-spec.md §9): the applied kv policy, else this config's value."""
+        from . import policy
+        return policy.get(self, db, key)
 
     @property
     def db_path(self) -> Path:
@@ -232,8 +262,7 @@ def load(path: str | Path = "bench.toml") -> Settings:
         data["data_dir"] = Path(data["data_dir"])
     if "x_read_prices" in data:  # a partial [x_read_prices] table overrides only the prices it names
         data["x_read_prices"] = {**Settings().x_read_prices, **data["x_read_prices"]}
-    if "opai_task_budget" in data:  # a partial [opai_task_budget] table overrides only the tasks it names, so a
-        # task added in code (motd_script, weekly_episode) is not silently budgeted at 0 by an older bench.toml
+    if "opai_task_budget" in data:  # a partial [opai_task_budget] table overrides only the tasks it names
         data["opai_task_budget"] = {**Settings().opai_task_budget, **data["opai_task_budget"]}
     if "youtube_unit_costs" in data:
         data["youtube_unit_costs"] = {**Settings().youtube_unit_costs, **data["youtube_unit_costs"]}

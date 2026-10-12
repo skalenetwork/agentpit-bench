@@ -144,6 +144,9 @@ class BenchPublisher:
         bsky = getattr(self.poster, "bsky", None)
         if bsky is not None and bsky.enabled:
             await bsky.delete_round(round_id)
+        tg = getattr(self.poster, "tg", None)
+        if tg is not None and tg.enabled:
+            await tg.delete_round(round_id)
         self.db.x("UPDATE bets SET tweet_id=NULL WHERE run_id IN (SELECT run_id FROM runs WHERE round_id=?)", round_id)
         self.db.set_round(round_id, thread_tweet_id=None)
         await self._hide_youtube(round_id)
@@ -301,7 +304,12 @@ class BenchPublisher:
         self.site.request()
 
     async def press_conference(self, round_id: int) -> None:
-        """Losing agents' one-line statements, as one link-free reply (two at most) under the results post."""
+        """Losing agents' one-line statements, as one link-free reply (two at most) under the results post.
+        Optional: the cadence policy (§9) may turn it off (press_max_replies=0) or cap it."""
+        from . import policy
+        if not policy.allows(self.s, self.db, "press"):
+            return
+        max_replies = self.s.policy(self.db, "press_max_replies")
         rnd = next(r for r in exports.export(self.s, self.db)["rounds"] if r["round_id"] == round_id)
         statements = await press.collect(self.s, self.db, rnd)
         results_id = self.db.round(round_id)["results_tweet_id"]
@@ -312,17 +320,17 @@ class BenchPublisher:
             head = ab.choose(self.db, self.s, "press.head", key, kind="press") if statements else None
             if head and not head.is_control and head.text:
                 def first(v):
-                    return press.texts(statements, max_replies=self.s.press_max_replies,
+                    return press.texts(statements, max_replies=max_replies,
                                        head=v.get("press.head", ab.CONTROL_TEXT["press.head"]))[0]
                 if ab.finish(self.db, key, [head], first, "press") != first({}):
                     h = head.text
             elif head and statements:
                 ab.realize(self.db, key, "press.head", head.arm_id,
-                           press.texts(statements, max_replies=self.s.press_max_replies)[0])
+                           press.texts(statements, max_replies=max_replies)[0])
         except Exception:
             log.exception("A/B for %s failed; posting the control", key)
             h = ab.CONTROL_TEXT["press.head"]
-        texts = press.texts(statements, max_replies=self.s.press_max_replies, head=h)
+        texts = press.texts(statements, max_replies=max_replies, head=h)
         async with self._lock(round_id):
             for i, text in enumerate(texts, 1):
                 reply_to = await self.poster.post(f"r{round_id}-press-{i}", "press", text, None,

@@ -81,6 +81,13 @@ CREATE TABLE IF NOT EXISTS bsky_posts (   -- Bluesky mirror of a tweets row (sam
     kind TEXT, round_id INTEGER, text TEXT, posted_at REAL,
     deleted INTEGER NOT NULL DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS tg_posts (     -- Telegram channel mirror of a tweets row (same post_key); docs/telegram-spec.md
+    post_key TEXT PRIMARY KEY,
+    chat TEXT,
+    message_id TEXT,                       -- the first message (reply target), or dry-<key> from the outbox
+    message_ids TEXT,                      -- JSON list of every message (a media group has one per photo)
+    kind TEXT, round_id INTEGER, text TEXT, posted_at REAL
+);
 CREATE TABLE IF NOT EXISTS bsky_metrics (  -- one row per public read of one Bluesky post (free)
     uri TEXT NOT NULL, taken_at REAL NOT NULL, age_s REAL,
     likes INTEGER, reposts INTEGER, replies INTEGER, quotes INTEGER,

@@ -174,6 +174,8 @@ def results_hook(rnd: dict) -> str:
         return f"Resolved: {w}. {f['winners']} cash; {f['lone']} alone got it wrong."
     if sit == "nobody" or (sit is None and not f["winners"]):   # one bettor, wrong: today's wording
         return f"Resolved: {w}. Nobody had it. 0-{n}."
+    if not f["losers"]:   # one bettor, right (a sweep needs 2+)
+        return f"Resolved: {w}. {f['winners']} bet alone and won. {f['record']}."
     return f"Resolved: {w}. {f['winners']} win, {f['losers']} lose. {f['record']}."
 
 
@@ -322,7 +324,9 @@ class Poster:
         self.oauth2 = OAuth2Token(token_file(), os.environ.get("X_CLIENT_ID", ""),
                                   os.environ.get("X_CLIENT_SECRET", ""), os.environ.get("X_OAUTH2_REFRESH_TOKEN"))
         from .bluesky import Mirror
+        from .telegram import Mirror as TelegramMirror
         self.bsky = Mirror(s, db)
+        self.tg = TelegramMirror(s, db)
 
     @property
     def live(self) -> bool:
@@ -339,9 +343,10 @@ class Poster:
                    bsky_media: Path | None = None) -> str | None:
         """quote_of: tweet id to quote (a standalone post that embeds the round's thread).
         image: one image or video, or a list of up to 4 images shown together (the round's reveal).
-        A successful post is then mirrored to Bluesky (bluesky.Mirror; never raises, never blocks X): alt is
-        per-image alt text there, bsky_fallback the still card to use if the Bluesky video upload fails,
-        bsky_media other media for Bluesky (the weekly episode's trailer: Bluesky caps video at 3 minutes)."""
+        A successful post is then mirrored to Bluesky and Telegram (bluesky.Mirror, telegram.Mirror; never raise,
+        never block X): alt is per-image alt text on Bluesky, bsky_fallback the still card either mirror posts if
+        its video upload fails or the video is over its limit, bsky_media other media for Bluesky (the weekly
+        episode's trailer: Bluesky caps video at 3 minutes)."""
         tweet_id = await self._post_x(post_key, kind, text, image, reply_to, round_id, quote_of)
         if tweet_id and self.bsky.enabled:
             try:
@@ -349,6 +354,12 @@ class Poster:
                                      round_id=round_id, alt=alt, fallback=bsky_fallback)
             except Exception:
                 log.exception("bluesky mirror of %s failed", post_key)
+        if tweet_id and self.tg.enabled:  # docs/telegram-spec.md; same contract as Bluesky
+            try:
+                await self.tg.post(post_key, kind, text, image, reply_to=reply_to, quote_of=quote_of,
+                                   round_id=round_id, fallback=bsky_fallback)
+            except Exception:
+                log.exception("telegram mirror of %s failed", post_key)
         return tweet_id
 
     async def _post_x(self, post_key, kind, text, image, reply_to, round_id, quote_of) -> str | None:

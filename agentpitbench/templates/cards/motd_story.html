@@ -149,10 +149,44 @@ body.wide .srow{font-size:40px;padding:0}
 body.wide .col h3{font-size:40px}
 body.wide .bigurl{font-size:52px}
 body.wide .cta{font-size:40px}
+/* square (1080x1080): the X post (one video per post; it reads in phone and desktop feeds, ~500 px wide on
+   desktop). Stacked like the tall film, dense like the wide one; nothing below 40px. */
+body.square .main{top:96px;bottom:172px;padding:0 48px;gap:16px}
+body.square .foot{height:164px;padding:0 36px}
+body.square .sub{font-size:50px}
+body.square .sub.big{font-size:66px;line-height:1.12}
+body.square .cold{font-size:84px}
+body.square .ttl{font-size:104px}
+body.square .genre{font-size:42px}
+body.square .subject{font-size:120px}
+body.square .subject.long{font-size:88px !important}
+body.square .card{flex-direction:row;gap:26px;min-width:0;align-items:center;padding:14px 24px 16px}
+body.square .card .hd{font-size:44px}
+body.square .card .nm{font-size:64px}
+body.square .card .pk{font-size:72px}
+body.square .card .st .v{font-size:60px}
+body.square .card svg{width:130px !important;height:130px !important}
+body.square .bubble{font-size:40px;padding:10px 20px;max-width:100%}
+body.square .tickers{gap:20px}
+body.square .tick{padding:12px 20px}
+body.square .tick .o{font-size:50px}
+body.square .tick .v{font-size:96px}
+body.square .side .o{font-size:76px}
+body.square .actor .nm{font-size:40px}
+body.square .actor .pl{font-size:48px}
+body.square .vs{font-size:70px}
+body.square .result{font-size:110px}
+body.square .twlabel{font-size:70px}
+body.square .fact{font-size:46px}
+body.square .cols{flex-direction:column;gap:10px}
+body.square .srow{font-size:40px;padding:0}
+body.square .col h3{font-size:40px}
+body.square .bigurl{font-size:48px}
+body.square .cta{font-size:40px}
 .cta{font-size:42px;opacity:.85;line-height:1.25;text-align:center}
 </style></head>
 {%- set team = colors.get(sc.agent, th.accent) if sc.agent else th.accent %}
-{%- set big = 300 if fmt == 'tall' else 250 %}
+{%- set big = 300 if fmt == 'tall' else 170 if fmt == 'square' else 250 %}
 {%- macro actor(a, size, extra='') -%}
 <div class="actor" {{ extra|safe }}>{{ mascot(a.agent, size) }}<span class="nm" style="color:{{ colors.get(a.agent, '#888')|edge }}">{{ a.name }}</span></div>
 {%- endmacro %}
@@ -225,7 +259,7 @@ body.wide .cta{font-size:40px}
   <div class="sub" data-in="0.6" data-fx="{{ capfx }}">{{ sc.caption }}</div>
 {% elif sc.kind == 's_twist' %}
   <div class="twlabel" data-in="0.3" data-fx="slam">The twist</div>
-  {% if sc.twist_cast %}<div class="troupe">{% for a in sc.twist_cast %}{{ actor(a, big if sc.twist_cast|length == 1 else 210, 'data-in="0.35" data-fx="pop"') }}{% endfor %}</div>{% endif %}
+  {% if sc.twist_cast %}<div class="troupe">{% for a in sc.twist_cast %}{{ actor(a, big if sc.twist_cast|length == 1 else (150 if fmt == 'square' else 210), 'data-in="0.35" data-fx="pop"') }}{% endfor %}</div>{% endif %}
   <div class="fact" data-in="0.9" data-fx="slam">{{ sc.fact }}</div>
   <div class="sub" data-in="{{ 1.6 }}" data-fx="{{ capfx }}">{{ sc.caption }}</div>
 {% elif sc.kind == 's_coda' %}
@@ -247,8 +281,8 @@ body.wide .cta{font-size:40px}
 {% if sc.kind == 's_twist' %}<div class="flash" data-flash="0"></div>{% endif %}
 {% if th.trans != 'cut' and idx > 0 and sc.kind != 's_twist' %}<div class="trans" data-trans="{{ th.trans }}"></div>{% endif %}
 <div class="foot"><span class="em">{{ emblem(84, True) }}</span><div class="lines">
-  {% if sig_line %}<div class="sig {{ 'one' if fmt == 'wide' }}">{{ sig_line }}</div>{% endif %}
+  {% if sig_line %}<div class="sig {{ 'one' if fmt != 'tall' }}">{{ sig_line }}</div>{% endif %}
   <div class="one">{% if sc.banner %}<span class="ex {{ 'gold' if 'HIGH' in sc.banner }}">{{ 'HIGH STAKES · EXHIBITION' if 'HIGH' in sc.banner else 'EXHIBITION' }}</span>{% endif %}{{ [model, 'Methodology v' ~ mver]|select|join(' · ') }}{% if fmt == 'wide' %} · <span class="url">{{ url }}</span>{% endif %}</div>
-  {% if fmt == 'tall' %}<div class="url one">{{ url }}</div>{% endif %}
+  {% if fmt != 'wide' %}<div class="url one">{{ url }}</div>{% endif %}
 </div></div>
 </body></html>

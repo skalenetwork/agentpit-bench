@@ -96,3 +96,11 @@ def _no_paid_calls(monkeypatch):
     """Tests never call ElevenLabs (narrator, score, effects): the key is unset. opai is off by default
     (opai_enabled = False), and tests that exercise it use the fake_claude fixture."""
     monkeypatch.delenv("ELEVENLABS_API_KEY", raising=False)
+
+
+@pytest.fixture(autouse=True)
+def _no_real_piper(monkeypatch, tmp_path_factory):
+    """A Piper install on the machine must not leak into tests: point the local narrator at an empty dir."""
+    from agentpitbench import sound
+    empty = tmp_path_factory.mktemp("no-piper")
+    monkeypatch.setattr(sound, "piper_paths", lambda s: (empty / "piper", empty))

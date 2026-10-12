@@ -18,6 +18,25 @@ from .mascots import mascot
 log = logging.getLogger(__name__)
 
 W, H = 1200, 675
+
+
+def shrink_png(path: Path) -> None:
+    """Rewrite a rendered card as a 256-colour palette PNG (about a third of Chromium's truecolour bytes).
+    Median cut, not octree: it keeps the cards' soft background glows free of visible bands. Best effort:
+    the file is left as it is without Pillow (the optional "media" extra), on any error, or if not smaller."""
+    try:
+        import io
+        from PIL import Image
+        data = path.read_bytes()
+        im = Image.open(io.BytesIO(data)).convert("RGB")
+        buf = io.BytesIO()
+        im.quantize(256, method=Image.Quantize.MEDIANCUT).save(buf, "PNG", optimize=True)
+        if buf.tell() < len(data):
+            path.write_bytes(buf.getvalue())
+    except ImportError:
+        pass
+    except Exception:
+        logging.getLogger(__name__).exception("shrinking %s failed; kept as rendered", path)
 UPSET_PRICE = 0.25
 
 env = Environment(loader=PackageLoader("agentpitbench", "templates/cards"), autoescape=select_autoescape())
@@ -415,6 +434,7 @@ class CardRenderer:
                 await page.screenshot(path=str(out), clip={"x": 0, "y": 0, "width": width, "height": height})
             finally:
                 await page.close()
+        shrink_png(out)
         return out
 
     def _dir(self, rnd: dict) -> Path:

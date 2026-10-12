@@ -47,6 +47,8 @@ fragments are fine; let the pictures carry the rest.
   "hundred"...). Say "every AI", "the pair", "both", "the rest" instead of counts, or use `{n_ai}` / `{n_right}`.
   The question's own numbers and dates are slots too (`{q1}`, `{q2}`...: e.g. a "$2,400" threshold or "October
   5-11"); use them in the market line so the stakes are concrete. Prefer the question's dates over `{close_date}`.
+- Web-link counts (`{<name>_links}`) are links LOGGED in a transcript, search results included: say "logged" or
+  "pulled up", never "read".
 - Call the AIs Claude, ChatGPT, Gemini and Grok only: never a model or version name (the cards show which model
   each played on).
 - Never attach an agent to a pick it didn't make, or say an agent won when it lost (or the reverse). Use

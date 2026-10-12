@@ -66,18 +66,21 @@ def answer(langs, texts, override=None):
     return out
 
 
-async def test_translate_round_one_call_all_languages(s, db, fake_claude):
+async def test_translate_round_in_language_batches(s, db, fake_claude):
     langs = mi.site_langs()
     assert langs == [c for c in i18n.CODES if c != "en"]  # whatever the site has at runtime
     rid = make_round(db)
     bad = ["Amazon (AMZN) 2026 10 12 $999", "Ja", "Nein"]
-    fake_claude.respond(answer(langs, [Q, "Yes", "No"], {"de": bad}))
+    batches = mi.lang_batches(langs)
+    assert len(batches) == 3 and sum(batches, []) == langs  # 39 languages: 3 calls of 13
+    fake_claude.respond(*[answer(b, [Q, "Yes", "No"], {"de": bad} if "de" in b else None) for b in batches])
     rep = await mi.translate_round(s, db, rid)
-    assert len(fake_claude.calls) == 1
-    sent = json.loads(fake_claude.calls[0]["stdin"].split('<data id="input">')[1].split("</data>")[0])
-    assert sent == {"texts": [Q, "Yes", "No"], "langs": langs}
-    schema = json.loads(fake_claude.calls[0]["argv"][fake_claude.calls[0]["argv"].index("--json-schema") + 1])
-    assert set(schema["required"]) == set(langs)
+    assert len(fake_claude.calls) == 3 and rep["calls"] == 3 and rep["failed"] == 0
+    for call, b in zip(fake_claude.calls, batches):
+        sent = json.loads(call["stdin"].split('<data id="input">')[1].split("</data>")[0])
+        assert sent == {"texts": [Q, "Yes", "No"], "langs": b}
+        schema = json.loads(call["argv"][call["argv"].index("--json-schema") + 1])
+        assert set(schema["required"]) == set(b)
     assert rep["stored"] == 3 * (len(langs) - 1) + 2 and rep["rejected"] == 1  # de question rejected
     t = mi.table(db)
     assert t["ko"][Q] == KO and Q not in t["de"] and t["de"]["Yes"] == "Ja"
@@ -100,11 +103,27 @@ async def test_tick_newest_first_with_tries_and_budget(s, db, fake_claude):
     await mi.atick(s, db)
     await mi.atick(s, db)
     assert mi.due(db) == [a]  # b used its two tries; it stays English
-    s.opai_task_budget = {**s.opai_task_budget, "translate": 2}
+    assert len(fake_claude.calls) == 6  # 3 language batches per try
+    s.opai_task_budget = {**s.opai_task_budget, "translate": 6}
     fake_claude.mode = "ok"
     fake_claude.respond(answer(langs, [Q, "Yes", "No"]))
     assert await mi.atick(s, db) == []  # budget spent: no call, no row
-    assert len(fake_claude.calls) == 2
+    assert len(fake_claude.calls) == 6
+
+
+async def test_failed_batch_leaves_only_its_languages(s, db, fake_claude):
+    langs = mi.site_langs()
+    rid = make_round(db)
+    b1, b2, b3 = mi.lang_batches(langs)
+    fake_claude.respond(answer(b1, [Q, "Yes", "No"]), {"wrong": 1}, answer(b3, [Q, "Yes", "No"]))
+    rep = await mi.translate_round(s, db, rid)
+    assert rep["failed"] == 1 and rep["stored"] == 3 * (len(b1) + len(b3)) and "skipped" not in rep
+    assert mi.payload_for(db, mi.round_texts(db.round(rid))) == {"texts": [Q, "Yes", "No"], "langs": b2}
+    fake_claude.respond(answer(b2, [Q, "Yes", "No"]))
+    n = len(fake_claude.calls)
+    rep = await mi.translate_round(s, db, rid)  # the retry asks only the failed batch's languages
+    assert len(fake_claude.calls) == n + 1 and rep["stored"] == 3 * len(b2)
+    assert mi.due(db) == []
 
 
 def test_site_shows_translation_with_english_source(s, db):

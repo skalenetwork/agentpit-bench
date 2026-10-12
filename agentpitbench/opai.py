@@ -34,8 +34,9 @@ log = logging.getLogger(__name__)
 
 # task -> active prompt version (prompts/<task>.v<N>.md). `rate` is methodology: its version comes from
 # methodology.json (selection.rater.prompt_version), never from here.
-PROMPTS = {"rate": 1, "picks": 1, "summary": 1, "report": 1, "incident": 1, "cadence": 1, "i18n": 1,
-           "proposal": 1, "translate": 1, "ab": 1, "motd_script": 1, "weekly_episode": 1}
+PROMPTS = {"rate": 1, "picks": 1, "summary": 1, "report": 1, "incident": 1, "cadence": 1, "i18n": 2,
+           "proposal": 1, "translate": 1, "ab": 1, "motd_script": 1, "weekly_episode": 1,
+           "ops": 1}   # ops: the nightly agent (ops.py), not a call()
 SYSTEM_PROMPT = "system.v1.md"
 LIGHT_TASKS = {"picks"}
 CHILD_PATH = "/usr/local/bin:/usr/bin:/bin"
@@ -100,6 +101,13 @@ def _translate_schema(payload: dict) -> dict:
     return _obj({lang: arr for lang in payload["langs"]})
 
 
+def _i18n_schema(payload: dict) -> dict:
+    """i18n.v2: {"translations": {lang: {id: text}}} for several languages per call. Languages are not required
+    one by one: a language left out falls back alone (i18n_fill), the others are kept."""
+    table = {"type": "object", "additionalProperties": _STR}
+    return _obj({"translations": _obj({lang: table for lang in payload["languages"]}, required=[])})
+
+
 def _picks_schema(payload: dict) -> dict:
     return _obj({"picks": {"type": "array", "items": _obj({
         "reply_id": _STR,
@@ -121,8 +129,10 @@ SCHEMAS: dict[str, dict | Callable[[dict], dict]] = {
     "report": _obj({"headline": _STR, "paragraphs": {"type": "array", "items": _STR, "minItems": 2, "maxItems": 4}}),
     "incident": _obj({"title": _STR, "what": _STR, "fix": _STR}),
     "cadence": _obj({"policy": {"type": "object"}, "reason": _STR}),
-    "i18n": _obj({"translations": {"type": "object", "additionalProperties": _STR}}),
-    "proposal": {"type": "object"},
+    "i18n": _i18n_schema,
+    "proposal": {"type": "object", "properties": {   # selection_review.validate enforces none-or-one-change
+        "none": _STR, "changes": {"type": "object"}, "rationale": _STR, "evidence": _STR, "changelog_text": _STR},
+        "required": [], "additionalProperties": False},
     "translate": _translate_schema,
     # A/B challenger templates (ab-testing-spec.md §6): {slot: [{"situations": {...}} | {"text": "..."}]};
     # ab.validate checks each candidate

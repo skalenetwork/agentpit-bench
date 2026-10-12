@@ -101,6 +101,12 @@ class Engage:
         self.s, self.db, self.poster, self.cards, self.api = s, db, poster, cards, api
 
     async def _post(self, key: str, kind: str, text: str, image: Path | None = None, **kw) -> str | None:
+        from . import policy
+        try:   # optional kinds only (replay, milestone, awards, contrarian): §9 cadence policy
+            if not policy.allows(self.s, self.db, kind):
+                return None
+        except Exception:
+            log.exception("cadence policy check for %s failed; posting", key)
         try:
             text = ab.generic_text(self.db, self.s, key, kind, text)   # generic.cta (control: unchanged)
         except Exception:
@@ -261,7 +267,7 @@ class Engage:
         now = now or time.time()
         d = datetime.fromtimestamp(now, timezone.utc)
         week = iso_week(now)
-        if d.weekday() != self.s.race_weekday or d.hour < self.s.race_hour_utc or self.db.get(f"race_{week}"):
+        if d.weekday() != self.s.race_weekday or d.hour < self.s.policy(self.db, "race_hour_utc") or self.db.get(f"race_{week}"):
             return
         data = exports.export(self.s, self.db)
         start = week_start(now)
@@ -296,7 +302,7 @@ class Engage:
         now = now or time.time()
         d = datetime.fromtimestamp(now, timezone.utc)
         week = iso_week(now)
-        if d.weekday() != self.s.race_weekday or d.hour < self.s.race_hour_utc or self.db.get(f"report_{week}"):
+        if d.weekday() != self.s.race_weekday or d.hour < self.s.policy(self.db, "race_hour_utc") or self.db.get(f"report_{week}"):
             return
         data = exports.export(self.s, self.db)
         lb = data["leaderboard"]
@@ -304,7 +310,8 @@ class Engage:
         calls = [c for c in lb.get("contrarian", []) if c["state"] == "resolved"
                  and f"{c['agent']}:{c['market_id']}" not in featured]
         calls = sorted(calls, key=lambda c: -c["gap"])[:3]
-        if calls:
+        from . import policy
+        if calls and policy.allows(self.s, self.db, "contrarian"):
             png = await self._card(self.cards.contrarian(week, calls))
             right = sum(1 for c in calls if c["right"])
             lead = calls[0]
@@ -455,6 +462,9 @@ class Engage:
         e = replay_candidate(rnd)
         key = f"replay-r{rnd['round_id']}"
         if not e or self.db.one("SELECT 1 FROM tweets WHERE post_key=?", key):
+            return
+        from . import policy
+        if not policy.allows(self.s, self.db, "replay"):   # before the render: skipping costs nothing
             return
         if not media.ffmpeg_exe():
             log.info("replay for round %s skipped: no ffmpeg", rnd["round_id"])
