@@ -88,6 +88,23 @@ class Settings:
     x_app_owned: bool = False            # @agentpitbench owns the developer app: timeline mode, owned-read prices
     x_reward_max_age_ratio: float = 1.5  # a snapshot counts as a reward only if age_s <= ratio x bucket age
     x_series_free_rereads: bool = True   # re-read posts already billed today (free under X's same-day dedup)
+    # automated A/B testing (docs/ab-testing-spec.md): wording and presentation only, never facts
+    ab_gen_enabled: bool = False         # gates arm creation only; posting always goes through ab.choose
+    ab_max_arms: int = 3
+    ab_min_posts: int = 20
+    ab_min_days_tone: int = 10
+    ab_half_life_days: float = 14
+    ab_prior_n: float = 2
+    ab_baseline_days: int = 30
+    ab_weight_1h: float = 0.5
+    ab_weights: dict = field(default_factory=lambda: {"replies": 5, "quotes": 3, "reposts": 2, "bookmarks": 2,
+                                                      "link_clicks": 2, "likes": 1})
+    ab_gen_model: str = "sonnet"
+    ab_gen_hour_utc: int = 3
+    ab_gen_timeout_s: int = 180
+    ab_gen_max_calls_per_day: int = 2
+    ab_digest_hour_utc: int = 8
+    ab_public_delay_days: float = 7      # /experiments/ numbers only from posts older than this (operator decision)
     explorer_url: str = "https://skale-base-explorer.skalenodes.com"   # agentpit settles on SKALE Base
 
     @property

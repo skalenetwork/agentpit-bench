@@ -98,12 +98,38 @@ def split_text(s: Settings, rnd: dict, kind: str, headline: str, invite: bool = 
     return fit(f"{lead} {picks}. Who's right? ", tail)
 
 
-def reveal_text(rnd: dict, headline: str) -> str:
+def reveal_text(rnd: dict, headline: str, cta: str = "", extra_tags: str = "") -> str:
     """The round's opener on X, posted once every pick is in: the split headline, every pick, and the reply
-    invite (human picks are read from its replies). No link: X bills link posts ~13x."""
+    invite (human picks are read from its replies). No link: X bills link posts ~13x.
+    cta: an A/B lead-in line directly before the invite; extra_tags: A/B hashtags after TAG."""
     picks = " · ".join(f"{e['name']}: {e['outcome'] or 'no bet'}" for e in rnd["entries"])
     invite = "\nReply with your pick: " + clip(" / ".join(rnd.get("outcomes") or []), 60)
-    return fit(f"{headline}.\n{picks}", f"{invite} {TAG}")
+    lead = f"\n{cta}" if cta else ""
+    return fit(f"{headline}.\n{picks}", f"{lead}{invite} {TAG}{extra_tags}")
+
+
+def results_shape(rnd: dict) -> tuple[str | None, dict[str, str]]:
+    """(situation, facts) behind the results hook, for the A/B hook templates (docs/ab-testing-spec.md section 3).
+    situation is None for void rounds and rounds with fewer than 2 bettors (those always post the control)."""
+    if rnd["state"] == "void":
+        return None, {}
+    bettors = [e for e in rnd["entries"] if e.get("outcome")]
+    winners = [e for e in bettors if e.get("won")]
+    losers = [e for e in bettors if not e.get("won")]
+    n = len(bettors)
+    facts = {"winner": rnd["winner"], "n": str(n), "record": f"{len(winners)}-{len(losers)}",
+             "winners": " & ".join(e["name"] for e in winners), "losers": " & ".join(e["name"] for e in losers)}
+    if n < 2:
+        return None, facts
+    if len({e["outcome"] for e in bettors}) == 1:
+        return ("sweep", facts) if winners else ("wipeout", {**facts, "loser_pick": bettors[0]["outcome"]})
+    if len(winners) == 1:
+        return "lone_winner", {**facts, "lone": winners[0]["name"]}
+    if len(losers) == 1:
+        return "lone_loser", {**facts, "lone": losers[0]["name"]}
+    if not winners:
+        return "nobody", facts
+    return "split", facts
 
 
 def results_hook(rnd: dict) -> str:
@@ -111,36 +137,35 @@ def results_hook(rnd: dict) -> str:
     if rnd["state"] == "void":
         return f"Voided: \"{clip(rnd['question'], 100)}\". No result this round."
     w = rnd["winner"]
-    bettors = [e for e in rnd["entries"] if e.get("outcome")]
-    winners = [e for e in bettors if e.get("won")]
-    losers = [e for e in bettors if not e.get("won")]
-    n = len(bettors)
+    sit, f = results_shape(rnd)
+    n = int(f["n"])
     if not n:
         return f"Resolved: {w}. No AI placed a bet."
-    if len({e["outcome"] for e in bettors}) == 1 and n > 1:
-        if winners:
-            return f"Resolved: {w}. All {n} AIs backed it. {n}-0."
-        return f"Resolved: {w}. All {n} AIs backed {bettors[0]['outcome']}. 0-{n}."
-    if len(winners) == 1 and n > 1:
-        return f"Resolved: {w}. {winners[0]['name']} went alone and was right. 1-{n - 1}."
-    if len(losers) == 1 and n > 1:
-        return f"Resolved: {w}. {' & '.join(e['name'] for e in winners)} cash; {losers[0]['name']} alone got it wrong."
-    if not winners:
+    if sit == "sweep":
+        return f"Resolved: {w}. All {n} AIs backed it. {n}-0."
+    if sit == "wipeout":
+        return f"Resolved: {w}. All {n} AIs backed {f['loser_pick']}. 0-{n}."
+    if sit == "lone_winner":
+        return f"Resolved: {w}. {f['lone']} went alone and was right. 1-{n - 1}."
+    if sit == "lone_loser":
+        return f"Resolved: {w}. {f['winners']} cash; {f['lone']} alone got it wrong."
+    if sit == "nobody" or (sit is None and not f["winners"]):   # one bettor, wrong: today's wording
         return f"Resolved: {w}. Nobody had it. 0-{n}."
-    return (f"Resolved: {w}. {' & '.join(e['name'] for e in winners)} win, "
-            f"{' & '.join(e['name'] for e in losers)} lose. {len(winners)}-{len(losers)}.")
+    return f"Resolved: {w}. {f['winners']} win, {f['losers']} lose. {f['record']}."
 
 
 def results_text(s: Settings, rnd: dict, board: list[dict], round_url: str, crowd: dict | None = None,
-                 cast: str | None = None) -> str:
-    """cast is accepted for compatibility but not repeated: the commentary line is on the card already."""
-    head = results_hook(rnd)
+                 cast: str | None = None, hook: str | None = None, cta: str = "", extra_tags: str = "") -> str:
+    """cast is accepted for compatibility but not repeated: the commentary line is on the card already.
+    hook / cta / extra_tags are A/B variants (None / "" = today's control). Vendor handles are never varied."""
+    head = results_hook(rnd) if hook is None else hook
     tags = " ".join(dict.fromkeys(VENDOR_HANDLES[e["agent"]] for e in rnd["entries"]
                                   if e["won"] and e["agent"] in VENDOR_HANDLES))
     season = ", ".join(f"{b['name']} {b['wins']}-{b['losses']}" for b in board)
     if season and crowd and crowd.get("played"):
         season += f" | Crowd {crowd['wins']}-{crowd['losses']}"
-    tail = (f"\nSeason: {season}." if season else "") + f" {TAG}" + (f" {tags}" if tags else "") + f"\n{round_url}"
+    tail = ((f"\nSeason: {season}." if season else "") + f" {TAG}{extra_tags}" + (f" {tags}" if tags else "")
+            + (f"\n{cta}" if cta else "") + f"\n{round_url}")
     return fit(head, tail)
 
 
@@ -298,9 +323,10 @@ class Poster:
         else:
             tweet_id = self._post_outbox(post_key, kind, text, image, reply_to, quote_of)
         if tweet_id:
-            self.db.x("INSERT INTO tweets(post_key,tweet_id,kind,round_id,text,image_path,posted_at) VALUES(?,?,?,?,?,?,?)"
+            self.db.x("INSERT INTO tweets(post_key,tweet_id,kind,round_id,text,image_path,posted_at,reply_to,quote_of)"
+                      " VALUES(?,?,?,?,?,?,?,?,?)"
                       " ON CONFLICT(post_key) DO UPDATE SET tweet_id=excluded.tweet_id, posted_at=excluded.posted_at",
-                      post_key, tweet_id, kind, round_id, text, _media_str(image), time.time())
+                      post_key, tweet_id, kind, round_id, text, _media_str(image), time.time(), reply_to, quote_of)
         return tweet_id
 
     async def delete(self, tweet_id: str | None, post_key: str = "") -> bool:
