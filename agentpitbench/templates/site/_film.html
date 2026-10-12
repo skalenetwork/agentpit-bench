@@ -1,0 +1,9 @@
+{#- Match of the Day: one film (cards/motd/<date>/film.json), embedded on its round page and on /films/. -#}
+<section class="film" lang="en"><h2>Match of the Day · {{ film.date }}</h2>
+{% if film.files.wide %}<video controls preload="none" playsinline width="1920" height="1080" style="width:100%;height:auto;background:#0b1020"{% if film.poster %} poster="{{ root }}{{ film.dir }}{{ film.poster }}"{% endif %}>
+<source src="{{ root }}{{ film.dir }}{{ film.files.wide }}" type="video/mp4"></video>{% endif %}
+<p class="small"><b lang="en">{{ film.hook }}</b> · {{ film.duration_s|round|int }} s{% if film.files.wide %} · <a href="{{ root }}{{ film.dir }}{{ film.files.wide }}" download>16:9</a>{% endif %}{% if film.files.tall %} · <a href="{{ root }}{{ film.dir }}{{ film.files.tall }}" download>9:16</a>{% endif %}</p>
+<details class="small"><summary>Why this round: {{ film.score.total }}</summary><ul>{% for x in film.score.signals %}<li lang="en">{{ x.label }} (+{{ x.points }}): {{ x.detail }}</li>{% endfor %}</ul>
+{% if film.score.factor != 1 %}<p>Exhibition round: score × {{ film.score.factor }}</p>{% endif %}
+{% if film.candidates and film.candidates|length > 1 %}<p>Other rounds that day: {% for c in film.candidates[1:] %}<a href="{{ home }}round/{{ c.round_id }}/">{{ _("Round {n}", n=c.round_id) }}</a> {{ c.total }}{% if not loop.last %} · {% endif %}{% endfor %}</p>{% endif %}
+<p class="mut">Captions only; every number is from the round record. Music: original, CC0.</p></details></section>

@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block main %}
+<h1 lang="en">Match of the Day</h1>
+<p lang="en">Once a day, the most dramatic round resolved the day before, as a one-minute film. The round is chosen by a published drama score, so you can check the pick.</p>
+{% for film in films %}{% include "_film.html" %}<p class="small"><a href="{{ home }}round/{{ film.round_id }}/">{{ _("Round {n}", n=film.round_id) }}: {{ film.question }}</a></p>{% else %}<p class="mut">No films yet.</p>{% endfor %}
+{% endblock %}

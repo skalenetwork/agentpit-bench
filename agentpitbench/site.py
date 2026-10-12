@@ -533,6 +533,11 @@ def _build(s: Settings) -> Path:
                    "bets": sum(1 for r in rounds for e in r["entries"] if e["outcome"])}
     latest_cards = [c for c in (card_for(s, r) for r in past) if c][:6]
     previews = _previews(s, lb, rounds, cards, reports)
+    from .motd import films as _films  # Match of the Day: cards/motd/<date>/film.json
+    films = _films(s)
+    film_of = {}
+    for f in films:  # newest first: a round filmed twice shows its latest film
+        film_of.setdefault(f["round_id"], f)
 
     for lang in CODES:
         _ = Translator(lang)
@@ -590,7 +595,7 @@ def _build(s: Settings) -> Path:
              jsonld=discover.dataset_ld(s, lb, f"{base}/facts/"), title=_("Facts") + site_name)
         for r in rounds:
             card = cards[r["round_id"]]
-            page(f"round/{r['round_id']}/index.html", "round.html", r=r, card=card,
+            page(f"round/{r['round_id']}/index.html", "round.html", r=r, card=card, film=film_of.get(r["round_id"]),
                  og=previews["rounds"].get(r["round_id"]), share_text=round_share(r, _, vs),
                  lastmod=r["resolved_at"] or r["started_at"],
                  jsonld=discover.round_ld(s, r, f"{base}/round/{r['round_id']}/"),
@@ -602,6 +607,7 @@ def _build(s: Settings) -> Path:
                  share_text=agent_share(lb, a, AGENT_NAMES.get(a, a), row, _),
                  cats=(lb.get("by_category") or {}).get(a, []),
                  title=AGENT_NAMES.get(a, a) + site_name)
+        page("films/index.html", "films.html", films=films, title="Match of the Day" + site_name)
         page("splits/index.html", "splits.html", splits=splits, h2h=h2h, title=_("Split decisions") + site_name,
              share_text=_("When {roster} disagree, who's right?", roster=roster))
         page("hall-of-shame/index.html", "shame.html", wrong=wrong, title=_("Hall of shame") + site_name,
