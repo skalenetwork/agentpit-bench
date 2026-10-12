@@ -71,7 +71,7 @@ MOTD_JS = r"""
   q('[data-count]').forEach(el => { el.dataset.final = el.textContent; });
   // v0.5 scripted scenes: 'type' (typewriter, TYPE_CPS characters a second), 'wipe' (left-to-right reveal),
   // a scene-in transition overlay (data-trans: iris | wipe | fade | flash) and the twist's white flash + shake.
-  const TYPE_CPS = 45;
+  const TYPE_CPS = 45, CAM_S = 2.5;
   q('[data-fx=type]').forEach(el => { el.dataset.full = el.textContent; });
   const typeDur = el => el.dataset.full.length / TYPE_CPS;
   window.__motdDur = d => { D = d; };
@@ -80,7 +80,7 @@ MOTD_JS = r"""
     q('[data-in]').forEach(el => { end = Math.max(end, parseFloat(el.dataset.in) + (el.dataset.fx === 'type' ? typeDur(el) : 0) + 0.55); });
     q('[data-count]').forEach(el => { end = Math.max(end, parseFloat(el.dataset.in || 0) + parseFloat(el.dataset.cd || 1) + 0.1); });
     if (q('[data-flash]').length) end = Math.max(end, 1.0);
-    if (q('[data-cam]').length) end = D;  // the camera moves until the cut
+    if (q('[data-cam]').length) end = Math.max(end, CAM_S);  // the push-in settles after CAM_S (render cost)
     return Math.min(end, D);
   };
   window.__motd = function(t){
@@ -120,7 +120,7 @@ MOTD_JS = r"""
         const p = ease((t - 0.3) / 1.2);
         el.style.transform = `scale(${1 + 0.08 * Math.max(0, p)})`;
       } else {
-        el.style.transform = `scale(${1 + 0.035 * Math.min(1, Math.max(0, t / D))})`;
+        el.style.transform = `scale(${1 + 0.035 * ease(Math.min(1, Math.max(0, t / CAM_S)))})`;
       }
     });
     q('[data-trans]').forEach(el => {
