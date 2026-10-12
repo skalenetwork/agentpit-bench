@@ -41,3 +41,19 @@ excluded_keywords = ["death", "dies", "die ", "killed", "shooting", "war ", "att
 
 # Match of the Day: daily film of the most dramatic resolved round, posted at motd_hour_utc
 motd_enabled = false  # paused 2026-10-12: waiting for the scripted version
+
+# Operator AI (docs/ai-automation-spec.md): own login in ~/.config/agentpitbench/opai-claude (done 2026-10-12).
+opai_enabled = true
+opai_calls_per_day = 100   # raised for the first days: market-title backfill in all site languages
+
+[opai_task_budget]         # replaces the code default as a whole; translate raised from 10 for the backfill
+rate = 24
+picks = 12
+summary = 12
+incident = 4
+cadence = 1
+report = 2
+i18n = 40
+proposal = 1
+ab = 2
+translate = 40
