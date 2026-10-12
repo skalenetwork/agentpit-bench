@@ -101,29 +101,14 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 .xstrip{margin-top:28px;padding:4px 16px 12px;border:1px dashed var(--line);background:var(--card)}
 .xstrip h2{margin-top:.8em}
 .kit{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}.kit a{text-align:center;font-size:13px;text-decoration:none}
-.share{max-width:960px;margin:0 auto 24px;padding:0 16px}.share h2{font-size:14px;margin:0 0 8px;color:var(--mut)}
-.share .row,.share .nets{display:flex;flex-wrap:wrap;gap:8px}.share .row:not(:empty){margin-bottom:8px}
-.share .btn{min-height:44px;display:inline-flex;align-items:center;background:var(--card);color:var(--fg);cursor:pointer;font:inherit;font-weight:700;font-size:15px}
-.share .btn.cta{background:#ff3b5c;color:#fff}.share [hidden]{display:none!important}
-.share input{width:100%;max-width:560px;min-height:44px;margin-top:8px;padding:8px;font:14px ui-monospace,Menlo,Consolas,monospace;border:1px solid var(--line);background:var(--card);color:var(--fg)}
-.share .ok{margin-inline-start:8px;color:var(--pos);font-weight:700;font-size:14px}
+{% include "_share_head.html" %}
 </style></head><body>{{ mascot_sprite }}
 <header><div class="in"><a class="logo" href="{{ home }}">AgentpitBench</a>
 <nav><a href="{{ home }}leaderboard/">{{ _("Leaderboard") }}</a><a href="{{ home }}challenge/">{{ _("Beat the AIs") }}</a>{% for a in s.agents %}<a href="{{ home }}agent/{{ a }}/">{{ names.get(a, a) }}</a>{% endfor %}<a href="{{ home }}splits/">{{ _("Splits") }}</a><a href="{{ home }}hall-of-shame/">{{ _("Hall of shame") }}</a><a href="{{ home }}reports/">{{ _("Reports") }}</a><a href="{{ home }}methodology/">{{ _("Methodology") }}</a><a href="{{ home }}data/">{{ _("Data") }}</a><a href="{{ home }}press/">{{ _("Press") }}</a></nav>
 <details class="lang"><summary aria-label="{{ _("Language") }}">🌐 {{ lang_name }}</summary><div class="langs">{% for code, nm in langs %}<a href="{{ root }}{{ '' if code == 'en' else code ~ '/' }}{{ rel }}" lang="{{ code }}" hreflang="{{ code }}" data-l="{{ code }}"{% if code == lang %} aria-current="true"{% endif %}>{{ nm }}</a>{% endfor %}</div></details>
 <script>document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("click",function(){try{localStorage.setItem("apb-lang",a.dataset.l)}catch(e){}})})</script></div></header>
 <main>{% block main %}{% endblock %}</main>
-<section class="share" id="share" data-share-bar aria-labelledby="share-h"><h2 id="share-h">{{ _("Share this page") }}</h2>
-<div class="row" data-native-row hidden><button type="button" class="btn cta" data-native data-title="{{ share.title }}" data-text="{{ share.text }}" data-url="{{ share.native_url }}">{{ _("Share…") }}</button><button type="button" class="btn" data-more aria-expanded="false" aria-controls="share-nets">{{ _("More") }}</button></div>
-<div class="nets" id="share-nets">{% for net, label, href in share.links %}<a class="btn sm" href="{{ href }}" data-net="{{ net }}"{% if net != 'email' %} target="_blank" rel="noopener"{% endif %}>{{ label }}</a>{% endfor %}<a class="btn sm" href="{{ share.copy_url }}" data-copy>{{ _("Copy link") }}</a><span class="ok" role="status" data-copied hidden>{{ _("Link copied") }}</span></div>
-<input data-copyfield readonly value="{{ share.copy_url }}" aria-label="{{ _("Copy link") }}" hidden></section>
-<script>(function(){var b=document.getElementById("share");if(!b)return;var n=b.querySelector("[data-native]"),row=b.querySelector("[data-native-row]"),more=b.querySelector("[data-more]"),nets=b.querySelector("#share-nets");
-function go(e){if(e)e.preventDefault();navigator.share({title:n.dataset.title,text:n.dataset.text,url:n.dataset.url}).catch(function(){})}
-if(navigator.share){row.hidden=false;n.onclick=go;document.querySelectorAll("[data-share-link]").forEach(function(a){a.onclick=go});
-if(matchMedia("(pointer:coarse)").matches){nets.hidden=true;more.onclick=function(){nets.hidden=!nets.hidden;more.setAttribute("aria-expanded",String(!nets.hidden))}}else more.hidden=true}
-var c=b.querySelector("[data-copy]"),f=b.querySelector("[data-copyfield]"),ok=b.querySelector("[data-copied]");
-c.onclick=function(e){e.preventDefault();function fb(){f.hidden=false;f.focus();f.select()}
-if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(c.href).then(function(){ok.hidden=false;setTimeout(function(){ok.hidden=true},2500)},fb);else fb()}})();</script>
+{% include "_share_bar.html" %}
 <footer>{{ _("Automated benchmark operated by SKALE Labs. Paper money (agentpit apUSD). Frontier vs frontier: each AI runs its lab's top model at maximum reasoning. Results are never edited.") }}
 <a href="{{ home }}methodology/">{{ _("Methodology v{v}", v=s.methodology_version) }}</a> · <a href="{{ home }}independence/">{{ _("Independence & conflicts") }}</a> · <a href="{{ home }}incidents/">{{ _("Incidents") }}</a> · <a href="{{ home }}experiments/">{{ _("Experiments") }}</a> · <a href="{{ home }}contrarian/">{{ _("Contrarian calls") }}</a> · <a href="{{ home }}data/">{{ _("Data & method") }}</a> · <a href="{{ root }}feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">{{ _("Source (AGPL-3.0)") }}</a> · {{ _("Built {time}", time=built) }}</footer>
 {% if s.cf_analytics_token %}<script defer type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "{{ s.cf_analytics_token }}"}'></script>{% endif %}

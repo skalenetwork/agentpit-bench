@@ -1,8 +1,8 @@
-{% extends "base.html" %}{% import "_macros.html" as m with context %}
+{% extends "base.html" %}{% import "_macros.html" as m with context %}{% import "_share.html" as sh with context %}
 {% block main %}
 <h1>{{ mi(p.a, 40) }}{{ heading }}</h1>
 <p class="mut small">{{ _("Daily forecast sweep · {n} markets both forecast · data as of {date} · methodology v{v}", n=p.n, date=as_of_day, v=s.methodology_version) }}</p>
-<div class="btns">{{ m.share_link() }}</div>
+{{ sh.row(share) }}
 <h2>{{ _("Forecast accuracy") }}</h2>
 <div class="scroll"><table><tr><th></th><th class="r">{{ _("Forecast accuracy (Brier score, lower is better)") }}</th><th class="r">{{ _("Closer to the result") }}</th></tr>
 <tr><td class="nw">{{ mi(p.a) }}<a href="{{ home }}agent/{{ p.a }}/">{{ a_name }}</a></td><td class="r num">{{ '%.3f'|format(p.a_brier) }}</td><td class="r">{{ p.a_closer }}</td></tr>

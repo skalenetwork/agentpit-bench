@@ -155,7 +155,125 @@ def share_bar(text: "ShareText | str", title: str, url: str, page_type: str, _) 
         ("email", _("Email"), "mailto:?" + q({"subject": title, "body": f"{t.full}\n\n{u('email')}"})),
     ]
     return {"links": links, "copy_url": utm(url, "copy", page_type), "native_url": utm(url, "native", page_type),
-            "text": t.fit(200), "title": title}
+            "text": t.fit(200), "title": title, "top": TOP_NETS}
+
+
+# ---------- share UX v2 (docs/share-ux-v2-spec.md) ----------
+
+TOP_NETS = ("x", "linkedin", "bluesky")  # the share row on desktop (§1); the rest sit under More
+GRID_NETS = ("x", "bluesky")             # the result box (§3): the networks that take the grid's text as it is
+
+
+def x_len(text: str) -> int:
+    """X's weighted length: a URL is 23; code points outside X's light ranges (emoji, arrows, CJK) count 2."""
+    def w(c: str) -> int:
+        o = ord(c)
+        return 1 if o <= 4351 or 8192 <= o <= 8205 or 8208 <= o <= 8223 or 8242 <= o <= 8247 else 2
+    return sum(w(c) for c in re.sub(r"https?://\S+", "x" * 23, text))
+
+
+def _shrink(fmt, part: str, n: int, weigh) -> str:
+    """fmt(part), with part clipped until the whole fits n (never below 12 characters)."""
+    t = fmt(part)
+    if weigh(t) <= n:
+        return t
+    return fmt(clip(part, max(12, len(part) - (weigh(t) - n) - 1)))
+
+
+def result_grid(r: dict, _) -> dict | None:
+    """The Wordle-style result (§3): resolved rounds only, every value from the record, ranked like the page."""
+    if r.get("state") != "resolved" or not r.get("winner"):
+        return None
+    rows = []
+    for e in ranked(r["entries"]):
+        if not e.get("outcome"):
+            rows.append(f"⚪ {e['name']}")
+        else:
+            pnl = f" {signed(e['pnl'])}" if e.get("pnl") is not None else ""
+            rows.append(f"{'🟢' if e.get('won') else '🔴'} {e['name']}{pnl}")
+    return {"head": "AgentpitBench · " + _("Round {n}", n=r["round_id"]), "question": " ".join(r["question"].split()),
+            "winner": r["winner"], "rows": rows}
+
+
+def grid_text(g: dict, n: int | None = None, weigh=len) -> str:
+    """The grid as text; within n (by weigh), the question is clipped first, never an agent line."""
+    def fmt(q: str) -> str:
+        return f"{g['head']}\n{q} → {g['winner']}\n" + "\n".join(g["rows"])
+    return fmt(g["question"]) if n is None else _shrink(fmt, g["question"], n, weigh)
+
+
+def grid_share(r: dict, url: str, _) -> dict | None:
+    """The result box's links (§2, §3). X takes the URL as its own field (23 weighted characters + a space)."""
+    g = result_grid(r, _)
+    if not g:
+        return None
+
+    def q(params: dict) -> str:
+        return urlencode(params, quote_via=quote)
+
+    def u(net: str) -> str:
+        return utm(url, net, "result")
+    full, bsky = grid_text(g), u("bluesky")
+    links = [
+        ("x", "X", "https://x.com/intent/tweet?" + q({"text": grid_text(g, 280 - 24, x_len), "url": u("x")})),
+        ("linkedin", "LinkedIn", "https://www.linkedin.com/sharing/share-offsite/?" + q({"url": u("linkedin")})),
+        ("facebook", "Facebook", "https://www.facebook.com/sharer/sharer.php?" + q({"u": u("facebook")})),
+        ("reddit", "Reddit", "https://www.reddit.com/submit?" + q({"url": u("reddit"), "title": _shrink(
+            lambda x: f"{g['head']}: {x} → {g['winner']}", g["question"], 300, len)})),
+        ("whatsapp", "WhatsApp", "https://wa.me/?" + q({"text": f"{full}\n{u('whatsapp')}"})),
+        ("telegram", "Telegram", "https://t.me/share/url?" + q({"url": u("telegram"), "text": full})),
+        ("bluesky", "Bluesky", "https://bsky.app/intent/compose?" + q({"text": f"{grid_text(g, 300 - len(bsky) - 1)}\n{bsky}"})),
+        ("email", _("Email"), "mailto:?" + q({"subject": g["head"], "body": f"{full}\n\n{u('email')}"})),
+    ]
+    return {"links": links, "top": GRID_NETS, "text": full, "title": g["head"], "preview": full,
+            "native_url": u("native"), "copy_url": u("copy"), "copy_text": f"{full}\n{u('copy')}"}
+
+
+def _first_sentence(text: str | None) -> str:
+    text = " ".join((text or "").split())
+    m = re.match(r"(.+?[.!?])(\s|$)", text)
+    return clip(m.group(1) if m else text, 200)
+
+
+def quote_text(name: str, question: str, words: str, n: int | None = None, weigh=len) -> str:
+    """'{name} on "{question}": “{words}”', within n: the question is clipped first, then the quote."""
+    def fmt(qq: str, ww: str) -> str:
+        return f"{name} on \"{qq}\": “{ww}”"
+    if n is None or weigh(fmt(question, words)) <= n:
+        return fmt(question, words)
+    t = _shrink(lambda qq: fmt(qq, words), question, n, weigh)
+    if weigh(t) <= n:
+        return t
+    qq = clip(question, 12)
+    return _shrink(lambda ww: fmt(qq, ww), words, n, weigh)
+
+
+def quote_shares(s: Settings, r: dict, url: str) -> dict[str, dict]:
+    """Quote cards (§4): per agent, its own words with its decision card. Never while the picks are sealed, never
+    on an infra-voided round, and only when that agent's card exists. The question is the English one: the quote
+    is English and the post goes to X or Bluesky."""
+    if discover.seal(r) or r.get("exclusion") == "infra":
+        return {}
+    out = {}
+    for e in r["entries"]:
+        words = " ".join((e.get("quote") or "").split()) or _first_sentence(e.get("rationale"))
+        card = f"cards/{r['round_id']}/decision-{e['agent']}.png"
+        if e.get("sealed") or not e.get("outcome") or not words or not (s.cards_dir / card.removeprefix("cards/")).exists():
+            continue
+        bsky = utm(url, "bluesky", "quote")
+        out[e["agent"]] = {
+            "card": card, "name": f"agentpitbench-round-{r['round_id']}-{e['agent']}.png",
+            "text": quote_text(e["name"], r["question"], words, 200), "url": utm(url, "native", "quote", "share-image"),
+            "x": "https://x.com/intent/tweet?" + urlencode({"text": quote_text(e["name"], r["question"], words, 280 - 24, x_len),
+                                                            "url": utm(url, "x", "quote")}, quote_via=quote),
+            "bluesky": "https://bsky.app/intent/compose?" + urlencode(
+                {"text": quote_text(e["name"], r["question"], words, 300 - len(bsky) - 1) + " " + bsky}, quote_via=quote)}
+    return out
+
+
+def film_share(f: dict, url: str, _) -> dict:
+    """Film end screen (§2): the film's hook (built from the round record) and the round page."""
+    return share_bar(ShareText(f.get("hook") or "Match of the Day"), "Match of the Day", url, "film", _)
 
 
 def page_type(path: str) -> str:
@@ -930,6 +1048,7 @@ def _build(s: Settings) -> Path:
                   "tq": tq, "mq": mq}
         common["vs_links"] = vs_links
         prefix = _.prefix()
+        common["film_share"] = lambda f, _=_, prefix=prefix: film_share(f, f"{base}/{prefix}round/{f['round_id']}/", _)
         suffixes = round_suffixes(rounds, _)
         blurb = _("{vs}, each on its lab's top model at maximum reasoning, bet 100 tokens on live prediction markets. Every bet, rationale and result is public.", vs=vs)
 
@@ -995,6 +1114,7 @@ def _build(s: Settings) -> Path:
             page(f"round/{rid}/index.html", "round.html", r=r, card=card, card_alt=card_alt(lr, _, ", ".join(names)),
                  film=film_of.get(rid), cta=cta if lang == "en" else None,
                  picks=pick_share(r, rurl, _), wins=win_share(r, rurl, _), cap_hit=cap_hit.get(rid),
+                 grid=grid_share(r, rurl, _), qshare=quote_shares(s, r, rurl),
                  img=share_image(card, f"round-{rid}", round_share(lr, _, vs), rurl, "round"),
                  og=previews["rounds"].get(rid), share_text=round_share(lr, _, vs),
                  prev_r=by_id[i - 1] if i else None, next_r=by_id[i + 1] if i + 1 < len(by_id) else None,

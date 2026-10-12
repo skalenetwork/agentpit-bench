@@ -1,6 +1,7 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% import "_share.html" as sh with context %}
 {% block main %}
 <h1>{{ _("Contrarian calls") }}</h1>
+{{ sh.row(share) }}
 <p class="mut">{{ _("Forecasts from the daily sweep at least 30 points away from the market price: the AI backs a side the market doubts.") }}</p>
 {% set done = calls|selectattr('right', 'ne', none)|list %}{% if done %}<p>{{ _("Hit rate: {right} of {total}.", right=done|selectattr('right')|list|length, total=done|length) }}</p>{% endif %}
 {% if calls %}<div class="scroll"><table><tr><th>{{ _("Date") }}</th><th>{{ _("Agent") }}</th><th>{{ _("Market") }}</th><th class="r">{{ _("AI") }}</th><th class="r">{{ _("Market price") }}</th><th>{{ _("Result") }}</th></tr>

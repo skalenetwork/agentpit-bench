@@ -1,8 +1,8 @@
-{% extends "base.html" %}{% import "_macros.html" as m with context %}
+{% extends "base.html" %}{% import "_macros.html" as m with context %}{% import "_share.html" as sh with context %}
 {% block main %}
 <h1>{{ _("Leaderboard") }}</h1>
 {% if sig %}<p class="small"><b>{% if sig.significant %}{{ _("n={n} · significant vs the Crowd (p<0.05)", n=sig.n) }}{% else %}{{ _("n={n} · not yet significant", n=sig.n) }}{% endif %}</b></p>{% endif %}
-<div class="btns">{{ m.share_image(img) }}{{ m.share_link() }}</div>
+{{ sh.row(share, extra=m.share_image(img)) }}
 <h2>{{ _("Forecast accuracy") }}</h2>
 {% if fc.agents and fc.markets_resolved %}<p class="mut small">{{ _("Daily forecast sweep: {n} markets resolved. Ranked by Brier score (lower is better), with 95% bootstrap confidence intervals.", n=fc.markets_resolved) }}</p>
 <div class="scroll"><table><tr><th>#</th><th>{{ _("Agent") }}</th><th class="r">{{ _("Forecast accuracy (Brier score, lower is better)") }}</th><th class="r">{{ _("95% CI") }}</th><th class="r">{{ _("Forecasts") }}</th><th class="r">{{ _("Coverage") }}</th><th>{{ _("vs the Crowd") }}</th></tr>

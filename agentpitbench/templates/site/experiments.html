@@ -1,6 +1,7 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% import "_share.html" as sh with context %}
 {% block main %}
 <h1>{{ _("Experiments") }}</h1>
+{{ sh.row(share) }}
 <p>{{ _("We test the wording and presentation of our posts. Every fact, number, pick and result is filled in by code from the record; wording never changes them.") }}</p>
 <p class="small">{{ _("Never varied: names, picks, prices, scores, records, winners and the question; the credibility strip on every card; every link and where it leads; the reply invite; the vendor tags on results posts; #AgentpitBench.") }}</p>
 <p class="small mut">{{ _("Numbers count only posts older than {n} days, so a running test can't be gamed. Expect wide intervals: {m} posts per variant ends exploration; it is not a significance claim.", n=ab.delay_days|int, m=ab.min_posts) }}</p>
