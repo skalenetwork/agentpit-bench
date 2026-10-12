@@ -44,8 +44,8 @@ VOICES: dict[str, dict] = {
 FALLBACK_VOICE = {"id": "JBFqnCBsd6RMkjVDRZzb", "name": "George", "tag": ""}
 VOICE_SETTINGS = {"stability": 0.5, "similarity_boost": 0.75}
 
-# Score prompts per concept (instrumental). A library of `variants` tracks per concept is generated on demand and
-# rotated by round id, so a month of films costs at most len(CONCEPTS) * variants music generations.
+# Score prompts per concept (instrumental). One library track per concept, generated the first time the concept
+# is used and reused after that: at most len(CONCEPTS) music generations ever, under a per-day credit guard.
 MUSIC: dict[str, str] = {
     "noir": "smoky film noir jazz, slow brushed drums, muted trumpet and saxophone, upright bass, rain-soaked tension",
     "nature_doc": "gentle nature documentary strings and piano, wonder, slow build, warm and hopeful",
@@ -68,7 +68,7 @@ STING: dict[str, str] = {
     "western": "ricocheting gunshot echo in a canyon with a guitar twang",
     "mission_control": "alarm klaxon blip then a deep sub boom",
 }
-MUSIC_VARIANTS = 2
+MUSIC_VARIANTS = 1          # one track per concept (operator, 2026-10-12: fill the library gradually)
 MUSIC_LEN_S = 62
 
 
@@ -142,8 +142,60 @@ def narrate_line(s, text: str, concept: str, voice: dict | None = None) -> tuple
     return p, cost, rec
 
 
-def score(s, concept: str, round_id: int) -> tuple[Path | None, int, dict]:
-    """A library track for the concept, rotated by round id. Generated once per (prompt, variant), then reused."""
+MUSIC_EST_CREDITS = 800   # one 62 s track (the API reports no cost; measured by balance: ~700-800 credits)
+
+
+def _ledger(s) -> Path:
+    return cache_dir(s) / "music-ledger.json"
+
+
+def music_spent_today(s, day: str) -> int:
+    try:
+        return int(json.loads(_ledger(s).read_text()).get(day, 0))
+    except (OSError, ValueError):
+        return 0
+
+
+def _record_music(s, day: str, credits: int) -> None:
+    try:
+        led = json.loads(_ledger(s).read_text())
+    except (OSError, ValueError):
+        led = {}
+    led[day] = int(led.get(day, 0)) + credits
+    _ledger(s).write_text(json.dumps(led))
+
+
+def remaining_credits() -> int | None:
+    """The key's remaining credits, when the key may read its subscription (user_read); else None."""
+    k = key()
+    if not k:
+        return None
+    req = urllib.request.Request(API + "/v1/user/subscription", headers={"xi-api-key": k})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            sub = json.loads(r.read())
+        return int(sub["character_limit"]) - int(sub["character_count"])
+    except Exception:
+        return None
+
+
+def music_allowed(s, day: str) -> tuple[bool, str]:
+    """A NEW track may be generated only within the day's music budget and while the balance keeps the
+    narration reserve. Cached tracks are always allowed."""
+    budget = getattr(s, "motd_music_daily_credits", 1500)
+    reserve = getattr(s, "motd_narration_reserve_credits", 200)
+    if music_spent_today(s, day) + MUSIC_EST_CREDITS > budget:
+        return False, "daily music budget spent"
+    left = remaining_credits()
+    if left is not None and left - MUSIC_EST_CREDITS < reserve:
+        return False, f"balance {left} would drop below the narration reserve"
+    return True, "ok"
+
+
+def score(s, concept: str, round_id: int, day: str | None = None) -> tuple[Path | None, int, dict]:
+    """The concept's library track. The library fills gradually: a concept's track is generated only the first
+    time the concept is used (within the day's music budget and the narration reserve), then reused forever.
+    Any cached track for the concept counts (earlier variants included)."""
     prompt = MUSIC.get(concept)
     if not prompt:
         return None, 0, {}
@@ -153,14 +205,25 @@ def score(s, concept: str, round_id: int) -> tuple[Path | None, int, dict]:
     p = cache_dir(s) / f"music-{concept}-{_hash(rec)}.mp3"
     if p.exists() and p.stat().st_size > 0:
         return p, 0, rec
+    cached = sorted((x for x in cache_dir(s).glob(f"music-{concept}-*.mp3") if x.stat().st_size > 0),
+                    key=lambda x: x.stat().st_mtime)
+    if cached:
+        return cached[0], 0, {**rec, "cached_file": cached[0].name}
+    from datetime import datetime, timezone
+    day = day or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    ok, why = music_allowed(s, day)
+    if not ok:
+        log.info("no new %s score today: %s (procedural bed instead)", concept, why)
+        return None, 0, rec
     audio, cost = _post("/v1/music?output_format=mp3_44100_128",
-                        {"prompt": f"{prompt}. Instrumental, no vocals. Variation {variant + 1}.",
+                        {"prompt": f"{prompt}. Instrumental, no vocals.",
                          "music_length_ms": MUSIC_LEN_S * 1000, "model_id": MUSIC_MODEL,
                          "force_instrumental": True}, timeout=600)
     if not audio:
         return None, 0, rec
+    _record_music(s, day, cost or MUSIC_EST_CREDITS)
     p.write_bytes(audio)
-    return p, cost, rec
+    return p, cost or MUSIC_EST_CREDITS, rec
 
 
 def effect(s, prompt: str, seconds: float = 2.0) -> tuple[Path | None, int]:

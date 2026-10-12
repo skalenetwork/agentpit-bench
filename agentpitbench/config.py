@@ -61,6 +61,8 @@ class Settings:
     opai_model_motd_script: str = "fable"   # claude CLI alias for the film writer (the strongest for creative writing)
     opai_motd_timeout_s: int = 360          # a script call takes 1.5-3 min
     motd_narrator: bool = True        # ElevenLabs narrator when ELEVENLABS_API_KEY is set; false = captions only
+    motd_music_daily_credits: int = 1500      # ElevenLabs credits a day for NEW score tracks (cached ones are free)
+    motd_narration_reserve_credits: int = 200  # never let new music drop the key's balance below this
     motd_music: bool = True           # the CC0 music bed (static/motd/theme.m4a); false = silent films
     sandbox: bool = True             # run agents inside bubblewrap (bwrap); never disable in production
     # independent-standard layer

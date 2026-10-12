@@ -290,6 +290,10 @@ def validate(data: dict, pl: dict) -> str | None:
     title = data.get("title") or ""
     if re.search(r"\d", title) or _NUMWORDS.search(title) or len(title) > MAX_CHARS["title"]:
         return "the title must be short and contain no numbers"
+    subj = data.get("background_subject") or ""  # set in huge type on the background scene
+    if (len(subj) > 40 or re.search(r"\d", subj) or _PUTDOWN.search(subj) or _MODEL.search(subj)
+            or _SIGNIF.search(subj)):
+        return "background_subject must be a short name (no numbers, model names or judgements)"
     for i, s in enumerate(scenes):
         t = s.get("text") or ""
         k = s["kind"]
@@ -327,6 +331,9 @@ def validate(data: dict, pl: dict) -> str | None:
         m = _SIGNIF.search(bare)
         if m:
             return f"scene {i} ({k}): significance or superiority claim '{m.group(0)}'"
+        if re.search(r"\b(read|reads|reading|opened)\b[^.!?]*\blinks?\b", fill(t, sl), re.I):
+            return (f"scene {i} ({k}): transcripts LOG web links (search results included); say 'logged' or "
+                    "'pulled', not 'read'")
         for sent in _sentences(fill(t, sl)):
             who = [n for n in names if re.search(r"\b" + re.escape(n) + r"\b", sent)]
             if len(who) != 1 and not (k == "character" and len(who) == 0):
