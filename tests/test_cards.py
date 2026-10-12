@@ -133,7 +133,8 @@ async def test_results_post_records_variant_and_tags_link(env):
     finally:
         await pub.close()
     variant = db.round(rid)["headline_variant"]
-    assert variant == headline_variant(rid)
+    from agentpitbench import ab   # the tone arm is live: the day's A/B draw (docs/ab-testing-spec.md section 2)
+    assert variant == db.get(f"ab_tone_{ab.utc_day()}") and variant in ("fun", "plain")
     post = json.loads((s.outbox_dir / f"r{rid}-results.json").read_text())
     assert f"utm_content={variant}" in post["text"]
     assert rec(s, db, rid)["headline_variant"] == variant
