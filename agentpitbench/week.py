@@ -40,7 +40,7 @@ THEME = {"bg1": "#070b1e", "bg2": "#1b2a6b", "ink": "#f4f6fb", "accent": "#ffcf3
          "font": "Bebas Neue", "cap": "Inter"}
 TOP_FILMS = 3
 RECUT_S = 42.0          # a film's re-cut (the spec's ~45 s with the host's intro card)
-TRAILER_FILM_S = 9.0    # each film's beat in the trailer
+TRAILER_FILM_S = 14.0   # each film's beat in the trailer
 CPS = 15.0              # caption reading speed
 NARR_CPS = 10.5         # narrator speed (measured on the films)
 LEAD_S, TAIL_S = 0.3, 0.45
@@ -276,6 +276,7 @@ def slots(data: dict) -> dict[str, str]:
     tw = data.get("twist")
     if tw:
         out["twist_fact"] = tw["fact"]
+        out["twist_names"] = " and ".join(tw["names"]) if tw["names"] else "the AIs"
     for i, f in enumerate(data.get("films") or [], 1):
         rnd = f["round"]
         for k, v in ms.slots(rnd, {"sources": {}}).items():
@@ -372,8 +373,13 @@ _LEAD = re.compile(r"\b(leads?|leading|on top|in front|top of|first place|out fr
 _RESULT = re.compile(r"\b(won|wins|lost|loses|cashed|paid out|was right|was wrong)\b", re.I)
 
 
+# "every AI but Gemini backs X", "against X", "not X": the named agent is excluded from the pick in that clause
+_NEG = re.compile(r"\b(not|against|n't|over|but|except|apart from|other than|unlike)\b", re.I)
+
+
 def _sentences(t: str) -> list[str]:
-    return [x for x in re.split(r"(?<=[.!?…])\s+|\n", t) if x.strip()]
+    """Sentences, split further at semicolons and colons (each clause is checked on its own)."""
+    return [x for x in re.split(r"(?<=[.!?…])\s+|\n|;\s*|:\s+", t) if x.strip()]
 
 
 def _names_in(sent: str) -> list[str]:
@@ -450,7 +456,7 @@ def _facts(k: str, filled: str, pl: dict) -> str | None:
             n = who[0]
             for o in f["outcomes"]:
                 said = re.search(r"(?<![\w])" + re.escape(o) + r"(?![\w])", sent)
-                if said and pick.get(n) and o != pick[n] and not re.search(r"\b(not|against|n't|over)\b", sent):
+                if said and pick.get(n) and o != pick[n] and not _NEG.search(sent):
                     return f"{k}: '{sent}' ties {n} to {o}, but {n} picked {pick[n]}"
             if won.get(n) is False and ms_won(sent) and not ms_lost(sent):
                 return f"{k}: '{sent}' says {n} won, but {n} lost"
@@ -481,7 +487,7 @@ def _facts(k: str, filled: str, pl: dict) -> str | None:
                     for o in {v for v in t["picks"].values() if v}:
                         if (pick and o != pick and re.search(r"(?<![\w])" + re.escape(o) + r"(?![\w])", sent)
                                 and t["question"].split()[0].lower() in sent.lower()
-                                and not re.search(r"\b(not|against|n't|over)\b", sent)):
+                                and not _NEG.search(sent)):
                             return f"teaser: '{sent}' ties {who[0]} to {o}, but it picked {pick}"
     elif k == "human":
         if pl.get("best_human") and pl["slots"].get("human") not in filled:
@@ -508,7 +514,7 @@ def templated(data: dict) -> dict:
     L: dict[str, str] = {}
     for k in keys_for(data):
         if k == "cold_open":
-            L[k] = "The twist of the week. {twist_fact}"
+            L[k] = "The twist of the week stars {twist_names}. Nobody saw it coming."
         elif k == "welcome":
             L[k] = "This is Week in the Pit: the AIs, real prediction markets, and {n_rounds} rounds settled this week."
         elif k == "race_pnl":
@@ -1046,7 +1052,7 @@ async def _trailer(s, cards, data, segs, sources, work: Path, out: Path, week: s
     card. For Bluesky (3-minute cap) and as X's fallback."""
     w, h = FORMATS["square"]
     fps = s.week_episode_fps
-    head = [x for x in segs[0]["scenes"] if x["kind"] in ("w_cold", "w_title")]
+    head = [x for x in segs[0]["scenes"] if x["kind"] in ("w_cold", "w_title", "w_race_pnl")]
     pieces: list[Path] = []
     if head:
         silent = await cards.sequence(head, work / "tr-head", w, h, fps, "square")

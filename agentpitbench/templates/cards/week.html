@@ -23,8 +23,8 @@ body.wide .main{top:100px;bottom:160px;padding:0 100px}
 body.square .main{top:96px;bottom:150px;padding:0 44px;gap:14px}
 .label{font-family:Oswald,sans-serif;font-size:44px;letter-spacing:5px;color:var(--acc);text-transform:uppercase;text-align:center}
 .sub{font-family:Inter,sans-serif;font-weight:700;line-height:1.2;text-align:center;text-wrap:balance;background:rgba(0,0,0,.5);padding:16px 26px;border-radius:6px;align-self:center;max-width:100%}
-body.wide .sub{font-size:50px;max-width:1560px}
-body.square .sub{font-size:42px}
+body.wide .sub{font-size:46px;max-width:1560px}
+body.square .sub{font-size:40px;padding:10px 18px}
 .big{font-family:var(--disp);text-transform:uppercase;line-height:.98;text-align:center}
 body.wide .big{font-size:150px}
 body.square .big{font-size:112px}
@@ -37,8 +37,8 @@ body.square .mid{font-size:66px}
 .actor{display:flex;flex-direction:column;align-items:center;gap:6px}
 .actor .nm{font-family:var(--disp);font-size:48px;text-transform:uppercase;line-height:1}
 .fact{font-family:Oswald,sans-serif;font-weight:700;line-height:1.12;border:5px solid var(--acc);padding:20px 26px;background:rgba(0,0,0,.45);text-align:center}
-body.wide .fact{font-size:58px}
-body.square .fact{font-size:46px}
+body.wide .fact{font-size:50px}
+body.square .fact{font-size:40px;padding:12px 16px}
 .twlabel{font-family:var(--disp);text-transform:uppercase;color:var(--bg1);background:var(--acc);padding:4px 24px;align-self:center;font-size:76px;line-height:1.05}
 /* race */
 .race{position:relative;width:100%}
@@ -72,15 +72,15 @@ body.square .grid{grid-template-columns:1fr}
 body.square .cols{flex-direction:column;gap:10px}
 .col{flex:1}
 .col h3{font-family:Oswald,sans-serif;font-size:40px;letter-spacing:2px;text-transform:uppercase;color:var(--acc);font-weight:500}
-.srow{display:flex;justify-content:space-between;align-items:baseline;font-size:44px;padding:2px 0;border-bottom:2px solid rgba(127,127,127,.3)}
+.srow{display:flex;justify-content:space-between;align-items:baseline;font-size:40px;padding:0;border-bottom:2px solid rgba(127,127,127,.3)}
 .srow b{font-family:Oswald,sans-serif;text-transform:uppercase}
 .srow .v{font-family:Oswald,sans-serif;font-weight:700}
 .pos{color:#22c55e}.neg{color:#ff5c7a}.zerov{opacity:.6}.dim{opacity:.68}
-.bigurl{font-family:Oswald,sans-serif;font-size:56px;font-weight:700;text-align:center}
+.bigurl{font-family:Oswald,sans-serif;font-size:48px;font-weight:700;text-align:center}
 /* credibility strip */
 .foot{position:absolute;left:0;right:0;bottom:0;background:#060912;font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:40px;line-height:1.2;color:#9aa4c4;display:flex;align-items:center;gap:22px;z-index:7}
 body.wide .foot{height:150px;padding:0 50px}
-body.square .foot{height:140px;padding:0 30px}
+body.square .foot{height:140px;padding:0 24px}
 .foot .em{flex:0 0 84px;width:84px;height:84px;border-radius:50%;overflow:hidden}
 .foot .em svg{display:block;width:84px;height:84px}
 .foot .lines{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
@@ -99,9 +99,9 @@ body.square .foot{height:140px;padding:0 30px}
 <div class="main {{ sc.kind }}" data-cam="push">
 {% if sc.kind == 'w_cold' %}
   <div class="twlabel" data-in="0.1" data-fx="slam">The twist of the week</div>
-  {% if sc.cast %}<div class="troupe">{% for a in sc.cast %}{{ actor(a, 200 if not sq else 150, 'data-in="' ~ (0.3 + 0.1 * loop.index0) ~ '" data-fx="pop"') }}{% endfor %}</div>{% endif %}
+  {% if sc.cast %}<div class="troupe">{% for a in sc.cast %}{{ actor(a, 150 if not sq else 110, 'data-in="' ~ (0.3 + 0.1 * loop.index0) ~ '" data-fx="pop"') }}{% endfor %}</div>{% endif %}
   <div class="fact" data-in="0.8" data-fx="slam">{{ sc.fact }}</div>
-  <div class="small" data-in="1.2" data-fx="fade">Round {{ sc.round_id }}: “{{ sc.question }}”</div>
+  {% if (sc.caption or '')|length <= 80 %}<div class="small" data-in="1.2" data-fx="fade">Round {{ sc.round_id }}: “{{ sc.question }}”</div>{% endif %}
   <div class="sub" data-in="1.5" data-fx="fade">{{ sc.caption }}</div>
 {% elif sc.kind == 'w_title' %}
   <div class="label" data-in="0" data-fx="fade">{{ sc.span }}</div>
@@ -128,7 +128,7 @@ body.square .foot{height:140px;padding:0 30px}
 {% elif sc.kind == 'w_film' %}
   <div class="label" data-in="0" data-fx="fade">Film of the week · {{ sc.rank }} of {{ sc.of }}</div>
   <div class="mid" data-in="0.2" data-fx="pop">{{ sc.film_title }}</div>
-  <div class="small" data-in="0.45" data-fx="fade">Match of the Day · {{ sc.date }} · Round {{ sc.round_id }} · drama score {{ sc.score }}</div>
+  <div class="small" data-in="0.45" data-fx="fade">Match of the Day · {{ sc.date }} · Round {{ sc.round_id }} · drama score {{ '%g'|format(sc.score) }}</div>
   <div class="troupe" data-in="0.6" data-fx="up">{% for a in sc.cast %}{{ actor(a, 130 if not sq else 100) }}{% endfor %}</div>
   <div class="sub" data-in="0.9" data-fx="fade">{{ sc.caption }}</div>
 {% elif sc.kind == 'w_awards' %}
@@ -179,8 +179,8 @@ body.square .foot{height:140px;padding:0 30px}
 {% if idx > 0 %}<div class="trans" data-trans="fade"></div>{% endif %}
 <div class="foot"><span class="em">{{ emblem(84, True) }}</span><div class="lines">
   {% if sig_line %}<div class="sig one">{{ sig_line }}</div>{% endif %}
-  <div class="one">{{ [model, 'Methodology v' ~ mver]|select|join(' · ') }}{% if not sq %} · <span class="url">{{ url }}</span>{% endif %}</div>
-  {% if sq %}<div class="url one">{{ url }}</div>{% endif %}
+  {% if sq %}<div class="url one">{{ url }} · Methodology v{{ mver }}</div>
+  {% else %}<div class="one">{{ [model, 'Methodology v' ~ mver]|select|join(' · ') }} · <span class="url">{{ url }}</span></div>{% endif %}
 </div></div>
 <script>
 window.__extraInit = function () {
@@ -224,7 +224,7 @@ window.__extraInit = function () {
       if (v === null || v === undefined) { fill.style.width = '0'; val.textContent = 'no forecasts'; val.style.left = (zero + 1) + '%'; return; }
       const w = Math.abs(v) / span * 76, left = brier || v >= 0 ? zero : zero - w;
       fill.style.left = left + '%'; fill.style.width = w + '%';
-      val.style.left = (brier || v >= 0 ? left + w + 1 : Math.max(0, left - 14)) + '%';
+      val.style.left = (brier || v >= 0 ? left + w + 1 : left >= 14 ? left - 14 : zero + 1) + '%';
       val.style.color = brier ? '#e6eaf5' : (v >= 0 ? '#22c55e' : '#ff5c7a');
       val.textContent = fmtv(v);
     });

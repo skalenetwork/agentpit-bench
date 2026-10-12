@@ -186,6 +186,12 @@ def test_validator_accepts_slots_years_in_film_lines_and_a_correct_leader():
     sc["lines"]["race_pnl"] = "Claude leads the money race at {claude_week_pnl}, with {pnl_leader} out front."
     sc["lines"]["film_1"] = "A club founded in 1903. {f1_claude_pick} for Claude, and Claude cashed in."
     assert week.validate(sc, pl) is None
+    # the sample draft's false rejection: an excepted agent, and a clause after a semicolon
+    sc["lines"]["film_1"] = "Every AI but Claude backs {f1_chatgpt_pick}; Claude stands alone on {f1_claude_pick}."
+    assert week.validate(sc, pl) is None
+    sc["lines"]["film_1"] = "Every AI backs A; Claude stands alone on A."
+    assert "ties Claude to A" in week.validate(sc, pl)
+    sc["lines"]["film_1"] = "A club founded in 1903."
     sc["title"] = "Week 42"
     assert "title" in week.validate(sc, pl)
 
@@ -261,7 +267,7 @@ def test_host_scenes_and_segments():
     assert [seg["type"] for seg in segs] == ["host", "host", "film", "host"]
     assert "w_human" in kinds and kinds.count("w_award") == len(d["awards"])
     cold = segs[0]["scenes"][0]
-    assert cold["caption"].startswith("The twist of the week. Claude was alone") and cold["url"].startswith("site.org/films/")
+    assert cold["caption"] == "The twist of the week stars Claude. Nobody saw it coming." and cold["url"].startswith("site.org/films/")
     assert all("{" not in x["caption"] for seg in segs for x in seg.get("scenes", []))
 
 
