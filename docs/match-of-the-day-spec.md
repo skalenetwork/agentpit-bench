@@ -130,19 +130,23 @@ it still passes the validator (no new call). Typical call: 1.5–3 minutes.
   the same slot values as its caption. A scene lasts at least 0.3 s + its line + 0.45 s; if the lines alone pass
   60 s they are sped up (atempo, ≤ 1.12×), then visual holds are trimmed; if it still doesn't fit, the film drops the
   voice and keeps captions (60 s is a hard cap). Captions stay on for silent viewing.
-- **Score:** ElevenLabs Music (`music_v1`, instrumental, 62 s) from a per-concept prompt; a library of 2 variants
-  per concept, generated once and rotated by round id, so the whole library is at most 18 generations. Fallback: the
-  procedural CC0 bed. The score is ducked under the narrator (sidechain compression), faded in 0.5 s and out 2 s.
+- **Score:** ElevenLabs Music (`music_v1`, instrumental, 62 s) from a per-concept prompt. **One track per concept,
+  generated the first time the concept is used** and reused after that (any cached track for the concept counts),
+  so the library is at most 9 generations, filled gradually. Guard: a new track only if today's music spend plus
+  the estimate (800 credits) stays within `motd_music_daily_credits` (1,500; local ledger `audio_cache/
+  music-ledger.json`) and, when the key may read its balance, the balance after it stays above
+  `motd_narration_reserve_credits` (200). Otherwise the procedural CC0 bed. The score is ducked under the narrator
+  (sidechain compression), faded in 0.5 s and out 2 s.
 - **Sting:** one ElevenLabs Sound Effect per concept (gavel, vault door, ricochet, crowd roar...) at the twist's
   flash. Fallback: none.
 - **Cache:** every clip is cached under `var/audio_cache/` by a hash of engine, model, voice, settings and text (or
   prompt), so re-renders never re-bill. film.json `audio` records voice id, model, settings, characters and the
   credits the API reported (`character-cost`).
-- **Budget:** about 470 narrated characters a film. Measured on the first film: 89 credits for 586 characters of v4
-  narration (v4 was on a 72% launch discount until 12 October; at list price assume ~1 credit/character, so ≤ 500
-  a film), a 2 s sound effect 20 credits. Music is not metered per call by the API (no cost header): verify on the
-  dashboard after the library is generated. 30 films × ≤ 500 narration credits + the one-off library fits the
-  35,000-credit key cap. `motd_narrator = false` turns the voice off.
+- **Budget:** about 470 narrated characters a film: measured 81-89 credits a film (v4). A 2 s effect costs 20
+  credits. Music is not metered by the API; by balance, one 62 s track cost about 700-800 credits (the first day's
+  four tracks plus narration emptied a key capped at 3,500 credits; narration then failed with quota_exceeded and the
+  film fell back to captions only, as designed). With the key at 35,000: the one-off library (≤ 9 × ~800) plus
+  ~90 a film for narration. `motd_narrator = false` turns the voice off.
 - **Licensing (to verify before the first public film):** ElevenLabs grants a commercial licence on paid plans
   (Starter included) for voice output; ElevenLabs Music on self-serve plans is cleared for commercial online use
   except film, TV and games (third-party summaries; the official terms page moved). No statement about YouTube

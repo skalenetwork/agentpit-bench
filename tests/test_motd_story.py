@@ -214,6 +214,23 @@ def test_voiced_scenes_stretch_to_their_lines_and_respect_60s(monkeypatch, tmp_p
     assert all(x["dur"] == 4.0 and "voice" not in x for x in many)
 
 
+def test_music_library_fills_gradually_under_the_daily_guard(monkeypatch, tmp_path):
+    from agentpitbench import sound
+    monkeypatch.setenv("ELEVENLABS_API_KEY", "k")
+    s = SimpleNamespace(data_dir=tmp_path, motd_music_daily_credits=1500, motd_narration_reserve_credits=200)
+    calls = []
+    monkeypatch.setattr(sound, "_post", lambda path, body, timeout=0: calls.append(body) or (b"mp3", 0))
+    monkeypatch.setattr(sound, "remaining_credits", lambda: None)
+    p, cost, _ = sound.score(s, "noir", 9, day="2026-10-13")
+    assert p and cost == sound.MUSIC_EST_CREDITS and len(calls) == 1
+    assert sound.score(s, "noir", 19, day="2026-10-13")[0] == p and len(calls) == 1  # reused, any round
+    assert sound.score(s, "heist", 1, day="2026-10-13")[0] is None and len(calls) == 1  # 800 + 800 > 1500 today
+    monkeypatch.setattr(sound, "remaining_credits", lambda: 900)  # 900 - 800 < 200 reserve
+    assert sound.score(s, "heist", 1, day="2026-10-14")[0] is None and len(calls) == 1
+    monkeypatch.setattr(sound, "remaining_credits", lambda: 5000)
+    assert sound.score(s, "heist", 1, day="2026-10-14")[0] and len(calls) == 2
+
+
 def test_validator_structure_and_length():
     pl, _ = base_payload()
     d = json.loads(json.dumps(GOOD))
