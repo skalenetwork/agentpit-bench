@@ -43,7 +43,7 @@ def _atomic_write(path: Path, text: str) -> None:
 
 def send(s: Settings, db: DB, severity: str, kind: str, title: str, what: str, *, action: str = "none",
          resume: str = "", draft_path: str | None = None) -> dict:
-    """severity: critical / warn. Never raises past logging: an alert must not take down its caller."""
+    """severity: critical / warn / info. Never raises past logging: an alert must not take down its caller."""
     now = time.time()
     alert_id = db.x("INSERT INTO alerts(at,severity,subject,body,kind,action,resume,draft_path,sent_via)"
                     " VALUES(?,?,?,?,?,?,?,?,?)", now, severity, title, what, kind, action, resume, draft_path, "file")
@@ -57,7 +57,7 @@ def send(s: Settings, db: DB, severity: str, kind: str, title: str, what: str, *
         db.x("UPDATE alerts SET file_path=? WHERE alert_id=?", str(path), alert_id)
     except OSError:
         log.exception("could not write alert file %s", path)
-    (log.critical if severity == "critical" else log.warning)("ALERT [%s] %s: %s | action: %s | resume: %s",
+    {"critical": log.critical, "info": log.info}.get(severity, log.warning)("ALERT [%s] %s: %s | action: %s | resume: %s",
                                                                kind, title, what, action, resume or "-")
     via = ["file"]
     for name, fn in CHANNELS.items():

@@ -64,6 +64,14 @@ def add_parsers(sub) -> None:
     an = opsub.add_parser("anomalies")
     an.add_argument("--all", action="store_true")
     opsub.add_parser("check", help="run the anomaly detectors once now")
+    opsub.add_parser("snapshot", help="write the ops agent's scrubbed 24 h snapshot (no AI) and print its path")
+    ni = opsub.add_parser("nightly", help="the nightly ops agent: clone, agent in its sandbox, gate, PR or patch")
+    ni.add_argument("--force", action="store_true", help="run even if it already ran today (still needs "
+                    "ops_agent_enabled and opai available)")
+    it = opsub.add_parser("install-timer", help="copy the agentpitbench-ops service + timer unit files into "
+                          "~/.config/systemd/user/ (never enables them)")
+    it.add_argument("--dir", help="target directory (default ~/.config/systemd/user)")
+    opsub.add_parser("cadence", help="the cadence policy in force and the latest decision (§9)")
 
     inc = sub.add_parser("incidents", help="incident drafts: list, show, publish, discard")
     isub = inc.add_subparsers(dest="inc_cmd", required=True)
@@ -205,6 +213,27 @@ def _ops(s: Settings, db: DB, a) -> None:
                   f"{r['detail_json']}")
     elif a.ops_cmd == "check":
         _print([x.__dict__ for x in anomaly.tick(s, db)])
+    elif a.ops_cmd == "snapshot":
+        from . import ops
+        print(ops.snapshot(s, db, ops.CACHE / opai.utc_day()))
+    elif a.ops_cmd == "nightly":
+        from . import ops
+        out = ops.nightly(s, db, force=a.force)
+        _print(out)
+        sys.exit(1 if out.get("status") == "error" else 0)
+    elif a.ops_cmd == "install-timer":
+        from pathlib import Path
+        from . import ops
+        for p in ops.install_timer(Path(a.dir).expanduser() if a.dir else None):
+            print("wrote", p)
+        print("Not enabled. To enable (operator):\n  systemctl --user daemon-reload\n"
+              "  systemctl --user enable --now agentpitbench-ops.timer\n"
+              "  loginctl enable-linger $USER   # so the timer runs while logged out\n"
+              "The run is a no-op until ops_agent_enabled = true in bench.toml.")
+    elif a.ops_cmd == "cadence":
+        from . import policy
+        _print({"mode": policy.mode(s, db), "policy": policy.current(s, db), "data": policy.sufficiency(db),
+                "last": db.get(policy.LAST)})
 
 
 # ---------------------------------------------------------------- incidents

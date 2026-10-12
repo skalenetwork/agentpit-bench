@@ -1,0 +1,11 @@
+# Runs agentpitbench-ops.service daily at 03:30 UTC (docs/ai-automation-spec.md §11).
+[Unit]
+Description=AgentpitBench nightly ops agent, 03:30 UTC
+
+[Timer]
+OnCalendar=*-*-* 03:30:00 UTC
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target

@@ -162,5 +162,5 @@ def test_only_methodology_writes_the_lock():
                 assert "approve" not in {a.name for a in node.names}, f.name
             if isinstance(node, ast.Attribute) and node.attr in ("approve", "write_english"):
                 assert f.name == "opscli.py", (f.name, "may not call methodology.approve")
-    for name in ("opai.py", "engage.py", "watcher.py"):
+    for name in ("opai.py", "engage.py", "watcher.py", "policy.py", "selection_review.py", "ops.py"):
         assert "approve(" not in (PKG / name).read_text()
