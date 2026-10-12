@@ -174,14 +174,29 @@ class BenchPublisher:
         if few:
             headline = "Picks are in"
         key = f"r{round_id}-reveal"
+        cards = [p for e in rnd["entries"]
+                 if (p := self.s.cards_dir / str(round_id) / f"decision-{e['agent']}.png").exists()][:4]
+        try:
+            text, media = self._reveal_ab(round_id, rnd, key, headline, few, cards)
+        except Exception:  # A/B never blocks a post: the control goes out
+            log.exception("A/B for %s failed; posting the control", key)
+            text, media = reveal_text(rnd, headline), cards or None
+        async with self._lock(round_id):
+            tid = await self.poster.post(key, "reveal", text, media, round_id=round_id)
+            if tid:
+                self.db.set_round(round_id, thread_tweet_id=tid)
+                self.db.x("UPDATE bets SET tweet_id=? WHERE tweet_id IS NULL AND run_id IN "
+                          "(SELECT run_id FROM runs WHERE round_id=?)", tid, round_id)
+        exports.export(self.s, self.db)
+
+    def _reveal_ab(self, round_id: int, rnd: dict, key: str, headline: str, few: bool, cards: list):
+        """The reveal's A/B slots: hook, cta, tags (text, through ab.finish) and media."""
         sit, facts = split_shape(rnd)
         hook = ab.choose(self.db, self.s, "reveal.hook", key, None if few else sit, facts, kind="reveal")
         choices = [hook] + [ab.choose(self.db, self.s, sl, key, kind="reveal") for sl in ("reveal.cta", "tags")]
         text = ab.finish(self.db, key, choices,
                          lambda v: reveal_text(rnd, v.get("reveal.hook", headline), v.get("reveal.cta", ""),
                                                v.get("tags", "")), "reveal")
-        cards = [p for e in rnd["entries"]
-                 if (p := self.s.cards_dir / str(round_id) / f"decision-{e['agent']}.png").exists()][:4]
         media = cards or None
         m = ab.choose(self.db, self.s, "reveal.media", key, kind="reveal")
         if m.key == "split_card":
@@ -190,13 +205,7 @@ class BenchPublisher:
                 media = split
             else:  # no split card (fewer than 2 bettors, or the render failed): the decision cards, as the control
                 ab.realize_control(self.db, key, "reveal.media")
-        async with self._lock(round_id):
-            tid = await self.poster.post(key, "reveal", text, media, round_id=round_id)
-            if tid:
-                self.db.set_round(round_id, thread_tweet_id=tid)
-                self.db.x("UPDATE bets SET tweet_id=? WHERE tweet_id IS NULL AND run_id IN "
-                          "(SELECT run_id FROM runs WHERE round_id=?)", tid, round_id)
-        exports.export(self.s, self.db)
+        return text, media
 
     async def on_resolved(self, round_id: int) -> None:
         try:  # humans' picks: read once (if not already, after the market closed), then scored
@@ -211,36 +220,49 @@ class BenchPublisher:
         self.cards.significance = lb["significance"]["label"]
         cast = commentary(rnd)
         # tone: the day's A/B draw once the plain arm is live; until then today's per-round parity
-        variant = self.db.round(round_id)["headline_variant"] or (
-            ab.day_tone(self.db, self.s) if ab.tone_live(self.db) else headline_variant(round_id))
-        self.db.set_round(round_id, headline_variant=variant)  # recorded so clicks per tone can be compared
+        variant = self.db.round(round_id)["headline_variant"]
         key = f"r{round_id}-results"
-        media = ab.choose(self.db, self.s, "results.media", key, kind="results")
+        media_key = "clip"
+        try:   # A/B never blocks a post: on any failure, today's parity tone, the clip and the control text
+            variant = variant or (ab.day_tone(self.db, self.s) if ab.tone_live(self.db) else None)
+            media_key = ab.choose(self.db, self.s, "results.media", key, kind="results").key
+        except Exception:
+            log.exception("A/B for %s failed; posting the control", key)
+        variant = variant or headline_variant(round_id)
+        self.db.set_round(round_id, headline_variant=variant)  # recorded so clicks per tone can be compared
         png = await self._card(self.cards.results(rnd, board, crowd, cast=cast, top_humans=lb["humans"][:3],
                                                   variant=variant))
         video = None
-        if media.key != "still":
+        if media_key != "still":
             video = await self._clip(self.cards.results_clip(rnd, board, crowd, cast=cast,
                                                              top_humans=lb["humans"][:3], variant=variant))
         link = (f"{self.round_url(round_id)}?utm_source=x&utm_medium=social&utm_campaign=results"
                 f"&utm_content={variant}")
-        sit, facts = results_shape(rnd)
-        choices = [ab.choose(self.db, self.s, "results.hook", key, sit, facts, kind="results")]
-        choices += [ab.choose(self.db, self.s, sl, key, kind="results") for sl in ("results.cta", "tags")]
-        text = ab.finish(self.db, key, choices,
-                         lambda v: results_text(self.s, rnd, board, link, crowd, cast, hook=v.get("results.hook"),
-                                                cta=v.get("results.cta", ""), extra_tags=v.get("tags", "")),
-                         "results")
+        def render(v):
+            return results_text(self.s, rnd, board, link, crowd, cast, hook=v.get("results.hook"),
+                                cta=v.get("results.cta", ""), extra_tags=v.get("tags", ""))
+        try:
+            sit, facts = results_shape(rnd)
+            choices = [ab.choose(self.db, self.s, "results.hook", key, sit, facts, kind="results")]
+            choices += [ab.choose(self.db, self.s, sl, key, kind="results") for sl in ("results.cta", "tags")]
+            text = ab.finish(self.db, key, choices, render, "results")
+        except Exception:
+            log.exception("A/B for %s failed; posting the control", key)
+            text = render({})
         async with self._lock(round_id):
             tid = await self._standalone(round_id, key, "results", text, png, video)
         if tid:
             self.db.set_round(round_id, results_tweet_id=tid)
-            row = self.db.one("SELECT image_path FROM tweets WHERE post_key=?", key)
-            posted_clip = bool(row and row["image_path"] and row["image_path"].endswith((".mp4", ".gif")))
-            if media.key == "clip" and not posted_clip:   # animation off/failed or the video upload failed
-                still = next((a for a in ab.arms(self.db, "results.media", None) if a["code_key"] == "still"), None)
-                if still and self.db.one("SELECT 1 FROM ab_assignments WHERE post_key=? AND slot='results.media'", key):
-                    ab.realize(self.db, key, "results.media", still["arm_id"])
+            try:
+                row = self.db.one("SELECT image_path FROM tweets WHERE post_key=?", key)
+                posted_clip = bool(row and row["image_path"] and row["image_path"].endswith((".mp4", ".gif")))
+                if media_key == "clip" and not posted_clip:   # animation off/failed or the video upload failed
+                    still = next((a for a in ab.arms(self.db, "results.media", None) if a["code_key"] == "still"), None)
+                    if still and self.db.one("SELECT 1 FROM ab_assignments WHERE post_key=? AND slot='results.media'",
+                                             key):
+                        ab.realize(self.db, key, "results.media", still["arm_id"])
+            except Exception:
+                log.exception("A/B media realization for %s failed", key)
         data = exports.export(self.s, self.db)
         try:
             await self.engage.after_resolution(round_id, data, tid)
@@ -256,17 +278,22 @@ class BenchPublisher:
         results_id = self.db.round(round_id)["results_tweet_id"]
         reply_to = results_id
         key = f"r{round_id}-press-1"
-        head = ab.choose(self.db, self.s, "press.head", key, kind="press") if statements else None
         h = ab.CONTROL_TEXT["press.head"]
-        if head and not head.is_control and head.text:
-            def first(v):
-                return press.texts(statements, max_replies=self.s.press_max_replies,
-                                   head=v.get("press.head", ab.CONTROL_TEXT["press.head"]))[0]
-            if ab.finish(self.db, key, [head], first, "press") != first({}):
-                h = head.text
+        try:   # the press.head arm; on any A/B failure, today's head
+            head = ab.choose(self.db, self.s, "press.head", key, kind="press") if statements else None
+            if head and not head.is_control and head.text:
+                def first(v):
+                    return press.texts(statements, max_replies=self.s.press_max_replies,
+                                       head=v.get("press.head", ab.CONTROL_TEXT["press.head"]))[0]
+                if ab.finish(self.db, key, [head], first, "press") != first({}):
+                    h = head.text
+            elif head and statements:
+                ab.realize(self.db, key, "press.head", head.arm_id,
+                           press.texts(statements, max_replies=self.s.press_max_replies)[0])
+        except Exception:
+            log.exception("A/B for %s failed; posting the control", key)
+            h = ab.CONTROL_TEXT["press.head"]
         texts = press.texts(statements, max_replies=self.s.press_max_replies, head=h)
-        if head and head.is_control and texts:
-            ab.realize(self.db, key, "press.head", head.arm_id, texts[0])
         async with self._lock(round_id):
             for i, text in enumerate(texts, 1):
                 reply_to = await self.poster.post(f"r{round_id}-press-{i}", "press", text, None,

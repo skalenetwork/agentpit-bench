@@ -533,6 +533,8 @@ def ab_cli(s: config.Settings, a) -> None:
             sys.exit(str(e))
         print(f"arm {a.arm_id} retired" + (f"; arm {promoted} is live" if promoted else ""))
     elif a.ab_cmd == "propose":
+        if not a.dry and not s.ab_gen_enabled:
+            sys.exit("ab_gen_enabled = false: review a --dry batch first, then set ab_gen_enabled = true in bench.toml")
         r = asyncio.run(ab_gen.run(s, db, idle=lambda: not _round_running(db), dry=a.dry, force=True))
         print(json.dumps(r, indent=1, ensure_ascii=False))
     elif a.ab_cmd in ("validate", "add"):

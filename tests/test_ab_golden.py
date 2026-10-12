@@ -103,6 +103,20 @@ async def test_control_only_posts_are_byte_identical(tmp_path, monkeypatch):
     assert got == want
 
 
+async def test_broken_ab_posts_the_control(tmp_path, monkeypatch):
+    """A/B never blocks a post: if assignment blows up, every post is today's control (code arms live too)."""
+    for k in ("X_API_KEY", "X_API_SECRET", "X_ACCESS_TOKEN", "X_ACCESS_SECRET", "X_CLIENT_ID", "X_CLIENT_SECRET",
+              "X_OAUTH2_ACCESS_TOKEN", "X_OAUTH2_REFRESH_TOKEN"):
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setenv("BENCH_X_TOKEN_FILE", str(tmp_path / "x_oauth2.json"))
+    from agentpitbench import ab
+
+    def boom(*a, **k):
+        raise RuntimeError("db locked")
+    monkeypatch.setattr(ab, "choose", boom)
+    assert await capture(tmp_path) == json.loads(GOLDEN.read_text())
+
+
 if __name__ == "__main__":
     import asyncio
     import tempfile
