@@ -1099,7 +1099,8 @@ def _build(s: Settings) -> Path:
     if host and not host.endswith(".github.io"):  # custom domain: GitHub Pages drops it without this file
         (out / "CNAME").write_text(host + "\n")
     d = out / "data"
-    for name in ("rounds.json", "leaderboard.json", "bets.csv", "metrics.json", "reports.json", "sealed.json", "experiments.json"):
+    for name in ("rounds.json", "leaderboard.json", "bets.csv", "metrics.json", "reports.json", "sealed.json",
+                 "experiments.json", "newsworthiness.json"):
         if (exp / name).exists():
             shutil.copy2(exp / name, d / name)
     # sealed daily forecasts: the hash is public at once (/methodology/), the content and transcripts only once

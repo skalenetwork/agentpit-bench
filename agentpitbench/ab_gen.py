@@ -2,30 +2,27 @@
 accepts or rejects each, and accepted ones become live or queued arms. It never sees a round, never runs on the
 posting path, never inside a contestant sandbox, and writes no `runs` row (so it can't trip the circuit breaker).
 
-The call goes through `opai.acall(task="ab")` (2 calls/day). The guards here stay A/B's own: once per UTC day at
-or after ab_gen_hour_utc, only while no round is running and the forecast sweep can't be running, holding the
-contestant Claude login lock.
+The call goes through the shared operator-AI runner, `opai.acall(task="ab")`: its own Claude login dir, the
+shared daily budget (ab = 2 calls/day), contestant priority, a JSON schema and the versioned prompt file
+prompts/ab.v<N>.md. The guards here stay A/B's own: ab_gen_enabled, once per UTC day at or after
+ab_gen_hour_utc, only while no round is running and the forecast sweep can't be running.
 """
 from __future__ import annotations
 
-import asyncio
-import hashlib
 import json
 import logging
 import time
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Callable
 
 from . import ab
-from . import ab_opai as opai  # A/B's own runner until it moves onto the shared opai runner (docs/ai-automation-spec.md)
+from . import opai
 from .config import Settings
 from .db import DB
 
 log = logging.getLogger(__name__)
 
-PROMPT_FILE = Path(__file__).parent / "ab_prompt.txt"
-AB_PROMPT_VERSION = hashlib.sha256(PROMPT_FILE.read_bytes()).hexdigest()[:12]
+AB_PROMPT_VERSION = f"ab.v{opai.PROMPTS['ab']}"   # prompts/ab.v<N>.md, sha-pinned in prompts/MANIFEST.json
 PER_SEAT = 2
 
 HELP = {
@@ -63,7 +60,8 @@ def wanted(db: DB, s: Settings) -> dict[str, int]:
     return out
 
 
-def prompt(db: DB, s: Settings, seats: dict[str, int]) -> str:
+def brief(db: DB, s: Settings, seats: dict[str, int]) -> dict:
+    """The data part of the call: the free slots (situations, placeholders, limits) and the live arms."""
     lines, live = [], []
     for slot, n in seats.items():
         d = ab.SLOTS[slot]
@@ -80,9 +78,7 @@ def prompt(db: DB, s: Settings, seats: dict[str, int]) -> str:
             txt = (ab.CONTROL_TEXT.get(slot, "(today's code copy)") if a["is_control"]
                    else ab.template_text(a) or a["template_json"])
             live.append(f"- {slot}: {txt} (mean {a['mean']:+.2f} ± {a['sd']:.2f})")
-    t = PROMPT_FILE.read_text()
-    return (t.replace("{slots}", "\n".join(lines)).replace("{live}", "\n".join(live) or "(none)")
-             .replace("{per_seat}", str(PER_SEAT)).replace("{{", "{").replace("}}", "}"))
+    return {"slots": lines, "live": live or ["(none)"], "per_seat": PER_SEAT}
 
 
 def guard(db: DB, s: Settings, idle: Callable[[], bool], now: float, force: bool = False) -> str | None:
@@ -109,7 +105,7 @@ def guard(db: DB, s: Settings, idle: Callable[[], bool], now: float, force: bool
 
 
 async def run(s: Settings, db: DB, idle: Callable[[], bool], now: float | None = None, dry: bool = False,
-              force: bool = False, runner=None) -> dict:
+              force: bool = False) -> dict:
     """One generator run. Returns {status: ok/failed/skipped, why, accepted, rejected, candidates}."""
     now = now or time.time()
     day = _day(now)
@@ -117,18 +113,7 @@ async def run(s: Settings, db: DB, idle: Callable[[], bool], now: float | None =
     if why:
         return {"status": "skipped", "why": why}
     seats = wanted(db, s)
-    raw_dir = s.data_dir / "ab_gen" / day
-    payload = {"prompt": prompt(db, s, seats), "model": s.ab_gen_model, "timeout_s": s.ab_gen_timeout_s,
-               "raw_dir": str(raw_dir)}
-    from . import orchestrator
-    lock = orchestrator._auth_locks.setdefault("claude", asyncio.Lock())
-    async with lock:   # a contestant's login sync can't interleave with the generator's token refresh
-        if runner is None and opai.SHIM:
-            try:
-                await orchestrator.warm_login("claude")
-            except Exception:
-                log.exception("warm_login before the A/B generator failed")
-        res = await opai.acall(s, db, "ab", payload, subject=f"ab:{day}", runner=runner, now=now)
+    res = await opai.acall(s, db, "ab", brief(db, s, seats), subject=f"ab:{day}")
     if res is None:
         out = {"status": "failed", "why": "no usable answer (quota, timeout, crash or bad JSON)",
                "accepted": 0, "rejected": 0}
@@ -147,7 +132,7 @@ async def run(s: Settings, db: DB, idle: Callable[[], bool], now: float | None =
             oid = db.x("INSERT INTO operator_ai_outputs(purpose,model,prompt_version,created_at,content,accepted,"
                        "reject_reason,run_raw_path,call_id,subject) VALUES(?,?,?,?,?,?,?,?,?,?)",
                        f"ab:{slot}", res.model, AB_PROMPT_VERSION, time.time(), json.dumps(tpl, ensure_ascii=False),
-                       int(not errs), "; ".join(errs) or None, str(raw_dir), None, f"ab:{day}")
+                       int(not errs), "; ".join(errs) or None, None, res.call_id, f"ab:{day}")
             if errs:
                 rejected += 1
                 continue

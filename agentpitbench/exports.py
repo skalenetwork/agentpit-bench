@@ -25,6 +25,8 @@ leaderboard.json = {updated_at, season (YYYY-MM, UTC month of resolution; tables
                     by_category: {agent: [{category, played, wins, win_rate, net_pnl}]},     -- all time
                     forecast: forecast.metrics() -- the headline metric (daily sweep, Brier score),
                     sweeps: [{date, runs: [{agent, status, detail, n, model, transcript}]}]}
+newsworthiness.json = [{market_id, question, score (0-100 | null), reason, keyword_tier, source_used, rated_at,
+                        prompt_version, model}]  -- every model rating of the last 30 days (methodology §5)
 metrics.json = paper-ready summary: methodology version, forecast metrics with CIs and tests, betting record.
 
 The Crowd is a reference baseline, not a contestant: each round it notionally stakes 100 tokens on the
@@ -116,6 +118,7 @@ def round_record(s: Settings, db: DB, r) -> dict:
         "split": len(picks) > 1, "entries": entries, "sealed": sealed,
         "stake": float(snap.get("bench_stake") or s.stake), "high_stakes": bool(snap.get("high_stakes")),
         "headline_variant": r["headline_variant"] if "headline_variant" in r.keys() else None,
+        "newsworthiness": _newsworthiness(db, r),
         "crowd": crowd_pick(s, outcomes, snap.get("prices_list", []), r["state"], r["winner"], snap.get("bench_stake")),
         "humans": {"picked": len(hp), "by_outcome": by_outcome,
                    "by_source": {"exact": sum(1 for h in hp if h["source"] != "model"),
@@ -125,6 +128,15 @@ def round_record(s: Settings, db: DB, r) -> dict:
                                 "card": _site_card(s, h["card_path"])} for h in hp if h["won"]]},
         **_share_hook(db, r["round_id"]),
     }
+
+
+def _newsworthiness(db: DB, r) -> dict | None:
+    """The score that ordered the market when it was picked (nw_score / nw_source) and its published model
+    rating (docs/ai-automation-spec.md §5.4)."""
+    mr = db.one("SELECT score FROM market_ratings WHERE market_id=?", r["market_id"])
+    if r["nw_score"] is None and (mr is None or mr["score"] is None):
+        return None
+    return {"score": r["nw_score"], "source": r["nw_source"], "model_score": mr["score"] if mr else None}
 
 
 def _share_hook(db: DB, round_id: int) -> dict:
@@ -235,6 +247,8 @@ def export(s: Settings, db: DB) -> dict:
     _write(out / "rounds.json", json.dumps(rounds, indent=1))
     _write(out / "leaderboard.json", json.dumps(lb, indent=1))
     _write(out / "metrics.json", json.dumps(paper_metrics(s, rounds, lb), indent=1))
+    from .rating import export_rows
+    _write(out / "newsworthiness.json", json.dumps(export_rows(db), indent=1))
     reports = weekly_reports(s, db, rounds, lb)
     _write(out / "reports.json", json.dumps(reports, indent=1))
     cols = ["round_id", "market_id", "question", "state", "winner", "agent", "outcome", "avg_price",
@@ -293,6 +307,8 @@ def weekly_reports(s: Settings, db: DB, rounds: list[dict], lb: dict) -> list[di
                     "crowd_brier": round(sum(w["crowd"]) / len(w["crowd"]), 4) if w["crowd"] else None,
                     "betting": sorted(w["betting"].values(), key=lambda b: -b["profit"]),
                     "contrarian": {"total": len(calls), "right": sum(1 for c in calls if c["right"])} if calls else None})
+    from .report_prose import attach  # model prose, numbers filled in by code (docs/ai-automation-spec.md §8)
+    attach(db, out)
     return out
 
 
