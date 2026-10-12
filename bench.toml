@@ -44,7 +44,7 @@ motd_enabled = true   # scripted films approved by the operator 2026-10-12
 
 # Operator AI (docs/ai-automation-spec.md): own login in ~/.config/agentpitbench/opai-claude (done 2026-10-12).
 opai_enabled = true
-opai_calls_per_day = 100   # raised for the first days: market-title backfill in all site languages
+opai_calls_per_day = 250   # raised 2026-10-12 (operator); watch for contestant usage-limit failures (breaker stops opai)
 
 [opai_task_budget]         # replaces the code default as a whole; translate raised from 10 for the backfill
 rate = 24
@@ -56,4 +56,4 @@ report = 2
 i18n = 40
 proposal = 1
 ab = 2
-translate = 40
+translate = 80
