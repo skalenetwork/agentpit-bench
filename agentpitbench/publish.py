@@ -127,6 +127,7 @@ class BenchPublisher:
         for row in self.db.q("SELECT post_key, tweet_id FROM tweets WHERE round_id=?", round_id):
             if await self.poster.delete(row["tweet_id"], row["post_key"]):
                 self.db.x("DELETE FROM tweets WHERE post_key=?", row["post_key"])
+                self.db.x("DELETE FROM tweet_metrics WHERE tweet_id=?", row["tweet_id"])  # x analytics rows
         self.db.x("UPDATE bets SET tweet_id=NULL WHERE run_id IN (SELECT run_id FROM runs WHERE round_id=?)", round_id)
         self.db.set_round(round_id, thread_tweet_id=None)
         exports.export(self.s, self.db)
