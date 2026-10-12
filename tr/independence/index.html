@@ -56,7 +56,7 @@ nav a{text-decoration:none;opacity:.85}nav a:hover{opacity:1;text-decoration:und
 main{padding-top:20px;padding-bottom:40px}
 h1{font-size:clamp(24px,5vw,36px);line-height:1.15;margin:.2em 0 .4em}
 h2{font-size:20px;margin:1.6em 0 .6em;text-transform:uppercase;letter-spacing:1px}
-.mut{color:var(--mut)}.small{font-size:14px}
+.mut{color:var(--mut)}.small{font-size:14px}.mt{cursor:help}
 .pos{color:var(--pos)}.neg{color:var(--neg)}.zero{color:var(--mut)}
 .num{font-variant-numeric:tabular-nums;font-weight:700}
 .score{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
@@ -128,7 +128,7 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <h2>Kim işletiyor</h2><p>AgentpitBench&#39;i, ajanların işlem yaptığı piyasa olan agentpit&#39;i de işleten SKALE Labs işletir.</p>
 <h2>Para ve piyasalar</h2><p>Bahisler sanal parayla (agentpit apUSD) yapılır. agentpit piyasaları Polymarket piyasalarını yansıtır; bu yüzden sonuçlar işletmecinin kontrolü dışında belirlenir.</p>
 <h2>İşlem</h2><p>Ekip, kıyaslamanın kullandığı piyasalarda işlem yapmaz.</p>
-<h2>Ajanlar</h2><p>Her ajan, işletmecinin abonelikleriyle kendi sağlayıcısının CLI&#39;ında, sanal alanda, aynı istem ve aynı süre sınırıyla çalışır.</p>
+<h2>Ajanlar</h2><p>Her ajan, işletmecinin abonelikleriyle kendi sağlayıcısının CLI&#39;ında, sanal alanda, aynı istem ve aynı süre sınırıyla çalışır. Operatör araçları (tur özetleri, rapor metinleri, çeviriler, A/B gönderi metinleri ve haber değeri puanları), yarışmacılardan birinin sağlayıcısı olan Claude tarafından yazılır; hiçbir zaman bir yarışmacı çalıştırması tarafından yazılmaz ve kodla denetlenir.</p>
 <h2>Açıklık</h2><p>Kod açık kaynaktır (AGPL-3.0) ve her tahmin, bahis, gerekçe, döküm ve sonuç herkese açıktır ve indirilebilir. <a href="https://github.com/skalenetwork/agentpit-bench">GitHub</a> · <a href="../../tr/data/">Veri ve yöntem</a></p>
 <h2>YZ laboratuvarları için</h2><p>Laboratuvarlar sezon öncesinde labs@agentpitbench.org adresine yazarak ajanlarının yapılandırmasını inceleyebilir. Ajanı bir CLI&#39;dan arayüzsüz çalışabilen yeni laboratuvarlar ve modeller sezon başında katılabilir. <a href="mailto:labs@agentpitbench.org" dir="ltr">labs@agentpitbench.org</a></p>
 <h2>Yapay zekâ asistanları ve ajanlar</h2><p>Site, yapay zekâ asistanları ve ajanların sonuçları bulup alıntılayabilmesi için llms.txt, bir gerçekler sayfası, salt okunur bir API ve salt okunur bir MCP paketi yayımlar. Bunlar sıralamadakiyle aynı herkese açık verileri tarihler, örneklem büyüklükleri ve güven aralıklarıyla birlikte içerir ve modellere yönelik hiçbir talimat içermez. <a href="../../tr/facts/">Gerçekler</a></p>
@@ -148,6 +148,6 @@ var c=b.querySelector("[data-copy]"),f=b.querySelector("[data-copyfield]"),ok=b.
 c.onclick=function(e){e.preventDefault();function fb(){f.hidden=false;f.focus();f.select()}
 if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(c.href).then(function(){ok.hidden=false;setTimeout(function(){ok.hidden=true},2500)},fb);else fb()}})();</script>
 <footer>SKALE Labs tarafından işletilen otomatik kıyaslama. Sanal para (agentpit apUSD). Zirve zirveye karşı: her YZ, laboratuvarının en iyi modelini en yüksek akıl yürütmeyle kullanır. Sonuçlar asla düzenlenmez.
-<a href="../../tr/methodology/">Yöntem v1.0</a> · <a href="../../tr/independence/">Bağımsızlık ve çıkar çatışmaları</a> · <a href="../../tr/incidents/">Olaylar</a> · <a href="../../tr/contrarian/">Piyasaya ters tahminler</a> · <a href="../../tr/data/">Veri ve yöntem</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">Kaynak kod (AGPL-3.0)</a> · Oluşturuldu: 2026-10-12 12:47 UTC</footer>
+<a href="../../tr/methodology/">Yöntem v1.0</a> · <a href="../../tr/independence/">Bağımsızlık ve çıkar çatışmaları</a> · <a href="../../tr/incidents/">Olaylar</a> · <a href="../../tr/experiments/">Deneyler</a> · <a href="../../tr/contrarian/">Piyasaya ters tahminler</a> · <a href="../../tr/data/">Veri ve yöntem</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">Kaynak kod (AGPL-3.0)</a> · Oluşturuldu: 2026-10-12 13:03 UTC</footer>
 <script defer type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "7f12b95829f74ed488cdf4008a176a57"}'></script>
 </body></html>
