@@ -96,6 +96,12 @@ class Settings:
     x_app_owned: bool = False            # @agentpitbench owns the developer app: timeline mode, owned-read prices
     x_reward_max_age_ratio: float = 1.5  # a snapshot counts as a reward only if age_s <= ratio x bucket age
     x_series_free_rereads: bool = True   # re-read posts already billed today (free under X's same-day dedup)
+    # Bluesky (docs/bluesky-spec.md): mirror the X posts to @agentpitbench.org. Secrets BSKY_HANDLE /
+    # BSKY_APP_PASSWORD in secrets.env. bluesky_did: emitted at /.well-known/atproto-did by the site build.
+    bluesky_enabled: bool = False
+    bluesky_pds_url: str = "https://bsky.social"
+    bluesky_did: str = ""
+    bluesky_vendor_handles: dict = field(default_factory=dict)   # agent -> verified official Bluesky handle only
     explorer_url: str = "https://skale-base-explorer.skalenodes.com"   # agentpit settles on SKALE Base
     # YouTube Shorts (docs/youtube-shorts-spec.md): the daily film as a Short. Off until the operator has run
     # `agentpitbench youtube auth` and `youtube check`; also needs motd_enabled.

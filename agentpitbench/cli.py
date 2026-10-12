@@ -55,6 +55,12 @@ def metrics_task(s: config.Settings, db: DB, pub):
             await asyncio.to_thread(xstats.pull_due, s, db, poster)
         finally:
             await asyncio.to_thread(xstats.digest_due, s, db)
+            if s.bluesky_enabled:  # free public reads (docs/bluesky-spec.md §6)
+                from . import bskystats
+                try:
+                    await asyncio.to_thread(bskystats.pull, s, db)
+                except Exception:
+                    log.exception("bluesky metrics failed")
     return x_metrics
 
 
