@@ -131,6 +131,39 @@ body.tall .cols{flex-direction:column;gap:26px}
 .st span.v{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-weight:700}
 .bigurl{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:68px;font-weight:700;margin-top:30px;color:#f4f6fb}
 .cta{font-size:46px;color:#cfd6ea;margin-top:16px;line-height:1.25}
+/* square (1080x1080): the X post. Stacked like the tall film, denser; nothing below 40px. */
+body.square .main{top:100px;bottom:160px;padding:0 48px}
+body.square .foot{height:150px;padding:0 36px}
+body.square .hook{font-size:88px;margin-top:30px}
+body.square .question{font-size:62px}
+body.square .prices{flex-direction:column;gap:14px;margin-top:24px}
+body.square .price .o{font-size:52px}
+body.square .price .v{font-size:72px}
+body.square .crowdline{font-size:42px;margin-top:20px}
+body.square .pickwrap{flex-direction:column;gap:12px}
+body.square .name{font-size:96px}
+body.square .outcome{font-size:110px}
+body.square .outcome.long{font-size:80px}
+body.square .nums .v{font-size:64px}
+body.square .gap{font-size:44px}
+body.square .talk{font-size:44px;margin-top:20px}
+body.square .tl{font-size:40px}
+body.square .tlines{gap:14px;margin-top:16px}
+body.square .result{font-size:110px}
+body.square .headline{font-size:52px}
+body.square .rows{gap:10px;margin-top:20px}
+body.square .row{grid-template-columns:84px 1fr auto}
+body.square .row .p{grid-column:2;font-size:40px}
+body.square .row .pnl{grid-row:1 / span 2;grid-column:3;font-size:64px}
+body.square .row .m{grid-row:1 / span 2}
+body.square .row .n{font-size:52px}
+body.square .right{font-size:42px;margin-top:14px}
+body.square .stmts{flex-direction:column;gap:16px;margin-top:20px}
+body.square .stmt .t{font-size:42px}
+body.square .cols{flex-direction:column;gap:12px;margin-top:12px}
+body.square .st{font-size:42px;padding:0}
+body.square .bigurl{font-size:52px;margin-top:14px}
+body.square .cta{font-size:40px}
 </style></head>
 {%- set team = colors.get(sc.agent, '#7b8cff') if sc.agent else '#7b8cff' %}
 <body class="{{ fmt }}" style="--team:{{ team|edge }};--soft:{{ (team|edge) ~ '33' if sc.agent else '#1d2a55' }}">
@@ -202,8 +235,8 @@ body.tall .cols{flex-direction:column;gap:26px}
 {% endif %}
 </div>
 <div class="foot"><span class="em">{{ emblem(84, True) }}</span><div class="lines">
-  {% if sig_line %}<div class="sig {{ 'one' if fmt == 'wide' }}">{{ sig_line }}</div>{% endif %}
-  <div class="one">{% if sc.banner %}<span class="ex {{ 'gold' if 'HIGH' in sc.banner }}">{{ 'HIGH STAKES · EXHIBITION' if 'HIGH' in sc.banner else 'EXHIBITION' }}</span>{% endif %}{{ [model, 'Methodology v' ~ mver]|select|join(' · ') }}{% if fmt == 'wide' %} · <span class="url">{{ url }}</span>{% endif %}</div>
+  {% if sig_line %}<div class="sig {{ 'one' if fmt != 'tall' }}">{{ sig_line }}</div>{% endif %}
+  <div class="one">{% if sc.banner %}<span class="ex {{ 'gold' if 'HIGH' in sc.banner }}">{{ 'HIGH STAKES · EXHIBITION' if 'HIGH' in sc.banner else 'EXHIBITION' }}</span>{% endif %}{{ [model, 'Methodology v' ~ mver]|select|join(' · ') }}{% if fmt != 'tall' %} · <span class="url">{{ url }}</span>{% endif %}</div>
   {% if fmt == 'tall' %}<div class="url one">{{ url }}</div>{% endif %}
 </div></div>
 </body></html>

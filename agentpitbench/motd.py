@@ -23,7 +23,7 @@ from .virality import grudge, reasoning_lines
 log = logging.getLogger(__name__)
 
 MUSIC = Path(__file__).parent / "static" / "motd" / "theme.m4a"
-FORMATS = {"tall": (1080, 1920), "wide": (1920, 1080)}
+FORMATS = {"square": (1080, 1080), "tall": (1080, 1920), "wide": (1920, 1080)}  # X, YouTube Shorts, site
 MIN_S, MAX_S = 45.0, 60.0
 
 # signal key -> (points, public label)
@@ -465,7 +465,7 @@ def scripted(s: Settings, db, rnd: dict, rounds: list[dict], lb: dict, site: str
 
 
 async def make_film(s: Settings, db, cards, day: str, round_id: int | None = None, out_dir: Path | None = None,
-                    formats: tuple[str, ...] = ("tall", "wide"), scale: float = 1.0) -> dict | None:
+                    formats: tuple[str, ...] = ("square", "tall", "wide"), scale: float = 1.0) -> dict | None:
     """Pick (or take round_id), script and render the film for `day`. Returns the film record (film.json) or None.
     scale < 1 shortens every scene (tests only)."""
     from . import exports, media
@@ -540,8 +540,16 @@ async def make_film(s: Settings, db, cards, day: str, round_id: int | None = Non
         else:
             silent.replace(final)
         files[fmt] = final.name
+    prev = out / "film.json"  # a second pass (9:16 and 16:9 after the X square) keeps the first pass's files
+    if prev.exists():
+        try:
+            old = json.loads(prev.read_text())
+            if old.get("round_id") == rnd["round_id"]:
+                files = {**(old.get("files") or {}), **files}
+        except (OSError, ValueError):
+            pass
     poster = out / "poster.png"
-    if "wide" in files:
+    if "wide" in files and "wide" in formats:
         await asyncio.to_thread(media.poster_frame, out / files["wide"], poster, sum(x["dur"] for x in scenes) - 1.0)
     rec = {"date": day, "round_id": rnd["round_id"], "question": rnd["question"], "winner": rnd["winner"],
            "hook": film_hook(story, rnd, sc), "post_hook": hook_line(rnd, sc),
@@ -592,8 +600,9 @@ def link_text(s: Settings, rec: dict) -> str:
 
 
 async def post(s: Settings, db, poster, rec: dict, out: Path) -> str | None:
-    """The 9:16 film as a standalone post (hook, no link), then the round link as a self-reply."""
-    video = out / rec["files"].get("tall", "")
+    """The film as a standalone post (hook, no link), then the round link as a self-reply. X gets the SQUARE film
+    (one video per post; 9:16 shows as a narrow strip on desktop); older films without one post the 9:16."""
+    video = out / (rec["files"].get("square") or rec["files"].get("tall", ""))
     if not video.is_file():
         return None
     key = f"motd-{rec['date']}"
@@ -656,7 +665,7 @@ async def daily(s: Settings, db, cards, poster, now: float | None = None) -> dic
         return None
     db.put(f"motd_{day}", "started")
     try:
-        rec = await make_film(s, db, cards, day)
+        rec = await make_film(s, db, cards, day, formats=("square",))  # the X film first: post it, then the rest
     except Exception:
         log.exception("Match of the Day %s: render failed; no film today", day)
         db.put(f"motd_{day}", "failed")
@@ -671,6 +680,10 @@ async def daily(s: Settings, db, cards, poster, now: float | None = None) -> dic
         db.put(f"motd_{day}", "post-failed")
         return rec
     db.put(f"motd_{day}", "done")
+    try:  # 9:16 for YouTube Shorts, 16:9 for the site: same script (reused), same cached audio, film.json merged
+        rec = await make_film(s, db, cards, day, round_id=rec["round_id"], formats=("tall", "wide")) or rec
+    except Exception:
+        log.exception("Match of the Day %s: 9:16 / 16:9 render failed (the X post is out)", day)
     return rec
 
 
