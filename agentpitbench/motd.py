@@ -8,6 +8,7 @@ Pure parts (unit-tested directly): `score` (the drama score and its public break
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import re
@@ -441,7 +442,7 @@ async def make_film(s: Settings, db, cards, day: str, round_id: int | None = Non
             return None
         final = out / f"motd-{day}-{fmt}.mp4"
         if s.motd_music and MUSIC.exists():
-            ok = media.mux_audio(silent, MUSIC, final)
+            ok = await asyncio.to_thread(media.mux_audio, silent, MUSIC, final)
             silent.unlink(missing_ok=True)
             if not ok:
                 return None
@@ -450,7 +451,7 @@ async def make_film(s: Settings, db, cards, day: str, round_id: int | None = Non
         files[fmt] = final.name
     poster = out / "poster.png"
     if "wide" in files:
-        media.poster_frame(out / files["wide"], poster, at=sum(x["dur"] for x in scenes) - 1.0)
+        await asyncio.to_thread(media.poster_frame, out / files["wide"], poster, sum(x["dur"] for x in scenes) - 1.0)
     rec = {"date": day, "round_id": rnd["round_id"], "question": rnd["question"], "winner": rnd["winner"],
            "hook": scenes[0]["hook"], "score": sc, "candidates": chosen["candidates"],
            "duration_s": round(sum(x["dur"] for x in scenes), 2), "files": files,
