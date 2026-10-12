@@ -87,7 +87,10 @@ def tweet_url(tweet_id: str | None) -> str | None:
 # Open Graph locale of each site language (Facebook's list; Arabic is ar_AR there)
 OG_LOCALES = {"en": "en_US", "zh": "zh_CN", "hi": "hi_IN", "es": "es_ES", "ar": "ar_AR", "fr": "fr_FR", "bn": "bn_IN",
               "pt": "pt_BR", "ru": "ru_RU", "ur": "ur_PK", "id": "id_ID", "de": "de_DE", "ja": "ja_JP", "mr": "mr_IN",
-              "te": "te_IN", "tr": "tr_TR", "ta": "ta_IN", "vi": "vi_VN", "ko": "ko_KR", "ha": "ha_NG"}
+              "te": "te_IN", "tr": "tr_TR", "ta": "ta_IN", "vi": "vi_VN", "ko": "ko_KR", "ha": "ha_NG",
+              "sw": "sw_KE", "pa": "pa_IN", "tl": "tl_PH", "fa": "fa_IR", "am": "am_ET", "th": "th_TH", "jv": "jv_ID",
+              "it": "it_IT", "gu": "gu_IN", "kn": "kn_IN", "yo": "yo_NG", "pl": "pl_PL", "my": "my_MM", "ln": "ln_CD",
+              "or": "or_IN", "uk": "uk_UA", "ml": "ml_IN", "sd": "sd_PK", "su": "su_ID", "ig": "ig_NG"}
 
 
 @dataclass

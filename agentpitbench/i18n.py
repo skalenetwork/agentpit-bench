@@ -1,4 +1,4 @@
-"""Site translations: the 20 most-spoken languages, English as source and fallback.
+"""Site translations: the 40 most-spoken languages, English as source and fallback.
 
 Message ids are the English strings themselves, with {named} placeholders. Each language's table lives in
 agentpitbench/i18n/<code>.json; a missing or broken entry falls back to English, never to an error.
@@ -11,16 +11,22 @@ from importlib import resources
 
 from markupsafe import Markup
 
-# (code, native name), ordered by total speakers. Arabic and Urdu are written right to left.
+# (code, native name), ordered by total speakers (L1+L2, Ethnologue). Regional varieties of Arabic and Chinese read
+# the standard ar/zh; English creoles are left out; every code is ISO 639-1 (what hreflang accepts). Punjabi is
+# Gurmukhi (pa_IN). Arabic, Urdu, Persian and Sindhi are written right to left.
 LANGS: list[tuple[str, str]] = [
     ("en", "English"), ("zh", "中文"), ("hi", "हिन्दी"), ("es", "Español"), ("ar", "العربية"),
     ("fr", "Français"), ("bn", "বাংলা"), ("pt", "Português"), ("ru", "Русский"), ("ur", "اردو"),
     ("id", "Bahasa Indonesia"), ("de", "Deutsch"), ("ja", "日本語"), ("mr", "मराठी"), ("te", "తెలుగు"),
     ("tr", "Türkçe"), ("ta", "தமிழ்"), ("vi", "Tiếng Việt"), ("ko", "한국어"), ("ha", "Hausa"),
+    ("sw", "Kiswahili"), ("pa", "ਪੰਜਾਬੀ"), ("tl", "Tagalog"), ("fa", "فارسی"), ("am", "አማርኛ"),
+    ("th", "ไทย"), ("jv", "Basa Jawa"), ("it", "Italiano"), ("gu", "ગુજરાતી"), ("kn", "ಕನ್ನಡ"),
+    ("yo", "Yorùbá"), ("pl", "Polski"), ("my", "မြန်မာ"), ("ln", "Lingála"), ("or", "ଓଡ଼ିଆ"),
+    ("uk", "Українська"), ("ml", "മലയാളം"), ("sd", "سنڌي"), ("su", "Basa Sunda"), ("ig", "Igbo"),
 ]
 CODES = [c for c, _ in LANGS]
 NAMES = dict(LANGS)
-RTL = {"ar", "ur"}
+RTL = {"ar", "ur", "fa", "sd"}
 DEFAULT = "en"
 
 
