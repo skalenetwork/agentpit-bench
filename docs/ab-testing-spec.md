@@ -24,14 +24,13 @@ can change a number, a pick, a result or who is favoured.
 Build order: **x-analytics → A/B → (later) Match of the Day hooks.** A/B imports exactly one analytics function,
 `xstats.reward_inputs(db, tweet_id, bucket)`. It returns raw counts (impressions, likes, replies, reposts, quotes,
 bookmarks, link_clicks), or `None` when the snapshot isn't taken yet, the post is `boosted` or it's `deleted`. Read cost
-and budget (`x_read_budget_per_day`, `x_read_reserve`, `x_read_cost_usd`) are defined there. That's the single
-~$1/day cap; A/B adds no reads.
+and budget (`x_metrics_budget_usd`, the $1/day analytics cap; `x_read_prices`; `x_read_alert_usd`) are defined there.
+A/B adds no reads.
 
 **Cost check (no new spend):** with `daily_round_cap = 5` (bench.toml), ≈ 5 reveals + 5 results + ≤ 5 press replies
 + ~2 other posts ≈ 17 posts/day. At the 1 h and 24 h snapshots A/B needs, that's 34 post-reads/day (x-analytics also
-takes 72 h/7 d for its own uses). At the operator-set `x_read_cost_usd` (assumed $0.005/post read, to confirm) that's
-about $0.17/day for A/B's share, inside the ~$1/day cap. (x-analytics sizes for 7 rounds/day; bench.toml runs 5, so the
-numbers here are lower; both fit the cap.) Lookups batch 100 ids per request, so the request count is negligible.
+takes 72 h/7 d for its own uses). At `x_read_prices["post"]` = $0.005 (X pricing page, 2026-10-12), or $0.001 as owned reads when
+`x_app_owned`, that's at most about $0.17/day for A/B's share, inside `x_metrics_budget_usd`. Lookups batch 100 ids per request, so the request count is negligible.
 
 ## 1. What varies, and what never does
 
@@ -406,7 +405,6 @@ accepted/rejected counts with reasons); posts that fell back to control and why;
 
 - `claude -p --tools ""` disables every tool, and `--output-format json` reports the model used (check
   `claude --help` on the server's version).
-- `x_read_cost_usd` ≈ $0.005/post read (x-analytics owns the value).
 - Generator calls of ~2/day on `sonnet` don't measurably dent the contestant's quota; watch the digest for
   infra-cooldown events after generator runs.
 
