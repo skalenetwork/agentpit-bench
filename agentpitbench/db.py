@@ -159,6 +159,17 @@ CREATE UNIQUE INDEX IF NOT EXISTS tweet_metrics_bucket ON tweet_metrics(tweet_id
 CREATE TABLE IF NOT EXISTS account_metrics (
     day TEXT PRIMARY KEY, followers INTEGER, following INTEGER, tweets INTEGER, listed INTEGER, taken_at REAL
 );
+CREATE TABLE IF NOT EXISTS operator_ai_outputs (   -- every public operator-AI output, tagged (operator decision)
+    output_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    purpose TEXT NOT NULL,            -- 'ab:<slot>', 'motd_script' (ab-testing-spec.md section 7, shared)
+    model TEXT NOT NULL,              -- as reported by the CLI's json output, else the requested id
+    prompt_version TEXT NOT NULL,
+    created_at REAL NOT NULL,
+    content TEXT NOT NULL,            -- the candidate JSON
+    accepted INTEGER NOT NULL,
+    reject_reason TEXT,
+    run_raw_path TEXT                 -- full CLI output, when kept
+);
 """
 
 MIGRATIONS = [  # (table, column, definition): added when missing, so old databases keep working
@@ -173,6 +184,9 @@ MIGRATIONS = [  # (table, column, definition): added when missing, so old databa
     ("rounds", "headline_variant", "TEXT"),              # A/B tone of the results headline: fun / plain
     ("tweets", "boosted", "INTEGER NOT NULL DEFAULT 0"),  # operator-marked (x-boosted); excluded from rewards
     ("tweets", "deleted", "INTEGER NOT NULL DEFAULT 0"),  # X returned Not Found: never read again
+    ("operator_ai_outputs", "call_id", "INTEGER"),          # ai_calls row (ai-automation-spec section 3; NULL = shim)
+    ("operator_ai_outputs", "subject", "TEXT"),             # 'round:57', ...
+    ("operator_ai_outputs", "public", "INTEGER NOT NULL DEFAULT 0"),  # 1 once shown publicly (a posted film)
 ]
 
 

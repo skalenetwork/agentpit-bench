@@ -67,19 +67,51 @@ MOTD_JS = r"""
                  return m ? `${m}m ${String(r).padStart(2, '0')}s` : `${r}s`; },
     int: v => Math.round(v).toLocaleString('en-US')};
   q('[data-count]').forEach(el => { el.dataset.final = el.textContent; });
+  // v0.5 scripted scenes: 'type' (typewriter, TYPE_CPS characters a second), 'wipe' (left-to-right reveal),
+  // a scene-in transition overlay (data-trans: iris | wipe | fade | flash) and the twist's white flash + shake.
+  const TYPE_CPS = 45;
+  q('[data-fx=type]').forEach(el => { el.dataset.full = el.textContent; });
+  const typeDur = el => el.dataset.full.length / TYPE_CPS;
   window.__motdDur = d => { D = d; };
   window.__motdEnd = () => {
     let end = 0.6;
-    q('[data-in]').forEach(el => { end = Math.max(end, parseFloat(el.dataset.in) + 0.55); });
+    q('[data-in]').forEach(el => { end = Math.max(end, parseFloat(el.dataset.in) + (el.dataset.fx === 'type' ? typeDur(el) : 0) + 0.55); });
     q('[data-count]').forEach(el => { end = Math.max(end, parseFloat(el.dataset.in || 0) + parseFloat(el.dataset.cd || 1) + 0.1); });
+    if (q('[data-flash]').length) end = Math.max(end, 1.0);
     return Math.min(end, D);
   };
   window.__motd = function(t){
     q('[data-in]').forEach(el => {
-      const p = ease((t - parseFloat(el.dataset.in)) / 0.45), fx = el.dataset.fx || 'up';
-      el.style.opacity = fx === 'slam' ? Math.min(1, p * 2) : p;
+      const t0 = parseFloat(el.dataset.in), fx = el.dataset.fx || 'up', p = ease((t - t0) / 0.45);
+      if (fx === 'type') {
+        const full = el.dataset.full, k = Math.max(0, Math.min(1, (t - t0) / typeDur(el)));
+        el.style.opacity = t >= t0 ? 1 : 0;
+        // keep the line's final layout: typed part visible, the rest transparent
+        el.innerHTML = '';
+        const a = document.createElement('span'); a.textContent = full.slice(0, Math.round(full.length * k));
+        const b = document.createElement('span'); b.textContent = full.slice(Math.round(full.length * k)); b.style.opacity = 0;
+        el.append(a, b);
+        return;
+      }
+      el.style.opacity = fx === 'slam' ? Math.min(1, p * 2) : fx === 'wipe' ? (t >= t0 ? 1 : 0) : p;
+      el.style.clipPath = fx === 'wipe' && p < 1 ? `inset(0 ${100 * (1 - p)}% 0 0)` : '';
       el.style.transform = p >= 1 ? '' : fx === 'slam' ? `scale(${1.25 - 0.25 * p})` :
-        fx === 'pop' ? `scale(${0.6 + 0.4 * p})` : fx === 'fade' ? '' : `translateY(${40 * (1 - p)}px)`;
+        fx === 'pop' ? `scale(${0.6 + 0.4 * p})` : (fx === 'fade' || fx === 'wipe') ? '' : `translateY(${40 * (1 - p)}px)`;
+    });
+    q('[data-trans]').forEach(el => {
+      const kind = el.dataset.trans, p = ease(t / (kind === 'flash' ? 0.25 : 0.5));
+      const main = document.querySelector('.main');
+      el.style.display = p >= 1 ? 'none' : '';
+      if (kind === 'iris') { el.style.opacity = 1 - p; main.style.clipPath = p < 1 ? `circle(${p * 120}% at 50% 45%)` : ''; }
+      else if (kind === 'wipe') { el.style.clipPath = `inset(0 0 0 ${p * 100}%)`; }
+      else if (kind === 'flash') { el.style.background = '#fff'; el.style.opacity = 1 - p; }
+      else { el.style.opacity = 1 - p; }
+    });
+    q('[data-flash]').forEach(el => {
+      const at = 0.3; // the twist lands: white flash, then a short shake
+      el.style.opacity = t < at ? 0 : Math.max(0, 1 - (t - at) / 0.35);
+      const main = document.querySelector('.main'), s = t - at - 0.1;
+      main.style.transform = s > 0 && s < 0.45 ? `translateX(${Math.round(14 * Math.sin(s * 60) * (1 - s / 0.45))}px)` : '';
     });
     q('[data-count]').forEach(el => {
       const k = ease((t - parseFloat(el.dataset.in || 0)) / parseFloat(el.dataset.cd || 1));
@@ -481,7 +513,6 @@ class CardRenderer:
         frames_dir = out_base.parent / f"{out_base.name}-frames"
         shutil.rmtree(frames_dir, ignore_errors=True)
         frames_dir.mkdir(parents=True, exist_ok=True)
-        tpl = env.get_template("motd.html")
         clip = {"x": 0, "y": 0, "width": width, "height": height}
         n = 0
         async with self._lock:
@@ -490,6 +521,7 @@ class CardRenderer:
         try:
             for i, sc in enumerate(scenes):
                 strip = self._strip(f"round/{sc['round_id']}", sc.get("agent"))
+                tpl = env.get_template("motd_story.html" if sc["kind"].startswith("s_") else "motd.html")
                 html = tpl.render(sc=sc, fmt=fmt, w=width, h=height, idx=i, count=len(scenes),
                                   colors=AGENT_COLORS, names=AGENT_NAMES, **strip,
                                   sig_line=sc.get("sig") or strip["sig"],

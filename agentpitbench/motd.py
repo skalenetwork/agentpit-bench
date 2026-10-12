@@ -403,6 +403,58 @@ def _round_with_flags(s: Settings, db, rnd: dict) -> dict:
     return {**rnd, "humans_collected": int(row["humans_collected"]) if row is not None else 0}
 
 
+def story_context(s: Settings, rnd: dict, rounds: list[dict]) -> dict:
+    """What the twist detectors read: history, streaks, transcript link counts and clean prose lines."""
+    from .twists import source_counts
+    from .virality import category
+    raw = {}
+    for e in rnd["entries"]:
+        p = s.transcripts_dir / str(rnd["round_id"]) / f"{e['agent']}.txt"
+        raw[e["agent"]] = p.read_text(errors="replace") if p.exists() else ""
+    return {"history": rounds, "streaks": _streaks_before(rnd, rounds), "sources": source_counts(raw),
+            "lines": {a: thinking_lines(reasoning_lines(t), n=8) for a, t in raw.items() if t},
+            "decision_limit_s": s.decision_limit_s, "category": category(rnd["question"])}
+
+
+def scripted(s: Settings, db, rnd: dict, rounds: list[dict], lb: dict, site: str) -> dict | None:
+    """The v0.5 scripted film: a true twist chosen from data, a concept not used recently, the operator AI's
+    script, validated (one retry with the reason), then the scene list. None = use the templated film."""
+    from . import motd_story as ms
+    from . import opai
+    from . import twists as tw
+    ctx = story_context(s, rnd, rounds)
+    recent_concepts, recent_twists = ms.recent(db)
+    twist = tw.choose(tw.detect(rnd, ctx), recent_twists)
+    if twist is None:
+        log.info("Match of the Day round %s: no true twist detected; templated film", rnd["round_id"])
+        return None
+    allowed = [c for c in ms.CONCEPTS if c not in recent_concepts] or list(ms.CONCEPTS)
+    pl = ms.payload(rnd, ctx, twist, allowed, ctx["lines"])
+    ms.register()
+    subject = f"round:{rnd['round_id']}"
+    res = None
+    for attempt in range(2):  # one retry, told why the first draft was rejected
+        res = opai.call(s, db, ms.TASK, pl, subject=subject)
+        if res:
+            break
+        why = opai.last_rejection(db, ms.TASK, subject)
+        if not why or why.startswith(("unavailable", "timeout")):
+            break
+        pl = {**pl, "previous_rejection": why}
+    if not res:
+        return None
+    data = res.data
+    # the chosen twist is stored with the accepted script, so the next films avoid repeating its type
+    db.x("UPDATE operator_ai_outputs SET content=? WHERE output_id=?",
+         json.dumps({**data, "_twist": {"type": twist["type"], "fact": twist["fact"]}}, ensure_ascii=False),
+         res.output_id)
+    scenes = ms.build_scenes(data, rnd, ctx, twist, lb, site, variant=rnd.get("headline_variant"))
+    return {"scenes": scenes, "concept_type": data["concept_type"], "twist_type": twist["type"],
+            "twist": twist["fact"], "title": data.get("title"), "script": ms.script_text(data, pl["slots"]),
+            "model": res.model, "prompt_version": ms.PROMPT_VERSION, "output_id": res.output_id,
+            "written_at": time.time(), "data": data}
+
+
 async def make_film(s: Settings, db, cards, day: str, round_id: int | None = None, out_dir: Path | None = None,
                     formats: tuple[str, ...] = ("tall", "wide"), scale: float = 1.0) -> dict | None:
     """Pick (or take round_id), script and render the film for `day`. Returns the film record (film.json) or None.
@@ -422,12 +474,22 @@ async def make_film(s: Settings, db, cards, day: str, round_id: int | None = Non
         if not chosen:
             return None
     rnd, sc = chosen["round"], chosen["score"]
-    tpath = None
-    key = key_agent(rnd, sc)
-    if key:
-        tpath = s.transcripts_dir / str(rnd["round_id"]) / f"{key['agent']}.txt"
-    lines = reasoning_lines(tpath.read_text(errors="replace")) if tpath and tpath.exists() else []
-    scenes = script(rnd, sc, lb, lines, site=cards.host, variant=rnd.get("headline_variant"))
+    story = None
+    if s.motd_scripted:
+        try:
+            story = await asyncio.to_thread(scripted, s, db, rnd, rounds, lb, cards.host)
+        except Exception:
+            log.exception("Match of the Day %s: scripted film failed; using the templated film", day)
+            story = None
+    if story:
+        scenes = story["scenes"]
+    else:
+        tpath = None
+        key = key_agent(rnd, sc)
+        if key:
+            tpath = s.transcripts_dir / str(rnd["round_id"]) / f"{key['agent']}.txt"
+        lines = reasoning_lines(tpath.read_text(errors="replace")) if tpath and tpath.exists() else []
+        scenes = script(rnd, sc, lb, lines, site=cards.host, variant=rnd.get("headline_variant"))
     if scale != 1.0:
         for x in scenes:
             x["dur"] = round(x["dur"] * scale, 3)
@@ -453,10 +515,14 @@ async def make_film(s: Settings, db, cards, day: str, round_id: int | None = Non
     if "wide" in files:
         await asyncio.to_thread(media.poster_frame, out / files["wide"], poster, sum(x["dur"] for x in scenes) - 1.0)
     rec = {"date": day, "round_id": rnd["round_id"], "question": rnd["question"], "winner": rnd["winner"],
-           "hook": scenes[0]["hook"], "score": sc, "candidates": chosen["candidates"],
+           "hook": hook_line(rnd, sc), "score": sc, "scripted": bool(story),
+           **({k: story[k] for k in ("concept_type", "twist_type", "twist", "title", "script", "model",
+                                     "prompt_version", "output_id", "written_at")} if story else {}),
+           "script_data": story["data"] if story else None, "candidates": chosen["candidates"],
            "duration_s": round(sum(x["dur"] for x in scenes), 2), "files": files,
            "poster": poster.name if poster.exists() else None, "music": MUSIC.name if s.motd_music else None,
-           "scenes": [{"kind": x["kind"], "dur": x["dur"]} for x in scenes], "made_at": time.time()}
+           "scenes": [{k: x[k] for k in ("kind", "dur", "agent", "caption", "fact") if x.get(k) is not None}
+                      for x in scenes], "made_at": time.time()}
     (out / "film.json").write_text(json.dumps(rec, indent=1))
     return rec
 

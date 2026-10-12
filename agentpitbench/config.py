@@ -55,6 +55,10 @@ class Settings:
     motd_min_score: float = 20
     motd_fps: int = 15
     motd_exhibition_factor: float = 0.5
+    motd_scripted: bool = True        # v0.5: the operator AI writes each film (opai task motd_script); false = templated
+    opai_model_motd_script: str = "fable"   # claude CLI alias for the script writer (strongest for creative writing)
+    opai_timeout_s: int = 300
+    opai_config_dir: str = ""          # CLAUDE_CONFIG_DIR for opai (the separate login); empty = the CLI default
     motd_music: bool = True           # the CC0 music bed (static/motd/theme.m4a); false = silent films
     sandbox: bool = True             # run agents inside bubblewrap (bwrap); never disable in production
     # independent-standard layer
