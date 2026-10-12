@@ -1,6 +1,6 @@
 # Automated A/B testing: spec
 
-Status: v1 draft · 2026-10-12 · build today, after `x-analytics-spec.md` (its reward layer is a prerequisite).
+Status: v2, reviewed with the advisor · 2026-10-12 · build today, after `x-analytics-spec.md` (its reward layer is a prerequisite).
 Operator decisions in this spec are fixed; they are encoded, not argued.
 
 ## Goal
@@ -30,8 +30,8 @@ and budget (`x_read_budget_per_day`, `x_read_reserve`, `x_read_cost_usd`) are de
 **Cost check (no new spend):** with `daily_round_cap = 5` (bench.toml), ≈ 5 reveals + 5 results + ≤ 5 press replies
 + ~2 other posts ≈ 17 posts/day. At the 1 h and 24 h snapshots A/B needs, that's 34 post-reads/day (x-analytics also
 takes 72 h/7 d for its own uses). At the operator-set `x_read_cost_usd` (assumed $0.005/post read, to confirm) that's
-about $0.17/day for A/B's share, inside the ~$1/day cap. Lookups batch 100 ids per request, so the request count is
-negligible.
+about $0.17/day for A/B's share, inside the ~$1/day cap. (x-analytics sizes for 7 rounds/day; bench.toml runs 5, so the
+numbers here are lower; both fit the cap.) Lookups batch 100 ids per request, so the request count is negligible.
 
 ## 1. What varies, and what never does
 
@@ -48,7 +48,7 @@ negligible.
 | `results.vendor_tags` | results | 2 | code list: `winners`, `none` | `winners` (today's rule). Stays **inside** the results-winners rule: never adds a vendor tag anywhere else |
 | `tags` | reveal + results (pooled) | 2–3 | code list: `""`, `" #AI"`, `" #PredictionMarkets"`, appended after `#AgentpitBench` | `""` |
 | `press.head` | press reply | 2–3 | generated | `"Post-match statements:"` |
-| `generic.cta` | milestone, race, awards, contrarian, report, champion, model, duel, replay, summon (pooled) | 2–3 | generated | empty |
+| `generic.cta` | milestone, race, awards, contrarian, report, champion, model, duel, replay, summon, movie (pooled) | 2–3 | generated | empty |
 | `tone` | the day's results cards and clips | 2: `fun`, `plain` | code (existing `results_headline` variants) | `fun` |
 | `site.round_cta` | round page "Bet against the AIs →" button, **English pages only** | 2–3 | generated | today's `_("Bet against the AIs →")` |
 
@@ -79,7 +79,7 @@ class Choice:
 
 def choose(db, s, slot: str, post_key: str, situation: str | None = None, facts: dict[str, str] | None = None,
            now: float | None = None) -> Choice
-def realize(db, post_key: str, slot: str, arm_id: int) -> None   # record what actually posted
+def realize(db, post_key: str, slot: str, arm_id: int) -> None   # sets realized_arm_id: what actually posted
 def day_tone(db, s, day: str) -> str                                 # 'fun' | 'plain', drawn once per UTC day
 def posterior(db, s, slot: str, now: float | None = None) -> list[dict]   # per arm: n, mean, sd, p_best
 ```
@@ -90,10 +90,12 @@ def posterior(db, s, slot: str, now: float | None = None) -> list[dict]   # per 
   assignment, so slow rewards don't cause overshoot), the arm with the fewest assignments goes next (ties → lowest id).
 - **Then Thompson sampling:** draw one sample per live arm from its posterior (section 4) and take the argmax. The RNG is
   seeded with `sha256(post_key + slot)`, so a decision can be replayed in tests.
-- **Fallback:** if rendering or validation of the chosen arm fails for this post (e.g. it's too long with long outcome
-  labels), the control posts and `realize` records arm 0. The observation goes to the arm that actually posted.
-- **Realized media:** `_standalone` falls back from video to the still card on a failed upload. `realize` records
-  `still`, so the reward goes to what was posted.
+- **Fallback:** if `check_rendered` fails for this post, the control posts and `realize` sets `realized_arm_id` to the
+  control. Rendering a variant fails whenever `twitter.fit` would have to **clip anything** (the variant, the picks line,
+  the season line, the hook, the question) beyond what the control clips for the same round, so a variant can never
+  squeeze a fact. The observation goes to `realized_arm_id`, the arm that actually posted.
+- **Realized media:** `_standalone` falls back from video to the still card on a failed upload. `realize` records the
+  `still` arm, so the reward goes to what was posted.
 - **Day tone:** `day_tone` stores `kv['ab_tone_<YYYY-MM-DD>']` on first use. Exploration alternates by day until each
   arm has ≥ `ab_min_days_tone = 10` days, then it's Thompson on day-level observations. It's written to
   `rounds.headline_variant` as today, which replaces the per-round parity in `cards.headline_variant`.
@@ -104,12 +106,14 @@ def posterior(db, s, slot: str, now: float | None = None) -> list[dict]   # per 
 
 | Where | Change |
 |---|---|
-| `publish._reveal` | `choose` `reveal.hook` (situation from `split_headline` kind and shape), `reveal.cta`, `reveal.media`, `tags`; build media list from the media arm (`four_decisions`: as today; `split_card`: `cards/<round>/split.png`, else fall back to decisions + `realize` control) |
+| `cards.py`, `twitter.py` | new `cards.split_shape(rnd) -> (situation, facts)` and `twitter.results_shape(rnd) -> (situation, facts)`; `split_headline` and `results_hook` are rewritten on top of them, so the control output stays byte-identical |
+| `publish._reveal` | `choose` `reveal.hook` (situation and facts from `split_shape`), `reveal.cta`, `reveal.media`, `tags`; build media list from the media arm (`four_decisions`: as today; `split_card`: `cards/<round>/split.png`, else fall back to decisions + `realize` control) |
 | `twitter.reveal_text(rnd, headline, cta="", extra_tags="")` | `cta` line inserted directly before `"\nReply with your pick: …"`; `extra_tags` after `TAG` |
-| `publish.on_resolved` | `day_tone` replaces `headline_variant(round_id)`; `choose` `results.hook`, `results.cta`, `results.media`, `results.vendor_tags`, `tags`; `utm_content` becomes `ab-<arm_id of results.hook>` (kept for continuity; not measurable, see 5) |
+| `publish.on_resolved` | `day_tone` replaces `headline_variant(round_id)`; `choose` `results.hook` (from `results_shape`), `results.cta`, `results.media`, `results.vendor_tags`, `tags`; `utm_content={tone}` exactly as today (nothing can read it; changing it would break byte-identical control output) |
 | `twitter.results_text(s, rnd, board, round_url, crowd=None, cast=None, hook=None, cta="", extra_tags="", vendor_tags=True)` | `hook=None` → `results_hook(rnd)` (control); `cta` line goes before the URL line |
 | `publish.press_conference` → `press.texts(..., head="Post-match statements:")` | head from `press.head` |
-| `twitter.Poster.post` | for `kind in ab.GENERIC_KINDS`: `choose('generic.cta', post_key)`, insert the line before a trailing `TAG`; re-`fit`; if over 280, post the control. Also writes the new `reply_to`, `quote_of` columns |
+| `engage.Engage._post` | every generic kind already posts through it: for `kind in ab.GENERIC_KINDS`, `choose('generic.cta', key)` and insert the line before a trailing `TAG` (posts without a trailing `TAG` get the control); clipping rule as above. MotD's `movie` post will use the same path |
+| `twitter.Poster.post` | no A/B logic (it stays the idempotency layer; avoids an `ab` ↔ `twitter` import cycle). Only writes the new `reply_to`, `quote_of` columns |
 | `site.build` round page | `site.round_cta` chosen once per build per **day** (`post_key = site-<YYYY-MM-DD>`), English only; other languages render the translated control |
 | `publish.void_round` | `UPDATE ab_assignments SET excluded='void'` for the round's post keys |
 
@@ -145,10 +149,13 @@ Rejected if any rule fails. Both run at generation time; `check_rendered` runs a
    choke*, loser*, rekt) is banned so a losing role is never mocked; (c) `ab.CLAIMS` (significant, proves, proof, best,
    worst, smartest, always, never, guarantee*, #1, beats the market, better than) is banned: statistical or ranking
    claims belong to the credibility strip and the methodology, not to copy.
-6. **Length:** rendered with worst-case fills (longest names, 90-char question clip, 60-char outcomes) via
-   `twitter.fit`, `tweet_len ≤ 280`; `cta` lines ≤ 60 chars, `press.head` ≤ 30, `site.round_cta` ≤ 28.
-7. **Invariants on the rendered post:** reveal contains `"Reply with your pick: "` + the outcomes and `#AgentpitBench`;
-   results contains the round URL exactly once; no other post kind contains a URL.
+6. **Length:** at generation, rendered with worst-case fills (longest names, 90-char question clip, 60-char outcomes)
+   it must fit 280 without clipping; `cta` lines ≤ 60 chars, `press.head` ≤ 22 (today's head length, so losers'
+   statements are never trimmed more than today), `site.round_cta` ≤ 28. At post time the clipping rule in section 2 applies.
+7. **Invariants on the rendered post:** the set of URLs in the text equals the control's for the same post (a variant
+   never adds, drops or changes a link: results keep exactly the round URL, `report-<week>-3` and summon replies keep
+   theirs, everything else stays link-free); reveal contains `"Reply with your pick: "` + the outcomes;
+   `#AgentpitBench` present wherever the control has it.
 
 ## 4. Reward and bandit
 
@@ -209,9 +216,10 @@ At `daily_round_cap = 5`, steady state:
   `ab_gen_hour_utc + 6`, the day is skipped.
 - **Never contending with contestants:** the contestant Claude uses the operator's same Claude login (`AUTH_FILES`
   copies `~/.claude/.credentials.json` into the sandbox and syncs it back). So the generator runs only while **no round
-  is running** (`running` set empty, passed in as `idle()`) and the daily sweep isn't in progress. It holds
+  is running** (`running` set empty, passed in as `idle()`) **and** the sweep can't be running: `now.hour <
+  sweep_hour_utc` or `kv['sweep_<day>']` is already set (the sweep runs contestant CLIs outside `running`). It holds
   `orchestrator._auth_locks['claude']` for the whole call, and calls `warm_login('claude')` first. A token rotation
-  can't then orphan a sandbox's copy.
+  can't then orphan a sandbox's copy. Side effect: a batch's `warm_login` can wait up to `ab_gen_timeout_s` for the lock.
 - **Where:** never inside a contestant sandbox and never through `CleanHome`. It's a plain subprocess in the operator's
   home, `cwd = var/ab_gen/<date>/`:
   `claude -p <prompt> --output-format json --model <ab_gen_model> --tools "" --strict-mcp-config --mcp-config '{"mcpServers":{}}' --disable-slash-commands`.
@@ -253,10 +261,10 @@ CREATE TABLE IF NOT EXISTS ab_arms (
 );
 CREATE TABLE IF NOT EXISTS ab_assignments (
     post_key TEXT NOT NULL, slot TEXT NOT NULL,
-    arm_id INTEGER NOT NULL REFERENCES ab_arms(arm_id),
+    arm_id INTEGER NOT NULL REFERENCES ab_arms(arm_id),            -- chosen
+    realized_arm_id INTEGER REFERENCES ab_arms(arm_id),           -- what posted (control on fallback); rewards go here
     kind TEXT NOT NULL,               -- tweets.kind, or 'site'
     assigned_at REAL NOT NULL,
-    realized INTEGER NOT NULL DEFAULT 1,   -- 0 when it fell back to control (a control row is then added)
     rendered TEXT,                    -- the exact text that posted (for audit and /experiments/ examples)
     excluded TEXT,                    -- 'void' | NULL
     PRIMARY KEY (post_key, slot)
@@ -269,13 +277,16 @@ Migrations: `tweets.reply_to TEXT`, `tweets.quote_of TEXT`. Controls and code ar
 
 ## 8. Config (`Settings`, with defaults)
 
-`ab_enabled = false` (off = control everywhere, nothing assigned) · `ab_gen_enabled = false` · `ab_max_arms = 3` ·
+`ab_gen_enabled = false` (gates **arm creation** only, like `motd_enabled`: false until the operator has reviewed the
+first `ab propose --dry` batch; posting always goes through `ab.choose`, which returns the control while it's the only
+live arm) · `ab_max_arms = 3` ·
 `ab_min_posts = 20` · `ab_min_days_tone = 10` · `ab_half_life_days = 14` · `ab_prior_n = 2` · `ab_baseline_days = 30` ·
 `ab_weight_1h = 0.5` · `ab_weights = {replies = 5, quotes = 3, reposts = 2, bookmarks = 2, link_clicks = 2, likes = 1}` ·
 `ab_gen_model = "sonnet"` · `ab_gen_hour_utc = 3` · `ab_gen_timeout_s = 180` · `ab_gen_max_calls_per_day = 2` ·
 `ab_digest_hour_utc = 8`.
 
-`posting_paused` remains the only global stop (operator decision): when it's set, nothing posts, so nothing is assigned.
+There is no A/B switch: `posting_paused` remains the only global stop (operator decision). When it's set, nothing
+posts. `ab retire` removes a bad arm.
 Read budget keys live in x-analytics.
 
 ## 9. CLI (`agentpitbench ab …` in `cli.main`)
@@ -293,8 +304,9 @@ Boosted posts are flagged with x-analytics' `agentpitbench x-boosted <tweet_id>`
 
 ## 10. Daily digest
 
-At `ab_digest_hour_utc` from `scheduled()`, idempotent per date (`kv['ab_digest_<date>']`). It's appended as an `ab`
-section to x-analytics' operator digest (log and `var/export/x-daily.json`, not on the site):
+At `ab_digest_hour_utc` from `scheduled()`, idempotent per date (`kv['ab_digest_<date>']`). It goes to the log and to
+its own `var/export/ab-daily.json` (not on the site; x-analytics' digest links it rather than both jobs writing one
+file):
 per slot: live arms with n, mean ± sd, p_best, change since yesterday; arms ready to judge (all ≥ 20 and one with
 p_best ≥ 0.9 or ≤ 0.05) with a suggested `ab retire` line; the generator run (ok / failed / skipped and why;
 accepted/rejected counts with reasons); posts that fell back to control and why; excluded (boosted/void) posts.
@@ -317,11 +329,11 @@ accepted/rejected counts with reasons); posts that fell back to control and why;
   as the results tweet, so they never drift". With `results.hook` varied, the round's `share_text` is the **posted**
   hook (first line of `tweets.text` for `r<id>-results`), else `results_hook(rnd)`. It's not a separate arm. `utm_content`
   `share-*` and `ab-*` prefixes stay disjoint.
-- **Match of the Day:** when it's built, its post text hook and close-CTA call `ab.choose('motd.hook' | 'motd.cta',
-  'motd-<date>', situation=top_signal, facts=…)` with the same validator and placeholders from its score table. The MotD
-  never-vary list (facts, scene order 3–5, credibility strip, EXHIBITION badge) is added to the validator invariants.
-  Its in-video captions stay code templates (its v0.3 "no model-written text" applies to the film). Its 1 post/day makes
-  a slot slow (≥ 40 days for 2 arms), so v1 of MotD runs control only.
+- **Match of the Day:** its post (`kind='movie'`) is in `GENERIC_KINDS`, so it carries a `generic.cta` arm from its
+  first post. That covers "variants on all posts" without a slow per-film slot (1 post/day would need ≥ 40 days for 2
+  arms). The film's captions and hook stay code templates (its v0.3 "no model-written text" applies to the film).
+  Later, a `motd.hook` slot can use `ab.choose` with situations from its score table and its never-vary list (facts,
+  scene order 3–5, credibility strip, EXHIBITION badge) added to the validator.
 - **Sealed rounds:** the generator only sees templates, so it can't learn picks before round end. Reveal copy is
   rendered only in `_reveal`, after every pick is in.
 - **Card redesign:** cards take only the `tone` headline; no generated text goes on a card in v1 (the card is the asset
@@ -330,26 +342,28 @@ accepted/rejected counts with reasons); posts that fell back to control and why;
 ## 13. Tests (`tests/test_ab.py`, plus updates)
 
 1. `choose` is idempotent per `(post_key, slot)`; exploration picks the fewest-assigned arm; TS with a fixed seed is
-   reproducible; `ab_enabled=false` → control, nothing written.
+   reproducible; with only the control live, every post gets the control.
 2. Posterior: decay halves weight at 14 days; 1 h observation replaced (not summed) by 24 h; boosted / deleted / void are
    excluded; self-reply and self-quote subtraction.
 3. Validator: one failing case per rule (digit, name, vendor, handle, hashtag, link, slur, DISPARAGE, CLAIMS, missing
    or duplicate placeholder, unknown placeholder, too long at worst case, incomplete situation set); `check_rendered`
    rejects a reveal without "Reply with your pick", a non-results post with a URL, results without the round URL.
-4. Fallback: a long-label round makes the chosen arm overflow → control posts, `realized=0`, observation goes to control.
-   Video failure records `still`.
+4. Fallback: a long-label round where the variant would force clipping → control posts, `realized_arm_id` = control,
+   observation goes to control. Video failure records `still`. A results variant can't add, drop or change the URL;
+   `report-<week>-3` and summon replies keep theirs.
 5. Generator with a fake runner: bad JSON / timeout → no arms, run recorded failed; valid output → `live`/`queued` by seat;
    every candidate in `operator_ai_outputs`; does nothing when a round is running.
 6. `retire`: refuses control, promotes queued.
-7. Publish (`test_publish.py`): reveal/results/press texts with control arms equal today's output byte-for-byte; with arms,
+7. Publish (`test_publish.py`): reveal/results/press/generic texts with only control arms live equal today's output
+   byte-for-byte (`split_shape`/`results_shape` refactor included); with arms,
    the invariants hold; tone per day lands in `rounds.headline_variant`.
 8. Site: /experiments/ builds, contains no `model`/`prompt_version`; English round page renders the CTA arm, others the
    translated control; i18n tables complete.
 
 ## 14. Acceptance
 
-- `ab_enabled=false`: every post's text is byte-identical to today's (test 7). Turned on, in dry-run, the outbox for a
-  synthetic day shows every slot assigned, invariants intact, fallbacks recorded.
+- With only control arms live, every post's text is byte-identical to today's (test 7). With generated arms, in
+  dry-run, the outbox for a synthetic day shows every slot assigned, invariants intact, fallbacks recorded.
 - After 24 h live: every post has its assignments; posts with a 24 h snapshot show in `ab status` with n > 0.
 - `ab propose --dry` produces validated candidates without touching any round or the contestant login.
 - Killing the generator (no `claude` on PATH, or quota) changes nothing on X except that no new arms appear.
@@ -358,13 +372,15 @@ accepted/rejected counts with reasons); posts that fell back to control and why;
 
 1. Schema, migrations, `ab.seed`, config keys (20 min).
 2. `ab.py`: `choose`, `realize`, `day_tone`, `posterior`, validator + tests 1–4 (75 min).
-3. Hook points in `twitter.py`, `publish.py`, `press.py`, `Poster.post` with control-only arms; test 7 passes
+3. `split_shape` / `results_shape` refactor, then hook points in `twitter.py`, `publish.py`, `press.py`,
+   `Engage._post` with control-only arms; test 7 passes
    byte-identical (45 min).
 4. CLI (`ab status/retire/validate/add/digest`) and digest section (25 min).
 5. `ab_gen.py`, prompt, `ab propose`, test 5; first `--dry` run reviewed by the operator (40 min).
 6. /experiments/ page, export, i18n strings (30 min + translations).
 7. `site.round_cta` render (English, per day) (15 min). Measurement waits for the open question below.
-8. Deploy with `ab_enabled = true`, `ab_gen_enabled = true` after the first `--dry` batch looks right.
+8. Deploy (control-only arms plus the code-defined media/tags/vendor_tags/tone arms go live at once); set
+   `ab_gen_enabled = true` after the operator reviews the first `--dry` batch.
 
 ## Assumptions to re-check
 
