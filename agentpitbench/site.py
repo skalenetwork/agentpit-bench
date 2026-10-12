@@ -379,6 +379,11 @@ def vs_description(p: dict, _, as_of: float) -> str:
              y=f"{p['b_brier']:.3f}", w=p["a_closer"], l=p["b_closer"], date=discover.day(as_of))
 
 
+def home_pairs(vsp: list[dict], n: int = 4) -> list[dict]:
+    """The front page's head-to-head strip: AI-vs-AI pairs first (most shared markets first), then vs the Crowd."""
+    return sorted(vsp, key=lambda p: (p["b"] == CROWD, -p["n"]))[:n]
+
+
 def vs_rounds(rounds: list[dict], a: str, b: str) -> dict:
     """Betting rounds where a and b (an agent or the Crowd's favourite) took opposite sides: W-L and the latest 10."""
     out, aw, bw = [], 0, 0
@@ -746,6 +751,11 @@ BRANDED = {"methodology": _("Methodology"), "independence": _("Independence & co
            "hall-of-shame": _("Hall of shame"), "reports": _("Weekly reports"), "contrarian": _("Contrarian calls"),
            "experiments": _("Experiments")}
 
+# Extra top-nav links, after Films and Head to head: (path under the language root, English label passed
+# through _()). The slot for sections that land later, e.g. ("challenge/", "Beat the AIs"); the label must be a
+# message id with translations (i18n.message_ids reads this list) before it goes in.
+NAV_EXTRA: list[tuple[str, str]] = []
+
 REASONING = {"max": "max reasoning", "xhigh": "extra-high reasoning", "high": "high reasoning"}
 
 
@@ -937,6 +947,7 @@ def _build(s: Settings) -> Path:
                   "fc": lb.get("forecast") or {}, "sig": lb.get("significance") or {},
                   "tq": tq, "mq": mq}
         common["vs_links"] = vs_links
+        common.update(nav_extra=NAV_EXTRA, has_experiments=exp_ab is not None)
         prefix = _.prefix()
         suffixes = round_suffixes(rounds, _)
         blurb = _("{vs}, each on its lab's top model at maximum reasoning, bet 100 tokens on live prediction markets. Every bet, rationale and result is public.", vs=vs)
@@ -974,6 +985,8 @@ def _build(s: Settings) -> Path:
             return {**ld, "@graph": [*ld["@graph"], node]}
 
         page("index.html", "index.html", live=live, past=past[:30], upset=upset, description=None,
+             film=films[0] if films else None, h2h_strip=home_pairs(vsp),
+             today=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
              share_text=_("Four frontier AIs bet on real prediction markets. Live scoreboard:"),
              jsonld=discover.dataset_ld(s, lb, f"{base}/"),
              title=_("AgentpitBench: {vs} on real prediction markets", vs=vs))
@@ -1031,6 +1044,11 @@ def _build(s: Settings) -> Path:
                  heading=vs_title(p, _), title=branded(vs_title(p, _)), description=vs_description(p, _, as_of),
                  jsonld=crumbs(discover.dataset_ld(s, lb, f"{base}/{rel}"), (_("Leaderboard"), "leaderboard/"),
                                (vs_title(p, _), rel)))
+        if vsp:
+            page("vs/index.html", "vs_index.html", pairs=vsp, as_of_day=discover.day(as_of),
+                 title=branded(_("Head to head")),
+                 description=_("Who forecasts better, pair by pair: each side's Brier score on the same markets (lower is better), with a 95% confidence interval on the difference."),
+                 jsonld=crumbs(None, (_("Leaderboard"), "leaderboard/"), (_("Head to head"), "vs/")))
         page("films/index.html", "films.html", films=films, title=branded("Match of the Day"),
              description=_("Match of the Day: a short film of the most dramatic AgentpitBench round each day."))
         page("splits/index.html", "splits.html", splits=splits, h2h=h2h, title=branded(_("Split decisions")),

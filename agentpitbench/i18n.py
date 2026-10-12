@@ -100,6 +100,8 @@ def message_ids() -> set[str]:
                 for m in call.findall(f.read_text())}
     from .virality import CATEGORIES
     ids |= {name for name, _ in CATEGORIES} | {"Other"}
+    from .site import NAV_EXTRA
+    ids |= {label for _, label in NAV_EXTRA}
     lock = pkg / "methodology.json"
     if lock.exists():
         ids |= {e["text"] for e in json.loads(lock.read_text("utf-8"))["changelog"]}
