@@ -1,8 +1,14 @@
 """Weekly selection review (docs/ai-automation-spec.md §5.3): the operator AI reads the last 28 days of market
 selection, the X results per category and the `news shadow` report, and drafts at most one methodology
-proposal into var/proposals/. That's all it can do: a proposal is a file. Nothing changes until the operator
-runs `agentpitbench method approve <id>` at a terminal (methodology.approve is the only writer of the lock, and
-this module never calls it).
+proposal into var/proposals/.
+
+With `selection_auto_apply` off, that's all it does: nothing changes until the operator runs
+`agentpitbench method approve <id>` at a terminal. With it on (operator decision 2026-10-12), a valid proposal
+goes straight to methodology.auto_apply, which re-checks everything (one market-selection key, PROPOSAL_BOUNDS,
+at most one change per 7 days), bumps the version, writes a changelog line generated from the change (never
+the model's text) and publishes the evidence; an info alert follows either way. The model's own
+changelog_text and rationale only ever appear in the published evidence file. The operator can undo a change
+with `agentpitbench method revert <version>`. This module never calls methodology.approve.
 
 Off unless `selection_review_enabled` (and "proposal" in opai_tasks).
 """
@@ -22,8 +28,8 @@ log = logging.getLogger(__name__)
 WEEKDAY, HOUR_UTC = 6, 19      # Sunday 19:00 UTC
 DAYS = 28
 # the keys the model may propose: PROPOSAL_BOUNDS minus the rater prompt version (a new prompt file is a code
-# change the operator makes, not a model's call)
-KEYS = tuple(k for k in methodology.PROPOSAL_BOUNDS if k != "selection.rater.prompt_version")
+# change the operator makes, not a model's call); the same set methodology.auto_apply accepts
+KEYS = methodology.AUTO_KEYS
 TEXT_MAX = 300
 LAST = "selection_review_last"
 
@@ -81,9 +87,10 @@ def validate(data: dict) -> str | None:
         txt = data.get(f)
         if not isinstance(txt, str) or not txt.strip() or len(txt) > TEXT_MAX:
             return f"{f} missing or too long"
-    q, why = clean_quote(data["changelog_text"], TEXT_MAX)
-    if q is None:
-        return f"changelog_text rejected: {why}"
+    for f in ("changelog_text", "rationale"):   # both are published with the evidence
+        q, why = clean_quote(data[f], TEXT_MAX)
+        if q is None:
+            return f"{f} rejected: {why}"
     return None
 
 
@@ -124,11 +131,42 @@ async def review(s: Settings, db: DB, now: float | None = None) -> dict:
                 out["summary"] = f"proposal refused: {e}"
             else:
                 out["proposal"] = prop["id"]
-                out["summary"] = (f"proposal {prop['id']}: {prop['changes']} (review: agentpitbench method show "
-                                  f"{prop['id']}; apply only with method approve)")
+                if s.selection_auto_apply:
+                    out.update(_auto(s, db, prop, now))
+                else:
+                    out["summary"] = (f"proposal {prop['id']}: {prop['changes']} (review: agentpitbench method "
+                                      f"show {prop['id']}; apply only with method approve)")
     db.put(LAST, out)
     log.info("selection review %s: %s", day, out["summary"])
     return out
+
+
+def _auto(s: Settings, db: DB, prop: dict, now: float) -> dict:
+    """Apply through methodology.auto_apply; a refusal (rate limit, bounds, a value already in force) rejects
+    the proposal, so it can't block next week's review. Either way the operator gets an info alert."""
+    from . import alerts
+    (key, value), = prop["changes"].items()
+    try:
+        new = methodology.auto_apply(s, prop["id"], now=now)
+    except methodology.MethodologyError as e:
+        methodology.reject(s, prop["id"], f"auto-apply refused: {e}")
+        alerts.send(s, db, "info", "selection-auto-apply", f"Selection review: proposal {prop['id']} not applied",
+                    f"{key} → {value} refused: {e}. The proposal is rejected; nothing changed.")
+        return {"summary": f"proposal {prop['id']} not applied: {e}", "applied": None}
+    entry = new["changelog"][-1]
+    v = new["version"]
+    alerts.send(s, db, "info", "selection-auto-apply", f"Methodology v{v}: {key} auto-applied",
+                f"{entry['change']['old']} → {entry['change']['new']} (proposal {prop['id']}; evidence "
+                f"{methodology.change_url(s, v)}). New rounds use it; earlier rounds keep their recorded version.",
+                action=f"methodology.json is now v{v} in the running (live) checkout, a detached HEAD",
+                resume=f"Carry it to main before the next deploy (a deploy resets the live checkout; the drift "
+                       f"detector would then pause new rounds): copy agentpitbench/methodology.json from the live "
+                       f"checkout into the main checkout, then there: git add agentpitbench/methodology.json && "
+                       f"git commit -m 'Methodology v{v}: {key} {entry['change']['old']} -> "
+                       f"{entry['change']['new']} (automatic weekly review)', then ship. "
+                       f"Undo: agentpitbench method revert {v}")
+    return {"summary": f"v{v}: {key} {entry['change']['old']} → {entry['change']['new']} auto-applied "
+                       f"(proposal {prop['id']})", "applied": v}
 
 
 async def due(s: Settings, db: DB, now: float | None = None) -> dict | None:

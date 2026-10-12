@@ -2,18 +2,27 @@
 
 agentpitbench/methodology.json is the single source of truth for everything the methodology page states: the
 protected parameters, hashes of the prompts and model table, the market-selection rule and the public
-changelog. It changes only through `approve`, called only by `agentpitbench method approve` at a terminal:
-draft (a proposal) -> operator approval -> version bump. No model, ops agent or service path writes it.
+changelog. Every change goes through one writer, `_commit`: version bump, changelog line, lock rehash. Three
+callers reach it:
+- `approve`, from `agentpitbench method approve` at a terminal: draft (a proposal) -> operator approval;
+- `auto_apply`, from the weekly selection review when `selection_auto_apply` is on (operator decision
+  2026-10-12): one market-selection key per change, within PROPOSAL_BOUNDS, at most one per 7 days, a
+  changelog line generated from the change (never model text) and the evidence published;
+- `revert`, from `agentpitbench method revert <version>` at a terminal: the inverse of an earlier change, as a
+  new version.
+No model, ops agent or other service path writes it.
 """
 from __future__ import annotations
 
 import hashlib
 import json
 import logging
+import os
 import sys
+import tempfile
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Callable
 
@@ -77,8 +86,8 @@ def apply(s: Settings, toml_data: dict, path: Path | None = None) -> None:
 
 
 def verify(s: Settings | None = None, path: Path | None = None) -> list[str]:
-    """Empty when the working tree matches the lock: hashes, the last changelog entry's params_sha and the
-    version the running settings report."""
+    """Empty when the working tree matches the lock: hashes, the last changelog entry's params_sha, the
+    version the running settings report and no generated change newer than the lock."""
     problems = []
     lock = load(path)
     cur = current_hashes(lock)
@@ -89,6 +98,14 @@ def verify(s: Settings | None = None, path: Path | None = None) -> list[str]:
     if not log_ or log_[-1].get("params_sha") != params_sha(lock):
         problems.append("params_sha of the last changelog entry does not match params + hashes + selection")
     if s is not None:
+        # a generated change's evidence lives in var/, the lock in the checkout: a deploy that resets the
+        # checkout without the committed lock would silently undo it
+        applied = [f.stem for f in changes_dir(s).glob("*.json")] if changes_dir(s).exists() else []
+        newer = [v for v in applied if v.replace(".", "").isdigit() and v.count(".") == 1
+                 and _vt(v) > _vt(lock["version"])]
+        if newer:
+            problems.append(f"lock v{lock['version']} is older than generated change v{max(newer, key=_vt)} "
+                            "(deployed without committing methodology.json?)")
         if s.methodology_version != lock["version"]:
             problems.append(f"settings report v{s.methodology_version}, lock is v{lock['version']}")
         for k, v in lock["params"].items():
@@ -97,9 +114,38 @@ def verify(s: Settings | None = None, path: Path | None = None) -> list[str]:
     return problems
 
 
-def changelog(path: Path | None = None) -> list[tuple[str, str]]:
-    """(date, English text), newest first: the shape site.py and discover.py render."""
-    return [(e["date"], e["text"]) for e in reversed(load(path)["changelog"])]
+def changelog(path: Path | None = None) -> list[tuple[str, str, dict]]:
+    """(date, message id, format values), newest first: the shape site.py and discover.py render. A generated
+    entry (auto-applied or reverted) stores a template id in `text` and its values in `values`, so one
+    translated template serves every such change."""
+    return [(e["date"], e["text"], e.get("values") or {}) for e in reversed(load(path)["changelog"])]
+
+
+# generated changelog lines: one translated template per change type (i18n ids; site.py marks them with _())
+AUTO_TEXT = "Market selection: {param} {old} → {new} (automatic weekly review; evidence: {link})"
+REVERT_TEXT = "Market selection: {param} {old} → {new} (operator revert of v{v}; evidence: {link})"
+AUTO_BY = "selection-review"     # approved_by of an auto-applied entry
+AUTO_KEYS = ("max_favourite_price", "max_category_share", "daily_round_cap", "max_days_to_close",
+             "selection.scoring")  # what the weekly review may change (never the rater prompt: that's code)
+AUTO_MIN_DAYS = 7
+
+
+def changes_dir(s: Settings) -> Path:
+    """Evidence for every generated change, one JSON per version; the site publishes it at
+    /methodology/changes/<version>.json."""
+    return s.data_dir / "methodology-changes"
+
+
+def change_url(s: Settings, version: str) -> str:
+    return f"{s.site_url.rstrip('/')}/methodology/changes/{version}.json"
+
+
+def value_of(lock: dict, key: str):
+    if key == "selection.scoring":
+        return lock["selection"]["scoring"]
+    if key == "selection.rater.prompt_version":
+        return lock["selection"]["rater"]["prompt_version"]
+    return lock["params"].get(key)
 
 
 # ---------------------------------------------------------------- proposals
@@ -179,9 +225,11 @@ def list_proposals(s: Settings) -> list[dict]:
     return [json.loads(f.read_text("utf-8")) for f in sorted(d.glob("*.json"))] if d.exists() else []
 
 
-def reject(s: Settings, pid: str) -> dict:
+def reject(s: Settings, pid: str, reason: str = "") -> dict:
     p = get_proposal(s, pid)
     p["state"] = "rejected"
+    if reason:
+        p["reject_reason"] = reason
     (proposals_dir(s) / f"{pid}.json").write_text(json.dumps(p, indent=1, ensure_ascii=False))
     return p
 
@@ -198,6 +246,10 @@ def _apply_changes(lock: dict, changes: dict) -> dict:
     return new
 
 
+def _vt(v: str) -> tuple[int, ...]:
+    return tuple(int(x) for x in v.split("."))
+
+
 def next_version(v: str, major: bool) -> str:
     a, b = (int(x) for x in v.split("."))
     return f"{a + 1}.0" if major else f"{a}.{b + 1}"
@@ -206,7 +258,7 @@ def next_version(v: str, major: bool) -> str:
 def approve(s: Settings, pid: str, approver: str = "operator", *, major: bool = False,
             isatty: Callable[[], bool] | None = None, ask: Callable[[str], str] = input,
             path: Path | None = None, fill: Callable[[list[str]], dict] | None = None) -> dict:
-    """The only writer of methodology.json. Refuses without a terminal and an exact typed confirmation."""
+    """The operator's path. Refuses without a terminal and an exact typed confirmation."""
     path = path or LOCK
     if not (isatty or sys.stdin.isatty)():
         raise MethodologyError("approve needs an interactive terminal (the operator types the confirmation)")
@@ -217,25 +269,152 @@ def approve(s: Settings, pid: str, approver: str = "operator", *, major: bool = 
     nv = next_version(lock["version"], major)
     if ask(f"Type 'approve v{nv}' to apply proposal {pid} ({p['changelog_text']}): ").strip() != f"approve v{nv}":
         raise MethodologyError("not confirmed")
-    for k, v in p["changes"].items():
-        _check_change(lock, k, v, p["author"])
-    new = _apply_changes(lock, p["changes"])
-    if "hashes" in p:
-        if current_hashes(new) != p["hashes"]:
+    new = _commit(s, lock, p["changes"], p["author"], nv, {"text": p["changelog_text"], "approved_by": approver},
+                  path=path, hashes=p.get("hashes"))
+    p.update(state="approved", approved_version=nv)
+    _write_proposal(s, p)
+    (fill or _fill_or_placeholder)([p["changelog_text"]])
+    return new
+
+
+def _write_proposal(s: Settings, p: dict) -> None:
+    _atomic(proposals_dir(s) / f"{p['id']}.json", json.dumps(p, indent=1, ensure_ascii=False))
+
+
+def _atomic(path: Path, text: str) -> None:
+    """Temp file, then rename: a crash mid-write must never leave a half-written lock behind."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=".tmp-", suffix=".part")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(text)
+        os.replace(tmp, path)
+    except BaseException:
+        Path(tmp).unlink(missing_ok=True)
+        raise
+
+
+def _commit(s: Settings, lock: dict, changes: dict, author: str, nv: str, entry: dict, *, path: Path,
+            hashes: dict | None = None, now: float | None = None) -> dict:
+    """The single writer of the lock (approve, auto_apply and revert all end here): bounds re-checked, the
+    hashed inputs must still match (or a rehash proposal's hashes are adopted), version bump, changelog line
+    with the new params_sha, atomic write. The running settings follow at once, so new rounds use the new
+    rules and the drift detector sees a consistent lock."""
+    for k, v in changes.items():
+        _check_change(lock, k, v, author)
+    new = _apply_changes(lock, changes)
+    if hashes is not None:
+        if current_hashes(new) != hashes:
             raise MethodologyError("the working tree changed since the rehash proposal; propose again")
-        new["hashes"] = p["hashes"]
+        new["hashes"] = hashes
     elif current_hashes(new) != new["hashes"]:
         raise MethodologyError("hashed files differ from the lock: use `method propose --rehash`")
     new["version"] = nv
-    now = datetime.now(timezone.utc)
-    new["changelog"].append({"date": now.strftime("%Y-%m-%d"), "version": nv, "text": p["changelog_text"],
-                             "approved_by": approver, "approved_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                             "params_sha": params_sha(new)})
-    path.write_text(json.dumps(new, indent=1, ensure_ascii=False) + "\n")
-    p.update(state="approved", approved_version=nv)
-    (proposals_dir(s) / f"{pid}.json").write_text(json.dumps(p, indent=1, ensure_ascii=False))
-    (fill or _fill_or_placeholder)([p["changelog_text"]])
+    now = datetime.fromtimestamp(time.time() if now is None else now, timezone.utc)
+    new["changelog"].append({"date": now.strftime("%Y-%m-%d"), "version": nv, **entry,
+                             "approved_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "params_sha": params_sha(new)})
+    _atomic(path, json.dumps(new, indent=1, ensure_ascii=False) + "\n")
+    apply(s, {}, path)
     return new
+
+
+def _fmt(v) -> str:
+    return str(v)
+
+
+def _generated(s: Settings, lock: dict, key: str, new_value, author: str, template: str, approved_by: str,
+               record: dict, path: Path, fill: Callable[[list[str]], dict] | None, now: float,
+               extra: dict | None = None) -> dict:
+    """A change whose changelog line is generated from the change itself: the evidence file is written
+    first (the line links to it), then the lock."""
+    nv = next_version(lock["version"], False)
+    old = value_of(lock, key)
+    values = {"param": key, "old": _fmt(old), "new": _fmt(new_value), "link": change_url(s, nv), **(extra or {})}
+    ev = {"version": nv, "previous_version": lock["version"], "applied_at": now, "approved_by": approved_by,
+          "change": {"key": key, "old": old, "new": new_value}, "changelog": template.format(**values), **record}
+    f = changes_dir(s) / f"{nv}.json"
+    _atomic(f, json.dumps(ev, indent=1, ensure_ascii=False))
+    try:
+        new = _commit(s, lock, {key: new_value}, author, nv,
+                      {"text": template, "values": values, "approved_by": approved_by,
+                       "change": {"key": key, "old": old, "new": new_value}}, path=path, now=now)
+    except BaseException:
+        f.unlink(missing_ok=True)
+        raise
+    if any(template not in json.loads(f.read_text("utf-8")) for f in I18N_DIR.glob("*.json")):
+        (fill or _fill_or_placeholder)([template])   # the shipped tables already hold both templates
+    return new
+
+
+def last_auto(lock: dict) -> dict | None:
+    return next((e for e in reversed(lock["changelog"]) if e.get("approved_by") == AUTO_BY), None)
+
+
+def auto_apply(s: Settings, pid: str, *, path: Path | None = None, now: float | None = None,
+               fill: Callable[[list[str]], dict] | None = None) -> dict:
+    """The weekly selection review's own path (selection_auto_apply). Everything is re-checked here rather
+    than trusted from the caller: the flag, an opai proposal still open, exactly one change, a market-selection
+    key, PROPOSAL_BOUNDS, no rehash, and at most one auto-applied change per 7 days (calendar days of the
+    lock's own changelog, so a weekly review a few minutes early isn't refused)."""
+    path = path or LOCK
+    now = time.time() if now is None else now
+    if not s.selection_auto_apply:
+        raise MethodologyError("selection_auto_apply is off")
+    p = get_proposal(s, pid)
+    if p.get("state") != "open" or p.get("author") != "opai":
+        raise MethodologyError(f"proposal {pid} is not an open opai proposal")
+    if "hashes" in p:
+        raise MethodologyError("a rehash is never auto-applied")
+    if not isinstance(p.get("changes"), dict) or len(p["changes"]) != 1:
+        raise MethodologyError("auto-apply takes exactly one change")
+    (key, value), = p["changes"].items()
+    if key not in AUTO_KEYS:
+        raise MethodologyError(f"{key} is not auto-applicable")
+    lock = load(path)
+    _check_change(lock, key, value, "opai")         # PROPOSAL_BOUNDS, again (and once more in _commit)
+    if value == value_of(lock, key):
+        raise MethodologyError(f"{key} is already {value}")
+    last = last_auto(lock)
+    today = datetime.fromtimestamp(now, timezone.utc).date()
+    if last and (today - date.fromisoformat(last["date"])).days < AUTO_MIN_DAYS:
+        raise MethodologyError(f"rate limit: v{last['version']} was auto-applied on {last['date']} "
+                               f"(at most one change per {AUTO_MIN_DAYS} days)")
+    record = {"proposal": {k: p.get(k) for k in ("id", "created_at", "author", "rationale", "evidence",
+                                                  "changelog_text", "output_id")},
+              "rule": f"weekly selection review, auto-applied within {PROPOSAL_BOUNDS[key]}; at most one change "
+                      f"per {AUTO_MIN_DAYS} days; takes effect for rounds created after the version bump"}
+    new = _generated(s, lock, key, value, "opai", AUTO_TEXT, AUTO_BY, record, path, fill, now)
+    p.update(state="applied", approved_version=new["version"], applied_by=AUTO_BY)
+    _write_proposal(s, p)
+    return new
+
+
+def revert(s: Settings, version: str, *, isatty: Callable[[], bool] | None = None,
+           ask: Callable[[str], str] = input, path: Path | None = None, now: float | None = None,
+           fill: Callable[[list[str]], dict] | None = None) -> dict:
+    """`method revert <version>`: the inverse of a generated change (auto-applied or an earlier revert),
+    applied as a new version. Refused when a later version changed the same key again."""
+    path = path or LOCK
+    now = time.time() if now is None else now
+    if not (isatty or sys.stdin.isatty)():
+        raise MethodologyError("revert needs an interactive terminal (the operator types the confirmation)")
+    lock = load(path)
+    entry = next((e for e in lock["changelog"] if e.get("version") == version), None)
+    if entry is None or not entry.get("change"):
+        raise MethodologyError(f"v{version} is not a generated single-key change; use method propose")
+    key, old = entry["change"]["key"], entry["change"]["old"]
+    if value_of(lock, key) != entry["change"]["new"]:
+        raise MethodologyError(f"{key} is {value_of(lock, key)} now, not v{version}'s {entry['change']['new']}: "
+                               "it changed again since; revert the latest change instead")
+    nv = next_version(lock["version"], False)
+    if ask(f"Type 'revert v{version}' to set {key} back to {old} as v{nv}: ").strip() != f"revert v{version}":
+        raise MethodologyError("not confirmed")
+    record = {"reverts": version, "reverted_change": entry["change"],
+              "reverted_evidence": change_url(s, version),
+              "rule": "operator revert (agentpitbench method revert); takes effect for rounds created after "
+                      "the version bump"}
+    return _generated(s, lock, key, old, "operator", REVERT_TEXT, "operator", record, path, fill, now,
+                      extra={"v": version})
 
 
 def _fill_or_placeholder(ids: list[str]) -> dict:

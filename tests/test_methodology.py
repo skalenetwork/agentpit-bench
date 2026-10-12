@@ -139,7 +139,8 @@ def test_changelog_chain():
     for a, b in zip(vs, vs[1:]):
         assert b == a or b > a
     assert log[-1]["params_sha"] == m.params_sha(m.load())
-    assert site.CHANGELOG[0] == (log[-1]["date"], log[-1]["text"])  # newest first on the page
+    assert m.changelog()[0] == (log[-1]["date"], log[-1]["text"], log[-1].get("values") or {})  # newest first
+    assert site.CHANGELOG_TEMPLATES == (m.AUTO_TEXT, m.REVERT_TEXT)
 
 
 WRITERS = {"write_text", "write_bytes", "open", "replace", "rename", "dump"}

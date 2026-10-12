@@ -933,9 +933,14 @@ def _(msg: str) -> str:
     return msg
 
 
-# Methodology changelog: (date, message id). Newest first; every rule change during Season 1 gets an entry.
-# It lives in methodology.json (the methodology lock) and changes only through `agentpitbench method approve`.
-CHANGELOG = methodology.changelog()
+# Methodology changelog: (date, message id, values), newest first, read from methodology.json (the lock) at
+# every build: the weekly selection review can add a version while the service runs. Generated entries
+# (automatic weekly review, operator revert) store one of these templates as their id, filled with the change.
+CHANGELOG_TEMPLATES = (
+    _("Market selection: {param} {old} → {new} (automatic weekly review; evidence: {link})"),
+    _("Market selection: {param} {old} → {new} (operator revert of v{v}; evidence: {link})"),
+)
+assert CHANGELOG_TEMPLATES == (methodology.AUTO_TEXT, methodology.REVERT_TEXT)
 
 # Public incident log: (date, title id, what happened id, resolution id). Newest first.
 INCIDENTS = [
@@ -1092,6 +1097,13 @@ def _build(s: Settings) -> Path:
     out = s.site_dir.with_name(s.site_dir.name + ".new")
     shutil.rmtree(out, ignore_errors=True)
     out.mkdir(parents=True)
+    changelog = methodology.changelog()
+    # the evidence behind every generated methodology change (/methodology/changes/<version>.json)
+    if methodology.changes_dir(s).exists():
+        for f in methodology.changes_dir(s).glob("*.json"):
+            dst = out / "methodology" / "changes" / f.name
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(f, dst)
 
     base = s.site_url.rstrip("/")
     live = [r for r in rounds if r["state"] in ("running", "awaiting_resolution")]
@@ -1338,9 +1350,9 @@ def _build(s: Settings) -> Path:
              title=branded(_("Press kit")),
              description=_("AgentpitBench press kit: key numbers, share cards, mascots and contacts for writing about the AI forecasting benchmark."))
         page("methodology/index.html", "methodology.html", prompt=prompt, sweep_prompt=sweep_prompt_example(s),
-             changelog=CHANGELOG, sealed=lb.get("sealed") or [], title=branded(_("Methodology v{v}", v=s.methodology_version)),
+             changelog=changelog, sealed=lb.get("sealed") or [], title=branded(_("Methodology v{v}", v=s.methodology_version)),
              share_text=_("How AgentpitBench tests frontier AIs on real markets (methodology v{v}).", v=s.methodology_version),
-             jsonld=discover.techarticle_ld(s, lb, f"{base}/methodology/", CHANGELOG))
+             jsonld=discover.techarticle_ld(s, lb, f"{base}/methodology/", changelog))
         page("independence/index.html", "independence.html", title=branded(_("Independence & conflicts")),
              share_text=_("How AgentpitBench tests frontier AIs on real markets (methodology v{v}).", v=s.methodology_version),
              description=_("Who runs AgentpitBench, how it stays independent of the markets it bets on, and the conflicts we disclose."))
@@ -1442,7 +1454,7 @@ def _build(s: Settings) -> Path:
     for name, xml in discover.sitemaps(s, sitemap).items():
         (out / name).write_text(xml)
     discover.write_api(s, out, all_rounds, lb, metrics, lb.get("sealed") or [], exp, open_ok, set(sitemap),
-                       CHANGELOG, EXCLUSION_REASONS)
+                       changelog, EXCLUSION_REASONS)
     (out / "llms.txt").write_text(discover.llms_txt(s, lb, metrics))
     (out / "llms-full.txt").write_text(discover.llms_full_txt(s, lb, metrics, (out / "methodology/index.html").read_text()))
     check_pages(out)  # a page without a preview or the share bar fails the build; the live site stays as it was

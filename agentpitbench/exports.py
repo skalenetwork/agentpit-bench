@@ -12,6 +12,8 @@ rounds.json = list (newest first) of:
   crowd: {outcome|null, price, won (bool|null), pnl|null}   -- The Crowd's notional pick, see crowd_pick
   exhibition (bool), exclusion                               -- outside every neutral table and statistic, and why:
                                                                 summon / high-stakes / pre-season / infra (null = counts)
+  methodology_version                                        -- the methodology in force when the round was created
+                                                                (null: created before rounds recorded it)
   humans: {picked, right (null until resolved), by_outcome: {label: n},
            by_source: {exact: n, model: n} (model = read from free-form replies by the operator AI),
            winners: [{username, pick, card (site-relative PNG or null)}]}
@@ -118,6 +120,7 @@ def round_record(s: Settings, db: DB, r) -> dict:
         "end_date": r["end_date"], "started_at": r["started_at"], "state": r["state"], "winner": r["winner"],
         "resolved_at": r["resolved_at"], "revealed_at": revealed_at, "market_link": link, "exhibition": bool(r["exhibition"]),
         "exclusion": r["exclusion"],
+        "methodology_version": r["methodology_version"] if "methodology_version" in r.keys() else None,
         "thread_tweet_id": r["thread_tweet_id"], "results_tweet_id": r["results_tweet_id"],
         "split": len(picks) > 1, "entries": entries, "sealed": sealed,
         "stake": float(snap.get("bench_stake") or s.stake), "high_stakes": bool(snap.get("high_stakes")),

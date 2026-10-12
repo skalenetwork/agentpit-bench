@@ -54,8 +54,18 @@ def built(tmp_path):
     add_sweep(db, "2026-10-11", scored=False)
     forecast.seal(s, db, "2026-10-10")
     forecast.seal(s, db, "2026-10-11")
+    from agentpitbench import methodology
+    methodology.changes_dir(s).mkdir(parents=True)
+    (methodology.changes_dir(s) / "1.1.json").write_text('{"version": "1.1"}')
     exports.export(s, db)
     return s, db, site.build(s), {"void": void, "running": running}
+
+
+def test_methodology_change_evidence_published(built):
+    """Every generated changelog line links /methodology/changes/<version>.json: the build must publish it."""
+    s, _, out, _ = built
+    assert json.loads((out / "methodology" / "changes" / "1.1.json").read_text()) == {"version": "1.1"}
+    assert (out / "methodology" / "index.html").exists()
 
 
 def test_robots_allows_everything(built):
