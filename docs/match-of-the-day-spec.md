@@ -31,6 +31,14 @@ database, verbatim or computed by code.
 | Staging by real picks (who stands on which side, who falls) | Optional stage hint for the cold open and misdirect |
 | The model each AI played on (from that round's `runs.model_reported`) | Nothing about models: it may not name one |
 
+### Formats (operator, 2026-10-12)
+Three renders of the same scene list, script and soundtrack (ElevenLabs is called once per film): **square 1:1
+(1080×1080) is the X post** (an X post carries one video, and 9:16 shows as a narrow strip on desktop; the square
+layout is stacked and dense so cards, subtitles and the credibility strip read at ~500 px in a desktop feed),
+**9:16** for YouTube Shorts, **16:9** for the site's /films/ page. The daily job renders the square first, posts
+it, then renders 9:16 and 16:9 (film.json is merged). `agentpitbench motd post --film DIR` posts an
+already-rendered film the same way (square if present, else 9:16), once per date.
+
 ### Twists (`agentpitbench/twists.py`)
 Pure detectors over (round, history, transcripts). Each returns `{type, surprise, agents, fact, setup}`. `fact` is
 the on-screen line written by code with numbers from data; `setup` tells the misdirect what expectation to plant.

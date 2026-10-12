@@ -132,8 +132,8 @@ body.tall .cols{flex-direction:column;gap:26px}
 .bigurl{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:68px;font-weight:700;margin-top:30px;color:#f4f6fb}
 .cta{font-size:46px;color:#cfd6ea;margin-top:16px;line-height:1.25}
 /* square (1080x1080): the X post. Stacked like the tall film, denser; nothing below 40px. */
-body.square .main{top:100px;bottom:160px;padding:0 48px}
-body.square .foot{height:150px;padding:0 36px}
+body.square .main{top:100px;bottom:172px;padding:0 48px}
+body.square .foot{height:164px;padding:0 36px}
 body.square .hook{font-size:88px;margin-top:30px}
 body.square .question{font-size:62px}
 body.square .prices{flex-direction:column;gap:14px;margin-top:24px}
@@ -236,7 +236,7 @@ body.square .cta{font-size:40px}
 </div>
 <div class="foot"><span class="em">{{ emblem(84, True) }}</span><div class="lines">
   {% if sig_line %}<div class="sig {{ 'one' if fmt != 'tall' }}">{{ sig_line }}</div>{% endif %}
-  <div class="one">{% if sc.banner %}<span class="ex {{ 'gold' if 'HIGH' in sc.banner }}">{{ 'HIGH STAKES · EXHIBITION' if 'HIGH' in sc.banner else 'EXHIBITION' }}</span>{% endif %}{{ [model, 'Methodology v' ~ mver]|select|join(' · ') }}{% if fmt != 'tall' %} · <span class="url">{{ url }}</span>{% endif %}</div>
-  {% if fmt == 'tall' %}<div class="url one">{{ url }}</div>{% endif %}
+  <div class="one">{% if sc.banner %}<span class="ex {{ 'gold' if 'HIGH' in sc.banner }}">{{ 'HIGH STAKES · EXHIBITION' if 'HIGH' in sc.banner else 'EXHIBITION' }}</span>{% endif %}{{ [model, 'Methodology v' ~ mver]|select|join(' · ') }}{% if fmt == 'wide' %} · <span class="url">{{ url }}</span>{% endif %}</div>
+  {% if fmt != 'wide' %}<div class="url one">{{ url }}</div>{% endif %}
 </div></div>
 </body></html>

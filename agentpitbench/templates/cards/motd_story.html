@@ -151,8 +151,8 @@ body.wide .bigurl{font-size:52px}
 body.wide .cta{font-size:40px}
 /* square (1080x1080): the X post (one video per post; it reads in phone and desktop feeds, ~500 px wide on
    desktop). Stacked like the tall film, dense like the wide one; nothing below 40px. */
-body.square .main{top:96px;bottom:150px;padding:0 48px;gap:18px}
-body.square .foot{height:140px;padding:0 36px}
+body.square .main{top:96px;bottom:172px;padding:0 48px;gap:16px}
+body.square .foot{height:164px;padding:0 36px}
 body.square .sub{font-size:50px}
 body.square .sub.big{font-size:66px;line-height:1.12}
 body.square .cold{font-size:84px}
@@ -186,7 +186,7 @@ body.square .cta{font-size:40px}
 .cta{font-size:42px;opacity:.85;line-height:1.25;text-align:center}
 </style></head>
 {%- set team = colors.get(sc.agent, th.accent) if sc.agent else th.accent %}
-{%- set big = 300 if fmt == 'tall' else 250 %}
+{%- set big = 300 if fmt == 'tall' else 170 if fmt == 'square' else 250 %}
 {%- macro actor(a, size, extra='') -%}
 <div class="actor" {{ extra|safe }}>{{ mascot(a.agent, size) }}<span class="nm" style="color:{{ colors.get(a.agent, '#888')|edge }}">{{ a.name }}</span></div>
 {%- endmacro %}
@@ -259,7 +259,7 @@ body.square .cta{font-size:40px}
   <div class="sub" data-in="0.6" data-fx="{{ capfx }}">{{ sc.caption }}</div>
 {% elif sc.kind == 's_twist' %}
   <div class="twlabel" data-in="0.3" data-fx="slam">The twist</div>
-  {% if sc.twist_cast %}<div class="troupe">{% for a in sc.twist_cast %}{{ actor(a, big if sc.twist_cast|length == 1 else 210, 'data-in="0.35" data-fx="pop"') }}{% endfor %}</div>{% endif %}
+  {% if sc.twist_cast %}<div class="troupe">{% for a in sc.twist_cast %}{{ actor(a, big if sc.twist_cast|length == 1 else (150 if fmt == 'square' else 210), 'data-in="0.35" data-fx="pop"') }}{% endfor %}</div>{% endif %}
   <div class="fact" data-in="0.9" data-fx="slam">{{ sc.fact }}</div>
   <div class="sub" data-in="{{ 1.6 }}" data-fx="{{ capfx }}">{{ sc.caption }}</div>
 {% elif sc.kind == 's_coda' %}
@@ -282,7 +282,7 @@ body.square .cta{font-size:40px}
 {% if th.trans != 'cut' and idx > 0 and sc.kind != 's_twist' %}<div class="trans" data-trans="{{ th.trans }}"></div>{% endif %}
 <div class="foot"><span class="em">{{ emblem(84, True) }}</span><div class="lines">
   {% if sig_line %}<div class="sig {{ 'one' if fmt != 'tall' }}">{{ sig_line }}</div>{% endif %}
-  <div class="one">{% if sc.banner %}<span class="ex {{ 'gold' if 'HIGH' in sc.banner }}">{{ 'HIGH STAKES · EXHIBITION' if 'HIGH' in sc.banner else 'EXHIBITION' }}</span>{% endif %}{{ [model, 'Methodology v' ~ mver]|select|join(' · ') }}{% if fmt != 'tall' %} · <span class="url">{{ url }}</span>{% endif %}</div>
-  {% if fmt == 'tall' %}<div class="url one">{{ url }}</div>{% endif %}
+  <div class="one">{% if sc.banner %}<span class="ex {{ 'gold' if 'HIGH' in sc.banner }}">{{ 'HIGH STAKES · EXHIBITION' if 'HIGH' in sc.banner else 'EXHIBITION' }}</span>{% endif %}{{ [model, 'Methodology v' ~ mver]|select|join(' · ') }}{% if fmt == 'wide' %} · <span class="url">{{ url }}</span>{% endif %}</div>
+  {% if fmt != 'wide' %}<div class="url one">{{ url }}</div>{% endif %}
 </div></div>
 </body></html>
