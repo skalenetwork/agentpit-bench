@@ -273,6 +273,8 @@ class Poster:
         self.creds = {k: os.environ.get(k) for k in ("X_API_KEY", "X_API_SECRET", "X_ACCESS_TOKEN", "X_ACCESS_SECRET")}
         self.oauth2 = OAuth2Token(token_file(), os.environ.get("X_CLIENT_ID", ""),
                                   os.environ.get("X_CLIENT_SECRET", ""), os.environ.get("X_OAUTH2_REFRESH_TOKEN"))
+        from .bluesky import Mirror
+        self.bsky = Mirror(s, db)
 
     @property
     def live(self) -> bool:
@@ -284,12 +286,29 @@ class Poster:
         return OAuth1Session(c["X_API_KEY"], c["X_API_SECRET"], c["X_ACCESS_TOKEN"], c["X_ACCESS_SECRET"])
 
     async def post(self, post_key: str, kind: str, text: str, image: Path | list[Path] | None = None,
-                   reply_to: str | None = None, round_id: int | None = None, quote_of: str | None = None) -> str | None:
+                   reply_to: str | None = None, round_id: int | None = None, quote_of: str | None = None,
+                   alt: list[str] | None = None, bsky_fallback: Path | None = None) -> str | None:
         """quote_of: tweet id to quote (a standalone post that embeds the round's thread).
-        image: one image or video, or a list of up to 4 images shown together (the round's reveal)."""
+        image: one image or video, or a list of up to 4 images shown together (the round's reveal).
+        A successful post is then mirrored to Bluesky (bluesky.Mirror; never raises, never blocks X): alt is
+        per-image alt text there, bsky_fallback the still card to use if the Bluesky video upload fails."""
+        tweet_id = await self._post_x(post_key, kind, text, image, reply_to, round_id, quote_of)
+        if tweet_id and self.bsky.enabled:
+            try:
+                await self.bsky.post(post_key, kind, text, image, reply_to=reply_to, quote_of=quote_of,
+                                     round_id=round_id, alt=alt, fallback=bsky_fallback)
+            except Exception:
+                log.exception("bluesky mirror of %s failed", post_key)
+        return tweet_id
+
+    async def _post_x(self, post_key, kind, text, image, reply_to, round_id, quote_of) -> str | None:
         row = self.db.one("SELECT tweet_id FROM tweets WHERE post_key=?", post_key)
         if row and row["tweet_id"]:
             return row["tweet_id"]
+        from .opai import paused
+        if paused(self.s, self.db, "posting"):  # anomaly/operator pause or posting_paused: record nothing
+            log.warning("[paused] %s: %s", post_key, text.replace("\n", " ")[:80])
+            return None
         if tweet_len(text) > MAX_LEN:
             log.warning("tweet %s is %d chars; clipping", post_key, tweet_len(text))
             text = clip(text, MAX_LEN)

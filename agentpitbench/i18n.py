@@ -80,3 +80,31 @@ class Translator:
     def prefix(self) -> str:
         """URL folder of this language: English lives at the site root."""
         return "" if self.lang == DEFAULT else f"{self.lang}/"
+
+
+# ---------------------------------------------------------------- message ids (the extractor)
+
+_CALL = r'''\b_h?\(\s*"((?:[^"\\]|\\.)*)"'''
+
+
+def message_ids() -> set[str]:
+    """Every UI message id: _("...") / _h("...") calls in the templates and modules, category names, the
+    methodology changelog (methodology.json) and published incidents (incidents.json)."""
+    import re
+    from pathlib import Path
+    pkg = Path(__file__).resolve().parent
+    call = re.compile(_CALL)
+    ids: set[str] = set()
+    for f in [*(pkg / "templates/site").glob("*.html"), pkg / "site.py", pkg / "cards.py", pkg / "discover.py"]:
+        ids |= {m.encode().decode("unicode_escape").encode("latin-1").decode("utf-8")
+                for m in call.findall(f.read_text())}
+    from .virality import CATEGORIES
+    ids |= {name for name, _ in CATEGORIES} | {"Other"}
+    lock = pkg / "methodology.json"
+    if lock.exists():
+        ids |= {e["text"] for e in json.loads(lock.read_text("utf-8"))["changelog"]}
+    inc = pkg / "incidents.json"
+    if inc.exists():
+        for e in json.loads(inc.read_text("utf-8")):
+            ids |= {e["title"], e["what"], e["fix"]}
+    return ids

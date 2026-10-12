@@ -28,10 +28,11 @@ from urllib.parse import urlparse, quote, urlencode
 from xml.sax.saxutils import escape
 
 from jinja2 import Environment, PackageLoader, pass_context, select_autoescape
+from markupsafe import Markup
 
 from . import og
 from .cards import cents, is_dark, fmt_time, is_upset, payout_x, ranked, results_headline, signed, split_headline
-from . import discover
+from . import discover, methodology
 from .emblem import emblem_svg
 from .config import AGENT_COLORS, AGENT_NAMES, AGENT_SLUGS, Settings, AGENT_MODELS
 from .i18n import CODES, LANGS, NAMES, Translator
@@ -614,16 +615,8 @@ def _(msg: str) -> str:
 
 
 # Methodology changelog: (date, message id). Newest first; every rule change during Season 1 gets an entry.
-CHANGELOG = [
-    ("2026-10-12", _("ChatGPT switches from GPT-6 Luna to GPT-6 Astra, OpenAI's top model, at max reasoning. Until now its Codex login was a free plan, which offered only the smaller Luna; earlier rounds stay recorded as Luna.")),
-    ("2026-10-09", _("Daily forecast sweep with the Brier score becomes the headline metric; round 1 becomes a pre-season exhibition.")),
-    ("2026-10-09", _("A failed sandbox, CLI login or usage limit voids the round for all agents; a self-check runs before every batch.")),
-    ("2026-10-09", _("Frontier vs frontier: each lab's top model at its CLI's highest reasoning setting (replaces vendor defaults).")),
-    ("2026-10-09", _("Agents run in a bubblewrap sandbox with a clean home and an allowlisted environment.")),
-    ("2026-10-09", _("Default fill limit: best ask + 5¢ (previously the best ask only).")),
-    ("2026-10-09", _("Markets whose favourite is priced above 85¢ are skipped.")),
-    ("2026-10-09", _("No market category may exceed 40% of the past week's rounds.")),
-]
+# It lives in methodology.json (the methodology lock) and changes only through `agentpitbench method approve`.
+CHANGELOG = methodology.changelog()
 
 # Public incident log: (date, title id, what happened id, resolution id). Newest first.
 INCIDENTS = [
@@ -697,6 +690,50 @@ def sweep_prompt_example(s: Settings) -> str:
 _build_lock = threading.Lock()  # builds run in worker threads; two at once would share the .new folder
 
 
+def market_text(mt: dict[str, str]):
+    """Per-language market wording from the market_i18n table (empty for English: pages unchanged).
+    tq: plain translated text (falls back to English). mq: the translation with the exact English source in a
+    title attribute, so the market wording stays auditable. loc: a round dict with translated question and
+    labels, for page titles, descriptions, alt text and share text only (never data attributes, JSON-LD, API)."""
+    def tq(t):
+        return mt.get(t, t) if isinstance(t, str) else t
+
+    def mq(t):
+        if isinstance(t, str) and mt.get(t) and mt[t] != t:
+            return Markup('<span class="mt" title="{}">{}</span>').format(t, mt[t])
+        return t
+
+    def loc(r: dict) -> dict:
+        if not mt:
+            return r
+        crowd = r.get("crowd") or {}
+        return dict(r, question=tq(r["question"]), winner=tq(r.get("winner")),
+                    outcomes=[tq(o) for o in r.get("outcomes") or []],
+                    crowd=dict(crowd, outcome=tq(crowd.get("outcome"))) if crowd else crowd)
+    return tq, mq, loc
+
+
+def _db_extras(s: Settings) -> dict:
+    """Read-only DB extras for the pages: published incidents (newest first) and market-title translations.
+    The build never calls a model: a missing translation shows the English source."""
+    out = {"incidents": [], "mt": {}}
+    if not s.db_path.exists():
+        return out
+    from .db import DB as _DB
+    db = _DB(s.db_path)
+    try:
+        from .anomaly import published_incidents
+        out["incidents"] = published_incidents(db)
+    except Exception:
+        log.exception("published incidents unavailable")
+    try:
+        from .market_i18n import table as mt_table
+        out["mt"] = mt_table(db)
+    except Exception:
+        log.exception("market translations unavailable")
+    return out
+
+
 def build(s: Settings) -> Path:
     """Render the whole site into s.site_dir from the exports. Atomic: builds aside, then swaps."""
     with _build_lock:
@@ -745,6 +782,7 @@ def _build(s: Settings) -> Path:
                    "bets": sum(1 for r in rounds for e in r["entries"] if e["outcome"])}
     latest_cards = [c for c in (card_for(s, r) for r in past) if c][:6]
     previews = _previews(s, lb, rounds, cards, reports)
+    extra = _db_extras(s)
     vsp = vs_pairs(lb, s.agents)
     vs_links = {(p["a"], p["b"]): f"vs/{vs_slug(p['a'], p['b'])}/" for p in vsp}
     seo: list[tuple[str, str, str, str]] = []  # (lang, page, title, description), checked after the build
@@ -756,6 +794,7 @@ def _build(s: Settings) -> Path:
 
     for lang in CODES:
         _ = Translator(lang)
+        tq, mq, loc = market_text(extra["mt"].get(lang, {}) if lang != "en" else {})
         roster = (_("{a} and {b}", a=", ".join(names[:-1]), b=names[-1]) if len(names) > 1
                   else (names[0] if names else ""))
         common = {"vs": vs, "roster": roster, "s": s, "board": board, "lb": lb, "colors": AGENT_COLORS,
@@ -769,7 +808,8 @@ def _build(s: Settings) -> Path:
                   "lang_name": NAMES[lang], "mascot_sprite": sprite(s.agents), "mi": mascot_use,
                   "commentary": commentary, "model_line": lambda a, _=_: model_line(a, _),
                   "models": AGENT_MODELS, "reasoning": REASONING, "exclusions": EXCLUSION_REASONS,
-                  "fc": lb.get("forecast") or {}, "sig": lb.get("significance") or {}}
+                  "fc": lb.get("forecast") or {}, "sig": lb.get("significance") or {},
+                  "tq": tq, "mq": mq}
         common["vs_links"] = vs_links
         prefix = _.prefix()
         suffixes = round_suffixes(rounds, _)
@@ -829,15 +869,16 @@ def _build(s: Settings) -> Path:
             cat = category(r["question"])
             same = [x for x in sorted(rounds, key=lambda x: -(x.get("started_at") or 0))
                     if x is not r and category(x["question"]) == cat][:3]
-            page(f"round/{rid}/index.html", "round.html", r=r, card=card, card_alt=card_alt(r, _, ", ".join(names)),
+            lr = loc(r)  # translated question/outcome labels for the page's own text; data stays English
+            page(f"round/{rid}/index.html", "round.html", r=r, card=card, card_alt=card_alt(lr, _, ", ".join(names)),
                  film=film_of.get(rid),
-                 og=previews["rounds"].get(rid), share_text=round_share(r, _, vs),
+                 og=previews["rounds"].get(rid), share_text=round_share(lr, _, vs),
                  prev_r=by_id[i - 1] if i else None, next_r=by_id[i + 1] if i + 1 < len(by_id) else None,
                  cat=cat, same_cat=same,
                  lastmod=r["resolved_at"] or r["started_at"],
                  jsonld=crumbs(discover.round_ld(s, r, f"{base}/round/{rid}/"),
                                (_("Round {n}", n=rid), f"round/{rid}/")),
-                 title=round_title(r, _, ", ".join(names), sfx), description=round_description(r, _, sfx))
+                 title=round_title(lr, _, ", ".join(names), sfx), description=round_description(lr, _, sfx))
         for a in s.agents:
             row = next((b for b in board if b["agent"] == a), None)
             nm = AGENT_NAMES.get(a, a)
@@ -874,7 +915,7 @@ def _build(s: Settings) -> Path:
         page("independence/index.html", "independence.html", title=branded(_("Independence & conflicts")),
              share_text=_("How AgentpitBench tests frontier AIs on real markets (methodology v{v}).", v=s.methodology_version),
              description=_("Who runs AgentpitBench, how it stays independent of the markets it bets on, and the conflicts we disclose."))
-        page("incidents/index.html", "incidents.html", incidents=INCIDENTS, title=branded(_("Incidents")),
+        page("incidents/index.html", "incidents.html", incidents=extra["incidents"] + INCIDENTS, title=branded(_("Incidents")),
              share_text=_("AgentpitBench publishes its own incidents. Here's the log."))
         page("contrarian/index.html", "contrarian.html", calls=lb.get("contrarian") or [],
              title=branded(_("Contrarian calls")), share_text=contrarian_share(lb.get("contrarian") or [], _),
@@ -917,7 +958,10 @@ def _build(s: Settings) -> Path:
     rss, jf = feeds(s, rounds)
     (out / "feed.xml").write_text(rss)
     (out / "feed.json").write_text(jf)
-    (out / ".nojekyll").write_text("")
+    (out / ".nojekyll").write_text("")  # also lets GitHub Pages serve .well-known/
+    if s.bluesky_did:  # the @agentpitbench.org handle proof (docs/bluesky-spec.md §7); DNS TXT is the primary route
+        (out / ".well-known").mkdir(exist_ok=True)
+        (out / ".well-known" / "atproto-did").write_text(s.bluesky_did.strip())
     for f in ("favicon.svg", "favicon-32.png", "apple-touch-icon.png", og.DEFAULT):  # the emblem; the fallback preview
         shutil.copyfile(Path(__file__).resolve().parent / "static" / f, out / f)
     host = urlparse(s.site_url).hostname or ""
@@ -1118,7 +1162,9 @@ class SiteDeployer:
         try:
             await asyncio.to_thread(build, self.s)
             self.builds += 1
-            await asyncio.to_thread(deploy, self.s)
+            if await asyncio.to_thread(deploy, self.s):
+                from .db import DB as _DB  # the deploy-stale detector reads this
+                _DB(self.s.db_path).put("site_deployed_at", time.time())
             self._failures = 0
         except Exception:
             self._failures += 1
