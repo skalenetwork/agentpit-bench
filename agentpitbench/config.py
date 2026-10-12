@@ -89,6 +89,19 @@ class Settings:
     x_reward_max_age_ratio: float = 1.5  # a snapshot counts as a reward only if age_s <= ratio x bucket age
     x_series_free_rereads: bool = True   # re-read posts already billed today (free under X's same-day dedup)
     explorer_url: str = "https://skale-base-explorer.skalenodes.com"   # agentpit settles on SKALE Base
+    # YouTube Shorts (docs/youtube-shorts-spec.md): the daily film as a Short. Off until the operator has run
+    # `agentpitbench youtube auth` and `youtube check`; also needs motd_enabled.
+    youtube_enabled: bool = False
+    youtube_channel_id: str = ""         # the brand channel UC...; empty = no uploads (channel guard)
+    youtube_channel_url: str = ""        # https://www.youtube.com/@agentpitbench (Organization.sameAs)
+    youtube_privacy: str = "private"     # "public" once the first upload proves unlocked (spec §4b)
+    youtube_comment: bool = True         # the round-link comment, once the video is public
+    youtube_category_id: str = "28"      # Science & Technology
+    youtube_synthetic_media: bool = False  # status.containsSyntheticMedia (spec §6; re-check for a TTS narrator)
+    youtube_units_budget: int = 2000     # soft daily cap on default-bucket units (Pacific day)
+    youtube_unit_costs: dict = field(default_factory=lambda: {
+        "videos.insert": 1, "videos.list": 1, "channels.list": 1, "commentThreads.insert": 50,
+        "videos.update": 50, "videoCategories.list": 1, "reports.query": 0})
 
     @property
     def db_path(self) -> Path:
@@ -151,6 +164,8 @@ def load(path: str | Path = "bench.toml") -> Settings:
         data["data_dir"] = Path(data["data_dir"])
     if "x_read_prices" in data:  # a partial [x_read_prices] table overrides only the prices it names
         data["x_read_prices"] = {**Settings().x_read_prices, **data["x_read_prices"]}
+    if "youtube_unit_costs" in data:
+        data["youtube_unit_costs"] = {**Settings().youtube_unit_costs, **data["youtube_unit_costs"]}
     s = Settings(**data)
     if os.environ.get("BENCH_DRY_RUN") in ("0", "false"):
         s.dry_run = False
