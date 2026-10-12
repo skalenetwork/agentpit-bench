@@ -649,7 +649,10 @@ def _build(s: Settings) -> Path:
     rss, jf = feeds(s, rounds)
     (out / "feed.xml").write_text(rss)
     (out / "feed.json").write_text(jf)
-    (out / ".nojekyll").write_text("")
+    (out / ".nojekyll").write_text("")  # also lets GitHub Pages serve .well-known/
+    if s.bluesky_did:  # the @agentpitbench.org handle proof (docs/bluesky-spec.md §7); DNS TXT is the primary route
+        (out / ".well-known").mkdir(exist_ok=True)
+        (out / ".well-known" / "atproto-did").write_text(s.bluesky_did.strip())
     for f in ("favicon.svg", "favicon-32.png", "apple-touch-icon.png", og.DEFAULT):  # the emblem; the fallback preview
         shutil.copyfile(Path(__file__).resolve().parent / "static" / f, out / f)
     host = urlparse(s.site_url).hostname or ""

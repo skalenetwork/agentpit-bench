@@ -73,6 +73,18 @@ CREATE TABLE IF NOT EXISTS tweets (
     metrics_json TEXT
 );
 CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT);
+CREATE TABLE IF NOT EXISTS bsky_posts (   -- Bluesky mirror of a tweets row (same post_key); docs/bluesky-spec.md
+    post_key TEXT PRIMARY KEY,
+    uri TEXT, cid TEXT,                    -- at://did/app.bsky.feed.post/rkey, or dry-<key> from the outbox
+    root_uri TEXT, root_cid TEXT,          -- the thread root (a top-level post is its own root)
+    kind TEXT, round_id INTEGER, text TEXT, posted_at REAL,
+    deleted INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS bsky_metrics (  -- one row per public read of one Bluesky post (free)
+    uri TEXT NOT NULL, taken_at REAL NOT NULL, age_s REAL,
+    likes INTEGER, reposts INTEGER, replies INTEGER, quotes INTEGER,
+    PRIMARY KEY (uri, taken_at)
+);
 CREATE TABLE IF NOT EXISTS humans (       -- followers' picks, replied to a round's opener tweet
     round_id INTEGER NOT NULL REFERENCES rounds(round_id),
     user_id TEXT NOT NULL,
