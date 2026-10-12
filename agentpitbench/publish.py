@@ -18,10 +18,19 @@ from .config import Settings
 from .db import DB
 from .engage import Engage
 from .site import SiteDeployer
-from .twitter import Poster, decision_text, results_text, split_text, reveal_text
+from .twitter import Poster, clip, decision_text, price_str, results_text, split_text, reveal_text
 from .virality import commentary, grudge, grudge_headline
 
 log = logging.getLogger(__name__)
+
+
+def card_alt(rnd: dict, e: dict) -> str:
+    """Alt text for one decision card (Bluesky images), from the same entry the card was drawn from."""
+    q = clip(rnd["question"], 200)
+    if not e.get("outcome"):
+        return f"{e['name']} decision card: no bet on \"{q}\"."
+    return (f"{e['name']} decision card: bets {e.get('stake_filled') or 0:.0f} on {e['outcome']} at "
+            f"{price_str(e.get('avg_price'))} on \"{q}\".")
 
 
 class BenchPublisher:
@@ -74,7 +83,8 @@ class BenchPublisher:
         the still card, so the post is never lost. Caller holds the lock."""
         thread = self.db.round(round_id)["thread_tweet_id"]
         if video:
-            tid = await self.poster.post(key, kind, text, video, round_id=round_id, quote_of=thread)
+            tid = await self.poster.post(key, kind, text, video, round_id=round_id, quote_of=thread,
+                                         bsky_fallback=image)
             if tid:
                 return tid
             log.warning("%s: video post failed, posting the still card", key)
@@ -128,10 +138,25 @@ class BenchPublisher:
             if await self.poster.delete(row["tweet_id"], row["post_key"]):
                 self.db.x("DELETE FROM tweets WHERE post_key=?", row["post_key"])
                 self.db.x("DELETE FROM tweet_metrics WHERE tweet_id=?", row["tweet_id"])  # x analytics rows
+        bsky = getattr(self.poster, "bsky", None)
+        if bsky is not None and bsky.enabled:
+            await bsky.delete_round(round_id)
         self.db.x("UPDATE bets SET tweet_id=NULL WHERE run_id IN (SELECT run_id FROM runs WHERE round_id=?)", round_id)
         self.db.set_round(round_id, thread_tweet_id=None)
+        await self._hide_youtube(round_id)
         exports.export(self.s, self.db)
         self.site.request()
+
+    async def _hide_youtube(self, round_id: int) -> None:
+        """A filmed round voided after the fact: its Short goes private (docs/youtube-shorts-spec.md §8)."""
+        try:
+            if not self.db.one("SELECT 1 FROM yt_videos WHERE round_id=? AND video_id IS NOT NULL", round_id):
+                return
+            from . import youtube, ytstats
+            await asyncio.to_thread(ytstats.hide_round, self.s, self.db,
+                                    youtube.client_from_settings(self.s, self.db), round_id)
+        except Exception:
+            log.exception("hiding round %s's YouTube film failed", round_id)
 
     async def on_bets_done(self, round_id: int) -> None:
         # decision tweets still in flight go first, so the split card follows every pick in the thread
@@ -162,6 +187,8 @@ class BenchPublisher:
         except Exception:
             log.exception("model-change check failed")
         self.site.request()
+        from . import summaries  # two-line agent summaries, off the round's path (docs/ai-automation-spec.md §7)
+        summaries.schedule(self.s, self.db, round_id)
 
     async def _reveal(self, round_id: int, rnd: dict) -> None:
         """The round's opener on X, once every pick is in: the decision cards as up to four images, the split
@@ -169,11 +196,12 @@ class BenchPublisher:
         kind, headline = split_headline(rnd)
         if sum(1 for e in rnd["entries"] if e["outcome"]) < 2:
             headline = "Picks are in"
-        cards = [p for e in rnd["entries"]
+        shown = [(p, e) for e in rnd["entries"]
                  if (p := self.s.cards_dir / str(round_id) / f"decision-{e['agent']}.png").exists()][:4]
+        cards = [p for p, _ in shown]
         async with self._lock(round_id):
             tid = await self.poster.post(f"r{round_id}-reveal", "reveal", reveal_text(rnd, headline), cards or None,
-                                         round_id=round_id)
+                                         round_id=round_id, alt=[card_alt(rnd, e) for _, e in shown])
             if tid:
                 self.db.set_round(round_id, thread_tweet_id=tid)
                 self.db.x("UPDATE bets SET tweet_id=? WHERE tweet_id IS NULL AND run_id IN "

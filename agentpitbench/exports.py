@@ -6,12 +6,14 @@ rounds.json = list (newest first) of:
    entries: [{agent, name, color, outcome|null, avg_price, shares_filled, stake_filled, confidence,
               rationale, quote|null, statement|null (post-match line, losers only), decided_s, exit_reason, model_reported, cli_version, payout, pnl,
               won (bool|null), tweet_id, transcript (site-relative path or null), tail_url, fade_url,
-              wallet|null, wallet_url|null, txs: [{hash, url}]}]}
+              wallet|null, wallet_url|null, txs: [{hash, url}],
+              summary: [line1, line2] (only once the round left running, when written)}]}
   stake, high_stakes (bool)                                  -- High-Stakes Friday rounds carry a bigger stake
   crowd: {outcome|null, price, won (bool|null), pnl|null}   -- The Crowd's notional pick, see crowd_pick
   exhibition (bool), exclusion                               -- outside every neutral table and statistic, and why:
                                                                 summon / high-stakes / pre-season / infra (null = counts)
   humans: {picked, right (null until resolved), by_outcome: {label: n},
+           by_source: {exact: n, model: n} (model = read from free-form replies by the operator AI),
            winners: [{username, pick, card (site-relative PNG or null)}]}
 leaderboard.json = {updated_at, season (YYYY-MM, UTC month of resolution; tables below are this season's),
                     agents: [db.leaderboard rows + name, color, beat_crowd],
@@ -88,13 +90,19 @@ def round_record(s: Settings, db: DB, r) -> dict:
         entries[-1].update(wallet=wallet, wallet_url=f"{s.explorer_url}/address/{wallet}" if wallet else None,
                            txs=[{"hash": h, "url": f"{s.explorer_url}/tx/{h}"} for h in hashes])
     sealed = r["state"] == "running"
+    if not sealed:  # two-line agent summaries (docs/ai-automation-spec.md §7), written only after the round ran
+        summ = {x["agent"]: [x["line1"], x["line2"]] for x in
+                db.q("SELECT agent, line1, line2 FROM round_summaries WHERE round_id=?", r["round_id"])}
+        for e in entries:
+            if e["agent"] in summ:
+                e["summary"] = summ[e["agent"]]
     if sealed:  # picks stay secret until every agent is done: agents can search the web mid-round
         for e in entries:
             e.update(outcome=None, avg_price=None, shares_filled=None, stake_filled=None, confidence=None,
                      quote=None, rationale=None, decided_s=None, tweet_id=None, transcript=None,
                      tail_url=None, fade_url=None, txs=[], sealed=True)
     picks = {e["outcome"] for e in entries if e["outcome"]}
-    hp = db.q("SELECT username, pick, won, card_path FROM humans WHERE round_id=?", r["round_id"])
+    hp = db.q("SELECT username, pick, won, card_path, source FROM humans WHERE round_id=?", r["round_id"])
     by_outcome: dict[str, int] = {}
     for h in hp:
         by_outcome[h["pick"]] = by_outcome.get(h["pick"], 0) + 1
@@ -110,6 +118,8 @@ def round_record(s: Settings, db: DB, r) -> dict:
         "headline_variant": r["headline_variant"] if "headline_variant" in r.keys() else None,
         "crowd": crowd_pick(s, outcomes, snap.get("prices_list", []), r["state"], r["winner"], snap.get("bench_stake")),
         "humans": {"picked": len(hp), "by_outcome": by_outcome,
+                   "by_source": {"exact": sum(1 for h in hp if h["source"] != "model"),
+                                 "model": sum(1 for h in hp if h["source"] == "model")},
                    "right": sum(1 for h in hp if h["won"]) if r["state"] == "resolved" else None,
                    "winners": [{"username": h["username"], "pick": h["pick"],
                                 "card": _site_card(s, h["card_path"])} for h in hp if h["won"]]},
@@ -211,7 +221,7 @@ def export(s: Settings, db: DB) -> dict:
           "by_category": by_category(rounds, s.agents),
           "forecast": forecast.metrics(db, s.agents), "sweeps": forecast.sweeps(db)[:60],
           "contrarian": forecast.contrarian(db, s.agents)[:200], "duels": forecast.duels(db),
-          "sealed": forecast.sealed_list(db)[:60]}
+          "sealed": forecast.sealed_list(db)[:60], "pairs": forecast.pair_metrics(db, s.agents)}
     lb["significance"] = forecast.significance(rounds, lb["forecast"], s.agents)
     _write(out / "rounds.json", json.dumps(rounds, indent=1))
     _write(out / "leaderboard.json", json.dumps(lb, indent=1))

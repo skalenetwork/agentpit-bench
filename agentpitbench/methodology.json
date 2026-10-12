@@ -1,0 +1,123 @@
+{
+ "version": "1.0",
+ "params": {
+  "decision_limit_s": 300,
+  "stake": 100,
+  "default_slippage": 0.05,
+  "max_days_to_close": 7,
+  "max_favourite_price": 0.85,
+  "max_category_share": 0.4,
+  "daily_round_cap": 5,
+  "max_concurrent_rounds": 3,
+  "sweep_markets": 30,
+  "sweep_hour_utc": 6,
+  "sweep_timeout_s": 900,
+  "void_after_days": 14,
+  "season_start": "2026-10-09T00:00:00Z",
+  "infra_cooldown_s": 21600,
+  "excluded_keywords": [
+   "death",
+   "dies",
+   "die ",
+   "killed",
+   "shooting",
+   "war ",
+   "attack",
+   "terror",
+   "earthquake",
+   "hurricane",
+   "flood",
+   "wildfire",
+   "disaster",
+   "casualt",
+   "murder",
+   "assassinat",
+   "elon musk post"
+  ],
+  "agents": [
+   "claude",
+   "codex",
+   "agy",
+   "grok"
+  ]
+ },
+ "hashes": {
+  "prompt.txt": "45127fce43eb933e4135ec2fbd0b462247283e754839a6e28f65923183abc163",
+  "sweep_prompt": "741a11da28bb1adbe90d2159a4e91b31c959bbbe146f19831802cec243d303bb",
+  "rater_prompt": "b1a69a847c437ad74670b728f731af144c8dc62a8be4b0c07f68e3fe1852183c",
+  "agent_models": "f3e2e4120d7c8c75b65c36c46eb818dbf9ce567f4093147928569e328e050250"
+ },
+ "selection": {
+  "scoring": "keyword",
+  "rater": {
+   "prompt_version": 1,
+   "model": "sonnet"
+  }
+ },
+ "changelog": [
+  {
+   "date": "2026-10-09",
+   "version": "1.0",
+   "text": "No market category may exceed 40% of the past week's rounds.",
+   "approved_by": "operator",
+   "approved_at": "2026-10-09T00:00:00Z",
+   "params_sha": null
+  },
+  {
+   "date": "2026-10-09",
+   "version": "1.0",
+   "text": "Markets whose favourite is priced above 85¢ are skipped.",
+   "approved_by": "operator",
+   "approved_at": "2026-10-09T00:00:00Z",
+   "params_sha": null
+  },
+  {
+   "date": "2026-10-09",
+   "version": "1.0",
+   "text": "Default fill limit: best ask + 5¢ (previously the best ask only).",
+   "approved_by": "operator",
+   "approved_at": "2026-10-09T00:00:00Z",
+   "params_sha": null
+  },
+  {
+   "date": "2026-10-09",
+   "version": "1.0",
+   "text": "Agents run in a bubblewrap sandbox with a clean home and an allowlisted environment.",
+   "approved_by": "operator",
+   "approved_at": "2026-10-09T00:00:00Z",
+   "params_sha": null
+  },
+  {
+   "date": "2026-10-09",
+   "version": "1.0",
+   "text": "Frontier vs frontier: each lab's top model at its CLI's highest reasoning setting (replaces vendor defaults).",
+   "approved_by": "operator",
+   "approved_at": "2026-10-09T00:00:00Z",
+   "params_sha": null
+  },
+  {
+   "date": "2026-10-09",
+   "version": "1.0",
+   "text": "A failed sandbox, CLI login or usage limit voids the round for all agents; a self-check runs before every batch.",
+   "approved_by": "operator",
+   "approved_at": "2026-10-09T00:00:00Z",
+   "params_sha": null
+  },
+  {
+   "date": "2026-10-09",
+   "version": "1.0",
+   "text": "Daily forecast sweep with the Brier score becomes the headline metric; round 1 becomes a pre-season exhibition.",
+   "approved_by": "operator",
+   "approved_at": "2026-10-09T00:00:00Z",
+   "params_sha": null
+  },
+  {
+   "date": "2026-10-12",
+   "version": "1.0",
+   "text": "ChatGPT switches from GPT-6 Luna to GPT-6 Astra, OpenAI's top model, at max reasoning. Until now its Codex login was a free plan, which offered only the smaller Luna; earlier rounds stay recorded as Luna.",
+   "approved_by": "operator",
+   "approved_at": "2026-10-12T00:00:00Z",
+   "params_sha": "cece2e2fa9d50dfc6dae2cd6031a9cd5a48e15b7e204767453a68e418ddb08c6"
+  }
+ ]
+}

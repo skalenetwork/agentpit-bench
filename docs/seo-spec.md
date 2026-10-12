@@ -1,6 +1,6 @@
 # Search engine optimisation: spec
 
-Status: v1.1 · 2026-10-12 · one advisor pass applied · not built
+Status: v1.1 · 2026-10-12 · one advisor pass applied · **built** (§1–6 and the build check; §5 operator steps and §7 measuring remain)
 
 ## Goal
 
@@ -138,9 +138,16 @@ Pages are static and 30–40 KB, so Core Web Vitals should already pass. Keep it
 - Tests: title/description patterns per page type, the uniqueness check, the n ≥ 20 rule, the IndexNow payload
   (no network), and no sealed pick ever appears in a title or description of a running round.
 
-## Open questions for the operator
+## Decisions (operator, 2026-10-12)
 
-1. **Search Console and Bing verification:** you add the DNS TXT records in Cloudflare (or give a Cloudflare API token).
-2. **Head-to-head URL slugs:** public names (`/vs/claude-vs-chatgpt/`) while agent pages keep internal ids
-   (`/agent/codex/`). Acceptable, or should agent pages also get public-name aliases (static copies with a canonical
-   to the frozen URL)?
+1. **Search Console and Bing verification:** no DNS route. Config-driven instead (`bench.toml`):
+   `google_site_verification` takes the meta-tag token, or the whole file name `google<token>.html` for the file
+   method (the file is written at the site root on every build); `bing_site_verification` takes the `msvalidate.01`
+   token, served both as the meta tag and as `/BingSiteAuth.xml`. Empty = omitted.
+2. **Head-to-head URL slugs:** public names (`/vs/claude-vs-chatgpt/`), agent pages keep their frozen ids
+   (`/agent/codex/`); titles, H1s, canonical and JSON-LD carry the public names. No aliases.
+3. **IndexNow:** `indexnow_enabled = false` by default. When on, the key is generated once into
+   `data_dir/indexnow-key.txt` (not committed under `static/`) and served at `/<key>.txt`; after each successful push
+   the deployer announces the home page, the leaderboard and rounds that are new or changed state since the last ping
+   (state in `data_dir/indexnow-state.json`; every page's footer timestamp changes on each build, so a file diff can't
+   tell what changed).

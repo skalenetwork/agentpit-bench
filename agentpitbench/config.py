@@ -9,6 +9,8 @@ from pathlib import Path
 # display names; "codex" shows as ChatGPT (it runs on the Codex CLI)
 AGENT_NAMES = {"claude": "Claude", "codex": "ChatGPT", "agy": "Gemini", "grok": "Grok"}
 AGENT_COLORS = {"claude": "#D97757", "codex": "#10A37F", "agy": "#4285F4", "grok": "#1A1A1A"}
+# URL slugs of the head-to-head pages (/vs/claude-vs-chatgpt/): public names, unlike the frozen /agent/<id>/ URLs
+AGENT_SLUGS = {"claude": "claude", "codex": "chatgpt", "agy": "gemini", "grok": "grok", "crowd": "crowd"}
 # Frontier vs frontier: each lab's top model its CLI offers, at that CLI's maximum reasoning setting.
 # (model id passed to the CLI, display name, reasoning setting). The model each run actually reports is
 # recorded per bet; if a vendor ships a newer flagship, update this table.
@@ -81,6 +83,12 @@ class Settings:
     high_stakes_weekday: int = 4        # High-Stakes Friday: one round a week at a bigger stake
     high_stakes_hour_utc: int = 16
     high_stakes_stake: float = 500
+    # search engines (docs/seo-spec.md §5): verification tokens from Search Console / Bing Webmaster Tools;
+    # empty = omitted. google: the meta-tag token, or the whole file name "google<token>.html" for file verification.
+    # bing: the msvalidate.01 token, served both as the meta tag and as /BingSiteAuth.xml.
+    google_site_verification: str = ""
+    bing_site_verification: str = ""
+    indexnow_enabled: bool = False      # after each deploy, POST the changed URLs to api.indexnow.org
     # X analytics (docs/x-analytics-spec.md): read prices per resource returned, from X's pay-per-use page
     x_read_prices: dict = field(default_factory=lambda: {"post": 0.005, "user": 0.010, "owned": 0.001})
     x_metrics_budget_usd: float = 1.00   # per UTC day, metrics puller only (callers metrics + account): hard stop
@@ -88,7 +96,46 @@ class Settings:
     x_app_owned: bool = False            # @agentpitbench owns the developer app: timeline mode, owned-read prices
     x_reward_max_age_ratio: float = 1.5  # a snapshot counts as a reward only if age_s <= ratio x bucket age
     x_series_free_rereads: bool = True   # re-read posts already billed today (free under X's same-day dedup)
+    # Bluesky (docs/bluesky-spec.md): mirror the X posts to @agentpitbench.org. Secrets BSKY_HANDLE /
+    # BSKY_APP_PASSWORD in secrets.env. bluesky_did: emitted at /.well-known/atproto-did by the site build.
+    bluesky_enabled: bool = False
+    bluesky_pds_url: str = "https://bsky.social"
+    bluesky_did: str = ""
+    bluesky_vendor_handles: dict = field(default_factory=dict)   # agent -> verified official Bluesky handle only
     explorer_url: str = "https://skale-base-explorer.skalenodes.com"   # agentpit settles on SKALE Base
+    # YouTube Shorts (docs/youtube-shorts-spec.md): the daily film as a Short. Off until the operator has run
+    # `agentpitbench youtube auth` and `youtube check`; also needs motd_enabled.
+    youtube_enabled: bool = False
+    youtube_channel_id: str = ""         # the brand channel UC...; empty = no uploads (channel guard)
+    youtube_channel_url: str = ""        # https://www.youtube.com/@agentpitbench (Organization.sameAs)
+    youtube_privacy: str = "private"     # "public" once the first upload proves unlocked (spec §4b)
+    youtube_comment: bool = True         # the round-link comment, once the video is public
+    youtube_category_id: str = "28"      # Science & Technology
+    youtube_synthetic_media: bool = False  # status.containsSyntheticMedia (spec §6; re-check for a TTS narrator)
+    youtube_units_budget: int = 2000     # soft daily cap on default-bucket units (Pacific day)
+    youtube_unit_costs: dict = field(default_factory=lambda: {
+        "videos.insert": 1, "videos.list": 1, "channels.list": 1, "commentThreads.insert": 50,
+        "videos.update": 50, "videoCategories.list": 1, "reports.query": 0})
+    # operator AI ("opai", docs/ai-automation-spec.md): never a contestant, never on a round's critical path
+    opai_enabled: bool = False          # master switch; false = every task uses its rule-based fallback
+    opai_tasks: list[str] = field(default_factory=lambda: ["rate", "picks", "summary", "incident", "i18n",
+                                                           "translate"])
+    opai_config_dir: str = "~/.config/agentpitbench/opai-claude"   # CLAUDE_CONFIG_DIR of opai's own login
+    opai_model: str = "sonnet"
+    opai_model_light: str = "haiku"     # picks
+    opai_ops_model: str = "opus"
+    opai_timeout_s: int = 120
+    opai_translate_timeout_s: int = 300  # one translate call covers every site language
+    opai_calls_per_day: int = 60
+    opai_task_budget: dict = field(default_factory=lambda: {
+        "rate": 24, "picks": 12, "summary": 12, "incident": 4, "cadence": 1, "report": 2, "i18n": 20,
+        "proposal": 1, "ab": 2, "translate": 10})
+    opai_backoff_s: int = 21600
+    opai_sweep_guard_min: int = 30
+    opai_rate_batch: int = 40
+    opai_pick_threshold: float = 0.80
+    anomaly_posts_per_hour: int = 20
+    selection_scoring: str = "keyword"  # from methodology.json (keyword / model); never set in bench.toml
 
     @property
     def db_path(self) -> Path:
@@ -151,7 +198,11 @@ def load(path: str | Path = "bench.toml") -> Settings:
         data["data_dir"] = Path(data["data_dir"])
     if "x_read_prices" in data:  # a partial [x_read_prices] table overrides only the prices it names
         data["x_read_prices"] = {**Settings().x_read_prices, **data["x_read_prices"]}
+    if "youtube_unit_costs" in data:
+        data["youtube_unit_costs"] = {**Settings().youtube_unit_costs, **data["youtube_unit_costs"]}
     s = Settings(**data)
     if os.environ.get("BENCH_DRY_RUN") in ("0", "false"):
         s.dry_run = False
+    from . import methodology  # the lock's protected params win over bench.toml (docs/ai-automation-spec.md §4)
+    methodology.apply(s, data)
     return s

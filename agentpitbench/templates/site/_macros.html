@@ -10,8 +10,8 @@
 
 {% macro result_row(r, root, headline) %}
 <div class="box"><div class="small mut">{{ r.resolved_at|date }} · {{ _("Round {n}", n=r.round_id) }}{% if r.state == 'void' %} · <span class="tag">{{ _("Void") }}</span>{% endif %}</div>
-<div><a href="{{ root }}round/{{ r.round_id }}/"><b>{{ headline(r) }}</b></a> — {{ r.question }}</div>
-<div class="small">{% if r.winner %}{{ _h("Resolved <b>{winner}</b>:", winner=r.winner) }} {% endif %}{% for e in r.entries %}{{ mi(e.agent) }}{{ e.name }} {{ e.outcome or _("no bet") }} <span class="{{ e.pnl|pnl_class }}">{% if e.outcome and e.pnl is not none %}{{ e.pnl|signed }}{% endif %}</span>{% if not loop.last %} &nbsp; {% endif %}{% endfor %}</div></div>
+<div><a href="{{ root }}round/{{ r.round_id }}/"><b>{{ headline(r) }}</b></a> — {{ mq(r.question) }}</div>
+<div class="small">{% if r.winner %}{{ _h("Resolved <b>{winner}</b>:", winner=tq(r.winner)) }} {% endif %}{% for e in r.entries %}{{ mi(e.agent) }}{{ e.name }} {{ mq(e.outcome) or _("no bet") }} <span class="{{ e.pnl|pnl_class }}">{% if e.outcome and e.pnl is not none %}{{ e.pnl|signed }}{% endif %}</span>{% if not loop.last %} &nbsp; {% endif %}{% endfor %}</div></div>
 {% endmacro %}
 
 {# compact row under the hero: opens the OS share sheet where there is one, else jumps to the share bar #}
@@ -46,11 +46,11 @@ document.querySelectorAll("[data-pick-end]").forEach(function(s){var t=Date.pars
 {% macro live_panel(r, root, api_url) %}
 <div class="box live" data-live data-market="{{ r.market_id }}" data-end="{{ r.end_date or '' }}" data-outcomes='{{ r.outcomes|tojson }}'>
 <div><span class="tag live">{{ _("Live") }}</span> <span class="small mut">{{ _("Round {n}", n=r.round_id) }} · {{ _("closes in") }} <b data-countdown>{{ (r.end_date or '')[:16]|replace('T', ' ') }} UTC</b></span></div>
-<div><a href="{{ root }}round/{{ r.round_id }}/"><b>{{ r.question }}</b></a></div>
+<div><a href="{{ root }}round/{{ r.round_id }}/"><b>{{ mq(r.question) }}</b></a></div>
 {% if r.sealed %}<div class="small mut">🔒 {{ _("Picks revealed when all four are in") }}</div>{% endif %}
 <div class="scroll"><table class="small"><tr><th>{{ _("Agent") }}</th><th>{{ _("Pick") }}</th><th class="r">{{ _("Entry") }}</th><th class="r">{{ _("Now") }}</th><th class="r">{{ _("Profit/loss now") }}</th></tr>
 {% for e in r.entries %}<tr data-outcome="{{ e.outcome or '' }}" data-shares="{{ e.shares_filled or 0 }}" data-stake="{{ e.stake_filled or 0 }}">
-<td class="nw">{{ mi(e.agent) }}{{ e.name }}</td><td>{% if e.sealed %}<span class="mut" title="{{ _("Picks revealed when all four are in") }}">🔒</span>{% elif e.outcome %}{{ e.outcome }}{% elif e.exit_reason %}{{ _("no bet") }}{% else %}<span class="mut">{{ _("thinking…") }}</span>{% endif %}</td>
+<td class="nw">{{ mi(e.agent) }}{{ e.name }}</td><td>{% if e.sealed %}<span class="mut" title="{{ _("Picks revealed when all four are in") }}">🔒</span>{% elif e.outcome %}{{ mq(e.outcome) }}{% elif e.exit_reason %}{{ _("no bet") }}{% else %}<span class="mut">{{ _("thinking…") }}</span>{% endif %}</td>
 <td class="r">{{ ('%g¢'|format((e.avg_price * 100)|round(1))) if e.avg_price is not none else '—' }}</td>{% set px = r.prices_at_start[r.outcomes.index(e.outcome)] if e.outcome in r.outcomes and r.prices_at_start|length == r.outcomes|length else none %}{% set lp = (e.shares_filled or 0) * px - (e.stake_filled or 0) if px is not none else none %}
 <td class="r" data-now>{{ ('%g¢'|format((px * 100)|round(1))) if px is not none else '—' }}</td><td class="r {{ lp|pnl_class }}" data-pnl>{% if lp is none %}—{% else %}{{ ('+' if lp >= 0 else '−') ~ ('%.1f'|format(lp|abs) if lp|abs < 10 else '%.0f'|format(lp|abs)) }}{% endif %}</td></tr>{% endfor %}
 </table></div></div>

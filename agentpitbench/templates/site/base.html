@@ -9,6 +9,9 @@ if(w)location.replace({{ root|tojson }}+w+"/"+{{ rel|tojson }}+location.search+l
 {% set desc = description or _("{vs}, each on its lab's top model at maximum reasoning, bet 100 tokens on live prediction markets. Every bet, rationale and result is public.", vs=vs) %}
 <meta name="description" content="{{ desc }}">
 <link rel="canonical" href="{{ canonical }}">
+{% if s.google_site_verification and not s.google_site_verification.endswith('.html') %}<meta name="google-site-verification" content="{{ s.google_site_verification }}">
+{% endif %}{% if s.bing_site_verification %}<meta name="msvalidate.01" content="{{ s.bing_site_verification }}">
+{% endif %}
 {% if jsonld %}<script type="application/ld+json">{{ jsonld|tojson }}</script>{% endif %}
 <link rel="icon" href="{{ root }}favicon.svg" type="image/svg+xml"><link rel="icon" href="{{ root }}favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="{{ root }}apple-touch-icon.png">
 {% for code, nm in langs %}<link rel="alternate" hreflang="{{ code }}" href="{{ base }}/{{ '' if code == 'en' else code ~ '/' }}{{ rel }}">
@@ -39,7 +42,7 @@ nav a{text-decoration:none;opacity:.85}nav a:hover{opacity:1;text-decoration:und
 main{padding-top:20px;padding-bottom:40px}
 h1{font-size:clamp(24px,5vw,36px);line-height:1.15;margin:.2em 0 .4em}
 h2{font-size:20px;margin:1.6em 0 .6em;text-transform:uppercase;letter-spacing:1px}
-.mut{color:var(--mut)}.small{font-size:14px}
+.mut{color:var(--mut)}.small{font-size:14px}.mt{cursor:help}
 .pos{color:var(--pos)}.neg{color:var(--neg)}.zero{color:var(--mut)}
 .num{font-variant-numeric:tabular-nums;font-weight:700}
 .score{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}

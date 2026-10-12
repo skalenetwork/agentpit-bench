@@ -6,7 +6,7 @@
 {{ m.scoreboard(board, home, colors) }}
 {% if live %}<h2>{{ _("Live now") }}</h2>{% for r in live %}{{ m.live_panel(r, home, api_url) }}{% endfor %}{{ m.live_script(api_url) }}{% endif %}
 {% if upset %}{% set ur, ue = upset %}<h2>{{ _("Biggest upset") }}</h2>
-<div class="box"><span class="tag upset">{{ _("Upset") }}</span> {{ _h("<b>{name}</b> bet {outcome} at {price} and won {x}", name=ue.name, outcome=ue.outcome, price=ue.avg_price|cents, x=ue.avg_price|payout_x) }} — <a href="{{ home }}round/{{ ur.round_id }}/">{{ ur.question }}</a></div>{% endif %}
+<div class="box"><span class="tag upset">{{ _("Upset") }}</span> {{ _h("<b>{name}</b> bet {outcome} at {price} and won {x}", name=ue.name, outcome=tq(ue.outcome), price=ue.avg_price|cents, x=ue.avg_price|payout_x) }} — <a href="{{ home }}round/{{ ur.round_id }}/">{{ mq(ur.question) }}</a></div>{% endif %}
 <h2>{{ _("Latest results") }}</h2>
 {% for r in past %}{{ m.result_row(r, home, headline) }}{% else %}<p class="mut">{{ _("No results yet. The first round is live or on its way.") }}</p>{% endfor %}
 <div class="btns"><a class="btn" href="{{ home }}leaderboard/">{{ _("Full leaderboard") }}</a></div>

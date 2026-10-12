@@ -418,7 +418,7 @@ async def test_results_post_video_with_png_fallback(env, monkeypatch):
         vid.write_bytes(b"mp4")
         return vid
 
-    async def fake_post(key, kind, text, image=None, reply_to=None, round_id=None, quote_of=None):
+    async def fake_post(key, kind, text, image=None, reply_to=None, round_id=None, quote_of=None, **bsky):
         image = image[0] if isinstance(image, list) and image else image
         posted.append((key, Path(image).suffix if image else None))
         return None if (image and Path(image).suffix == ".mp4" and kind == "results") else f"t-{key}"
