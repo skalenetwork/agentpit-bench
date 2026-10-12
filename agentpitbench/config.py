@@ -61,6 +61,10 @@ class Settings:
     opai_model_motd_script: str = "fable"   # claude CLI alias for the film writer (the strongest for creative writing)
     opai_motd_timeout_s: int = 360          # a script call takes 1.5-3 min
     motd_narrator: bool = True        # ElevenLabs narrator when ELEVENLABS_API_KEY is set; false = captions only
+    motd_local_voice: bool = True     # Piper fallback narrator when ElevenLabs is missing or fails (local, free)
+    motd_piper_bin: str = ""          # default ~/.local/share/agentpitbench/piper/venv/bin/piper
+    motd_piper_voices: str = ""       # default ~/.local/share/agentpitbench/piper/voices (*.onnx + .onnx.json)
+    motd_voice_overrides: dict = field(default_factory=dict)  # concept -> ElevenLabs voice id
     motd_music_daily_credits: int = 1500      # ElevenLabs credits a day for NEW score tracks (cached ones are free)
     motd_narration_reserve_credits: int = 200  # never let new music drop the key's balance below this
     motd_music: bool = True           # the CC0 music bed (static/motd/theme.m4a); false = silent films
@@ -108,6 +112,10 @@ class Settings:
     bluesky_pds_url: str = "https://bsky.social"
     bluesky_did: str = ""
     bluesky_vendor_handles: dict = field(default_factory=dict)   # agent -> verified official Bluesky handle only
+    # Telegram (docs/telegram-spec.md): mirror the X posts to a public channel. Secrets TELEGRAM_BOT_TOKEN /
+    # TELEGRAM_CHANNEL (@agentpitbench or the -100... id) in secrets.env.
+    telegram_enabled: bool = False
+    telegram_api_url: str = "https://api.telegram.org"
     # automated A/B testing (docs/ab-testing-spec.md): wording and presentation only, never facts
     ab_gen_enabled: bool = False         # gates arm creation only; posting always goes through ab.choose
     ab_max_arms: int = 3

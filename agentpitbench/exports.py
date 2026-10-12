@@ -2,7 +2,7 @@
 
 rounds.json = list (newest first) of:
   {round_id, market_id, slug, question, outcomes[], prices_at_start[], end_date, started_at (unix),
-   state, winner, resolved_at, market_link, thread_tweet_id, results_tweet_id, split (bool),
+   state, winner, resolved_at, revealed_at (unix: when the picks went public, null while sealed), market_link, thread_tweet_id, results_tweet_id, split (bool),
    entries: [{agent, name, color, outcome|null, avg_price, shares_filled, stake_filled, confidence,
               rationale, quote|null, statement|null (post-match line, losers only), decided_s, exit_reason, model_reported, cli_version, payout, pnl,
               won (bool|null), tweet_id, transcript (site-relative path or null), tail_url, fade_url,
@@ -71,7 +71,11 @@ def round_record(s: Settings, db: DB, r) -> dict:
     outcomes = json.loads(r["outcomes"])
     link = s.market_link(r["slug"] or "", f"r{r['round_id']}")
     entries = []
-    for e in db.round_entries(r["round_id"]):
+    runs = db.round_entries(r["round_id"])
+    done = [e["finished_at"] for e in runs if e.get("finished_at")]
+    # when every pick went public: the last agent run's end (the round leaves `running` right after it)
+    revealed_at = max(done) if done and r["state"] != "running" else None
+    for e in runs:
         won = None
         if r["state"] == "resolved":
             won = bool(e["outcome"]) and e["outcome"] == r["winner"]
@@ -112,7 +116,7 @@ def round_record(s: Settings, db: DB, r) -> dict:
         "round_id": r["round_id"], "market_id": r["market_id"], "slug": r["slug"], "question": r["question"],
         "outcomes": outcomes, "prices_at_start": snap.get("prices_list", []),
         "end_date": r["end_date"], "started_at": r["started_at"], "state": r["state"], "winner": r["winner"],
-        "resolved_at": r["resolved_at"], "market_link": link, "exhibition": bool(r["exhibition"]),
+        "resolved_at": r["resolved_at"], "revealed_at": revealed_at, "market_link": link, "exhibition": bool(r["exhibition"]),
         "exclusion": r["exclusion"],
         "thread_tweet_id": r["thread_tweet_id"], "results_tweet_id": r["results_tweet_id"],
         "split": len(picks) > 1, "entries": entries, "sealed": sealed,

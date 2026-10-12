@@ -612,7 +612,9 @@ async def post(s: Settings, db, poster, rec: dict, out: Path) -> str | None:
         text = ab.generic_text(db, s, key, "motd", text)   # generic.cta (docs/ab-testing-spec.md section 12)
     except Exception:
         log.exception("A/B for %s failed; posting the control", key)
-    tid = await poster.post(key, "motd", text, video, round_id=rec["round_id"])
+    still = out / "poster.png"   # the mirrors' fallback when the film is over their upload limit or fails
+    tid = await poster.post(key, "motd", text, video, round_id=rec["round_id"],
+                            bsky_fallback=still if still.is_file() else None)
     if tid:
         await poster.post(f"{key}-link", "motd-link", link_text(s, rec), None, reply_to=tid, round_id=rec["round_id"])
     return tid

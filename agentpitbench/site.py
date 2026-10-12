@@ -32,7 +32,7 @@ from markupsafe import Markup
 
 from . import og
 from .cards import cents, is_dark, fmt_time, is_upset, payout_x, ranked, results_headline, signed, split_headline
-from . import discover, methodology
+from . import challenge, discover, methodology
 from .emblem import emblem_svg
 from .config import AGENT_COLORS, AGENT_NAMES, AGENT_SLUGS, Settings, AGENT_MODELS
 from .i18n import CODES, LANGS, NAMES, Translator
@@ -744,7 +744,7 @@ EXCLUSION_REASONS = {
 BRANDED = {"methodology": _("Methodology"), "independence": _("Independence & conflicts"), "incidents": _("Incidents"),
            "press": _("Press kit"), "data": _("Data & method"), "splits": _("Split decisions"),
            "hall-of-shame": _("Hall of shame"), "reports": _("Weekly reports"), "contrarian": _("Contrarian calls"),
-           "experiments": _("Experiments")}
+           "experiments": _("Experiments"), "challenge": _("Beat the AIs")}
 
 REASONING = {"max": "max reasoning", "xhigh": "extra-high reasoning", "high": "high reasoning"}
 
@@ -902,6 +902,10 @@ def _build(s: Settings) -> Path:
     from .motd import films as _films  # Match of the Day: cards/motd/<date>/film.json
     films = _films(s)
     cap_hit = _reply_caps(s, rounds)  # "first N picks counted"
+    # Beat the AIs (docs/daily-challenge-spec.md): chosen from every round, void ones too, so a featured round that
+    # later voids stays featured; a sealed round's picks never reach the page or data/challenge.json
+    ch_days = challenge.days(all_rounds)
+    page_ids = {r["round_id"] for r in rounds}
     film_of = {}
     for f in films:  # newest first: a round filmed twice shows its latest film
         film_of.setdefault(f["round_id"], f)
@@ -1019,6 +1023,13 @@ def _build(s: Settings) -> Path:
                  heading=vs_title(p, _), title=branded(vs_title(p, _)), description=vs_description(p, _, as_of),
                  jsonld=crumbs(discover.dataset_ld(s, lb, f"{base}/{rel}"), (_("Leaderboard"), "leaderboard/"),
                                (vs_title(p, _), rel)))
+        ch = [challenge.entry(d, tq) for d in ch_days]
+        curl = f"{base}/{prefix}challenge/"
+        page("challenge/index.html", "challenge.html", ch=ch, feat=ch[0] if ch else None, round_pages=page_ids,
+             picks=pick_share(ch_days[0]["round"], curl, _) if ch_days else None, cap_hit=None,
+             title=branded(_("Beat the AIs")),
+             description=_("One market a day. Lock in your pick before you see how the AIs bet, then compare once it resolves."),
+             share_text=_("Can you beat the AIs? Today's AgentpitBench challenge:"))
         page("films/index.html", "films.html", films=films, title=branded("Match of the Day"),
              description=_("Match of the Day: a short film of the most dramatic AgentpitBench round each day."))
         page("splits/index.html", "splits.html", splits=splits, h2h=h2h, title=branded(_("Split decisions")),
@@ -1086,6 +1097,8 @@ def _build(s: Settings) -> Path:
     widget_src = Path(__file__).parent / "widget" / "agentpit-widget.js"
     if widget_src.exists():  # the agentpit.dev market-page widget, served next to the standings widget
         shutil.copy2(widget_src, out / "widget" / "agentpit-widget.js")
+    (out / "data").mkdir(exist_ok=True)
+    (out / "data" / "challenge.json").write_text(json.dumps([challenge.entry(d) for d in ch_days], indent=1))
     rss, jf = feeds(s, rounds)
     (out / "feed.xml").write_text(rss)
     (out / "feed.json").write_text(jf)

@@ -1,0 +1,111 @@
+{% extends "base.html" %}{% import "_macros.html" as m with context %}
+{% block main %}
+<style>
+.ch-q{font-size:20px;font-weight:700;margin:6px 0 10px;unicode-bidi:plaintext}
+.ch-opts{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.ch-opts label{min-height:44px;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:2px solid var(--fg);cursor:pointer;font-weight:700;max-width:100%;overflow-wrap:anywhere}
+.ch-opts input{width:18px;height:18px;margin:0}
+.ch-opts label:has(input:checked){background:var(--fg);color:var(--bg)}
+#ch button.btn{min-height:44px;background:var(--card);color:var(--fg);font:inherit;font-weight:700;cursor:pointer}
+#ch button.btn.cta{background:#ff3b5c;border-color:#ff3b5c;color:#fff}#ch button[disabled]{opacity:.5;cursor:default}
+.ch-badge{display:inline-block;font-size:13px;font-weight:800;padding:3px 10px;border:2px solid var(--pos);color:var(--pos)}
+.ch-badge.late{border-color:var(--mut);color:var(--mut)}
+.ch-grid{font-size:28px;letter-spacing:4px;direction:ltr;unicode-bidi:isolate}
+.ch-rows{list-style:none;padding:0;margin:8px 0}.ch-rows li{padding:6px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+.ch-big{font-size:26px;font-weight:800}
+.ch-hist{list-style:none;padding:0}.ch-hist li{padding:6px 0;border-bottom:1px solid var(--line);font-size:14px;overflow-wrap:anywhere}
+#ch [hidden]{display:none!important}
+</style>
+<h1>{{ _("Beat the AIs") }}</h1>
+<p class="mut">{{ _("One market a day. Lock in your pick before you see how the AIs bet, then compare once it resolves.") }}</p>
+<div id="ch">
+{% if feat %}
+<section class="box" aria-labelledby="ch-h">
+<div class="small mut" id="ch-h">{{ _("Today's challenge") }} · {{ _("Challenge of {date}", date=feat.date) }} · {{ _("closes {date}", date=(feat.end_date or '')[:16]|replace('T', ' ') ~ ' UTC') }}</div>
+<div class="ch-q">{{ mq(feat.question) }}</div>
+{% if feat.sealed %}<p data-sealed>🔒 {{ _("The AIs are deciding right now. Lock in before they reveal.") }}</p>{% endif %}
+<noscript><p class="small">{{ _("Turn on JavaScript to lock in a pick on this device.") }}</p></noscript>
+<form data-play hidden><div class="ch-opts" role="radiogroup">{% for o in feat.outcomes %}<label><input type="radio" name="o" value="{{ o }}"><span dir="auto">{{ mq(o) }}</span></label>{% endfor %}</div>
+<button type="submit" class="btn cta" disabled>{{ _("Lock in my pick") }}</button></form>
+<div data-closed hidden><p>{{ _("This market has closed for picks. A new challenge starts with tomorrow's rounds.") }}</p></div>
+<div data-mine hidden><p><b data-mine-pick></b> <span class="ch-badge" data-early hidden>✓ {{ _("Locked before the AIs revealed") }}</span><span class="ch-badge late" data-late hidden>{{ _("Locked after the AIs revealed: just for fun") }}</span></p>
+<p class="small mut">{{ _("Lock times come from your device's clock, so this is for fun, not proof.") }}</p>
+<p data-pending hidden>{{ _("The result appears once the market resolves.") }}</p>
+<ul class="ch-rows" data-ais hidden></ul>
+<p data-void hidden>{{ _("No result: the market was voided. Your streak is unaffected.") }}</p></div>
+{% if feat.round_id in round_pages %}<p class="small"><a href="{{ home }}round/{{ feat.round_id }}/">{{ _("See the AIs' picks on the round page") }}</a> · {{ _("Round {n}", n=feat.round_id) }}</p>{% endif %}
+</section>
+{% else %}<p class="box mut">{{ _("No challenge yet. The next one starts with the day's first round.") }}</p>{% endif %}
+
+<section class="box" data-result hidden aria-labelledby="ch-r"><h2 id="ch-r">{{ _("Your last result") }}</h2>
+<div class="small mut" data-r-date></div><div class="ch-q" data-r-q></div>
+<p data-r-win></p><p class="ch-big" data-r-beat></p><div class="ch-grid" data-r-grid></div>
+<ul class="ch-rows" data-r-rows></ul>
+<p class="small mut">{{ _("Green: you beat it. Red: it beat you. Yellow: same result.") }}</p>
+<p data-r-stats></p>
+<div class="btns"><a class="btn cta" href="#share" data-r-share>{{ _("Share result") }}</a></div></section>
+
+{% if picks %}{{ m.pick_share(picks, cap_hit) }}{% endif %}
+<p class="small mut">{{ _("Picks made here stay on this device and are just for fun. To count on the public humans leaderboard, reply on X before the market closes.") }}</p>
+
+<section data-hist hidden><h2>{{ _("Your challenges") }}</h2><ul class="ch-hist" data-hist-list></ul></section>
+</div>
+{% if picks %}{{ m.share_script() }}{% endif %}
+<script type="application/json" id="ch-data">{{ ch|tojson }}</script>
+<script>(function(){
+var T={{ {"pick": _("Your pick: {pick}"), "beat": _("You beat {n} of {m} AIs"), "share": _("I beat {n} of {m} AIs in the AgentpitBench challenge"),
+"stats": _("Streak {s} · played {n} · right {r} · best streak {b}"), "you": _("You"), "nobet": _("no bet"), "right": _("Right"), "wrong": _("Wrong")}|tojson }},
+WIN={{ _("Resolved <b>{winner}</b>.")|tojson }},PAGE={{ canonical|tojson }},DATA={{ root|tojson }}+"data/challenge.json",K="apb-challenge";
+var D=[];try{D=JSON.parse(document.getElementById("ch-data").textContent)}catch(e){}
+var S={};try{S=JSON.parse(localStorage.getItem(K))||{}}catch(e){}S.picks=S.picks||{};S.res=S.res||{};
+function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
+function $(s,r){return(r||document).querySelector(s)}
+function fmt(t,o){return t.replace(/\{(\w+)\}/g,function(_,k){return k in o?o[k]:_})}
+function iso(x){return"\u2068"+x+"\u2069"}function loc(c,o){var i=c.outcomes.indexOf(o);return iso(i<0?o:(c.outcomes_local[i]||o))}
+function txt(el,s){if(el)el.textContent=s}
+function li(s){var l=document.createElement("li");l.textContent=s;return l}
+function open(c){var e=Date.parse(c.end_date||"");return(c.state==="running"||c.state==="awaiting_resolution")&&!(e&&Date.now()>=e)}
+function verdict(c,p){var ok=p===c.winner,g="",n=0,rows=[];c.ais.forEach(function(a){var w=!!a.won,q=ok&&!w?"🟩":(!ok&&w?"🟥":"🟨");if(q==="🟩")n++;g+=q;
+rows.push(q+" "+iso(a.name)+": "+(a.outcome?loc(c,a.outcome):T.nobet))});return{d:c.date,r:c.round_id,q:c.q_local,p:loc(c,p),ok:ok,g:g,n:n,m:c.ais.length,w:loc(c,c.winner),rows:rows}}
+function render(){
+var F=D[0],root=$("#ch");
+if(F){var pk=S.picks[F.round_id],play=$("[data-play]",root),mine=$("[data-mine]",root);
+play.hidden=!!pk||!open(F);$("[data-closed]",root).hidden=!!pk||open(F);mine.hidden=!pk;
+if(pk){txt($("[data-mine-pick]",root),fmt(T.pick,{pick:loc(F,pk.p)}));
+var rv=F.revealed_at;$("[data-early]",root).hidden=!(rv&&pk.t<rv*1e3);$("[data-late]",root).hidden=!(rv&&pk.t>=rv*1e3);
+$("[data-pending]",root).hidden=F.state==="resolved"||F.state==="void";$("[data-void]",root).hidden=F.state!=="void";
+var ul=$("[data-ais]",root);ul.textContent="";ul.hidden=F.sealed;if(!F.sealed){ul.appendChild(li(T.you+": "+loc(F,pk.p)));F.ais.forEach(function(a){ul.appendChild(li(iso(a.name)+": "+(a.outcome?loc(F,a.outcome):T.nobet)))})}
+document.querySelectorAll(".pickshare details").forEach(function(d){var s=$("summary span",d);if(s&&s.textContent===pk.p)d.open=true})}}
+D.forEach(function(c){var pk=S.picks[c.round_id];if(pk&&c.state==="resolved"&&c.winner&&!S.res[c.round_id])S.res[c.round_id]=verdict(c,pk.p)});
+var s=0,b=0,cur=0,stop=false;D.slice().reverse().forEach(function(c){if(c.state!=="resolved")return;var v=S.res[c.round_id];cur=v&&v.ok?cur+1:0;b=Math.max(b,cur)});
+D.some(function(c){if(c.state!=="resolved")return false;var v=S.res[c.round_id];if(v&&v.ok){s++;return false}return true});
+S.best=Math.max(S.best||0,b);save();
+var all=Object.keys(S.res).map(function(k){return S.res[k]}).sort(function(a,c){return a.d<c.d?1:a.d>c.d?-1:c.r-a.r}),L=all[0];
+var right=all.filter(function(v){return v.ok}).length;
+if(L){var R=$("[data-result]");R.hidden=false;txt($("[data-r-date]",R),L.d);txt($("[data-r-q]",R),L.q);
+$("[data-r-win]",R).innerHTML="";var w=document.createElement("span");w.innerHTML=WIN.replace("{winner}","<b></b>");$("b",w).textContent=L.w;$("[data-r-win]",R).appendChild(w);
+txt($("[data-r-beat]",R),fmt(T.beat,{n:L.n,m:L.m}));txt($("[data-r-grid]",R),L.g);
+var rr=$("[data-r-rows]",R);rr.textContent="";rr.appendChild(li(T.you+": "+L.p+" · "+(L.ok?T.right:T.wrong)));(L.rows||[]).forEach(function(x){rr.appendChild(li(x))});
+txt($("[data-r-stats]",R),fmt(T.stats,{s:s,n:Object.keys(S.picks).length,r:right,b:S.best}));
+share(fmt(T.share,{n:L.n,m:L.m})+" "+L.g)}
+var H=$("[data-hist]"),hl=$("[data-hist-list]");hl.textContent="";var ids={};
+all.forEach(function(v){ids[v.r]=1;hl.appendChild(li(v.d+" · "+iso(v.q)+" · "+v.p+" "+(v.ok?"✓":"✗")+" "+v.g))});
+Object.keys(S.picks).forEach(function(k){if(ids[k])return;var p=S.picks[k];hl.appendChild(li((p.d||"")+" · "+iso(p.q||"")+" · "+(p.l||p.p)+" …"))});
+H.hidden=!hl.children.length}
+function share(msg){var bar=document.getElementById("share");if(!bar)return;
+bar.querySelectorAll("a[data-net]").forEach(function(a){try{var u=new URL(a.href),p=u.searchParams,n=a.dataset.net;
+if(n==="x"||n==="telegram")p.set("text",msg);else if(n==="reddit")p.set("title",msg);
+else if(n==="whatsapp"||n==="bluesky"){var t=(p.get("text")||"").split(" ");p.set("text",msg+" "+t[t.length-1])}
+else if(n==="email"){var bd=(p.get("body")||"").split("\n");p.set("body",msg+"\n\n"+bd[bd.length-1])}else return;
+a.href=u.protocol==="mailto:"?"mailto:?"+p.toString().replace(/\+/g,"%20"):u.toString().replace(/\+/g,"%20")}catch(e){}});
+var nb=bar.querySelector("[data-native]");if(nb)nb.dataset.text=msg;
+var rs=$("[data-r-share]");if(rs&&navigator.share)rs.onclick=function(e){e.preventDefault();navigator.share({text:msg,url:PAGE}).catch(function(){})}}
+var F=D[0],form=$("[data-play]");
+if(F&&form){form.addEventListener("change",function(){$("button",form).disabled=!$("input:checked",form)});
+form.addEventListener("submit",function(e){e.preventDefault();var i=$("input:checked",form);if(!i||S.picks[F.round_id]||!open(F))return;
+S.picks[F.round_id]={p:i.value,l:loc(F,i.value),t:Date.now(),d:F.date,q:F.q_local};save();render()})}
+render();
+fetch(DATA,{cache:"no-cache"}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){if(!Array.isArray(j)||!j.length)return;
+var byId={};j.forEach(function(c){byId[c.round_id]=c});
+D=D.map(function(c){var n=byId[c.round_id];if(!n)return c;["state","winner","revealed_at","sealed","ais","end_date"].forEach(function(k){c[k]=n[k]});return c});render()}).catch(function(){})})();</script>
+{% endblock %}
