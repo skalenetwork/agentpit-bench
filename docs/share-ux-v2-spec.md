@@ -1,6 +1,6 @@
 # Share UX v2: spec
 
-Status: v2, advisor-approved (3 passes) · 2026-10-12 · builds on `docs/share-everywhere-spec.md` (v1, built: bar above the footer on every page, previews, Share image, Share your pick, UTM).
+Status: v2, advisor-approved (3 passes) · 2026-10-12 · **built** (all of §1–§6 and §8; §7 click counting stays phase 2) · builds on `docs/share-everywhere-spec.md` (v1, built: bar above the footer on every page, previews, Share image, Share your pick, UTM).
 
 ## Problem
 
