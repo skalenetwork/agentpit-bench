@@ -60,12 +60,22 @@ Queue position: cards → A/B → **automation** → Match of the Day.
 - **x-analytics** (`docs/x-analytics-spec.md`) built first. It provides:
   - `xstats.by_kind` and `by_category` (inputs to §9 cadence, and an optional signal for the §5 rater
     review);
-  - the visibility-drop and read-failure checks (§10 consumes them; it does not read X itself);
+  - `xstats.visibility_drop`, `xstats.health` and `xstats.reads` (§10 calls these functions; it reads no X
+    API and parses no logs for X state);
   - the 08:00 UTC operator digest, which §10 alerts are appended to.
 
   opai never calls the X API.
-- **A/B** (`docs/ab-testing-spec.md`): independent. Where both touch the same post kind, A/B owns the text and
-  this spec owns only *whether* an optional post goes out (§9).
+- **A/B** (`docs/ab-testing-spec.md`) builds before this. Where both touch the same post kind, A/B owns the
+  text and this spec owns only *whether* an optional post goes out (§9). Shared pieces:
+  - **One tag table.** `operator_ai_outputs` is created by A/B and extended here (§3).
+  - **One quota budget.** When this build lands, the A/B generator's `claude -p` call moves behind
+    `opai.call(task="ab", …)`, with allocation `ab` = 2/day in `opai_task_budget`. A/B keeps its own prompt,
+    validator and idle-window rule; the runner adds the shared budget, the contestant-priority checks and the
+    separate login.
+  - **One login.** The separate opai login below answers A/B's open question 3 (a separate login for the
+    generator).
+
+  The A/B behaviour doesn't change.
 - A **second Claude Code login** for opai. The operator does this once:
 
   ```
@@ -81,7 +91,7 @@ Queue position: cards → A/B → **automation** → Match of the Day.
 @dataclass
 class Result:
     data: dict            # validated JSON
-    output_id: int        # ai_outputs.id
+    output_id: int        # operator_ai_outputs.output_id
     model: str            # model actually reported (result JSON "modelUsage" key), else the alias asked for
 
 def call(s: Settings, db: DB, task: str, payload: dict, *, subject: str) -> Result | None
@@ -148,6 +158,7 @@ def sealed_guard(db: DB, round_id: int) -> None                     # raises Sea
   | `report` | 2 |
   | `i18n` | 20 |
   | `proposal` | 1 |
+  | `ab` (A/B generator, once moved behind opai) | 2 |
 
   Global `opai_calls_per_day` = 60. Typical use is 20–30.
 - **Concurrency:** one opai call at a time (an `asyncio.Semaphore(1)` in-process; the ops agent is a separate
@@ -204,21 +215,17 @@ CREATE TABLE IF NOT EXISTS ai_calls (            -- every call attempt, includin
     status TEXT NOT NULL,                        -- ok / quota / auth / timeout / invalid / crash (skips write no row)
     detail TEXT                                  -- first 300 chars of the error, redacted
 );
-CREATE TABLE IF NOT EXISTS ai_outputs (          -- validated outputs; public ones are tagged here
-    output_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    call_id INTEGER NOT NULL REFERENCES ai_calls(call_id),
-    task TEXT NOT NULL, subject TEXT NOT NULL,
-    model TEXT NOT NULL, prompt_name TEXT NOT NULL, prompt_version INTEGER NOT NULL,
-    created_at REAL NOT NULL,
-    output_json TEXT NOT NULL,
-    public INTEGER NOT NULL DEFAULT 0            -- 1 once shown on the site / data files
-);
+-- The tag table is the A/B spec's `operator_ai_outputs` (ab-testing-spec.md §7), shared, not a second table.
+-- A/B builds first and creates it; this build only adds columns (MIGRATIONS below). Mapping for opai rows:
+--   purpose = task name ('rate', 'picks', 'summary', ...; A/B keeps 'ab:<slot>'),
+--   prompt_version = '<task>.v<N>' (TEXT, as A/B defines it), content = the output JSON,
+--   accepted = 1 if it passed the validator, else 0 with reject_reason (rejected outputs kept for audit).
 CREATE TABLE IF NOT EXISTS market_ratings (      -- one rating per market, never re-rated
     market_id TEXT PRIMARY KEY,
     score INTEGER,                               -- 0-100; NULL = rating failed, keyword fallback used
     reason TEXT,
     keyword_tier INTEGER NOT NULL,               -- virality.news_tier at rating time (shadow comparison)
-    output_id INTEGER REFERENCES ai_outputs(output_id),
+    output_id INTEGER REFERENCES operator_ai_outputs(output_id),
     rated_at REAL NOT NULL
 );
 CREATE TABLE IF NOT EXISTS human_replies (       -- reply texts kept from the one capped read (§6 retries need them)
@@ -230,7 +237,7 @@ CREATE TABLE IF NOT EXISTS human_replies (       -- reply texts kept from the on
 CREATE TABLE IF NOT EXISTS round_summaries (
     round_id INTEGER NOT NULL, agent TEXT NOT NULL,
     line1 TEXT NOT NULL, line2 TEXT NOT NULL,
-    output_id INTEGER REFERENCES ai_outputs(output_id),   -- NULL for template lines (no-bet agents)
+    output_id INTEGER REFERENCES operator_ai_outputs(output_id),   -- NULL for template lines (no-bet agents)
     PRIMARY KEY (round_id, agent)
 );
 CREATE TABLE IF NOT EXISTS anomalies (
@@ -244,14 +251,14 @@ CREATE TABLE IF NOT EXISTS incident_drafts (
     draft_id INTEGER PRIMARY KEY AUTOINCREMENT,
     anomaly_id INTEGER REFERENCES anomalies(anomaly_id),
     date TEXT NOT NULL, title TEXT NOT NULL, what TEXT NOT NULL, fix TEXT NOT NULL,
-    output_id INTEGER REFERENCES ai_outputs(output_id),   -- NULL = template draft
+    output_id INTEGER REFERENCES operator_ai_outputs(output_id),   -- NULL = template draft
     state TEXT NOT NULL DEFAULT 'draft',         -- draft / published / discarded
     published_at REAL
 );
 CREATE TABLE IF NOT EXISTS policy_changes (      -- cadence policy history (not methodology)
     change_id INTEGER PRIMARY KEY AUTOINCREMENT,
     applied_at REAL NOT NULL, policy_json TEXT NOT NULL, reason TEXT,
-    output_id INTEGER REFERENCES ai_outputs(output_id)
+    output_id INTEGER REFERENCES operator_ai_outputs(output_id)
 );
 CREATE TABLE IF NOT EXISTS alerts (
     alert_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -263,6 +270,9 @@ CREATE TABLE IF NOT EXISTS alerts (
 `MIGRATIONS` additions:
 
 ```python
+("operator_ai_outputs", "call_id", "INTEGER"),          # ai_calls row (NULL for A/B rows)
+("operator_ai_outputs", "subject", "TEXT"),             # 'round:57', 'market:812345', 'week:2026-W42', ...
+("operator_ai_outputs", "public", "INTEGER NOT NULL DEFAULT 0"),   # 1 once shown on the site / data files
 ("humans", "source", "TEXT NOT NULL DEFAULT 'exact'"),   # exact / model
 ("humans", "confidence", "REAL"),                        # model confidence; NULL for exact
 ("humans", "output_id", "INTEGER"),
@@ -447,7 +457,7 @@ return (score, _num(m, "volume"), _num(m, "liquidity"), int(m["id"]))
 - **Round pages:** each round record gains `"newsworthiness": {"score", "source", "rank_in_batch"}`. The
   round page shows "Newsworthiness {score}/100 · {source}" next to the category.
 - **Tagging:** this is the one opai output whose model and prompt version are public, because it is
-  methodology. The rows' `ai_outputs.public` is set to 1.
+  methodology. The rows' `operator_ai_outputs.public` is set to 1.
 
 ## 6. Human picks: model second pass
 
@@ -462,7 +472,7 @@ return (score, _num(m, "volume"), _num(m, "liquidity"), int(m["id"]))
      stripped, at most 100 replies. No extra X reads, ever.
   3. Per user, the **earliest** reply with `outcome != null and confidence >= opai_pick_threshold` (0.80) is
      inserted with `source='model'`, `confidence` and `output_id`. Below threshold it's not counted, but it
-     stays in `ai_outputs` for audit.
+     stays in `operator_ai_outputs` for audit.
   4. Set `humans_ai_done=1`.
 - **Exact match wins:** a user with any exact match is never sent to the model.
 - **Fallback:** if opai is unavailable, `humans_ai_done` stays 0. A new retry pass, `Engage.model_pass_due()`,
@@ -515,7 +525,7 @@ return (score, _num(m, "volume"), _num(m, "liquidity"), int(m["id"]))
 
 - **Hook:** `exports.weekly_reports` stays the numbers source. A new `report_prose.write(s, db, week)` runs from
   `Engage.sunday_extras` **before** the thread is posted (and not awaited by it). It stores the prose in
-  `ai_outputs` with subject `week:<YYYY-Www>`, and `exports.weekly_reports` attaches `prose` to the week's
+  `operator_ai_outputs` with subject `week:<YYYY-Www>`, and `exports.weekly_reports` attaches `prose` to the week's
   dict when a valid output exists.
 - **Input:** exactly the report dict `report.html` renders (forecast rows with n and Brier, crowd Brier,
   betting rows, contrarian counts) plus `leaderboard.significance.label`. All of it covers resolved data only,
@@ -585,8 +595,9 @@ return (score, _num(m, "volume"), _num(m, "liquidity"), int(m["id"]))
   | `methodology-drift` | critical (pauses **rounds** only) | `methodology.verify(s)` non-empty |
   | `all-no-bet` | warn | All agents in a resolved-or-awaiting round placed no bet and the round isn't infra-void |
   | `agent-no-bet-streak` | warn | One agent has no bet in its last 3 non-void rounds |
-  | `visibility-drop` | warn | From x-analytics §6 (xstats); posting continues |
-  | `x-read-failures` | warn | From x-analytics §6 |
+  | `visibility-drop` | warn | `xstats.visibility_drop(db)` returns non-None (x-analytics §5–6); alert and an incident **draft**, posting continues |
+  | `x-read-failures` | warn | `xstats.health(db)['consecutive_auth_failures'] >= 3` |
+  | `x-read-spend` | warn | `xstats.reads(...)` today above `x_read_alert_usd` (x-analytics §2) |
   | `deploy-stale` | warn | No successful site deploy for 2 h while rounds changed (new `kv['site_deployed_at']` written by `SiteDeployer._once` on success) |
   | `opai-failing` | warn | ≥ 5 non-`ok`, non-`unavailable` `ai_calls` in 6 h |
 
@@ -720,7 +731,7 @@ return (score, _num(m, "volume"), _num(m, "liquidity"), int(m["id"]))
     `<b>` count;
   - valid entries merge into `agentpitbench/i18n/<lang>.json` (sorted keys, `ensure_ascii=False`, indent 0 as
     today), and stale ids are removed.
-- **"Silently":** no page marking, no review step. Tagging is the `ai_outputs` row per language batch.
+- **"Silently":** no page marking, no review step. Tagging is the `operator_ai_outputs` row per language batch.
 - **Fallback:** missing entries keep the English fallback that `Translator` already provides. `fill` reports
   the shortfall.
 - **Where it runs:**
@@ -860,7 +871,7 @@ with exit 1, sleep past the timeout, auth error. The fixture records the receive
 - `method verify` is clean on main. A proposal `selection.scoring=model` with the shadow report attached can
   be approved, which produces v1.1, a changelog line on /methodology in all 20 languages, and the new
   eligibility sentence.
-- `ai_outputs` has model, prompt name/version and created_at for every public output (ratings, summaries,
+- `operator_ai_outputs` has model, prompt version and created_at for every public output (ratings, summaries,
   prose, published incidents, translations).
 
 ## 17. Build order (today)
