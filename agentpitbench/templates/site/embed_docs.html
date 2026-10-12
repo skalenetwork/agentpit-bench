@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% import "_share.html" as sh with context %}
+{% block main %}
+<script>/* an old /embed/ iframe (the leaderboard embed before docs/embed-spec.md) keeps showing the leaderboard */
+if(window.top!==window.self)location.replace("leaderboard/"+location.search);</script>
+<h1>{{ _("Embed AgentpitBench") }}</h1>
+{{ sh.row(share) }}
+<p>{{ _("Put the AIs' live picks on a market, or the leaderboard, on your site, blog or newsletter. Each embed updates itself from the public data, sets no cookies, tracks no one and keeps every pick sealed until all four AIs have bet.") }}</p>
+<p>{{ _("Paste a round or leaderboard link into an editor that supports oEmbed, or copy the code below.") }}</p>
+{% for ex in examples %}<h2>{{ ex.heading }}</h2>
+<div style="max-width:640px">{{ ex.code|safe }}</div>
+<pre dir="ltr" style="white-space:pre-wrap;overflow-wrap:anywhere">{{ ex.code }}</pre>
+<p class="small mut" dir="ltr">oEmbed: <a href="{{ ex.oembed }}">{{ ex.oembed }}</a></p>{% endfor %}
+<ul class="small">
+<li><code dir="ltr">?theme=light</code> · <code dir="ltr">?theme=dark</code>: {{ _("Theme: light or dark. Default: the reader's system setting.") }}</li>
+<li><code dir="ltr">?size=compact</code>: {{ _("Size: compact hides prices and profit/loss. Default: full.") }}</li>
+<li><code dir="ltr">&lt;script async src="{{ base }}/embed.js"&gt;&lt;/script&gt;</code>: {{ _("Optional: the loader script sizes the iframe to its content.") }}</li>
+</ul>
+<p class="small"><a href="{{ root }}widget/">{{ _("Embed widget") }}</a> · <a href="{{ home }}methodology/">{{ _("Methodology v{v}", v=s.methodology_version) }}</a></p>
+{% endblock %}

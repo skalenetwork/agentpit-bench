@@ -3,7 +3,8 @@
 <section class="share" id="share" data-share-bar aria-labelledby="share-h"><h2 id="share-h">{{ _("Share this page") }}</h2>
 <div class="row" data-native-row hidden><button type="button" class="btn cta" data-native data-title="{{ share.title }}" data-text="{{ share.text }}" data-url="{{ share.native_url }}">{{ _("Share…") }}</button><button type="button" class="btn" data-more aria-expanded="false" aria-controls="share-nets">{{ _("More") }}</button></div>
 <div class="nets" id="share-nets">{% for net, label, href in share.links %}<a class="btn sm" href="{{ href }}" data-net="{{ net }}"{% if net != 'email' %} target="_blank" rel="noopener"{% endif %}>{{ label }}</a>{% endfor %}<a class="btn sm" href="{{ share.copy_url }}" data-copy>{{ _("Copy link") }}</a><span class="ok" role="status" data-copied hidden>{{ _("Link copied") }}</span></div>
-<input data-copyfield readonly value="{{ share.copy_url }}" aria-label="{{ _("Copy link") }}" hidden></section>
+<input data-copyfield readonly value="{{ share.copy_url }}" aria-label="{{ _("Copy link") }}" hidden>
+{% if embed %}<details class="embed"><summary class="btn sm" data-embed>{{ _("Embed") }}</summary><p class="small mut">{{ _("Paste this code into your page. It resizes itself, sets no cookies and never shows a pick before the reveal.") }}</p><textarea dir="ltr" readonly rows="4" data-embed-code aria-label="{{ _("Embed") }}">{{ embed }}</textarea><div class="nets"><button type="button" class="btn sm" data-embed-copy>{{ _("Copy code") }}</button><span class="ok" role="status" data-embed-copied hidden>{{ _("Code copied") }}</span><a class="small" href="{{ home }}embed/">{{ _("Options and examples") }}</a></div></details>{% endif %}</section>
 <button type="button" class="fab" data-fab aria-label="{{ _("Share…") }}" title="{{ _("Share…") }}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></button>
 <script>(function(){var d=document,H=d.documentElement,b=d.getElementById("share");if(!b)return;
 var ns=H.classList.contains("ns");
@@ -18,6 +19,8 @@ if(navigator.share){row.hidden=false;n.onclick=function(){sh({title:n.dataset.ti
 if(matchMedia("(pointer:coarse)").matches){nets.hidden=true;more.onclick=function(){nets.hidden=!nets.hidden;more.setAttribute("aria-expanded",String(!nets.hidden))}}else more.hidden=true}
 var c=b.querySelector("[data-copy]"),f=b.querySelector("[data-copyfield]");
 c.onclick=function(e){e.preventDefault();copy(c.href,b,function(){f.hidden=false;f.focus();f.select()})};
+var ec=b.querySelector("[data-embed-copy]");if(ec){var et=b.querySelector("[data-embed-code]"),eo=b.querySelector("[data-embed-copied]");ec.onclick=function(){function sel(){et.focus();et.select()}
+if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(et.value).then(function(){eo.hidden=false;setTimeout(function(){eo.hidden=true},2500)},sel);else sel()}}
 /* share rows (v2): Share… opens the sheet (with the card file where there is one), Copy copies the link or the result */
 each("[data-share-row]",function(r){var nb=r.querySelector("[data-native]"),cp=r.querySelector("[data-copy]"),p=null;
 function blob(){return p||(p=fetch(r.dataset.file).then(function(x){if(!x.ok)throw Error(x.status);return x.blob()}))}

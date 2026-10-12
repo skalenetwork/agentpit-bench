@@ -276,6 +276,30 @@ def film_share(f: dict, url: str, _) -> dict:
     return share_bar(ShareText(f.get("hook") or "Match of the Day"), "Match of the Day", url, "film", _)
 
 
+EMBED_W = 560                                   # oEmbed width; the iframe itself is 100% wide (max 640 px)
+EMBED_H = {"round": 400, "leaderboard": 300}    # the snippet's fixed height; /embed.js then fits the content
+
+
+def embed_back(url: str, kind: str) -> str:
+    """An embed's link back: utm_source=embed; utm_medium is the embedding host, set in the browser (iframe if unknown)."""
+    return url + "?" + urlencode({"utm_source": "embed", "utm_medium": "iframe", "utm_campaign": "embed", "utm_content": kind})
+
+
+def embed_snippet(base: str, src: str, title: str, kind: str) -> str:
+    """The copy-paste code (docs/embed-spec.md): the iframe plus the optional resize loader."""
+    from html import escape as h
+    return (f'<iframe src="{h(src)}" title="{h(title)}" width="100%" height="{EMBED_H[kind]}" loading="lazy" '
+            f'style="border:0;width:100%;max-width:640px" data-agentpitbench></iframe>'
+            f'<script async src="{h(base)}/embed.js"></script>')
+
+
+def oembed(base: str, src: str, title: str, kind: str) -> dict:
+    """Static oEmbed 1.0 'rich' response for one embed (served as a file, found through the discovery link)."""
+    return {"version": "1.0", "type": "rich", "provider_name": "AgentpitBench", "provider_url": f"{base}/",
+            "title": title, "html": embed_snippet(base, src, title, kind), "width": EMBED_W, "height": EMBED_H[kind],
+            "cache_age": 600}
+
+
 def page_type(path: str) -> str:
     """utm_content of a page: its first folder (round, agent, ...), 'home' for the front page."""
     first = path.split("/", 1)[0]
@@ -1029,8 +1053,10 @@ def _build(s: Settings) -> Path:
     for f in films:  # newest first: a round filmed twice shows its latest film
         film_of.setdefault(f["round_id"], f)
 
+    n_resolved = sum(1 for r in all_rounds if discover.counts(r))  # the embeds' credibility line
     for lang in CODES:
         _ = Translator(lang)
+        r_embeds: dict[int, dict] = {}
         tq, mq, loc = market_text(extra["mt"].get(lang, {}) if lang != "en" else {})
         roster = (_("{a} and {b}", a=", ".join(names[:-1]), b=names[-1]) if len(names) > 1
                   else (names[0] if names else ""))
@@ -1085,6 +1111,27 @@ def _build(s: Settings) -> Path:
                 return {"@context": "https://schema.org", "@graph": [node]}
             return {**ld, "@graph": [*ld["@graph"], node]}
 
+        def embed(kind: str, rel: str, oembed_rel: str, full_url: str, tpl: str, **ctx) -> dict:
+            """An embed (docs/embed-spec.md): the standalone page embed/<rel>, its static oEmbed JSON, and the
+            snippet for the share bar. No base.html, no beacon, no share bar."""
+            title = _("What the AIs think about this market") if kind == "round" else _("Leaderboard") + " · AgentpitBench"
+            path, src = f"embed/{rel}index.html", f"{base}/{prefix}embed/{rel}"
+            o_url = f"{base}/{prefix}oembed/{oembed_rel}"
+            root = "../" * (prefix + path).count("/")
+            html = env.get_template(tpl).render(**common, root=root, home=root + prefix, rel=f"embed/{rel}", kind=kind,
+                                                title=title, full_url=full_url, back_url=embed_back(full_url, kind),
+                                                oembed=o_url, n_resolved=n_resolved, **ctx)
+            for f, body in ((out / prefix / path, html),
+                            (out / prefix / "oembed" / oembed_rel,
+                             json.dumps(oembed(base, src, title, kind), indent=1, ensure_ascii=False))):
+                f.parent.mkdir(parents=True, exist_ok=True)
+                f.write_text(body)
+            return {"code": embed_snippet(base, src, title, kind), "oembed": o_url}
+
+        lb_embed = embed("leaderboard", "leaderboard/", "leaderboard.json", f"{base}/{prefix}leaderboard/", "embed.html",
+                         poll=f"{'../' * (prefix.count('/') + 2)}{discover.API}/leaderboard.json",
+                         state_sig=discover.iso(as_of), every=300000)
+
         page("index.html", "index.html", live=live, past=past[:30], upset=upset, description=None,
              share_text=_("Four frontier AIs bet on real prediction markets. Live scoreboard:"),
              jsonld=discover.dataset_ld(s, lb, f"{base}/"),
@@ -1099,6 +1146,7 @@ def _build(s: Settings) -> Path:
              img=share_image(previews["standings_card"], "standings", leaderboard_share(lb, _),
                              f"{base}/{prefix}leaderboard/", "leaderboard"),
              img_url=utm(f"{base}/{prefix}leaderboard/", "native", "leaderboard", "share-image"),
+             embed=lb_embed["code"], oembed=lb_embed["oembed"],
              jsonld=discover.dataset_ld(s, lb, f"{base}/leaderboard/"))
         page("facts/index.html", "facts.html", sections=discover.fact_sections(s, lb, metrics, _),
              bibtex=discover.bibtex(s, as_of), as_of=discover.stamp(as_of),
@@ -1112,6 +1160,11 @@ def _build(s: Settings) -> Path:
                     if x is not r and category(x["question"]) == cat][:3]
             rurl = f"{base}/{prefix}round/{rid}/"
             lr = loc(r)  # translated question/outcome labels for the page's own text; data stays English
+            ar = discover.api_round(r, base, rurl)  # the public, sealed-safe shape: no pick before the reveal
+            open_r = r["state"] in ("running", "awaiting_resolution")
+            r_embeds[rid] = embed("round", f"round/{rid}/", f"round/{rid}.json", rurl, "embed_round.html", r=ar,
+                                  poll=f"{'../' * (prefix.count('/') + 3)}{discover.API}/rounds/{rid}.json" if open_r else None,
+                                  state_sig=f"{ar['state']}|{'true' if ar['sealed'] else 'false'}", every=60000)
             page(f"round/{rid}/index.html", "round.html", r=r, card=card, card_alt=card_alt(lr, _, ", ".join(names)),
                  film=film_of.get(rid), cta=cta if lang == "en" else None,
                  picks=pick_share(r, rurl, _), wins=win_share(r, rurl, _), cap_hit=cap_hit.get(rid),
@@ -1123,7 +1176,14 @@ def _build(s: Settings) -> Path:
                  lastmod=r["resolved_at"] or r["started_at"],
                  jsonld=crumbs(discover.round_ld(s, r, f"{base}/round/{rid}/"),
                                (_("Round {n}", n=rid), f"round/{rid}/")),
+                 embed=r_embeds[rid]["code"], oembed=r_embeds[rid]["oembed"],
                  title=round_title(lr, _, ", ".join(names), sfx), description=round_description(lr, _, sfx))
+        # the docs page's live example: the newest open round, else the newest round
+        ex_r = max(by_id, key=lambda x: (x["state"] in ("running", "awaiting_resolution"), x["round_id"]), default=None)
+        examples = ([{"heading": _("Round {n}", n=ex_r["round_id"]), **r_embeds[ex_r["round_id"]]}] if ex_r else []) + \
+            [{"heading": _("Leaderboard"), **lb_embed}]
+        page("embed/index.html", "embed_docs.html", examples=examples, title=_("Embed AgentpitBench"),
+             description=_("Put the AIs' live picks on a market, or the leaderboard, on your site, blog or newsletter. Each embed updates itself from the public data, sets no cookies, tracks no one and keeps every pick sealed until all four AIs have bet."))
         for a in s.agents:
             row = next((b for b in board if b["agent"] == a), None)
             nm = AGENT_NAMES.get(a, a)
@@ -1191,7 +1251,6 @@ def _build(s: Settings) -> Path:
                  title=branded(_("State of the AIs") + f" · {rep['week']}"))
         if lang == "en":  # embedded elsewhere; one shared copy
             page("widget/index.html", "widget.html", title="AgentpitBench standings")
-            page("embed/index.html", "embed.html", title="AgentpitBench leaderboard")
 
     if cta:  # the A/B CTA hop: one static redirect per (arm, round), so a click on any arm's link is counted
         for arm in cta["arms"]:
@@ -1227,7 +1286,7 @@ def _build(s: Settings) -> Path:
     if s.bluesky_did:  # the @agentpitbench.org handle proof (docs/bluesky-spec.md §7); DNS TXT is the primary route
         (out / ".well-known").mkdir(exist_ok=True)
         (out / ".well-known" / "atproto-did").write_text(s.bluesky_did.strip())
-    for f in ("favicon.svg", "favicon-32.png", "apple-touch-icon.png", og.DEFAULT):  # the emblem; the fallback preview
+    for f in ("favicon.svg", "favicon-32.png", "apple-touch-icon.png", og.DEFAULT, "embed.js"):  # the emblem; the fallback preview; the embed loader
         shutil.copyfile(Path(__file__).resolve().parent / "static" / f, out / f)
     host = urlparse(s.site_url).hostname or ""
     if host and not host.endswith(".github.io"):  # custom domain: GitHub Pages drops it without this file
