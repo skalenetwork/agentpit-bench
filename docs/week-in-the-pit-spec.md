@@ -13,9 +13,11 @@ superiority claims; background colour from general knowledge is allowed. No inve
 is one that code detected (a film's stored twist, or `twists.detect` on the week's rounds).
 
 ## The week
-`engage.iso_week` / `engage.week_start`: Monday 00:00 UTC to the moment the episode is prepared (Sunday). The same
-window and round filter as the Sunday race and awards card (resolved, not exhibition), so the episode's numbers match
-the awards post of the same hour. Exhibition rounds may still appear as films (badged as in the films).
+`engage.iso_week` / `engage.week_start`: Monday 00:00 UTC to the moment the episode is prepared (Sunday, from
+`week_episode_prep_hour_utc`). The same round filter as the Sunday race and awards card (resolved, not exhibition),
+but frozen at prep time: a round resolving between the prep and 18:00 is in the 18:00 card, not the episode, so the
+two can differ by that round. The twist of the week comes from the same rounds (no exhibition round on the
+badge-less cold open); exhibition rounds may still appear as films (badged as in the films).
 
 ## Segments (in order; each is skipped when its data is empty)
 | # | Segment | Data | Picture |
@@ -41,7 +43,8 @@ the episode's own run (no writer, no narrator).
 
 ## The writer (opai task `weekly_episode`)
 Runs through `opai.call` like `motd_script`: own login, `ai_calls` row, budget `opai_task_budget.weekly_episode = 1`
-per day plus a code guard of **one call per ISO week** (`week_episode_calls_per_week = 1`): no retry; a rejected or
+per day plus a code guard of **one call per episode** (`week_episode_calls_per_week = 1`, counted by the
+subject `week:<week>`): no retry; a rejected or
 missing script uses the templated host lines (code-written). Model `opai_model_weekly_episode = "fable"`, timeout
 `opai_week_timeout_s = 360`. **Idle window only:** from `week_episode_prep_hour_utc` (14) on Sunday, the call is made
 only while no round has `state='running'` (checked right before the call) and opai itself allows it (sweep window,

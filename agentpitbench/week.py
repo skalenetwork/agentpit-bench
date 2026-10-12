@@ -839,7 +839,7 @@ def gather(s: Settings, db, data: dict, week: str, now: float, ctx_for=None) -> 
     if ctx_for is None:
         def ctx_for(r):
             return motd.story_context(s, r, rounds_all)
-    twist_pool = [r for r in rounds_all if r.get("state") == "resolved" and lo <= (r.get("resolved_at") or 0) < cut]
+    twist_pool = wr   # as the race and awards: no exhibition round on the badge-less cold open
     out = {"week": week, "lo": lo, "cut": cut, "rounds": wr, "pnl": pnl_race(wr, s.agents),
            "forecast": forecast_race(db, s.agents, lo, cut), "films": top, "awards": weekly_awards(wr),
            "human": best_human(picks), "teaser": teaser(rounds_all, now),
@@ -851,8 +851,8 @@ def gather(s: Settings, db, data: dict, week: str, now: float, ctx_for=None) -> 
 # ---------- the writer ----------
 
 def writer_calls_this_week(db, week: str) -> int:
-    lo, hi = week_bounds(week)
-    return db.one("SELECT COUNT(*) n FROM ai_calls WHERE task=? AND started_at>=? AND started_at<?", TASK, lo, hi)["n"]
+    """Writer calls made for this episode (keyed by its subject, so a re-render of an older week counts too)."""
+    return db.one("SELECT COUNT(*) n FROM ai_calls WHERE task=? AND subject=?", TASK, f"week:{week}")["n"]
 
 
 def write(s: Settings, db, data: dict) -> tuple[dict, dict]:
