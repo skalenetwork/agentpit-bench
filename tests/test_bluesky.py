@@ -342,3 +342,26 @@ def test_well_known_atproto_did(env):
     s.bluesky_did = "did:plc:abc123"
     site.build(s)
     assert (s.site_dir / ".well-known" / "atproto-did").read_text() == "did:plc:abc123"
+
+
+def test_video_auth_audience_is_the_users_pds(env):
+    """The video service wants a service-auth token for the user's own PDS (from the DID doc), not bsky.social."""
+    s, db = env
+    from agentpitbench import bluesky
+
+    class R:
+        def __init__(self, j, code=200):
+            self._j, self.status_code = j, code
+
+        def json(self):
+            return self._j
+
+    class H:
+        def get(self, url, **kw):
+            assert url == "https://plc.directory/did:plc:abc"
+            return R({"service": [{"id": "#atproto_pds", "type": "AtprotoPersonalDataServer",
+                                   "serviceEndpoint": "https://mushroom.us-east.host.bsky.network"}]})
+
+    c = bluesky.Client.__new__(bluesky.Client)
+    c.pds, c.http, c.sess = "https://bsky.social", H(), {"did": "did:plc:abc"}
+    assert c.pds_host() == "mushroom.us-east.host.bsky.network"

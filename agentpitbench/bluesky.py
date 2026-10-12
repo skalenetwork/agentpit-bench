@@ -226,8 +226,32 @@ class Client:
     def upload_blob(self, data: bytes, mime: str) -> dict:
         return self.call("POST", "com.atproto.repo.uploadBlob", data=data, headers={"Content-Type": mime})["blob"]
 
-    def upload_video(self, path: Path, poll_s: float = 2, timeout_s: float = 300) -> dict:
+    def pds_host(self) -> str:
+        """The host of the account's own PDS from its DID document. bsky.social is only the entryway: the video
+        service wants a service-auth token whose audience is the user's real PDS (did:web:<pds host>)."""
+        if getattr(self, "_pds_host", None):
+            return self._pds_host
         host = urlparse(self.pds).hostname
+        try:
+            if self.did and self.did.startswith("did:plc:"):
+                r = self.http.get(f"https://plc.directory/{self.did}", timeout=30)
+                doc = r.json() if r.status_code == 200 else {}
+            elif self.did and self.did.startswith("did:web:"):
+                r = self.http.get(f"https://{self.did[8:]}/.well-known/did.json", timeout=30)
+                doc = r.json() if r.status_code == 200 else {}
+            else:
+                doc = {}
+            for svc in doc.get("service") or []:
+                if svc.get("id", "").endswith("#atproto_pds") and svc.get("serviceEndpoint"):
+                    host = urlparse(svc["serviceEndpoint"]).hostname or host
+                    break
+        except Exception:
+            log.exception("Bluesky: PDS lookup failed; using %s", host)
+        self._pds_host = host
+        return host
+
+    def upload_video(self, path: Path, poll_s: float = 2, timeout_s: float = 300) -> dict:
+        host = self.pds_host()
         tok = self.call("GET", "com.atproto.server.getServiceAuth",
                         params={"aud": f"did:web:{host}", "lxm": "com.atproto.repo.uploadBlob",
                                 "exp": int(time.time()) + 1800})["token"]
