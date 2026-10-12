@@ -123,6 +123,13 @@ def test_reveal_share_your_pick_and_round_link():
     assert out.endswith('utm_campaign=reveal">agentpitbench.org/round/9</a>')
 
 
+def test_legacy_opener_invite_reworded():
+    out, _ = build(Settings(), "Claude bets 100 on Yes.\nReply with your pick: Yes / No #AgentpitBench", "decision",
+                   4, 1024)
+    assert "Reply with" not in out and "utm_campaign=opener#pick\">Share your pick</a>" in out
+    assert not out.endswith("</a>")   # no appended round line outside the reveal
+
+
 def test_limits_count_utf16_and_keep_last_line():
     body = "💬" * 600 + "\nagentpitbench.org/round/1"
     assert tlen("💬") == 2

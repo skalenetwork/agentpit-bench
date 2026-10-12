@@ -63,7 +63,7 @@ The X text is the source; `telegram.build_html` turns it into Bot API HTML (`par
    they aren't Telegram usernames.
 2. **Escape** `&`, `<`, `>` in all text (the only three the Bot API requires in HTML mode); `"` too inside `href`.
 3. **Links:** each URL becomes `<a href="full">host/path</a>`; `utm_source=x` becomes `utm_source=telegram`.
-4. **Reveal:** "Reply with your pick: A / B" → `<a href="{round}/?utm_source=telegram&utm_medium=social&utm_campaign=reveal#pick">Share your pick</a>: A / B`, and the round link as the last line.
+4. **Invite** (the reveal, or a legacy `decision`/`split` opener): "Reply with your pick: A / B" → `<a href="{round}/?utm_source=telegram&utm_medium=social&utm_campaign=reveal#pick">Share your pick</a>: A / B`; the reveal also gets the round link as its last line.
 5. **Limits:** caption 1024, message 4096 characters, counted after entity parsing (so the visible text, in
    UTF-16 code units to be safe). The visible body is clipped before escaping; the last line (link / tag) is kept.
    X texts are under 300 visible characters, so this is a safety net.
@@ -97,7 +97,9 @@ tg_posts(post_key PK, chat, message_id, message_ids, kind, round_id, text, poste
 `message_id` is the first (reply target); `message_ids` a JSON list of all of them (media group).
 `publish.void_round` calls `telegram.Mirror.delete_round`: `deleteMessage` per id, then the row goes. A
 "message to delete not found" answer counts as deleted. Bots can delete channel messages only with the
-**Delete messages** admin right, and only within **48 hours** of posting; a failure is logged and keeps the row.
+**Delete messages** admin right. The Bot API lists a general 48-hour window for deletes but also says a bot with
+that right in a channel "can delete any message there", so the window may not apply (unverified). Voids happen
+within hours anyway; a failure is logged and keeps the row.
 
 ## 7. Operator steps
 

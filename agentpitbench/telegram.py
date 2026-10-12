@@ -82,11 +82,13 @@ def adapt(text: str, s: Settings, kind: str, round_id: int | None) -> tuple[str,
         links.append((shown, full))
         return shown
     text = URL_RE.sub(sub, text)
+    if round_id is not None and PICK_RE.search(text):
+        # channel posts take no replies: the invite (reveal, or a legacy decision/split opener) points at the
+        # round page's Share-your-pick section instead
+        text = PICK_RE.sub("Share your pick", text, count=1)
+        links.insert(0, ("Share your pick", round_link(s, round_id, "reveal" if kind == "reveal" else "opener",
+                                                       "#pick")))
     if kind == "reveal" and round_id is not None:
-        # channel posts take no replies: the invite points at the round page's Share-your-pick section instead
-        if PICK_RE.search(text):
-            text = PICK_RE.sub("Share your pick", text, count=1)
-            links.insert(0, ("Share your pick", round_link(s, round_id, "reveal", "#pick")))
         full = round_link(s, round_id, "reveal")
         shown = display_url(full)
         text, links = f"{text}\n{shown}", [*links, (shown, full)]
@@ -233,7 +235,7 @@ class Mirror:
         safe = re.sub(r"[^A-Za-z0-9_.-]", "_", post_key)
         (d / f"{safe}.json").write_text(json.dumps({
             "post_key": post_key, "kind": kind, "method": _method(files), "parse_mode": "HTML", "text": text,
-            "length": tlen(re.sub(r"<[^>]+>", "", html.unescape(text))), "link_preview": preview,
+            "length": tlen(html.unescape(re.sub(r"<[^>]+>", "", text))), "link_preview": preview,
             "media": [str(f) for f in files], "fallback": str(fallback) if fallback else None,
             "reply_to": target["message_id"] if target else None,
             "message_id": f"dry-{safe}", "at": time.time()}, indent=1))
