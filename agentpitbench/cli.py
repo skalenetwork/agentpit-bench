@@ -438,12 +438,16 @@ def main(argv: list[str] | None = None) -> None:
     xl = sub.add_parser("x-login", help="authorize the X account with every scope the bench needs")
     xl.add_argument("--url", help="the URL X redirected you to (step 2)")
     xl.add_argument("--redirect-uri", help="callback URL registered on the X app (default: site_url)")
+    from . import opscli  # operator AI, methodology lock, ops/alerts/incidents (docs/ai-automation-spec.md §14)
+    opscli.add_parsers(sub)
     a = p.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     s = config.load(a.config)
     if a.live:
         s.dry_run = False
-    if a.cmd == "run":
+    if a.cmd in opscli.COMMANDS:
+        opscli.dispatch(s, a)
+    elif a.cmd == "run":
         asyncio.run(run_forever(s))
     elif a.cmd == "round":
         asyncio.run(one_round(s, a.market_id, a.agents.split(",") if a.agents else None))

@@ -174,4 +174,6 @@ def load(path: str | Path = "bench.toml") -> Settings:
     s = Settings(**data)
     if os.environ.get("BENCH_DRY_RUN") in ("0", "false"):
         s.dry_run = False
+    from . import methodology  # the lock's protected params win over bench.toml (docs/ai-automation-spec.md §4)
+    methodology.apply(s, data)
     return s

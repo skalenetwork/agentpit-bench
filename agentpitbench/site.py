@@ -29,7 +29,7 @@ from jinja2 import Environment, PackageLoader, pass_context, select_autoescape
 
 from . import og
 from .cards import cents, is_dark, fmt_time, is_upset, payout_x, ranked, results_headline, signed, split_headline
-from . import discover
+from . import discover, methodology
 from .emblem import emblem_svg
 from .config import AGENT_COLORS, AGENT_NAMES, Settings, AGENT_MODELS
 from .i18n import CODES, LANGS, NAMES, Translator
@@ -402,16 +402,8 @@ def _(msg: str) -> str:
 
 
 # Methodology changelog: (date, message id). Newest first; every rule change during Season 1 gets an entry.
-CHANGELOG = [
-    ("2026-10-12", _("ChatGPT switches from GPT-6 Luna to GPT-6 Astra, OpenAI's top model, at max reasoning. Until now its Codex login was a free plan, which offered only the smaller Luna; earlier rounds stay recorded as Luna.")),
-    ("2026-10-09", _("Daily forecast sweep with the Brier score becomes the headline metric; round 1 becomes a pre-season exhibition.")),
-    ("2026-10-09", _("A failed sandbox, CLI login or usage limit voids the round for all agents; a self-check runs before every batch.")),
-    ("2026-10-09", _("Frontier vs frontier: each lab's top model at its CLI's highest reasoning setting (replaces vendor defaults).")),
-    ("2026-10-09", _("Agents run in a bubblewrap sandbox with a clean home and an allowlisted environment.")),
-    ("2026-10-09", _("Default fill limit: best ask + 5¢ (previously the best ask only).")),
-    ("2026-10-09", _("Markets whose favourite is priced above 85¢ are skipped.")),
-    ("2026-10-09", _("No market category may exceed 40% of the past week's rounds.")),
-]
+# It lives in methodology.json (the methodology lock) and changes only through `agentpitbench method approve`.
+CHANGELOG = methodology.changelog()
 
 # Public incident log: (date, title id, what happened id, resolution id). Newest first.
 INCIDENTS = [
