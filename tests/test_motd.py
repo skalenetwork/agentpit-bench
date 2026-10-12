@@ -247,33 +247,159 @@ def test_daily_disabled_does_nothing(env):
     assert db.get(f"motd_{DAY}") is None
 
 
-async def test_daily_quiet_hour_idempotent_and_outbox(env, monkeypatch):
+async def test_daily_makes_the_day_film_once_and_posts_nothing(env, monkeypatch):
+    """v0.6: films go out in each round's results post; the daily job only publishes the day's most dramatic
+    round film for YouTube and /films/ (once per date, at or after motd_hour_utc), and backfills before that."""
     s, db = env
     s.motd_enabled = True
     t17 = datetime(2026, 10, 12, 17, 5, tzinfo=timezone.utc).timestamp()
+    calls, backfills = [], []
+
+    async def fake_day(s_, db_, cards, day):
+        calls.append(day)
+        return {"date": day, "round_id": 1, "files": {"tall": "x.mp4"}}
+
+    async def fake_backfill(s_, db_, cards, limit=1):
+        backfills.append(1)
+        return []
+
+    monkeypatch.setattr(motd, "day_film", fake_day)
+    monkeypatch.setattr(motd, "backfill", fake_backfill)
+    poster = Poster(s, db)
+    assert await motd.daily(s, db, None, poster, now=t17 - 3600) is None and calls == [] and backfills
+    rec = await motd.daily(s, db, None, poster, now=t17)
+    assert rec and calls == [DAY] and db.get(f"motd_{DAY}") == "done"
+    assert await motd.daily(s, db, None, poster, now=t17 + 3600) is None and calls == [DAY]  # once per date
+    assert not list(s.outbox_dir.glob("motd-*.json")) if s.outbox_dir.exists() else True  # no X post
+
+
+async def test_day_film_links_the_chosen_round_film_and_renders_missing_formats(env, monkeypatch):
+    s, db = env
+    rid = 7
+    src = motd.round_film_dir(s, rid)
+    src.mkdir(parents=True)
+    (src / "motd-2026-10-11-square.mp4").write_bytes(b"sq")
+    (src / "film.json").write_text(json.dumps({"date": "2026-10-11", "round_id": rid,
+                                               "files": {"square": "motd-2026-10-11-square.mp4"}}))
+    rnd = {"round_id": rid}
+    monkeypatch.setattr(motd, "pick", lambda rounds, day, *a: {"round": rnd, "score": {"total": 50}, "candidates": []})
+    from agentpitbench import exports
+    monkeypatch.setattr(exports, "export", lambda s_, db_: {"rounds": [], "leaderboard": {}})
+    made = []
+
+    async def fake_make(s_, db_, cards, day, round_id=None, out_dir=None, formats=()):
+        made.append(formats)
+        for f in formats:
+            (out_dir / f"motd-{day}-{f}.mp4").write_bytes(f.encode())
+        rec = json.loads((out_dir / "film.json").read_text())
+        rec["files"].update({f: f"motd-{day}-{f}.mp4" for f in formats})
+        (out_dir / "film.json").write_text(json.dumps(rec))
+        return rec
+
+    monkeypatch.setattr(motd, "make_film", fake_make)
+    rec = await motd.day_film(s, db, None, DAY)
+    assert made == [("tall", "wide")] and rec["date"] == DAY and rec["round_date"] == "2026-10-11"
+    out = motd.film_dir(s, DAY)
+    assert (out / rec["files"]["tall"]).read_bytes() == b"tall" and json.loads((out / "film.json").read_text())["date"] == DAY
+    # /films/ lists the round film once (it has the 16:9 now), not the day copy as well
+    assert [f["round_id"] for f in motd.films(s)] == [rid]
+
+
+async def test_backfill_renders_tall_and_wide_only_when_idle(env, monkeypatch):
+    s, db = env
+    d = motd.round_film_dir(s, 3)
+    d.mkdir(parents=True)
+    (d / "film.json").write_text(json.dumps({"date": DAY, "round_id": 3, "files": {"square": "a.mp4"}}))
+    made = []
+
+    async def fake_make(s_, db_, cards, day, round_id=None, out_dir=None, formats=()):
+        made.append((round_id, formats))
+        return {"round_id": round_id}
+
+    monkeypatch.setattr(motd, "make_film", fake_make)
+    monkeypatch.setattr(motd, "_running", lambda db_: True)
+    assert await motd.backfill(s, db, None) == [] and made == []
+    monkeypatch.setattr(motd, "_running", lambda db_: False)
+    assert await motd.backfill(s, db, None) == [3] and made == [(3, ("tall", "wide"))]
+
+
+async def test_round_film_waits_for_running_rounds_then_renders_square(env, monkeypatch):
+    s, db = env
+    s.motd_writer_wait_s = 60
+    states = iter([True, True, False])
+    monkeypatch.setattr(motd, "_running", lambda db_: next(states, False))
+    slept, made = [], []
+
+    async def fake_sleep(x):
+        slept.append(x)
+
+    async def fake_make(s_, db_, cards, day, round_id=None, out_dir=None, formats=()):
+        made.append((round_id, formats, out_dir))
+        return {"round_id": round_id}
+
+    monkeypatch.setattr(motd, "make_film", fake_make)
+    rid = make_round(db, {"claude": ("CYBERSHOKE", 0.6, 0.7)}, state="resolved", winner="CYBERSHOKE")
+    assert await motd.round_film(s, db, None, rid, sleep=fake_sleep)
+    assert slept == [20, 20] and made == [(rid, ("square",), motd.round_film_dir(s, rid))]
+
+
+@pytest.mark.parametrize("ready", [True, False])
+async def test_results_post_carries_the_round_film_or_the_plain_clip(env, monkeypatch, tmp_path, ready):
+    """v0.6: the round's square film replaces the plain clip in the SAME results post (same key, same text);
+    if it isn't ready by motd_round_deadline_s, the plain clip goes out and the film is never posted alone."""
+    import asyncio
+    from agentpitbench.publish import BenchPublisher
+    s, db = env
+    s.motd_enabled, s.animate, s.motd_round_deadline_s = True, True, 0.2
+    rid = make_round(db, {"claude": ("Nexus", 0.4, 0.6), "codex": ("CYBERSHOKE", 0.6, 0.6)}, state="resolved",
+                     winner="Nexus")
+    plain = tmp_path / "plain.mp4"
+    plain.write_bytes(b"\0")
+
+    async def fake_round_film(s_, db_, cards, round_id, **kw):
+        if not ready:
+            await asyncio.sleep(5)
+        d = motd.round_film_dir(s_, round_id)
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "motd-x-square.mp4").write_bytes(b"\0")
+        return {"round_id": round_id, "files": {"square": "motd-x-square.mp4"}}
+
+    async def fake_clip(self, coro):
+        coro.close()
+        return plain
+
+    monkeypatch.setattr(motd, "round_film", fake_round_film)
+    monkeypatch.setattr(BenchPublisher, "_clip", fake_clip)
+    pub = BenchPublisher(s, db)
+    try:
+        await pub.on_resolved(rid)
+    finally:
+        await pub.close()
+    post = json.loads((s.outbox_dir / f"r{rid}-results.json").read_text())
+    assert post["image"].endswith("motd-x-square.mp4" if ready else "plain.mp4")
+    assert not list(s.outbox_dir.glob("motd-*.json"))  # never a separate film post
+
+
+async def test_tracker_publishes_in_the_background_and_catches_up_after_a_restart(env, monkeypatch):
+    import asyncio
+    from agentpitbench.tracker import Tracker
+    s, db = env
+    s.motd_enabled = True
+    rid = make_round(db, {"claude": ("Nexus", 0.4, 0.6)}, state="resolved", winner="Nexus")
     calls = []
 
-    async def fake_film(s_, db_, cards, day, formats=("square", "tall", "wide"), **kw):
-        calls.append((day, tuple(formats)))
-        out = motd.film_dir(s_, day)
-        out.mkdir(parents=True, exist_ok=True)
-        for f in formats:
-            (out / f"motd-{day}-{f}.mp4").write_bytes(b"\0")
-        return {"date": day, "round_id": 1, "hook": "3 AIs said A. Claude said B.",
-                "files": {f: f"motd-{day}-{f}.mp4" for f in formats}}
+    class Pub:
+        async def on_resolved(self, round_id):
+            calls.append(round_id)
 
-    monkeypatch.setattr(motd, "make_film", fake_film)
-    poster = Poster(s, db)
-    assert await motd.daily(s, db, None, poster, now=t17 - 3600) is None and calls == []  # before 17:00
-    rec = await motd.daily(s, db, None, poster, now=t17)
-    # the X square first, posted; then 9:16 and 16:9 for YouTube and the site
-    assert rec and calls == [(DAY, ("square",)), (DAY, ("tall", "wide"))] and db.get(f"motd_{DAY}") == "done"
-    assert await motd.daily(s, db, None, poster, now=t17 + 3600) is None and len(calls) == 2  # once per date
-    out = json.loads((s.outbox_dir / f"motd-{DAY}.json").read_text())
-    assert out["text"].startswith("3 AIs said A. Claude said B.") and "http" not in out["text"]
-    assert out["image"].endswith("-square.mp4")  # X gets the square film
-    link = json.loads((s.outbox_dir / f"motd-{DAY}-link.json").read_text())
-    assert link["reply_to"] == out["tweet_id"] and "/round/1/" in link["text"]
+    db.put(f"publishing_{rid}", time.time())  # a results post interrupted by a restart
+    tr = Tracker(s, db, None, Pub())
+    tr.catch_up()
+    await asyncio.sleep(0)
+    await asyncio.gather(*tr._tasks)
+    assert calls == [rid] and db.get(f"publishing_{rid}") is None
+    tr.catch_up()  # done: nothing pending
+    assert calls == [rid]
 
 
 async def test_cli_motd_post_posts_a_rendered_film_once(env, monkeypatch, tmp_path):
