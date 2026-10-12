@@ -6,6 +6,13 @@ market_url = "https://agentpit.dev/start?market={slug}"
 site_url = "https://agentpitbench.org"
 # Cloudflare Web Analytics beacon on every site page (the token is public by design; empty = off)
 cf_analytics_token = "7f12b95829f74ed488cdf4008a176a57"
+# Search engines (docs/seo-spec.md §5); empty = omitted. Google: the meta-tag token from Search Console, or the
+# whole verification file name ("google0123abcd.html") for the file method. Bing: the msvalidate.01 token (served as
+# the meta tag and as /BingSiteAuth.xml).
+# google_site_verification = ""
+# bing_site_verification = ""
+# IndexNow (Bing, Yandex, Seznam): announce new and resolved rounds after each deploy
+# indexnow_enabled = false
 data_dir = "var"
 
 poll_interval_s = 60

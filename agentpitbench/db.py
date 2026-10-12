@@ -73,6 +73,18 @@ CREATE TABLE IF NOT EXISTS tweets (
     metrics_json TEXT
 );
 CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT);
+CREATE TABLE IF NOT EXISTS bsky_posts (   -- Bluesky mirror of a tweets row (same post_key); docs/bluesky-spec.md
+    post_key TEXT PRIMARY KEY,
+    uri TEXT, cid TEXT,                    -- at://did/app.bsky.feed.post/rkey, or dry-<key> from the outbox
+    root_uri TEXT, root_cid TEXT,          -- the thread root (a top-level post is its own root)
+    kind TEXT, round_id INTEGER, text TEXT, posted_at REAL,
+    deleted INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS bsky_metrics (  -- one row per public read of one Bluesky post (free)
+    uri TEXT NOT NULL, taken_at REAL NOT NULL, age_s REAL,
+    likes INTEGER, reposts INTEGER, replies INTEGER, quotes INTEGER,
+    PRIMARY KEY (uri, taken_at)
+);
 CREATE TABLE IF NOT EXISTS humans (       -- followers' picks, replied to a round's opener tweet
     round_id INTEGER NOT NULL REFERENCES rounds(round_id),
     user_id TEXT NOT NULL,
@@ -135,6 +147,85 @@ CREATE TABLE IF NOT EXISTS sweep_runs (      -- per agent per day: ok / infra / 
     transcript_path TEXT,
     PRIMARY KEY (sweep_date, agent)
 );
+-- operator AI (docs/ai-automation-spec.md §3). operator_ai_outputs is shared with the A/B build
+-- (ab-testing-spec.md §7, verbatim); this build adds call_id / subject / public in MIGRATIONS.
+CREATE TABLE IF NOT EXISTS operator_ai_outputs (   -- every public operator-AI output, tagged (operator decision)
+    output_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    purpose TEXT NOT NULL,            -- 'ab:<slot>' (ai-automation can reuse this table)
+    model TEXT NOT NULL,              -- as reported by the CLI's json output, else the requested id
+    prompt_version TEXT NOT NULL,
+    created_at REAL NOT NULL,
+    content TEXT NOT NULL,            -- the candidate JSON
+    accepted INTEGER NOT NULL,
+    reject_reason TEXT,
+    run_raw_path TEXT                 -- full CLI output under var/ab_gen/
+);
+CREATE TABLE IF NOT EXISTS ai_calls (            -- every opai call attempt that spawned a process
+    call_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    task TEXT NOT NULL, subject TEXT,
+    day TEXT NOT NULL,                           -- YYYY-MM-DD UTC (budget counting)
+    started_at REAL NOT NULL, duration_s REAL,
+    model_alias TEXT, model_reported TEXT,
+    prompt_name TEXT, prompt_version INTEGER, prompt_sha TEXT,
+    input_sha TEXT,
+    status TEXT NOT NULL,                        -- ok / quota / auth / timeout / invalid / crash
+    detail TEXT
+);
+CREATE TABLE IF NOT EXISTS market_ratings (
+    market_id TEXT PRIMARY KEY,
+    score INTEGER,                               -- 0-100; NULL = rating failed, keyword fallback used
+    reason TEXT,
+    keyword_tier INTEGER NOT NULL,
+    output_id INTEGER REFERENCES operator_ai_outputs(output_id),
+    rated_at REAL NOT NULL,
+    question TEXT,
+    attempts INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS human_replies (
+    round_id INTEGER NOT NULL, reply_id TEXT NOT NULL,
+    user_id TEXT NOT NULL, username TEXT, text TEXT NOT NULL, created_at REAL,
+    exact_pick TEXT,
+    PRIMARY KEY (round_id, reply_id)
+);
+CREATE TABLE IF NOT EXISTS round_summaries (
+    round_id INTEGER NOT NULL, agent TEXT NOT NULL,
+    line1 TEXT NOT NULL, line2 TEXT NOT NULL,
+    output_id INTEGER REFERENCES operator_ai_outputs(output_id),   -- NULL for template lines
+    PRIMARY KEY (round_id, agent)
+);
+CREATE TABLE IF NOT EXISTS anomalies (
+    anomaly_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    key TEXT NOT NULL UNIQUE,
+    detector TEXT NOT NULL, severity TEXT NOT NULL,   -- critical (pauses) / warn (alert only)
+    detail_json TEXT NOT NULL, detected_at REAL NOT NULL,
+    state TEXT NOT NULL DEFAULT 'open'           -- open / acknowledged / resolved
+);
+CREATE TABLE IF NOT EXISTS incident_drafts (
+    draft_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    anomaly_id INTEGER REFERENCES anomalies(anomaly_id),
+    date TEXT NOT NULL, title TEXT NOT NULL, what TEXT NOT NULL, fix TEXT NOT NULL,
+    output_id INTEGER REFERENCES operator_ai_outputs(output_id),   -- NULL = template draft
+    state TEXT NOT NULL DEFAULT 'draft',         -- draft / published / discarded
+    published_at REAL
+);
+CREATE TABLE IF NOT EXISTS policy_changes (
+    change_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    applied_at REAL NOT NULL, policy_json TEXT NOT NULL, reason TEXT,
+    output_id INTEGER REFERENCES operator_ai_outputs(output_id)
+);
+CREATE TABLE IF NOT EXISTS alerts (
+    alert_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    at REAL NOT NULL, severity TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL,
+    sent_via TEXT,                               -- channels it went to, e.g. 'file'
+    kind TEXT, action TEXT, resume TEXT, draft_path TEXT, file_path TEXT,
+    acked_at REAL
+);
+CREATE TABLE IF NOT EXISTS market_i18n (         -- market questions and outcome labels, translated for the site
+    source_text TEXT NOT NULL, lang TEXT NOT NULL, text TEXT NOT NULL,
+    model TEXT, prompt_version TEXT, created_at REAL NOT NULL,
+    output_id INTEGER REFERENCES operator_ai_outputs(output_id),
+    UNIQUE (source_text, lang)
+);
 CREATE TABLE IF NOT EXISTS x_reads (         -- one row per distinct resource per UTC day = what X bills
     day TEXT NOT NULL,                       -- YYYY-MM-DD (UTC)
     resource TEXT NOT NULL,                  -- post / user / owned
@@ -156,20 +247,75 @@ CREATE TABLE IF NOT EXISTS tweet_metrics (   -- one row per read of one post: th
     PRIMARY KEY (tweet_id, taken_at)
 );
 CREATE UNIQUE INDEX IF NOT EXISTS tweet_metrics_bucket ON tweet_metrics(tweet_id, bucket) WHERE bucket IS NOT NULL;
-CREATE TABLE IF NOT EXISTS account_metrics (
-    day TEXT PRIMARY KEY, followers INTEGER, following INTEGER, tweets INTEGER, listed INTEGER, taken_at REAL
-);
-CREATE TABLE IF NOT EXISTS operator_ai_outputs (   -- every public operator-AI output, tagged (operator decision)
+CREATE TABLE IF NOT EXISTS operator_ai_outputs (   -- every operator-AI output, tagged (ab-testing-spec.md section 7)
     output_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    purpose TEXT NOT NULL,            -- 'ab:<slot>', 'motd_script' (ab-testing-spec.md section 7, shared)
+    purpose TEXT NOT NULL,            -- 'ab:<slot>' (ai-automation reuses this table)
     model TEXT NOT NULL,              -- as reported by the CLI's json output, else the requested id
     prompt_version TEXT NOT NULL,
     created_at REAL NOT NULL,
     content TEXT NOT NULL,            -- the candidate JSON
     accepted INTEGER NOT NULL,
     reject_reason TEXT,
-    run_raw_path TEXT                 -- full CLI output, when kept
+    run_raw_path TEXT,                -- full CLI output under var/ab_gen/
+    call_id INTEGER,                  -- ai_calls row (ai-automation-spec.md section 3; NULL before opai)
+    subject TEXT,
+    public INTEGER NOT NULL DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS ab_arms (
+    arm_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    slot TEXT NOT NULL,
+    is_control INTEGER NOT NULL DEFAULT 0,
+    code_key TEXT,                    -- media/tags/tone value; NULL for text arms
+    template_json TEXT,               -- {"situations": {...}} or {"text": "..."}; NULL for code arms
+    output_id INTEGER REFERENCES operator_ai_outputs(output_id),
+    status TEXT NOT NULL DEFAULT 'live',   -- live / queued / retired
+    created_at REAL NOT NULL, live_at REAL, retired_at REAL, retire_note TEXT
+);
+CREATE TABLE IF NOT EXISTS ab_assignments (
+    post_key TEXT NOT NULL, slot TEXT NOT NULL,
+    arm_id INTEGER NOT NULL REFERENCES ab_arms(arm_id),            -- chosen
+    realized_arm_id INTEGER REFERENCES ab_arms(arm_id),           -- what posted (control on fallback)
+    kind TEXT NOT NULL,               -- tweets.kind, or 'site'
+    assigned_at REAL NOT NULL,
+    rendered TEXT,                    -- the exact text that posted
+    excluded TEXT,                    -- 'void' | NULL
+    PRIMARY KEY (post_key, slot)
+);
+CREATE TABLE IF NOT EXISTS cf_clicks (       -- /go/ redirect page views per UTC day (Cloudflare GraphQL)
+    day TEXT NOT NULL, path TEXT NOT NULL, views INTEGER NOT NULL, taken_at REAL NOT NULL,
+    PRIMARY KEY (day, path)
+);
+CREATE TABLE IF NOT EXISTS account_metrics (
+    day TEXT PRIMARY KEY, followers INTEGER, following INTEGER, tweets INTEGER, listed INTEGER, taken_at REAL
+);
+-- YouTube Shorts (docs/youtube-shorts-spec.md §7)
+CREATE TABLE IF NOT EXISTS yt_videos (
+    post_key TEXT PRIMARY KEY,          -- motd-<date>: the same key as the X post
+    video_id TEXT,                      -- NULL until the upload completes
+    round_id INTEGER, file TEXT, title TEXT,
+    privacy_requested TEXT,             -- youtube_privacy at upload
+    privacy TEXT,                       -- last status.privacyStatus seen
+    upload_status TEXT,                 -- last status.uploadStatus seen
+    state TEXT NOT NULL,                -- uploading | uploaded | failed | outbox | paused | hidden | rejected
+    upload_session TEXT,                -- resumable session URI while uploading
+    uploaded_at REAL, published_at REAL,-- published_at = first seen public
+    comment_id TEXT, error TEXT
+);
+CREATE TABLE IF NOT EXISTS yt_metrics (
+    video_id TEXT NOT NULL, taken_at REAL NOT NULL, age_s REAL NOT NULL,
+    source TEXT NOT NULL,                   -- 'data' (videos.list) | 'analytics'
+    bucket TEXT,                            -- data: 1h|24h|72h|7d; analytics: 7d|28d; NULL = series row
+    views INTEGER, likes INTEGER, comments INTEGER,
+    engaged_views INTEGER, minutes_watched REAL, avg_view_s REAL, avg_view_pct REAL,
+    shares INTEGER, subs_gained INTEGER,
+    retention_json TEXT,
+    data_through TEXT,
+    raw_json TEXT,
+    PRIMARY KEY (video_id, taken_at, source)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS yt_metrics_bucket ON yt_metrics(video_id, source, bucket) WHERE bucket IS NOT NULL;
+CREATE TABLE IF NOT EXISTS yt_channel_metrics (day TEXT PRIMARY KEY, subscribers INTEGER, views INTEGER, videos INTEGER, taken_at REAL);
+CREATE TABLE IF NOT EXISTS yt_quota (day_pt TEXT NOT NULL, bucket TEXT NOT NULL, units INTEGER NOT NULL, PRIMARY KEY (day_pt, bucket));
 """
 
 MIGRATIONS = [  # (table, column, definition): added when missing, so old databases keep working
@@ -182,11 +328,20 @@ MIGRATIONS = [  # (table, column, definition): added when missing, so old databa
     # why a round is outside the neutral statistics: summon / high-stakes / pre-season / infra (NULL = counts)
     ("rounds", "exclusion", "TEXT"),
     ("rounds", "headline_variant", "TEXT"),              # A/B tone of the results headline: fun / plain
+    # operator AI (docs/ai-automation-spec.md §3)
+    ("operator_ai_outputs", "call_id", "INTEGER"),       # ai_calls row (NULL for A/B rows)
+    ("operator_ai_outputs", "subject", "TEXT"),          # 'round:57', 'market:812345', 'week:2026-W42', ...
+    ("operator_ai_outputs", "public", "INTEGER NOT NULL DEFAULT 0"),   # 1 once shown on the site / data files
+    ("humans", "source", "TEXT NOT NULL DEFAULT 'exact'"),   # exact / model
+    ("humans", "confidence", "REAL"),
+    ("humans", "output_id", "INTEGER"),
+    ("rounds", "humans_ai_done", "INTEGER NOT NULL DEFAULT 0"),
+    ("rounds", "nw_score", "INTEGER"),
+    ("rounds", "nw_source", "TEXT"),
     ("tweets", "boosted", "INTEGER NOT NULL DEFAULT 0"),  # operator-marked (x-boosted); excluded from rewards
     ("tweets", "deleted", "INTEGER NOT NULL DEFAULT 0"),  # X returned Not Found: never read again
-    ("operator_ai_outputs", "call_id", "INTEGER"),          # ai_calls row (ai-automation-spec section 3; NULL = shim)
-    ("operator_ai_outputs", "subject", "TEXT"),             # 'round:57', ...
-    ("operator_ai_outputs", "public", "INTEGER NOT NULL DEFAULT 0"),  # 1 once shown publicly (a posted film)
+    ("tweets", "reply_to", "TEXT"),                      # A/B: our own replies are not engagement
+    ("tweets", "quote_of", "TEXT"),                      # A/B: our own quotes are not engagement
 ]
 
 
@@ -217,6 +372,12 @@ class DB:
 
     def put(self, k: str, v) -> None:
         self.x("INSERT INTO kv(k,v) VALUES(?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v", k, json.dumps(v))
+
+    def last_infra_failure(self) -> float | None:
+        """When an agent's most recent finished run hit a quota/infra failure (a later good run clears it)."""
+        return self.one(
+            "SELECT MAX(r.finished_at) t FROM runs r WHERE r.exit_reason='infra' AND r.finished_at = "
+            "(SELECT MAX(r2.finished_at) FROM runs r2 WHERE r2.agent = r.agent AND r2.finished_at IS NOT NULL)")["t"]
 
     # rounds
     def create_round(self, market: dict) -> int:
@@ -269,7 +430,9 @@ class DB:
         self.x(f"INSERT INTO bets({cols}) VALUES({','.join('?' * (len(b) + 1))})", run_id, *b.values())
 
     def settle_bet(self, run_id: int, payout: float, pnl: float) -> None:
-        self.x("UPDATE bets SET payout=?, pnl=? WHERE run_id=? AND pnl IS NULL", payout, pnl, run_id)
+        cur = self.conn.execute("UPDATE bets SET payout=?, pnl=? WHERE run_id=? AND pnl IS NULL", (payout, pnl, run_id))
+        if cur.rowcount:  # the value recorded at settlement; the result-edit detector compares against it
+            self.put(f"settled_{run_id}", {"payout": payout, "pnl": pnl})
 
     def set_bet_tweet(self, run_id: int, tweet_id: str) -> None:
         self.x("UPDATE bets SET tweet_id=? WHERE run_id=? AND tweet_id IS NULL", tweet_id, run_id)

@@ -2,13 +2,16 @@
 <html lang="{{ lang }}"{% if rtl %} dir="rtl"{% endif %}><head><meta charset="utf-8">
 {% if lang == 'en' %}<script>/* first visit: show the site in the browser's language if we have it; a choice in the picker sticks */
 (function(){try{if(localStorage.getItem("apb-lang"))return}catch(e){}var L={{ lang_codes|tojson }},w=null;
-(navigator.languages||[navigator.language||""]).some(function(l){var c=String(l).toLowerCase().split("-")[0];if(c==="en")return true;if(L.indexOf(c)>0){w=c;return true}return false});
+(navigator.languages||[navigator.language||""]).some(function(l){var c=String(l).toLowerCase().split("-")[0];c={fil:"tl",jw:"jv","in":"id"}[c]||c;if(c==="en")return true;if(L.indexOf(c)>0){w=c;return true}return false});
 if(w)location.replace({{ root|tojson }}+w+"/"+{{ rel|tojson }}+location.search+location.hash)})();</script>{% endif %}
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{{ title }}</title>
 {% set desc = description or _("{vs}, each on its lab's top model at maximum reasoning, bet 100 tokens on live prediction markets. Every bet, rationale and result is public.", vs=vs) %}
 <meta name="description" content="{{ desc }}">
 <link rel="canonical" href="{{ canonical }}">
+{% if s.google_site_verification and not s.google_site_verification.endswith('.html') %}<meta name="google-site-verification" content="{{ s.google_site_verification }}">
+{% endif %}{% if s.bing_site_verification %}<meta name="msvalidate.01" content="{{ s.bing_site_verification }}">
+{% endif %}
 {% if jsonld %}<script type="application/ld+json">{{ jsonld|tojson }}</script>{% endif %}
 <link rel="icon" href="{{ root }}favicon.svg" type="image/svg+xml"><link rel="icon" href="{{ root }}favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="{{ root }}apple-touch-icon.png">
 {% for code, nm in langs %}<link rel="alternate" hreflang="{{ code }}" href="{{ base }}/{{ '' if code == 'en' else code ~ '/' }}{{ rel }}">
@@ -30,6 +33,7 @@ if(w)location.replace({{ root|tojson }}+w+"/"+{{ rel|tojson }}+location.search+l
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Inter,sans-serif}
 a{color:inherit}
+img,video{max-width:100%;height:auto}
 header{background:#0b1020;color:#fff;border-bottom:4px solid #D97757}
 header .in,main,footer{max-width:960px;margin:0 auto;padding:0 16px}
 header .in{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding-top:12px;padding-bottom:12px}
@@ -39,7 +43,7 @@ nav a{text-decoration:none;opacity:.85}nav a:hover{opacity:1;text-decoration:und
 main{padding-top:20px;padding-bottom:40px}
 h1{font-size:clamp(24px,5vw,36px);line-height:1.15;margin:.2em 0 .4em}
 h2{font-size:20px;margin:1.6em 0 .6em;text-transform:uppercase;letter-spacing:1px}
-.mut{color:var(--mut)}.small{font-size:14px}
+.mut{color:var(--mut)}.small{font-size:14px}.mt{cursor:help}
 .pos{color:var(--pos)}.neg{color:var(--neg)}.zero{color:var(--mut)}
 .num{font-variant-numeric:tabular-nums;font-weight:700}
 .score{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
@@ -78,7 +82,9 @@ footer{border-top:1px solid var(--line);padding-top:16px;padding-bottom:30px;fon
 .lang{position:relative;margin-inline-start:auto;font-size:14px}
 .lang summary{cursor:pointer;list-style:none;opacity:.9;padding:2px 0}.lang summary::-webkit-details-marker{display:none}
 .lang .langs{position:absolute;inset-inline-end:0;top:100%;z-index:5;background:#0b1020;border:1px solid #253058;padding:8px;
-display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:2px 10px;max-width:calc(100vw - 32px)}
+display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:2px 10px;max-width:calc(100vw - 32px);
+max-height:70vh;overflow-y:auto;overscroll-behavior:contain}
+@media (min-width:600px){.lang .langs{grid-template-columns:repeat(3,minmax(120px,1fr))}}
 .lang .langs a{text-decoration:none;padding:3px 4px;white-space:nowrap}.lang .langs a[aria-current]{font-weight:800;text-decoration:underline}
 [dir=rtl] td.r,[dir=rtl] th.r{text-align:left}[dir=rtl] th,[dir=rtl] td{text-align:right}
 [dir=rtl] blockquote{border-left:0;border-right:4px solid var(--line);padding-left:0;padding-right:12px}
@@ -119,6 +125,6 @@ var c=b.querySelector("[data-copy]"),f=b.querySelector("[data-copyfield]"),ok=b.
 c.onclick=function(e){e.preventDefault();function fb(){f.hidden=false;f.focus();f.select()}
 if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(c.href).then(function(){ok.hidden=false;setTimeout(function(){ok.hidden=true},2500)},fb);else fb()}})();</script>
 <footer>{{ _("Automated benchmark operated by SKALE Labs. Paper money (agentpit apUSD). Frontier vs frontier: each AI runs its lab's top model at maximum reasoning. Results are never edited.") }}
-<a href="{{ home }}methodology/">{{ _("Methodology v{v}", v=s.methodology_version) }}</a> · <a href="{{ home }}independence/">{{ _("Independence & conflicts") }}</a> · <a href="{{ home }}incidents/">{{ _("Incidents") }}</a> · <a href="{{ home }}contrarian/">{{ _("Contrarian calls") }}</a> · <a href="{{ home }}data/">{{ _("Data & method") }}</a> · <a href="{{ root }}feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">{{ _("Source (AGPL-3.0)") }}</a> · {{ _("Built {time}", time=built) }}</footer>
+<a href="{{ home }}methodology/">{{ _("Methodology v{v}", v=s.methodology_version) }}</a> · <a href="{{ home }}independence/">{{ _("Independence & conflicts") }}</a> · <a href="{{ home }}incidents/">{{ _("Incidents") }}</a> · <a href="{{ home }}experiments/">{{ _("Experiments") }}</a> · <a href="{{ home }}contrarian/">{{ _("Contrarian calls") }}</a> · <a href="{{ home }}data/">{{ _("Data & method") }}</a> · <a href="{{ root }}feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">{{ _("Source (AGPL-3.0)") }}</a> · {{ _("Built {time}", time=built) }}</footer>
 {% if s.cf_analytics_token %}<script defer type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "{{ s.cf_analytics_token }}"}'></script>{% endif %}
 </body></html>

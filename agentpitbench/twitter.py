@@ -7,6 +7,7 @@ In dry-run, when posting is paused, or without credentials, tweets go to the out
 from __future__ import annotations
 
 import asyncio
+import contextvars
 import json
 import logging
 import os
@@ -55,13 +56,35 @@ def fit(head: str, tail: str, flex: str = "", flex_max: int = 120, quote: bool =
     """head + flex + tail, shrinking flex so the tweet stays within 280. quote wraps flex in quotes after clipping."""
     q = 2 if quote else 0
     budget = MAX_LEN - tweet_len(head + tail) - q
+    raw = flex
     flex = clip(flex, min(flex_max - q, budget)) if flex and budget > 8 else ""
+    _count_clip(len(" ".join((raw or "").split())) - len(flex))
     if flex and quote:
         flex = f"\"{flex}\""
     text = head + flex + tail
     if tweet_len(text) > MAX_LEN:  # head itself too long: clip it
+        _count_clip(tweet_len(text) - MAX_LEN + 1)
         text = clip(head, len(head) - (tweet_len(text) - MAX_LEN) - 1) + tail
     return text
+
+
+_clipped: contextvars.ContextVar[list | None] = contextvars.ContextVar("_clipped", default=None)
+
+
+def _count_clip(n: int) -> None:
+    box = _clipped.get()
+    if box is not None and n > 0:
+        box[0] += n
+
+
+def measure(fn) -> tuple[str, int]:
+    """(fn(), characters fit() clipped while building it): the A/B check that a variant never squeezes a fact."""
+    token = _clipped.set([0])
+    try:
+        text = fn()
+        return text, _clipped.get()[0]
+    finally:
+        _clipped.reset(token)
 
 
 def price_str(p: float | None) -> str:
@@ -98,12 +121,38 @@ def split_text(s: Settings, rnd: dict, kind: str, headline: str, invite: bool = 
     return fit(f"{lead} {picks}. Who's right? ", tail)
 
 
-def reveal_text(rnd: dict, headline: str) -> str:
+def reveal_text(rnd: dict, headline: str, cta: str = "", extra_tags: str = "") -> str:
     """The round's opener on X, posted once every pick is in: the split headline, every pick, and the reply
-    invite (human picks are read from its replies). No link: X bills link posts ~13x."""
+    invite (human picks are read from its replies). No link: X bills link posts ~13x.
+    cta: an A/B lead-in line directly before the invite; extra_tags: A/B hashtags after TAG."""
     picks = " · ".join(f"{e['name']}: {e['outcome'] or 'no bet'}" for e in rnd["entries"])
     invite = "\nReply with your pick: " + clip(" / ".join(rnd.get("outcomes") or []), 60)
-    return fit(f"{headline}.\n{picks}", f"{invite} {TAG}")
+    lead = f"\n{cta}" if cta else ""
+    return fit(f"{headline}.\n{picks}", f"{lead}{invite} {TAG}{extra_tags}")
+
+
+def results_shape(rnd: dict) -> tuple[str | None, dict[str, str]]:
+    """(situation, facts) behind the results hook, for the A/B hook templates (docs/ab-testing-spec.md section 3).
+    situation is None for void rounds and rounds with fewer than 2 bettors (those always post the control)."""
+    if rnd["state"] == "void":
+        return None, {}
+    bettors = [e for e in rnd["entries"] if e.get("outcome")]
+    winners = [e for e in bettors if e.get("won")]
+    losers = [e for e in bettors if not e.get("won")]
+    n = len(bettors)
+    facts = {"winner": rnd["winner"], "n": str(n), "record": f"{len(winners)}-{len(losers)}",
+             "winners": " & ".join(e["name"] for e in winners), "losers": " & ".join(e["name"] for e in losers)}
+    if n < 2:
+        return None, facts
+    if len({e["outcome"] for e in bettors}) == 1:
+        return ("sweep", facts) if winners else ("wipeout", {**facts, "loser_pick": bettors[0]["outcome"]})
+    if len(winners) == 1:
+        return "lone_winner", {**facts, "lone": winners[0]["name"]}
+    if len(losers) == 1:
+        return "lone_loser", {**facts, "lone": losers[0]["name"]}
+    if not winners:
+        return "nobody", facts
+    return "split", facts
 
 
 def results_hook(rnd: dict) -> str:
@@ -111,36 +160,35 @@ def results_hook(rnd: dict) -> str:
     if rnd["state"] == "void":
         return f"Voided: \"{clip(rnd['question'], 100)}\". No result this round."
     w = rnd["winner"]
-    bettors = [e for e in rnd["entries"] if e.get("outcome")]
-    winners = [e for e in bettors if e.get("won")]
-    losers = [e for e in bettors if not e.get("won")]
-    n = len(bettors)
+    sit, f = results_shape(rnd)
+    n = int(f["n"])
     if not n:
         return f"Resolved: {w}. No AI placed a bet."
-    if len({e["outcome"] for e in bettors}) == 1 and n > 1:
-        if winners:
-            return f"Resolved: {w}. All {n} AIs backed it. {n}-0."
-        return f"Resolved: {w}. All {n} AIs backed {bettors[0]['outcome']}. 0-{n}."
-    if len(winners) == 1 and n > 1:
-        return f"Resolved: {w}. {winners[0]['name']} went alone and was right. 1-{n - 1}."
-    if len(losers) == 1 and n > 1:
-        return f"Resolved: {w}. {' & '.join(e['name'] for e in winners)} cash; {losers[0]['name']} alone got it wrong."
-    if not winners:
+    if sit == "sweep":
+        return f"Resolved: {w}. All {n} AIs backed it. {n}-0."
+    if sit == "wipeout":
+        return f"Resolved: {w}. All {n} AIs backed {f['loser_pick']}. 0-{n}."
+    if sit == "lone_winner":
+        return f"Resolved: {w}. {f['lone']} went alone and was right. 1-{n - 1}."
+    if sit == "lone_loser":
+        return f"Resolved: {w}. {f['winners']} cash; {f['lone']} alone got it wrong."
+    if sit == "nobody" or (sit is None and not f["winners"]):   # one bettor, wrong: today's wording
         return f"Resolved: {w}. Nobody had it. 0-{n}."
-    return (f"Resolved: {w}. {' & '.join(e['name'] for e in winners)} win, "
-            f"{' & '.join(e['name'] for e in losers)} lose. {len(winners)}-{len(losers)}.")
+    return f"Resolved: {w}. {f['winners']} win, {f['losers']} lose. {f['record']}."
 
 
 def results_text(s: Settings, rnd: dict, board: list[dict], round_url: str, crowd: dict | None = None,
-                 cast: str | None = None) -> str:
-    """cast is accepted for compatibility but not repeated: the commentary line is on the card already."""
-    head = results_hook(rnd)
+                 cast: str | None = None, hook: str | None = None, cta: str = "", extra_tags: str = "") -> str:
+    """cast is accepted for compatibility but not repeated: the commentary line is on the card already.
+    hook / cta / extra_tags are A/B variants (None / "" = today's control). Vendor handles are never varied."""
+    head = results_hook(rnd) if hook is None else hook
     tags = " ".join(dict.fromkeys(VENDOR_HANDLES[e["agent"]] for e in rnd["entries"]
                                   if e["won"] and e["agent"] in VENDOR_HANDLES))
     season = ", ".join(f"{b['name']} {b['wins']}-{b['losses']}" for b in board)
     if season and crowd and crowd.get("played"):
         season += f" | Crowd {crowd['wins']}-{crowd['losses']}"
-    tail = (f"\nSeason: {season}." if season else "") + f" {TAG}" + (f" {tags}" if tags else "") + f"\n{round_url}"
+    tail = ((f"\nSeason: {season}." if season else "") + f" {TAG}{extra_tags}" + (f" {tags}" if tags else "")
+            + (f"\n{cta}" if cta else "") + f"\n{round_url}")
     return fit(head, tail)
 
 
@@ -273,6 +321,8 @@ class Poster:
         self.creds = {k: os.environ.get(k) for k in ("X_API_KEY", "X_API_SECRET", "X_ACCESS_TOKEN", "X_ACCESS_SECRET")}
         self.oauth2 = OAuth2Token(token_file(), os.environ.get("X_CLIENT_ID", ""),
                                   os.environ.get("X_CLIENT_SECRET", ""), os.environ.get("X_OAUTH2_REFRESH_TOKEN"))
+        from .bluesky import Mirror
+        self.bsky = Mirror(s, db)
 
     @property
     def live(self) -> bool:
@@ -284,12 +334,29 @@ class Poster:
         return OAuth1Session(c["X_API_KEY"], c["X_API_SECRET"], c["X_ACCESS_TOKEN"], c["X_ACCESS_SECRET"])
 
     async def post(self, post_key: str, kind: str, text: str, image: Path | list[Path] | None = None,
-                   reply_to: str | None = None, round_id: int | None = None, quote_of: str | None = None) -> str | None:
+                   reply_to: str | None = None, round_id: int | None = None, quote_of: str | None = None,
+                   alt: list[str] | None = None, bsky_fallback: Path | None = None) -> str | None:
         """quote_of: tweet id to quote (a standalone post that embeds the round's thread).
-        image: one image or video, or a list of up to 4 images shown together (the round's reveal)."""
+        image: one image or video, or a list of up to 4 images shown together (the round's reveal).
+        A successful post is then mirrored to Bluesky (bluesky.Mirror; never raises, never blocks X): alt is
+        per-image alt text there, bsky_fallback the still card to use if the Bluesky video upload fails."""
+        tweet_id = await self._post_x(post_key, kind, text, image, reply_to, round_id, quote_of)
+        if tweet_id and self.bsky.enabled:
+            try:
+                await self.bsky.post(post_key, kind, text, image, reply_to=reply_to, quote_of=quote_of,
+                                     round_id=round_id, alt=alt, fallback=bsky_fallback)
+            except Exception:
+                log.exception("bluesky mirror of %s failed", post_key)
+        return tweet_id
+
+    async def _post_x(self, post_key, kind, text, image, reply_to, round_id, quote_of) -> str | None:
         row = self.db.one("SELECT tweet_id FROM tweets WHERE post_key=?", post_key)
         if row and row["tweet_id"]:
             return row["tweet_id"]
+        from .opai import paused
+        if paused(self.s, self.db, "posting"):  # anomaly/operator pause or posting_paused: record nothing
+            log.warning("[paused] %s: %s", post_key, text.replace("\n", " ")[:80])
+            return None
         if tweet_len(text) > MAX_LEN:
             log.warning("tweet %s is %d chars; clipping", post_key, tweet_len(text))
             text = clip(text, MAX_LEN)
@@ -298,9 +365,10 @@ class Poster:
         else:
             tweet_id = self._post_outbox(post_key, kind, text, image, reply_to, quote_of)
         if tweet_id:
-            self.db.x("INSERT INTO tweets(post_key,tweet_id,kind,round_id,text,image_path,posted_at) VALUES(?,?,?,?,?,?,?)"
+            self.db.x("INSERT INTO tweets(post_key,tweet_id,kind,round_id,text,image_path,posted_at,reply_to,quote_of)"
+                      " VALUES(?,?,?,?,?,?,?,?,?)"
                       " ON CONFLICT(post_key) DO UPDATE SET tweet_id=excluded.tweet_id, posted_at=excluded.posted_at",
-                      post_key, tweet_id, kind, round_id, text, _media_str(image), time.time())
+                      post_key, tweet_id, kind, round_id, text, _media_str(image), time.time(), reply_to, quote_of)
         return tweet_id
 
     async def delete(self, tweet_id: str | None, post_key: str = "") -> bool:

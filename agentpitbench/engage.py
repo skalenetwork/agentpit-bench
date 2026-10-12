@@ -12,7 +12,7 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from . import exports, forecast, media
+from . import ab, exports, forecast, media
 from .agentpit import Agentpit
 from .cards import CardRenderer
 from .config import AGENT_NAMES, Settings
@@ -102,6 +102,10 @@ class Engage:
 
     async def _post(self, key: str, kind: str, text: str, image: Path | None = None, **kw) -> str | None:
         try:
+            text = ab.generic_text(self.db, self.s, key, kind, text)   # generic.cta (control: unchanged)
+        except Exception:
+            log.exception("A/B for %s failed; posting the control", key)
+        try:
             return await self.poster.post(key, kind, text, image, **kw)
         except Exception:
             log.exception("post %s failed", key)
@@ -150,6 +154,8 @@ class Engage:
         except Exception:
             log.exception("reading replies for round %s failed", round_id)
             return 0
+        from .picks import store_replies  # kept for the model's second pass (no second X read, ever)
+        store_replies(self.db, round_id, replies, json.loads(r["outcomes"]), {me})
         picks = human_picks(replies, json.loads(r["outcomes"]), r["end_date"], {me})
         for p in picks:
             self.db.x("INSERT OR IGNORE INTO humans(round_id,user_id,username,pick,tweet_id,created_at)"
@@ -168,6 +174,18 @@ class Engage:
                 continue
             if now >= end:
                 await self.collect_humans(r["round_id"])
+        await self.model_pass_due()
+
+    async def model_pass_due(self) -> None:
+        """Free-form replies read by the operator AI, from the stored replies only (docs/ai-automation-spec.md
+        §6). Retried on later ticks while opai is unavailable."""
+        from . import picks
+        for rid in picks.due(self.db):
+            try:
+                if await picks.model_pass(self.s, self.db, rid) == -1:
+                    break  # opai unavailable: try again next tick
+            except Exception:
+                log.exception("model pick pass for round %s failed", rid)
 
     def score_humans(self, round_id: int) -> None:
         r = self.db.round(round_id)

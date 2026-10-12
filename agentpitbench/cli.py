@@ -9,6 +9,7 @@ import signal
 import sys
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 
 from . import config, exports
 from .agentpit import Agentpit
@@ -55,7 +56,55 @@ def metrics_task(s: config.Settings, db: DB, pub):
             await asyncio.to_thread(xstats.pull_due, s, db, poster)
         finally:
             await asyncio.to_thread(xstats.digest_due, s, db)
+            if s.bluesky_enabled:  # free public reads (docs/bluesky-spec.md §6)
+                from . import bskystats
+                try:
+                    await asyncio.to_thread(bskystats.pull, s, db)
+                except Exception:
+                    log.exception("bluesky metrics failed")
     return x_metrics
+
+
+YOUTUBE_INTERVAL_S = 600
+
+
+def youtube_task(s: config.Settings, db: DB, client=None):
+    """The YouTube Shorts cycle (docs/youtube-shorts-spec.md §8), or None unless youtube_enabled and motd_enabled.
+    A separate loop (never inside motd.daily), run in a thread, so a slow upload can't delay X, rounds or the
+    scheduler. Without a token it still runs in dry-run (outbox) mode, and otherwise logs once and idles."""
+    if not (s.youtube_enabled and s.motd_enabled):
+        return None
+    from . import youtube, ytstats
+
+    async def cycle():
+        c = client or youtube.client_from_settings(s, db)
+        if c is None and not s.dry_run:
+            if not db.get("yt_no_token_logged"):
+                log.error("youtube_enabled but no YouTube token: run `agentpitbench youtube auth`")
+                db.put("yt_no_token_logged", True)
+            return
+        await asyncio.to_thread(ytstats.pull_due, s, db, c)
+    return cycle
+
+def rounds_paused(s: config.Settings, db: DB) -> bool:
+    """New rounds (batch, High-Stakes, summons, manual) are held while an anomaly or the operator paused them.
+    In-flight rounds finish; the forecast sweep is never paused."""
+    from .opai import paused
+    if paused(s, db, "rounds"):
+        log.warning("new rounds paused (%s); see `agentpitbench ops status`", (db.get("pause") or {}).get("reason"))
+        return True
+    return False
+
+
+async def ops_tick(s: config.Settings, db: DB) -> None:
+    """Every 5 min: anomaly detectors (pause + draft + alert), market-title translations, summary catch-up."""
+    from . import anomaly, market_i18n, summaries
+    await asyncio.to_thread(anomaly.tick, s, db)
+    for fn in (market_i18n.atick, summaries.atick):
+        try:
+            await fn(s, db)
+        except Exception:
+            log.exception("%s failed", fn.__module__)
 
 
 async def run_forever(s: config.Settings) -> None:
@@ -69,15 +118,13 @@ async def run_forever(s: config.Settings) -> None:
     async def start_batch():
         await watcher.poll()  # scan first: at startup the batch used to run before the first scan finished
         free = s.max_concurrent_rounds - len(running)
-        if free <= 0:
+        if free <= 0 or rounds_paused(s, db):
             return
         if s.sandbox and not await sandbox_ok():  # never start rounds that would all 'crash' at launch
             log.error("batch skipped: the agent sandbox self-check failed; no rounds started, nothing posted")
             return
         # an agent whose most recent run hit a quota/infra failure (a later good run clears it)
-        last_infra = db.one(
-            "SELECT MAX(r.finished_at) t FROM runs r WHERE r.exit_reason='infra' AND r.finished_at = "
-            "(SELECT MAX(r2.finished_at) FROM runs r2 WHERE r2.agent = r.agent AND r2.finished_at IS NOT NULL)")["t"]
+        last_infra = db.last_infra_failure()
         if last_infra and time.time() - last_infra < s.infra_cooldown_s:  # e.g. a subscription quota hit:
             log.warning("batch skipped: an agent hit an infrastructure/quota failure %.1f h ago; "
                         "pausing new rounds for %.0f h", (time.time() - last_infra) / 3600, s.infra_cooldown_s / 3600)
@@ -115,11 +162,11 @@ async def run_forever(s: config.Settings) -> None:
         if engage is None:
             return
         engage.api = api
-        if len(running) < s.max_concurrent_rounds:
+        if len(running) < s.max_concurrent_rounds and not rounds_paused(s, db):
             m = await engage.high_stakes_market(watcher)
             if m:
                 launch(m)
-        if len(running) < s.max_concurrent_rounds:
+        if len(running) < s.max_concurrent_rounds and not rounds_paused(s, db):
             picked = await engage.pick_summon(watcher)
             if picked:
                 row, m = picked
@@ -129,6 +176,25 @@ async def run_forever(s: config.Settings) -> None:
                 await job()
             except Exception:
                 log.exception("%s failed", job.__name__)
+        await ab_jobs()
+
+    async def ab_jobs():
+        """A/B (docs/ab-testing-spec.md): the generator (idle windows only), site-click counts, the digest."""
+        from . import ab_gen, ab_report, cf
+        try:
+            r = await ab_gen.run(s, db, idle=lambda: not running)
+            if r.get("status") != "skipped":
+                log.info("A/B generator: %s", {k: v for k, v in r.items() if k != "candidates"})
+        except Exception:
+            log.exception("A/B generator failed")
+        try:
+            await asyncio.to_thread(cf.fetch_due, s, db)
+        except Exception:
+            log.exception("Cloudflare click counts failed")
+        try:
+            ab_report.digest_due(db, s)
+        except Exception:
+            log.exception("A/B digest failed")
 
     async def humans():
         if engage is not None:
@@ -186,10 +252,14 @@ async def run_forever(s: config.Settings) -> None:
         asyncio.create_task(_every(1800, daily_sweep, "sweep")),
         asyncio.create_task(_every(3600, match_of_the_day, "match of the day")),
         asyncio.create_task(_every(s.resolution_check_s, score_forecasts, "forecast scoring")),
+        asyncio.create_task(_every(300, lambda: ops_tick(s, db), "anomalies")),  # also runs once at startup
     ]
     x_metrics = metrics_task(s, db, pub)
     if x_metrics is not None:
         tasks.append(asyncio.create_task(_every(X_METRICS_INTERVAL_S, x_metrics, "x-metrics")))
+    yt = youtube_task(s, db)
+    if yt is not None:
+        tasks.append(asyncio.create_task(_every(YOUTUBE_INTERVAL_S, yt, "youtube")))
     await stop.wait()
     log.info("stopping; in-flight rounds will be marked crashed on next start")
     for t in tasks + list(running):
@@ -202,6 +272,8 @@ async def run_forever(s: config.Settings) -> None:
 
 async def one_round(s: config.Settings, market_id: str, agents: list[str] | None) -> None:
     db = DB(s.db_path)
+    if rounds_paused(s, db):
+        sys.exit("new rounds are paused (agentpitbench ops status)")
     api = Agentpit(s.api_url)
     pub = make_publisher(s, db)
     m = await api.market(market_id)
@@ -391,6 +463,112 @@ def x_login(s: config.Settings, redirected: str | None, redirect_uri: str | None
         print("3. Copy that whole URL and run:  agentpitbench x-login --url '<that URL>'   (right away: the code expires quickly)")
 
 
+def youtube_auth(s: config.Settings, redirected: str | None, port: int, no_wait: bool) -> None:
+    """One-time: authorize the AgentpitBench brand channel (installed-app OAuth, loopback redirect)."""
+    from . import youtube
+    tok = youtube.Token()
+    if not tok.configured:
+        sys.exit("need YT_CLIENT_ID and YT_CLIENT_SECRET in the secrets file (~/.config/agentpitbench/secrets.env)")
+    if redirected:
+        print("logged in; scopes:", " ".join(sorted(tok.finish_login(redirected))))
+        print("next: agentpitbench youtube check")
+        return
+    redirect = f"http://127.0.0.1:{port}"
+    url = tok.authorize_url(redirect)
+    print("1. Open this URL in a browser signed in as the Workspace account that owns the brand channel:\n")
+    print(url)
+    print("\n2. Choose the AgentpitBench channel (not the personal one) on the account picker, then Allow.")
+    print(f"   Headless server? Forward the port from your laptop first:  ssh -L {port}:127.0.0.1:{port} <server>")
+    if no_wait:
+        print("3. The browser lands on http://127.0.0.1:... (it may fail to load). Copy that whole URL and run:\n"
+              "   agentpitbench youtube auth --url '<that URL>'")
+        return
+    print(f"3. Waiting up to 5 minutes for the redirect on {redirect} ... "
+          "(if it can't reach here, Ctrl-C and use --url with the address-bar URL)")
+    got = youtube.wait_for_redirect(port)
+    if not got:
+        sys.exit("no redirect received; copy the browser's address-bar URL and run: "
+                 "agentpitbench youtube auth --url '<URL>'")
+    print("logged in; scopes:", " ".join(sorted(tok.finish_login(got))))
+    print("next: agentpitbench youtube check")
+
+
+def youtube_check(s: config.Settings, client=None) -> None:
+    """Token refreshes, scopes, the channel behind the token vs youtube_channel_id, category, quota, health."""
+    from . import youtube, ytstats
+    db = DB(s.db_path)
+    tok = client.token if client else youtube.Token()
+    print(f"token file: {tok.path} ({'present' if tok.path.exists() else 'MISSING'})")
+    if not tok.configured:
+        sys.exit("need YT_CLIENT_ID and YT_CLIENT_SECRET in the secrets file")
+    if not tok.ready:
+        sys.exit("no token: run `agentpitbench youtube auth`")
+    tok.get(stale=tok._load().get("access_token"))   # force a refresh: proves the refresh token works
+    d = tok._load()
+    age_days = (time.time() - d.get("created_at", time.time())) / 86400
+    print(f"token refresh: OK (refresh token is {age_days:.1f} days old; an Internal app's doesn't expire at 7 days)")
+    missing = set(youtube.SCOPES) - tok.scopes()
+    print("scopes:", " ".join(sorted(tok.scopes())), "| missing:", ", ".join(sorted(missing)) or "none")
+    c = client or youtube.Client(s, db, tok)
+    ch = c.my_channel()
+    sn = ch.get("snippet", {})
+    print(f"token channel: {ch['id']}  {sn.get('title')!r}  {sn.get('customUrl') or ''}")
+    if not s.youtube_channel_id:
+        print(f"channel guard: youtube_channel_id is empty (uploads refused). If this is the AgentpitBench brand "
+              f"channel, put\n  youtube_channel_id = \"{ch['id']}\"\nin bench.toml")
+    elif ch["id"] == s.youtube_channel_id:
+        print("channel guard: OK")
+    else:
+        print(f"channel guard: MISMATCH (bench.toml has {s.youtube_channel_id}); uploads are refused. "
+              "Re-run `youtube auth` and choose the AgentpitBench channel.")
+    print(f"category {s.youtube_category_id}:",
+          "assignable" if c.category_ok(s.youtube_category_id) else "NOT assignable")
+    print(f"youtube_enabled={s.youtube_enabled} motd_enabled={s.motd_enabled} youtube_privacy={s.youtube_privacy} "
+          f"dry_run={s.dry_run} posting_paused={s.posting_paused}")
+    print("quota today (Pacific):", json.dumps(ytstats.quota(db)))
+    print("health:", json.dumps(ytstats.health(db)))
+
+
+def _film(s: config.Settings, day: str):
+    from . import motd
+    f = motd.film_dir(s, day) / "film.json"
+    if not f.exists():
+        sys.exit(f"no film for {day} ({f})")
+    return json.loads(f.read_text()), f.parent
+
+
+def youtube_meta(s: config.Settings, day: str) -> None:
+    from . import youtube, ytstats
+    rec, _ = _film(s, day)
+    print(youtube.metadata_text(s, rec, ytstats.round_export(s, DB(s.db_path), rec["round_id"])))
+
+
+def youtube_upload(s: config.Settings, day: str, client=None) -> None:
+    from . import youtube, ytstats
+    db = DB(s.db_path)
+    rec, d = _film(s, day)
+    cur = youtube.row(db, youtube.post_key(day))
+    if cur and cur.get("video_id"):
+        sys.exit(f"already uploaded: https://youtube.com/shorts/{cur['video_id']}")
+    c = client or youtube.client_from_settings(s, db)
+    if c is None and not (s.dry_run or s.posting_paused):
+        sys.exit("no YouTube token: run `agentpitbench youtube auth`")
+    print(json.dumps(youtube.upload(s, db, c, rec, d, ytstats.round_export(s, db, rec["round_id"]), manual=True),
+                     indent=1))
+
+
+def youtube_stats(s: config.Settings, days: float) -> None:
+    from . import ytstats
+    db = DB(s.db_path)
+    since = time.time() - days * 86400
+    print(f"films from the last {days:g} day(s), X beside YouTube:")
+    print(_table(ytstats.by_film(db, since)))
+    print("\nsubscribers:")
+    print(_table(ytstats.followers_series(db, since)))
+    print("\nquota:", json.dumps(ytstats.quota(db)))
+    print("health:", json.dumps(ytstats.health(db)))
+
+
 def _probe_png() -> bytes:
     import struct, zlib
     def chunk(t, d):
@@ -437,15 +615,47 @@ def main(argv: list[str] | None = None) -> None:
     g = xb.add_mutually_exclusive_group()
     g.add_argument("--off", action="store_true", help="unmark it")
     g.add_argument("--check", action="store_true", help="one billed read of its organic/promoted metrics")
+    abp = sub.add_parser("ab", help="A/B testing of post wording: status, retire, propose, validate, add, digest")
+    absub = abp.add_subparsers(dest="ab_cmd", required=True)
+    st = absub.add_parser("status", help="arms per slot with n, mean ± sd, p_best and a posted example")
+    st.add_argument("--slot")
+    rt = absub.add_parser("retire", help="retire an arm (never the control); promotes the oldest queued arm")
+    rt.add_argument("arm_id", type=int)
+    rt.add_argument("--note")
+    pr = absub.add_parser("propose", help="run the copy generator now (same guards, incl. the idle check)")
+    pr.add_argument("--dry", action="store_true", help="print candidates and validation results, insert nothing")
+    va = absub.add_parser("validate", help="validate a hand-written arm set: {slot: [template, ...]}")
+    va.add_argument("file")
+    ad = absub.add_parser("add", help="insert a hand-written arm set (operator-written arms)")
+    ad.add_argument("file")
+    dg = absub.add_parser("digest", help="print the A/B digest")
+    dg.add_argument("--date")
     xl = sub.add_parser("x-login", help="authorize the X account with every scope the bench needs")
     xl.add_argument("--url", help="the URL X redirected you to (step 2)")
     xl.add_argument("--redirect-uri", help="callback URL registered on the X app (default: site_url)")
+    yt = sub.add_parser("youtube", help="YouTube Shorts: auth, check, meta, upload, stats")
+    ytsub = yt.add_subparsers(dest="yt_cmd", required=True)
+    ya = ytsub.add_parser("auth", help="one-time: connect the AgentpitBench brand channel (OAuth, loopback)")
+    ya.add_argument("--url", help="the 127.0.0.1 URL the browser was redirected to (finishes the login)")
+    ya.add_argument("--port", type=int, default=8765, help="loopback port for the redirect (default 8765)")
+    ya.add_argument("--no-wait", action="store_true", help="print the URL only; finish later with --url")
+    ytsub.add_parser("check", help="verify the token refreshes and the channel matches youtube_channel_id")
+    ym = ytsub.add_parser("meta", help="print a film's title, description and tags (no network)")
+    ym.add_argument("--date", required=True)
+    yu = ytsub.add_parser("upload", help="upload one film now (respects pause and dry-run)")
+    yu.add_argument("--date", required=True)
+    ys = ytsub.add_parser("stats", help="X beside YouTube per film, subscribers, quota")
+    ys.add_argument("--days", type=float, default=7)
+    from . import opscli  # operator AI, methodology lock, ops/alerts/incidents (docs/ai-automation-spec.md §14)
+    opscli.add_parsers(sub)
     a = p.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     s = config.load(a.config)
     if a.live:
         s.dry_run = False
-    if a.cmd == "run":
+    if a.cmd in opscli.COMMANDS:
+        opscli.dispatch(s, a)
+    elif a.cmd == "run":
         asyncio.run(run_forever(s))
     elif a.cmd == "round":
         asyncio.run(one_round(s, a.market_id, a.agents.split(",") if a.agents else None))
@@ -477,6 +687,58 @@ def main(argv: list[str] | None = None) -> None:
         x_stats(s, a.days, a.by, a.bucket)
     elif a.cmd == "x-boosted":
         x_boosted(s, a.tweet_id, a.off, a.check)
+    elif a.cmd == "youtube":
+        if a.yt_cmd == "auth":
+            youtube_auth(s, a.url, a.port, a.no_wait)
+        elif a.yt_cmd == "check":
+            youtube_check(s)
+        elif a.yt_cmd == "meta":
+            youtube_meta(s, a.date)
+        elif a.yt_cmd == "upload":
+            youtube_upload(s, a.date)
+        elif a.yt_cmd == "stats":
+            youtube_stats(s, a.days)
+    elif a.cmd == "ab":
+        ab_cli(s, a)
+
+
+def _round_running(db: DB) -> bool:
+    return db.one("SELECT 1 FROM rounds WHERE state='running' LIMIT 1") is not None
+
+
+def ab_cli(s: config.Settings, a) -> None:
+    from . import ab, ab_gen, ab_report
+    db = DB(s.db_path)
+    ab.seed(db)
+    if a.ab_cmd == "status":
+        ab_report.print_status(db, s, a.slot)
+    elif a.ab_cmd == "retire":
+        try:
+            promoted = ab.retire(db, a.arm_id, a.note)
+        except ValueError as e:
+            sys.exit(str(e))
+        print(f"arm {a.arm_id} retired" + (f"; arm {promoted} is live" if promoted else ""))
+    elif a.ab_cmd == "propose":
+        if not a.dry and not s.ab_gen_enabled:
+            sys.exit("ab_gen_enabled = false: review a --dry batch first, then set ab_gen_enabled = true in bench.toml")
+        r = asyncio.run(ab_gen.run(s, db, idle=lambda: not _round_running(db), dry=a.dry, force=True))
+        print(json.dumps(r, indent=1, ensure_ascii=False))
+    elif a.ab_cmd in ("validate", "add"):
+        sets = json.loads(Path(a.file).read_text())
+        bad = 0
+        for slot, items in sets.items():
+            for tpl in items if isinstance(items, list) else [items]:
+                errs = ab.validate(slot, tpl)
+                bad += bool(errs)
+                if a.ab_cmd == "add" and not errs:
+                    aid, status = ab.add_arm(db, s, slot, tpl)
+                    print(f"{slot}: arm {aid} {status}")
+                else:
+                    print(f"{slot}: {'OK' if not errs else 'REJECTED: ' + '; '.join(errs)}  {json.dumps(tpl, ensure_ascii=False)}")
+        if bad:
+            sys.exit(1)
+    elif a.ab_cmd == "digest":
+        print(json.dumps(ab_report.digest(db, s, a.date), indent=1, ensure_ascii=False))
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # YouTube Shorts: the daily film on a second platform (spec)
 
-Status: v1 draft · 2026-10-12 · not built. Sources were fetched 2026-10-12 and are listed at the end with each page's
+Status: v1 built 2026-10-12 (`youtube.py`, `ytstats.py`; `youtube_enabled = false` until the operator connects). Sources were fetched 2026-10-12 and are listed at the end with each page's
 own "last updated" date. Builds on two things now on `main`:
 - **Match of the Day v0.4**: `motd.py`, merged in `6620bc302`, and switched on in `bench.toml` by `9ea90fa05`;
 - **x-analytics**: `xstats.py`, the `x-metrics` loop and the 08:00 UTC digest, merged in `cdecd822a`.
@@ -514,7 +514,31 @@ Secrets: `YT_CLIENT_ID` and `YT_CLIENT_SECRET` in `secrets.env`. Token: `yt_oaut
 6. The four warn detectors when the ai-automation anomaly table exists (until then, digest lines only), and
    `sameAs` plus `yt-assets`.
 
-## Open questions for the operator
+## Operator answers and build notes (2026-10-12)
+
+Answers:
+1. Brand channel under the SKALE Labs Workspace account; no second owner (§5.1's second owner is dropped).
+2. **Internal** OAuth app in the SKALE Labs Workspace Cloud org (no unverified screen, no 7-day token expiry).
+3. After the first upload proves unlocked, set `youtube_privacy = "public"`: films go public automatically.
+4. Audit form only if the first upload turns out locked.
+5. Launch on the "benchmark commentary, no gambling links" reading.
+6. Handle `@agentpitbench`.
+
+As built, differing from the text above:
+- The CLI is one `youtube` command: `youtube auth [--url URL] [--port 8765] [--no-wait]` (replaces `yt-login`;
+  waits on a loopback listener at `127.0.0.1:<port>`, or finishes with a pasted URL), `youtube check` (replaces
+  `yt-check`), `youtube meta --date D` (`yt-meta`), `youtube upload --date D`, `youtube stats [--days N]`
+  (`yt-stats`). `yt-assets` and the `sameAs` entry are not built yet. Google's device flow isn't offered: its
+  scope allowlist doesn't include `youtube.force-ssl` or `yt-analytics.readonly`.
+- **Title with scripted films:** when `film.json` has a `script` with a hook line, that line is the title's hook;
+  otherwise the v0.4 `hook`.
+- **§6 re-check:** the scripted films add an ElevenLabs narrator, which §6 names as a re-check trigger.
+  `containsSyntheticMedia` is now the config key `youtube_synthetic_media` (default `false`), and narrated films
+  declare `defaultAudioLanguage = "en"`. The operator decides the flag before the first narrated upload.
+- The cycle, quota ledger, analytics, digest block and void hook are built as specified; the four warn detectors
+  appear as `warnings` in the digest's YouTube block until the ai-automation detector table exists.
+
+## Open questions for the operator (answered above)
 
 1. **Google account and channel ownership:** create the brand channel from which Google account (personal Gmail or
    a SKALE Labs Workspace account; Workspace needs YouTube enabled for the org)? Who is the second owner?

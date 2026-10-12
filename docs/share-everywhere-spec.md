@@ -1,6 +1,6 @@
 # Share everywhere: spec
 
-Status: v3, reviewed with the advisor (two passes) · 2026-10-12 · **part A built** (sections 1, 4, 5, 6 and the build check); part B (section 2 Share image, section 3 Share your pick) still to come. `max_reply_reads` stays at 100 (operator).
+Status: v3, reviewed with the advisor (two passes) · 2026-10-12 · **built**: part A (sections 1, 4, 5, 6 and the build check) and part B (section 2 Share image, section 3 Share your pick and Share my win). `max_reply_reads` stays at 100 (operator); the round page says "First N picks counted." when `xstats.reply_cap_hit`. While a round is running there is no X opener yet (the reveal post goes up once every agent has picked), so the pick X link is a normal post with the URL and the page says to come back and reply; once the opener exists it replies to it, outcome label first. Human-winner cards have no page of their own, so Share my win sits in the round page's "Humans playing along" section.
 
 ## Problem (audit of commit 4fb964a)
 

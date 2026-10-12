@@ -341,21 +341,35 @@ def results_headline(rnd: dict, _=_en, variant: str = "fun") -> str:
 
 def split_headline(rnd: dict, _=_en) -> tuple[str, str]:
     """(kind, headline): kind is 'split' or 'agree'. Agents with no bet are left out of the count."""
+    sit, f = split_shape(rnd)
+    if sit == "agree":
+        return "agree", _("They all agree")
+    if sit == "alone":
+        return "split", _("{score}: {name} goes alone", score=f["score"], name=f["lone"])
+    if sit == "dead_split":
+        return "split", _("{score}: dead split", score=f["score"])
+    if sit == "nobody_agrees":
+        return "split", _("{score}: nobody agrees", score=f["score"])
+    return "split", _("{score}: {n}-way split", score=f["score"], n=f["n"])
+
+
+def split_shape(rnd: dict) -> tuple[str, dict[str, str]]:
+    """(situation, facts) behind the reveal headline, for the A/B hook templates (docs/ab-testing-spec.md
+    section 3). situation: agree / alone / dead_split / nobody_agrees / nway; facts: score, lone, n."""
     picks: dict[str, list[str]] = {}
     for e in rnd["entries"]:
         if e["outcome"]:
             picks.setdefault(e["outcome"], []).append(e["name"])
     if len(picks) <= 1:
-        return "agree", _("They all agree")
+        return "agree", {}
     groups = sorted(picks.values(), key=len, reverse=True)
     sizes = [len(g) for g in groups]
-    score = "–".join(map(str, sizes))
+    facts = {"score": "–".join(map(str, sizes)), "n": str(len(groups))}
     if len(groups) == 2 and sizes[1] == 1 and sizes[0] > 1:
-        return "split", _("{score}: {name} goes alone", score=score, name=groups[1][0])
+        return "alone", {**facts, "lone": groups[1][0]}
     if len(set(sizes)) == 1:
-        return "split", (_("{score}: dead split", score=score) if len(groups) == 2
-                         else _("{score}: nobody agrees", score=score))
-    return "split", _("{score}: {n}-way split", score=score, n=len(groups))
+        return ("dead_split" if len(groups) == 2 else "nobody_agrees"), facts
+    return "nway", facts
 
 
 def entry_status(e: dict) -> str:

@@ -1,178 +1,464 @@
-"""Operator AI ("opai"): MINIMAL SHIM with the ai-automation spec's signature (docs/ai-automation-spec.md section 2).
+"""The operator AI ("opai", docs/ai-automation-spec.md §2): one `claude -p` call per task, on its own login,
+with no tools, a JSON schema and a code validator. It never blocks a round or a post: every failure returns
+None and the caller keeps its rule-based fallback. It is never a contestant and never sees a sealed pick.
 
-The full runner (ai_calls budget table, quota backoff, contestant breaker, per-task allocations) is being built on
-another branch and replaces this file. Until then this shim gives Match of the Day (`task="motd_script"`) the same
-call shape and the same safety rules that matter for it:
-
-- `claude -p` with no tools, no MCP servers, no session persistence, JSON output and a JSON schema; argv only,
-  the prompt on stdin, an empty temporary cwd, a minimal environment. It never runs inside a contestant sandbox.
-- `available()` refuses while any round is running (its picks are sealed and the Claude contestant shares the
-  quota) and inside the daily sweep window, so a script call never competes with a contestant.
-- Every answer, accepted or rejected, is stored in `operator_ai_outputs` with model, prompt version, timestamp,
-  subject and public=0. Any failure returns None and the caller uses its fallback.
+Every call that spawns a process writes an `ai_calls` row (the budget counts these). Every output, accepted or
+rejected, is tagged in `operator_ai_outputs` with task, model, prompt version, subject and timestamp.
 """
 from __future__ import annotations
 
+import asyncio
+import dataclasses
 import hashlib
 import json
 import logging
 import math
 import os
+import re
 import shutil
+import signal
 import subprocess
 import tempfile
+import threading
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from importlib import resources
 from pathlib import Path
 from typing import Callable
 
+from .config import Settings
+from .db import DB
+
 log = logging.getLogger(__name__)
 
-PROMPTS = Path(__file__).parent / "prompts"
-SWEEP_GUARD_MIN = 30
+# task -> active prompt version (prompts/<task>.v<N>.md). `rate` is methodology: its version comes from
+# methodology.json (selection.rater.prompt_version), never from here.
+PROMPTS = {"rate": 1, "picks": 1, "summary": 1, "report": 1, "incident": 1, "cadence": 1, "i18n": 1,
+           "proposal": 1, "translate": 1, "motd_script": 1}
+SYSTEM_PROMPT = "system.v1.md"
+LIGHT_TASKS = {"picks"}
+CHILD_PATH = "/usr/local/bin:/usr/bin:/bin"
+FAILED = ("quota", "auth", "timeout", "invalid", "crash")
+
+
+class SealedError(RuntimeError):
+    """A prompt was about to be built from a round whose picks are still secret."""
 
 
 @dataclass
 class Result:
     data: dict            # validated JSON
     output_id: int        # operator_ai_outputs.output_id
-    model: str            # model actually reported (result JSON "modelUsage" key), else the alias asked for
+    model: str            # model the CLI reported, else the alias asked for
+    call_id: int = 0
 
 
-@dataclass
-class Task:
-    prompt: str                                   # file name under prompts/, e.g. "motd_script.v1.md"
-    schema: dict                                  # JSON schema passed to --json-schema
-    validate: Callable[[dict, dict], str | None]  # (data, payload) -> reject reason or None
-    model: str = "fable"                          # CLI alias; overridden by settings when given
+# ---------------------------------------------------------------- prompts
+
+def prompt_path(name: str) -> Path:
+    return Path(str(resources.files("agentpitbench").joinpath(f"prompts/{name}")))
 
 
-TASKS: dict[str, Task] = {}
+def prompt_version(task: str) -> int:
+    if task == "rate":
+        try:
+            from . import methodology
+            return int(methodology.load()["selection"]["rater"]["prompt_version"])
+        except Exception:
+            return PROMPTS["rate"]
+    return PROMPTS[task]
 
 
-def register(name: str, task: Task) -> None:
-    TASKS[name] = task
+def prompt_text(task: str, version: int | None = None) -> str:
+    return prompt_path(f"{task}.v{version or prompt_version(task)}.md").read_text("utf-8")
 
 
-class SealedError(RuntimeError):
-    pass
+def sha(text: str | bytes) -> str:
+    return hashlib.sha256(text.encode("utf-8") if isinstance(text, str) else text).hexdigest()
 
 
-def sealed_guard(db, round_id: int) -> None:
+def data_block(payload) -> str:
+    """Untrusted material, wrapped so it reads as data. A literal closing tag inside can't end the block."""
+    body = json.dumps(payload, ensure_ascii=False, indent=1).replace("</data", "<\\/data")
+    return f'<data id="input">\n{body}\n</data>'
+
+
+# ---------------------------------------------------------------- schemas (stdlib checker, no dependency)
+
+def _obj(props: dict, required: list[str] | None = None, extra=False) -> dict:
+    return {"type": "object", "properties": props, "required": list(props) if required is None else required,
+            "additionalProperties": extra}
+
+
+_STR = {"type": "string"}
+
+
+def _translate_schema(payload: dict) -> dict:
+    n = len(payload["texts"])
+    arr = {"type": "array", "items": _STR, "minItems": n, "maxItems": n}
+    return _obj({lang: arr for lang in payload["langs"]})
+
+
+def _picks_schema(payload: dict) -> dict:
+    return _obj({"picks": {"type": "array", "items": _obj({
+        "reply_id": _STR,
+        "outcome": {"anyOf": [{"type": "string", "enum": list(payload["outcomes"])}, {"type": "null"}]},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1}})}})
+
+
+def _summary_schema(payload: dict) -> dict:
+    line = {"type": "string", "maxLength": 200}
+    return _obj({"agents": _obj({a["agent"]: _obj({"line1": line, "line2": line}) for a in payload["agents"]},
+                                required=[])})
+
+
+SCHEMAS: dict[str, dict | Callable[[dict], dict]] = {
+    "rate": _obj({"ratings": {"type": "array", "items": _obj({
+        "market_id": _STR, "score": {"type": "integer", "minimum": 0, "maximum": 100}, "reason": _STR})}}),
+    "picks": _picks_schema,
+    "summary": _summary_schema,
+    "report": _obj({"headline": _STR, "paragraphs": {"type": "array", "items": _STR, "minItems": 2, "maxItems": 4}}),
+    "incident": _obj({"title": _STR, "what": _STR, "fix": _STR}),
+    "cadence": _obj({"policy": {"type": "object"}, "reason": _STR}),
+    "i18n": _obj({"translations": {"type": "object", "additionalProperties": _STR}}),
+    "proposal": {"type": "object"},
+    "translate": _translate_schema,
+    "motd_script": lambda payload: _motd_schema(),
+}
+
+
+def _motd_schema() -> dict:
+    from .motd_story import SCHEMA  # Match of the Day v0.5: the film script (scenes with typed slots)
+    return SCHEMA
+
+
+def schema_for(task: str, payload: dict) -> dict:
+    sc = SCHEMAS[task]
+    return sc(payload) if callable(sc) else sc
+
+
+_TYPES = {"object": dict, "array": list, "string": str, "boolean": bool, "null": type(None)}
+
+
+def check(value, schema: dict, path: str = "$") -> str | None:
+    """The JSON Schema subset the task schemas use. Returns the first violation, or None."""
+    if "anyOf" in schema:
+        return None if any(check(value, s, path) is None for s in schema["anyOf"]) else f"{path}: no anyOf match"
+    t = schema.get("type")
+    if t == "integer":
+        if not isinstance(value, int) or isinstance(value, bool):
+            return f"{path}: not an integer"
+    elif t == "number":
+        if not isinstance(value, (int, float)) or isinstance(value, bool) or not math.isfinite(value):
+            return f"{path}: not a number"
+    elif t and not isinstance(value, _TYPES[t]):
+        return f"{path}: not {t}"
+    if "enum" in schema and value not in schema["enum"]:
+        return f"{path}: not one of the allowed values"
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        if "minimum" in schema and value < schema["minimum"]:
+            return f"{path}: below minimum"
+        if "maximum" in schema and value > schema["maximum"]:
+            return f"{path}: above maximum"
+    if isinstance(value, str) and "maxLength" in schema and len(value) > schema["maxLength"]:
+        return f"{path}: too long"
+    if isinstance(value, list):
+        if len(value) < schema.get("minItems", 0) or len(value) > schema.get("maxItems", len(value)):
+            return f"{path}: wrong number of items"
+        for i, v in enumerate(value):
+            if "items" in schema and (err := check(v, schema["items"], f"{path}[{i}]")):
+                return err
+    if isinstance(value, dict):
+        props = schema.get("properties", {})
+        for k in schema.get("required", []):
+            if k not in value:
+                return f"{path}: missing {k}"
+        extra = schema.get("additionalProperties", True)
+        for k, v in value.items():
+            if k in props:
+                if err := check(v, props[k], f"{path}.{k}"):
+                    return err
+            elif extra is False:
+                return f"{path}: unexpected key {k}"
+            elif isinstance(extra, dict) and (err := check(v, extra, f"{path}.{k}")):
+                return err
+    return None
+
+
+# ---------------------------------------------------------------- state: pause, sealed rounds, availability
+
+def paused(s: Settings, db: DB, what: str) -> bool:
+    """Posting or new rounds paused: by an anomaly or the operator (kv 'pause'), or, for posting, by the static
+    posting_paused flag. The pause stays until the operator resumes it."""
+    if what == "posting" and s.posting_paused:
+        return True
+    return bool((db.get("pause") or {}).get(what))
+
+
+def sealed_guard(db: DB, round_id: int) -> None:
     r = db.one("SELECT state FROM rounds WHERE round_id=?", round_id)
-    if r is not None and r["state"] == "running":
-        raise SealedError(f"round {round_id} is running: its picks are sealed")
+    if r is None or r["state"] == "running":
+        raise SealedError(f"round {round_id} is still running (or unknown): its picks are sealed")
 
 
-def _in_sweep_window(s, db, now: float) -> bool:
-    t = datetime.fromtimestamp(now, timezone.utc)
-    day = t.strftime("%Y-%m-%d")
-    start = t.replace(hour=s.sweep_hour_utc, minute=0, second=0, microsecond=0).timestamp() - SWEEP_GUARD_MIN * 60
-    hours = math.ceil(s.sweep_timeout_s * len(s.agents) / 3600)
-    end = start + SWEEP_GUARD_MIN * 60 + hours * 3600 + SWEEP_GUARD_MIN * 60
-    if not start <= now < end:
-        return False
-    return not db.get(f"sweep_{day}")  # the sweep finished early: the window closes
+def utc_day(t: float | None = None) -> str:
+    return datetime.fromtimestamp(time.time() if t is None else t, timezone.utc).strftime("%Y-%m-%d")
 
 
-def available(s, db, task: str, now: float | None = None) -> tuple[bool, str]:
-    """(ok, reason) without calling: claude on PATH, the task known, no round running, outside the sweep window."""
-    if task not in TASKS:
-        return False, f"unknown task {task}"
-    if not shutil.which(getattr(s, "opai_claude_bin", "claude") or "claude"):
-        return False, "claude CLI not found"
-    if db.one("SELECT 1 FROM rounds WHERE state='running' LIMIT 1") is not None:
-        return False, "a round is running"
-    if _in_sweep_window(s, db, now if now is not None else time.time()):
-        return False, "inside the forecast sweep window"
+def sweep_window(s: Settings, now: float) -> tuple[float, float]:
+    d = datetime.fromtimestamp(now, timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
+    start = d + s.sweep_hour_utc * 3600 - s.opai_sweep_guard_min * 60
+    hours = math.ceil(s.sweep_timeout_s * max(1, len(s.agents)) / 3600)
+    return start, d + (s.sweep_hour_utc + hours) * 3600 + s.opai_sweep_guard_min * 60
+
+
+def calls_today(db: DB, task: str | None = None, day: str | None = None) -> int:
+    day = day or utc_day()
+    if task:
+        return db.one("SELECT COUNT(*) n FROM ai_calls WHERE day=? AND task=?", day, task)["n"]
+    return db.one("SELECT COUNT(*) n FROM ai_calls WHERE day=?", day)["n"]
+
+
+def available(s: Settings, db: DB, task: str, now: float | None = None) -> tuple[bool, str]:
+    """(ok, reason) without calling. Contestants come first: opai shares the Claude contestant's quota."""
+    now = time.time() if now is None else now
+    if not s.opai_enabled:
+        return False, "disabled"
+    if task not in s.opai_tasks and task != "ab":
+        return False, "task disabled"
+    if task not in PROMPTS and task != "ab":
+        return False, "unknown task"
+    if not _claude_bin():
+        return False, "claude missing"
+    if (db.get("opai_backoff_until") or 0) > now:
+        return False, "backoff"
+    last = db.last_infra_failure()
+    if last and now - last < s.infra_cooldown_s:
+        return False, "contestant cooldown"
+    lo, hi = sweep_window(s, now)
+    if lo <= now < hi and not db.get(f"sweep_{utc_day(now)}"):
+        return False, "sweep window"
+    day = utc_day(now)
+    if calls_today(db, None, day) >= s.opai_calls_per_day:
+        return False, "daily budget spent"
+    if calls_today(db, task, day) >= int(s.opai_task_budget.get(task, 0)):
+        return False, "task budget spent"
     return True, "ok"
 
 
-def _env(s) -> dict:
-    from .orchestrator import ENV_ALLOW
-    env = {k: v for k, v in os.environ.items() if k in ENV_ALLOW}
-    env["HOME"] = os.environ.get("HOME", str(Path.home()))
-    env["PATH"] = f"/usr/local/bin:/usr/bin:/bin:{Path.home() / '.local' / 'bin'}"
-    cfg = getattr(s, "opai_config_dir", "") or ""
-    if cfg and Path(cfg).expanduser().is_dir():
-        env["CLAUDE_CONFIG_DIR"] = str(Path(cfg).expanduser())
+def _skip(db: DB, task: str, reason: str) -> None:
+    """No process, no ai_calls row: logged once per (task, reason, UTC day)."""
+    key = f"opai_skip_{utc_day()}"
+    seen = db.get(key) or []
+    tag = f"{task}:{reason}"
+    if tag not in seen:
+        db.put(key, [*seen, tag])
+        log.info("opai %s skipped: %s (fallback used)", task, reason)
+
+
+def _claude_bin() -> str | None:
+    return shutil.which("claude")
+
+
+# ---------------------------------------------------------------- the call
+
+_lock = threading.Lock()
+_asem: asyncio.Semaphore | None = None
+
+
+def child_env(s: Settings, config_dir: str | None = None) -> dict:
+    from .orchestrator import ENV_ALLOW, SECRET_PREFIXES
+    env = {k: v for k, v in os.environ.items() if k in ENV_ALLOW and not k.startswith(SECRET_PREFIXES)}
+    home = os.path.expanduser("~")
+    env.update(HOME=home, PATH=f"{CHILD_PATH}:{home}/.local/bin")
+    cdir = config_dir if config_dir is not None else s.opai_config_dir
+    if cdir:
+        env["CLAUDE_CONFIG_DIR"] = os.path.expanduser(cdir)
     return env
 
 
-def _run_cli(s, task: Task, prompt: str, model: str) -> tuple[dict | None, str, str]:
-    """(data, model_reported, error). Overridden in tests via `runner`."""
-    argv = [getattr(s, "opai_claude_bin", "claude") or "claude", "-p", "--model", model, "--output-format", "json",
-            "--json-schema", json.dumps(task.schema), "--tools", "", "--strict-mcp-config",
-            "--mcp-config", '{"mcpServers":{}}', "--disable-slash-commands", "--no-session-persistence",
-            "--safe-mode"]
+def argv(s: Settings, task: str, schema: dict, model: str | None = None) -> list[str]:
+    system = prompt_path(SYSTEM_PROMPT).read_text("utf-8").strip()
+    return [_claude_bin() or "claude", "-p", "--model", model or model_for(s, task), "--output-format", "json",
+            "--json-schema", json.dumps(schema), "--tools", "", "--strict-mcp-config", "--mcp-config",
+            '{"mcpServers":{}}', "--disable-slash-commands", "--no-session-persistence", "--safe-mode",
+            "--system-prompt", system]
+
+
+def model_for(s: Settings, task: str) -> str:
+    if task == "rate":
+        try:
+            from . import methodology
+            return methodology.load()["selection"]["rater"]["model"]
+        except Exception:
+            return s.opai_model
+    per_task = getattr(s, f"opai_model_{task}", None)  # e.g. opai_model_motd_script = "fable"
+    if per_task:
+        return per_task
+    return s.opai_model_light if task in LIGHT_TASKS else s.opai_model
+
+
+def _redact(text: str) -> str:
+    from .virality import redact
+    return redact(text or "")[:300]
+
+
+def _parse(stdout: str) -> tuple[dict | None, str | None, bool]:
+    """(data, reported model, is_error) from `--output-format json`."""
+    try:
+        obj = json.loads(stdout.strip().splitlines()[-1] if stdout.strip() else "")
+    except (ValueError, IndexError):
+        try:
+            obj = json.loads(stdout)
+        except ValueError:
+            return None, None, False
+    if not isinstance(obj, dict):
+        return None, None, False
+    model = next(iter(obj.get("modelUsage") or {}), None) or obj.get("model")
+    data = obj.get("structured_output")
+    if data is None and isinstance(obj.get("result"), str):
+        txt = re.sub(r"^```(?:json)?\s*|\s*```$", "", obj["result"].strip())
+        try:
+            data = json.loads(txt)
+        except ValueError:
+            data = None
+    return (data if isinstance(data, dict) else None), model, bool(obj.get("is_error"))
+
+
+def tag(db: DB, task: str, model: str, version: int, content, accepted: bool, reason: str | None,
+        call_id: int | None, subject: str | None, public: bool = False) -> int:
+    return db.x("INSERT INTO operator_ai_outputs(purpose,model,prompt_version,created_at,content,accepted,"
+                "reject_reason,call_id,subject,public) VALUES(?,?,?,?,?,?,?,?,?,?)",
+                task, model, f"{task}.v{version}", time.time(), json.dumps(content, ensure_ascii=False),
+                int(accepted), reason, call_id, subject, int(public))
+
+
+def call(s: Settings, db: DB, task: str, payload: dict, *, subject: str,
+         validate: Callable[[dict], str | None] | None = None, force: bool = False,
+         config_dir: str | None = None, timeout: float | None = None) -> Result | None:
+    """One opai call. None on any failure (the caller falls back). force=True skips only the enabled/task
+    switches (for `opai try`); budgets, backoff, the contestant breaker and the sweep window still apply."""
+    ok, reason = available(s, db, task) if not force else _forced_available(s, db, task)
+    if not ok:
+        _skip(db, task, reason)
+        return None
+    version = prompt_version(task)
+    schema = schema_for(task, payload)
+    ptext = prompt_text(task, version)
+    stdin = f"{ptext.strip()}\n\n{data_block(payload)}\n"
+    alias = model_for(s, task)
+    with _lock:
+        start = time.time()
+        call_id = db.x("INSERT INTO ai_calls(task,subject,day,started_at,model_alias,prompt_name,prompt_version,"
+                       "prompt_sha,input_sha,status) VALUES(?,?,?,?,?,?,?,?,?,'running')",
+                       task, subject, utc_day(start), start, alias, task, version, sha(ptext), sha(stdin))
+        status, detail, data, model = _run(s, db, task, schema, stdin, alias, config_dir,
+                                           timeout or (s.opai_translate_timeout_s if task == "translate"
+                                                       else getattr(s, "opai_motd_timeout_s", 360)
+                                                       if task == "motd_script" else s.opai_timeout_s))
+        if status == "ok":
+            err = check(data, schema) or (validate(data) if validate else None)
+            if err:
+                status, detail = "invalid", err
+        db.x("UPDATE ai_calls SET status=?, detail=?, duration_s=?, model_reported=? WHERE call_id=?",
+             status, _redact(detail or "") or None, time.time() - start, model, call_id)
+    if data is not None:
+        oid = tag(db, task, model or alias, version, data, status == "ok", None if status == "ok" else detail,
+                  call_id, subject)
+    else:
+        oid = 0
+    if status != "ok":
+        log.warning("opai %s (%s) failed: %s %s", task, subject, status, _redact(detail or "")[:120])
+        return None
+    return Result(data=data, output_id=oid, model=model or alias, call_id=call_id)
+
+
+def _forced_available(s: Settings, db: DB, task: str) -> tuple[bool, str]:
+    s2 = dataclasses.replace(s, opai_enabled=True, opai_tasks=[*s.opai_tasks, task])
+    return available(s2, db, task)
+
+
+def _run(s: Settings, db: DB, task: str, schema: dict, stdin: str, alias: str, config_dir: str | None,
+         timeout: float) -> tuple[str, str | None, dict | None, str | None]:
     cwd = tempfile.mkdtemp(prefix="opai-")
     try:
-        p = subprocess.run(argv, input=prompt, capture_output=True, text=True, env=_env(s), cwd=cwd,
-                           timeout=getattr(s, "opai_timeout_s", 300))
-    except subprocess.TimeoutExpired:
-        return None, model, "timeout"
+        p = subprocess.Popen(argv(s, task, schema, alias), cwd=cwd, env=child_env(s, config_dir),
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             start_new_session=True, text=True)
+        try:
+            out, err = p.communicate(stdin, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            try:
+                os.killpg(p.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            p.communicate()
+            return "timeout", f"over {timeout:.0f}s", None, None
+    except OSError as e:
+        return "crash", str(e), None, None
     finally:
         shutil.rmtree(cwd, ignore_errors=True)
-    try:
-        out = json.loads(p.stdout)
-    except ValueError:
-        return None, model, f"crash: exit {p.returncode}: {(p.stderr or p.stdout)[:300]}"
-    reported = next(iter(out.get("modelUsage") or {}), None) or model
-    if out.get("is_error"):
-        return None, reported, f"error: {str(out.get('result'))[:300]}"
-    data = out.get("structured_output")
-    if data is None:
-        try:
-            data = json.loads(out.get("result") or "")
-        except ValueError:
-            return None, reported, "invalid: result is not JSON"
-    return (data if isinstance(data, dict) else None), reported, ("" if isinstance(data, dict) else "invalid: not an object")
+    data, model, is_error = _parse(out)
+    if p.returncode != 0 or is_error or data is None:
+        from .orchestrator import infra_failure
+        kind = infra_failure((out or "") + "\n" + (err or ""))
+        if kind in ("quota", "auth"):
+            db.put("opai_backoff_until", time.time() + s.opai_backoff_s)
+            if kind == "auth":
+                try:
+                    from . import alerts
+                    alerts.send(s, db, "warn", "opai-auth", "opai login failed",
+                                "The operator AI's Claude login was rejected; opai backs off and every task uses "
+                                "its fallback.", action="opai backed off for "
+                                f"{s.opai_backoff_s / 3600:.0f} h",
+                                resume=f"CLAUDE_CONFIG_DIR={s.opai_config_dir} claude /login")
+                except Exception:
+                    log.exception("auth alert failed")
+            return kind, (err or out)[-300:], None, model
+        if p.returncode != 0 or is_error:
+            return "crash", (err or out)[-300:], None, model
+        return "invalid", "no JSON object in the result", None, model
+    return "ok", None, data, model
 
 
-runner = _run_cli  # tests replace this with a fake
-
-
-def _store(db, task_name: str, version: str, model: str, data, accepted: bool, reason: str | None,
-           subject: str) -> int:
-    return db.x("INSERT INTO operator_ai_outputs(purpose,model,prompt_version,created_at,content,accepted,"
-                "reject_reason,subject,public) VALUES(?,?,?,?,?,?,?,?,0)",
-                task_name, model, version, time.time(), json.dumps(data, ensure_ascii=False), int(accepted),
-                reason, subject)
-
-
-def call(s, db, task: str, payload: dict, *, subject: str) -> Result | None:
-    """Run one task. The prompt is prompts/<task file> followed by the payload as JSON. Returns None on any
-    failure (unavailable, CLI error, schema or validator rejection); the caller falls back."""
-    ok, why = available(s, db, task)
-    if not ok:
-        log.info("opai %s (%s): unavailable: %s", task, subject, why)
+async def acall(s: Settings, db: DB, task: str, payload: dict, *, subject: str,
+                validate: Callable[[dict], str | None] | None = None) -> Result | None:
+    """Async wrapper: one opai call at a time per process. Never awaited inside Round.run."""
+    global _asem
+    if _asem is None:
+        _asem = asyncio.Semaphore(1)
+    ok, reason = available(s, db, task)
+    if not ok:  # cheap path: no thread hop
+        _skip(db, task, reason)
         return None
-    t = TASKS[task]
-    text = (PROMPTS / t.prompt).read_text()
-    version = t.prompt.rsplit(".", 1)[0]  # 'motd_script.v1'
-    prompt = text + "\n\n## Input (JSON)\n\n" + json.dumps(payload, ensure_ascii=False, indent=1)
-    model = getattr(s, f"opai_model_{task}", None) or t.model
-    t0 = time.time()
-    try:
-        data, reported, err = runner(s, t, prompt, model)
-    except Exception as e:  # never let the writer break the caller
-        log.exception("opai %s: runner failed", task)
-        data, reported, err = None, model, f"crash: {e}"
-    log.info("opai %s (%s): %s in %.0fs, sha %s", task, subject, err or "ok", time.time() - t0,
-             hashlib.sha256(prompt.encode()).hexdigest()[:12])
-    if data is None:
-        _store(db, task, version, reported, {"error": err}, False, err[:300], subject)
-        return None
-    reason = t.validate(data, payload)
-    oid = _store(db, task, version, reported, data, reason is None, reason, subject)
-    if reason:
-        log.warning("opai %s (%s): rejected: %s", task, subject, reason)
-        return None
-    return Result(data=data, output_id=oid, model=reported)
+    async with _asem:
+        return await asyncio.to_thread(call, s, db, task, payload, subject=subject, validate=validate)
 
 
-def last_rejection(db, task: str, subject: str) -> str | None:
-    r = db.one("SELECT reject_reason FROM operator_ai_outputs WHERE purpose=? AND subject=? ORDER BY output_id DESC"
-               " LIMIT 1", task, subject)
-    return r["reject_reason"] if r else None
+# ---------------------------------------------------------------- status
+
+def status(s: Settings, db: DB) -> dict:
+    day = utc_day()
+    used = {r["task"]: r["n"] for r in db.q("SELECT task, COUNT(*) n FROM ai_calls WHERE day=? GROUP BY task", day)}
+    last = [dict(r) for r in db.q("SELECT call_id, task, subject, status, duration_s, model_reported, started_at"
+                                  " FROM ai_calls ORDER BY call_id DESC LIMIT 20")]
+    infra = db.last_infra_failure()
+    return {"enabled": s.opai_enabled, "tasks": s.opai_tasks, "day": day,
+            "calls_today": sum(used.values()), "calls_per_day": s.opai_calls_per_day,
+            "budget": {t: f"{used.get(t, 0)}/{n}" for t, n in s.opai_task_budget.items()},
+            "backoff_until": db.get("opai_backoff_until"),
+            "contestant_breaker": bool(infra and time.time() - infra < s.infra_cooldown_s),
+            "skips_today": db.get(f"opai_skip_{day}") or [], "last_calls": last}
+
+
+def manifest() -> dict[str, str]:
+    """prompts/*.md -> sha256. MANIFEST.json is committed; a test fails if a file changes without a new
+    version file, so every version that ever produced an output stays in the repo."""
+    return {p.name: sha(p.read_bytes()) for p in sorted(prompt_path("").glob("*.md"))}
+
+
+def write_manifest() -> Path:
+    path = prompt_path("MANIFEST.json")
+    path.write_text(json.dumps(manifest(), indent=1, sort_keys=True) + "\n")
+    return path

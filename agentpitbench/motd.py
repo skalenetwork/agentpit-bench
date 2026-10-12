@@ -431,17 +431,25 @@ def scripted(s: Settings, db, rnd: dict, rounds: list[dict], lb: dict, site: str
         return None
     allowed = [c for c in ms.CONCEPTS if c not in recent_concepts] or list(ms.CONCEPTS)
     pl = ms.payload(rnd, ctx, twist, allowed, ctx["lines"])
-    ms.register()
     subject = f"round:{rnd['round_id']}"
-    res = None
-    for attempt in range(2):  # one retry, told why the first draft was rejected
-        res = opai.call(s, db, ms.TASK, pl, subject=subject)
-        if res:
-            break
-        why = opai.last_rejection(db, ms.TASK, subject)
-        if not why or why.startswith(("unavailable", "timeout")):
-            break
-        pl = {**pl, "previous_rejection": why}
+    cached = ms.reuse(db, subject, twist["type"], pl)  # a re-render of the same round never re-bills the writer
+    if cached:
+        res = cached
+    else:
+        # the writer never runs while a round is running (sealed picks; the Claude contestant shares the quota)
+        if db.one("SELECT 1 FROM rounds WHERE state='running' LIMIT 1") is not None:
+            log.info("Match of the Day round %s: a round is running; templated film", rnd["round_id"])
+            return None
+        opai.sealed_guard(db, rnd["round_id"])
+        res = None
+        for _ in range(2):  # one retry, told why the first draft was rejected
+            res = opai.call(s, db, ms.TASK, pl, subject=subject, validate=lambda d, pl=pl: ms.validate(d, pl))
+            if res:
+                break
+            why = ms.last_rejection(db, subject)
+            if not why:
+                break  # unavailable or a CLI failure: no point retrying now
+            pl = {**pl, "previous_rejection": why}
     if not res:
         return None
     data = res.data
@@ -588,7 +596,13 @@ async def post(s: Settings, db, poster, rec: dict, out: Path) -> str | None:
     if not video.is_file():
         return None
     key = f"motd-{rec['date']}"
-    tid = await poster.post(key, "motd", post_text(rec), video, round_id=rec["round_id"])
+    text = post_text(rec)
+    try:
+        from . import ab
+        text = ab.generic_text(db, s, key, "motd", text)   # generic.cta (docs/ab-testing-spec.md section 12)
+    except Exception:
+        log.exception("A/B for %s failed; posting the control", key)
+    tid = await poster.post(key, "motd", text, video, round_id=rec["round_id"])
     if tid:
         await poster.post(f"{key}-link", "motd-link", link_text(s, rec), None, reply_to=tid, round_id=rec["round_id"])
     return tid

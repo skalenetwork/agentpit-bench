@@ -7,7 +7,9 @@ the branded page cards are rendered here from the leaderboard and the emblem.
 site.build runs after every bet, so an image is rendered only when its input changes: the input hash (the
 rendered card HTML, or the source card's bytes) is kept in a manifest, and the same hash is the ?v= cache key
 that makes X, LinkedIn and Facebook refetch a changed preview. Everything here is best effort: on any failure
-a page falls back to the committed static/og-default.png, and the site build goes on.
+a page falls back to the committed static/og-default.png, and the site build goes on. That includes a missing
+font: a branded card whose title has a character no installed font covers is not rendered (it would show empty
+boxes), so its page keeps the default image.
 """
 from __future__ import annotations
 
@@ -17,6 +19,9 @@ import hashlib
 import io
 import json
 import logging
+import shutil
+import subprocess
+import unicodedata
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
@@ -50,6 +55,43 @@ def page_html(title: str, lang: str = "en", rtl: bool = False, sub: str | None =
     return env.get_template("page.html").render(title=title, lang=lang, rtl=rtl, sub=sub, host=host)
 
 
+def _needs_font(ch: str) -> bool:
+    """Characters worth checking: not ASCII, not a space, mark-free punctuation of the General Punctuation block
+    (the browser takes those from any font)."""
+    o = ord(ch)
+    return o > 0x7F and not ch.isspace() and not 0x2000 <= o <= 0x206F and unicodedata.category(ch) not in ("Cf", "Cc")
+
+
+_covered: dict[int, bool] = {}
+
+
+def _fc_has(cps: list[int]) -> bool:
+    """True when one installed font has all these code points (fontconfig, the fonts Chromium uses on Linux)."""
+    r = subprocess.run(["fc-list", ":charset=" + " ".join(f"{c:x}" for c in cps), "family"],
+                       capture_output=True, text=True, timeout=30)
+    return r.returncode == 0 and bool(r.stdout.strip())
+
+
+def missing_glyphs(texts: list[str]) -> set[str]:
+    """The characters of texts that no installed font can draw. Empty when fontconfig is not there to ask:
+    then nothing is known to be missing, and rendering goes ahead as before."""
+    want = sorted({ord(c) for t in texts for c in t if _needs_font(c)} - _covered.keys())
+    if want and shutil.which("fc-list"):
+        blocks: dict[int, list[int]] = {}
+        for c in want:
+            blocks.setdefault(c >> 8, []).append(c)
+        for cps in blocks.values():
+            try:
+                if _fc_has(cps):       # one query per 256-code-point block; per character only when that fails
+                    _covered.update(dict.fromkeys(cps, True))
+                else:
+                    _covered.update({c: _fc_has([c]) for c in cps})
+            except (OSError, subprocess.SubprocessError):
+                log.exception("font check failed")
+                return set()
+    return {chr(c) for t in texts for c in map(ord, t) if not _covered.get(c, True)}
+
+
 @dataclass
 class Job:
     out: Path
@@ -59,6 +101,7 @@ class Job:
     height: int = H
     src: Path | None = None     # letterbox this card
     card: Path | None = None    # the HTML is a 1200x675 card: screenshot it here, then letterbox it to out
+    text: str | None = None     # text in the card that must be drawable (branded page titles)
 
 
 class Previews:
@@ -106,7 +149,7 @@ class Previews:
 
     def page(self, name: str, title: str, lang: str, rtl: bool) -> str:
         html = page_html(title, lang, rtl, host=self._host())
-        return self._want(self.s.cards_dir / "pages" / f"{name}-{lang}-og.png", digest(html), html=html)
+        return self._want(self.s.cards_dir / "pages" / f"{name}-{lang}-og.png", digest(html), html=html, text=title)
 
     def _host(self) -> str:
         return self.s.site_url.replace("https://", "").replace("http://", "").rstrip("/")
@@ -123,6 +166,8 @@ class Previews:
         """Render every queued preview. Never raises: a failed preview leaves its page on the default image."""
         letterbox_only = [j for j in self.jobs if j.src]
         browser = [j for j in self.jobs if j.html] if ENABLED else []
+        if browser:
+            browser = [j for j in browser if self._drawable(j)]
         for j in letterbox_only:
             try:
                 letterbox_file(j.src, j.out)
@@ -140,6 +185,21 @@ class Previews:
                 self.manifest_path.write_text(json.dumps(self.manifest, indent=0, sort_keys=True))
             except OSError:
                 log.exception("preview manifest not saved")
+
+    def _drawable(self, j: Job) -> bool:
+        """False when the card's text has characters no installed font has: its old image is removed and the
+        page uses the default preview rather than one with empty boxes."""
+        try:
+            missing = missing_glyphs([j.text]) if j.text else set()
+        except Exception:
+            log.exception("font check of %s failed", j.out)
+            missing = set()
+        if not missing:
+            return True
+        log.warning("preview %s skipped: no installed font has %s", j.out, "".join(sorted(missing)))
+        self.manifest.pop(self._rel(j.out), None)
+        j.out.unlink(missing_ok=True)
+        return False
 
     async def _render(self, jobs: list[Job]) -> None:
         from playwright.async_api import async_playwright

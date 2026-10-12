@@ -272,7 +272,8 @@ async def test_daily_quiet_hour_idempotent_and_outbox(env, monkeypatch):
     assert link["reply_to"] == out["tweet_id"] and "/round/1/" in link["text"]
 
 
-async def test_posting_paused_goes_to_outbox(env, monkeypatch):
+async def test_posting_paused_records_nothing(env, monkeypatch):
+    """posting_paused goes through the pause path (ai-automation spec §10): no dry- id, no tweets row."""
     s, db = env
     s.dry_run, s.posting_paused = False, True
     monkeypatch.setenv("X_API_KEY", "k")
@@ -284,7 +285,7 @@ async def test_posting_paused_goes_to_outbox(env, monkeypatch):
     tmp.mkdir(parents=True, exist_ok=True)
     (tmp / "f.mp4").write_bytes(b"\0")
     tid = await motd.post(s, db, poster, {"date": DAY, "round_id": 1, "hook": "h", "files": {"tall": "f.mp4"}}, out)
-    assert tid.startswith("dry-")
+    assert tid is None and db.one("SELECT COUNT(*) n FROM tweets WHERE kind LIKE 'motd%'")["n"] == 0
 
 
 # ---------- music and render ----------

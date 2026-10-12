@@ -502,11 +502,35 @@ def recent(db, n: int = RECENT_FILMS, subject: str | None = None) -> tuple[list[
     return [c for c in concepts if c], [t for t in twists_ if t]
 
 
-def register() -> None:
-    from . import opai
-    opai.register(TASK, opai.Task(prompt=f"{PROMPT_VERSION}.md", schema=SCHEMA,
-                                  validate=lambda d, p: validate(d, p)))
+def last_rejection(db, subject: str) -> str | None:
+    """Why the latest draft for this subject was rejected (schema or validator), or None when the last call
+    produced no draft at all (unavailable, quota, timeout, crash)."""
+    r = db.one("SELECT accepted, reject_reason FROM operator_ai_outputs WHERE purpose=? AND subject=? "
+               "ORDER BY output_id DESC LIMIT 1", TASK, subject)
+    c = db.one("SELECT status FROM ai_calls WHERE task=? AND subject=? ORDER BY call_id DESC LIMIT 1", TASK, subject)
+    if r is None or r["accepted"] or (c is not None and c["status"] != "invalid"):
+        return None
+    return r["reject_reason"]
+
+
+def reuse(db, subject: str, twist_type: str, pl: dict):
+    """The newest accepted script for this round with the same twist, if it still passes today's validator: a
+    re-render reuses it instead of calling the writer again."""
+    from .opai import Result
+    for r in db.q("SELECT output_id, model, content FROM operator_ai_outputs WHERE purpose=? AND subject=? AND "
+                  "accepted=1 ORDER BY output_id DESC LIMIT 3", TASK, subject):
+        try:
+            d = json.loads(r["content"])
+        except ValueError:
+            continue
+        if (d.get("_twist") or {}).get("type") != twist_type:
+            continue
+        d.pop("_twist", None)
+        pl2 = {**pl, "allowed_concepts": {**pl["allowed_concepts"], d.get("concept_type"): ""}}
+        if validate(d, pl2) is None:
+            return Result(data=d, output_id=r["output_id"], model=r["model"])
+    return None
 
 
 __all__ = ["CONCEPTS", "SCHEMA", "slots", "fill", "payload", "validate", "build_scenes", "durations",
-           "recent", "register", "script_text", "AGENT_NAMES"]
+           "recent", "reuse", "last_rejection", "script_text", "AGENT_NAMES"]

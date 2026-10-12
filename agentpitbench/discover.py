@@ -31,7 +31,7 @@ GITHUB = "https://github.com/skalenetwork/agentpit-bench"
 X_URL = "https://x.com/AgentpitBench"
 OPERATOR = "SKALE Labs"
 # pages that exist only to be embedded elsewhere: not listed in the sitemap
-NOT_IN_SITEMAP = ("widget/", "embed/")
+NOT_IN_SITEMAP = ("widget/", "embed/", "404.html")
 PICK_FIELDS = ("outcome", "avg_price", "shares_filled", "stake_filled", "confidence", "rationale", "quote",
                "statement", "decided_s", "payout", "pnl", "won", "transcript_url")
 
@@ -636,6 +636,12 @@ def techarticle_ld(s: Settings, lb: dict, page_url: str, changelog: list[tuple[s
         "version": s.methodology_version, "dateModified": modified, "inLanguage": "en",
         "author": {"@id": org["@id"]}, "publisher": {"@id": org["@id"]},
         "isPartOf": {"@id": f"{s.site_url.rstrip('/')}/#dataset"}}]}
+
+
+def breadcrumb_ld(trail: list[tuple[str, str]]) -> dict:
+    """BreadcrumbList node from (name, url) pairs, home first; every url is a real page."""
+    return {"@type": "BreadcrumbList", "itemListElement": [
+        {"@type": "ListItem", "position": i, "name": name, "item": url} for i, (name, url) in enumerate(trail, 1)]}
 
 
 def round_ld(s: Settings, r: dict, page_url: str) -> dict:

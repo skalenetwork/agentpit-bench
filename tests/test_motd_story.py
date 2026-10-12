@@ -1,6 +1,5 @@
 """Match of the Day v0.5: twist detectors, the script validator, the opai shim's guards and the fallback."""
 import json
-from types import SimpleNamespace
 
 import pytest
 
@@ -231,57 +230,92 @@ def test_film_scene_shows_the_played_model():
     assert chat["model_line"] == "GPT-6 Luna"
 
 
-# ---------- the opai shim: guards, storage, retry and fallback ----------
+# ---------- the writer through opai: guards, storage, retry, reuse and fallback ----------
 
-def settings(tmp_path, **kw):
-    base = dict(sweep_hour_utc=6, sweep_timeout_s=900, agents=["claude", "codex", "agy", "grok"], opai_timeout_s=5,
-                opai_config_dir="", opai_model_motd_script="fable", data_dir=tmp_path)
-    return SimpleNamespace(**{**base, **kw})
+def opai_settings(tmp_path):
+    from agentpitbench.config import Settings
+    return Settings(data_dir=tmp_path / "var", opai_enabled=True, opai_config_dir=str(tmp_path / "opai-cfg"))
 
 
-def test_no_call_while_a_round_is_running(tmp_path, monkeypatch):
-    db = DB(tmp_path / "b.sqlite")
-    ms.register()
-    s = settings(tmp_path)
-    monkeypatch.setattr(opai.shutil, "which", lambda b: "/usr/bin/claude")
-    noon = 1791806400.0  # 2026-10-12 12:00 UTC
-    assert opai.available(s, db, ms.TASK, now=noon) == (True, "ok")
-    db.x("INSERT INTO rounds(market_id,question,outcomes,snapshot_json,started_at,state) VALUES('m','q','[]','{}',0,"
-         "'running')")
-    assert opai.available(s, db, ms.TASK, now=noon) == (False, "a round is running")
-    calls = []
-    monkeypatch.setattr(opai, "runner", lambda *a: calls.append(a) or ({}, "m", ""))
-    assert opai.call(s, db, ms.TASK, {}, subject="round:1") is None and not calls
+def story_setup(tmp_path, monkeypatch):
+    from agentpitbench import motd
+    s = opai_settings(tmp_path)
+    db = DB(s.db_path)
+    monkeypatch.setattr(opai, "sweep_window", lambda s, now: (0, 0))
+    r = base_round()
+    r["round_id"] = 19
+    db.x("INSERT INTO rounds(round_id,market_id,question,outcomes,snapshot_json,started_at,state) "
+         "VALUES(19,'m19','q','[]','{}',0,'resolved')")
+    monkeypatch.setattr(motd, "story_context", lambda s, rnd, rounds: {
+        "history": [], "streaks": {}, "sources": {"grok": 100, "claude": 52}, "lines": {}, "decision_limit_s": 300})
+    lb = {"significance": {}, "agents": [], "forecast": {}}
+    return s, db, r, lb
+
+
+def test_writer_retries_once_with_the_reason_then_films(tmp_path, monkeypatch, fake_claude):
+    from agentpitbench import motd
+    s, db, r, lb = story_setup(tmp_path, monkeypatch)
+    fake_claude.respond(bad(s6="ChatGPT pays 22 cents."), GOOD)
+    story = motd.scripted(s, db, r, [r], lb, "agentpitbench.org")
+    assert story and story["concept_type"] == "western" and story["twist_type"] == "most_sources_lost"
+    calls = fake_claude.calls
+    assert len(calls) == 2 and "previous_rejection" in calls[1]["stdin"] and "digits" in calls[1]["stdin"]
+    assert "--tools" in calls[0]["argv"] and calls[0]["argv"][calls[0]["argv"].index("--model") + 1] == "fable"
+    rows = db.q("SELECT accepted, prompt_version, subject, public, call_id FROM operator_ai_outputs ORDER BY output_id")
+    assert [(x["accepted"], x["prompt_version"], x["subject"], x["public"]) for x in rows] == [
+        (0, "motd_script.v1", "round:19", 0), (1, "motd_script.v1", "round:19", 0)]
+    assert all(x["call_id"] for x in rows)
+    assert json.loads(db.q("SELECT content FROM operator_ai_outputs WHERE accepted=1")[0]["content"])["_twist"][
+        "type"] == "most_sources_lost"
+    # a re-render reuses the accepted script: no third call
+    again = motd.scripted(s, db, r, [r], lb, "agentpitbench.org")
+    assert again and again["output_id"] == story["output_id"] and len(fake_claude.calls) == 2
+
+
+def test_two_rejections_fall_back_to_the_templated_film(tmp_path, monkeypatch, fake_claude):
+    from agentpitbench import motd
+    s, db, r, lb = story_setup(tmp_path, monkeypatch)
+    fake_claude.respond(bad(s6="ChatGPT pays 22 cents."))
+    assert motd.scripted(s, db, r, [r], lb, "agentpitbench.org") is None and len(fake_claude.calls) == 2
+
+
+def test_no_writer_call_while_a_round_is_running(tmp_path, monkeypatch, fake_claude):
+    from agentpitbench import motd
+    s, db, r, lb = story_setup(tmp_path, monkeypatch)
+    db.x("INSERT INTO rounds(round_id,market_id,question,outcomes,snapshot_json,started_at,state) "
+         "VALUES(20,'m20','q','[]','{}',0,'running')")
+    fake_claude.respond(GOOD)
+    assert motd.scripted(s, db, r, [r], lb, "agentpitbench.org") is None and fake_claude.calls == []
     with pytest.raises(opai.SealedError):
-        opai.sealed_guard(db, 1)
+        opai.sealed_guard(db, 20)
 
 
-def test_no_call_inside_the_sweep_window(tmp_path, monkeypatch):
-    db = DB(tmp_path / "b.sqlite")
-    ms.register()
-    monkeypatch.setattr(opai.shutil, "which", lambda b: "/usr/bin/claude")
+def test_writer_unavailable_inside_the_sweep_window(tmp_path, monkeypatch, fake_claude):
+    s = opai_settings(tmp_path)
+    db = DB(s.db_path)
     six = 1791784800.0 + 600  # 2026-10-12 06:10 UTC
-    assert opai.available(settings(tmp_path), db, ms.TASK, now=six)[1] == "inside the forecast sweep window"
-    db.put("sweep_2026-10-12", {"claude": "ok"})  # the sweep finished: the window closes early
-    assert opai.available(settings(tmp_path), db, ms.TASK, now=six)[0]
+    assert opai.available(s, db, ms.TASK, now=six) == (False, "sweep window")
+    noon = 1791806400.0
+    assert opai.available(s, db, ms.TASK, now=noon) == (True, "ok")
+    assert opai.model_for(s, ms.TASK) == "fable"
 
 
-def test_call_stores_every_answer_and_validates(tmp_path, monkeypatch):
-    db = DB(tmp_path / "b.sqlite")
-    ms.register()
-    monkeypatch.setattr(opai.shutil, "which", lambda b: "/usr/bin/claude")
-    monkeypatch.setattr(opai, "_in_sweep_window", lambda *a: False)
-    pl, _ = base_payload()
-    answers = [bad(s6="ChatGPT pays 22 cents."), GOOD]
-    monkeypatch.setattr(opai, "runner", lambda s, t, p, m: (answers.pop(0), "claude-fable-5-1", ""))
-    s = settings(tmp_path)
-    assert opai.call(s, db, ms.TASK, pl, subject="round:19") is None
-    assert "digits" in opai.last_rejection(db, ms.TASK, "round:19")
-    res = opai.call(s, db, ms.TASK, pl, subject="round:19")
-    assert res and res.model == "claude-fable-5-1"
-    rows = db.q("SELECT accepted, model, prompt_version, subject, public FROM operator_ai_outputs ORDER BY output_id")
-    assert [tuple(r) for r in rows] == [(0, "claude-fable-5-1", "motd_script.v1", "round:19", 0),
-                                        (1, "claude-fable-5-1", "motd_script.v1", "round:19", 0)]
+def test_film_json_and_the_youtube_reader_agree(tmp_path, monkeypatch, fake_claude):
+    """film.json's hook / title_line / concept_type / twist_type / narrated, as make_film writes them, are what
+    the YouTube uploader reads: the title uses the cold open (no twist spoiler), narrated follows the flag."""
+    from agentpitbench import motd, youtube
+    s, db, r, lb = story_setup(tmp_path, monkeypatch)
+    fake_claude.respond(GOOD)
+    story = motd.scripted(s, db, r, [r], lb, "agentpitbench.org")
+    sc = motd.score(r, [r])
+    rec = {"round_id": 19, "question": r["question"], "scripted": True, "hook": motd.film_hook(story, r, sc),
+           "title_line": motd.film_title(story, r), "script": story["script"], "concept_type": story["concept_type"],
+           "twist_type": story["twist_type"], "narrated": False}
+    assert rec["hook"] == "High noon in Istanbul." and len(rec["hook"]) <= motd.HOOK_MAX
+    assert youtube.hook(rec) == rec["hook"] and youtube.title(rec).startswith("High noon in Istanbul. | ")
+    assert story["twist"] not in youtube.title(rec)
+    assert youtube.narrated(rec) is False and youtube.narrated({**rec, "narrated": True}) is True
+    assert rec["title_line"] == "High Noon · Match of the Day"
 
 
 def test_human_shoutout_only_when_the_ais_mostly_missed_and_the_handle_is_clean():
