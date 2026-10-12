@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import threading
 import time
 from pathlib import Path
 
@@ -334,10 +335,57 @@ MIGRATIONS = [  # (table, column, definition): added when missing, so old databa
 ]
 
 
+class _Result:
+    """A finished statement: rows fetched while the lock was held, so no cursor is shared across threads."""
+    __slots__ = ("_rows", "lastrowid", "rowcount", "description")
+
+    def __init__(self, cur: sqlite3.Cursor):
+        self._rows = cur.fetchall() if cur.description else []
+        self.lastrowid, self.rowcount, self.description = cur.lastrowid, cur.rowcount, cur.description
+
+    def fetchall(self) -> list:
+        return self._rows
+
+    def fetchone(self):
+        return self._rows.pop(0) if self._rows else None
+
+    def __iter__(self):
+        return iter(self._rows)
+
+
+class _LockedConn:
+    """One sqlite connection shared by the event loop and asyncio.to_thread workers: every call holds a lock
+    (concurrent use of one connection raises 'bad parameter or other API misuse')."""
+
+    def __init__(self, conn: sqlite3.Connection):
+        self._c, self._lock = conn, threading.RLock()
+
+    def execute(self, sql: str, args=()):
+        with self._lock:
+            return _Result(self._c.execute(sql, args))
+
+    def executemany(self, sql: str, seq):
+        with self._lock:
+            return _Result(self._c.executemany(sql, seq))
+
+    def executescript(self, script: str):
+        with self._lock:
+            return self._c.executescript(script)
+
+    def __getattr__(self, name):  # row_factory, close, commit, ... pass through
+        return getattr(self._c, name)
+
+    def __setattr__(self, name, value):
+        if name in ("_c", "_lock"):
+            object.__setattr__(self, name, value)
+        else:
+            setattr(self._c, name, value)
+
+
 class DB:
     def __init__(self, path: str | Path):
         Path(path).parent.mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(str(path), isolation_level=None, check_same_thread=False)
+        self.conn = _LockedConn(sqlite3.connect(str(path), isolation_level=None, check_same_thread=False))
         self.conn.row_factory = sqlite3.Row
         self.conn.execute("PRAGMA journal_mode=WAL")
         self.conn.executescript(SCHEMA)
