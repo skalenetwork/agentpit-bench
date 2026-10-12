@@ -233,7 +233,9 @@ def played_model(agent: str | None, reported: str | None) -> tuple[str, str | No
     m = re.match(r"^(.*?)\s*\((\w+)\)\s*$", reported)
     if m:  # 'Gemini 3.1 Pro (High)'
         return m.group(1), m.group(2).lower()
-    if cfg and _norm_id(reported) in (_norm_id(cfg[0]), _norm_id(cfg[1])):
+    n = _norm_id(reported)
+    if cfg and (n in (_norm_id(cfg[0]), _norm_id(cfg[1]))
+                or re.fullmatch(re.escape(_norm_id(cfg[0])) + r"(build|latest|stable)?", n)):  # 'grok-4.7-build'
         return cfg[1], cfg[2]
     if " " in reported:
         return reported, None

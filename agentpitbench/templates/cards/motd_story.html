@@ -136,6 +136,19 @@ body.tall .cols{flex-direction:column;gap:18px}
 .srow b{font-family:Oswald,sans-serif;text-transform:uppercase}
 .srow .v{font-family:Oswald,sans-serif;font-weight:700}
 .bigurl{font-family:Oswald,sans-serif;font-size:62px;font-weight:700;text-align:center}
+/* wide (1920x1080): the stage has 820px of height, so cards and the coda are denser */
+body.wide .card{padding:16px 30px 18px;gap:30px}
+body.wide .card .hd{font-size:52px}
+body.wide .card .nm{font-size:80px}
+body.wide .card .pk{font-size:88px}
+body.wide .card .st .v{font-size:72px}
+body.wide .card svg{width:160px !important;height:160px !important}
+body.wide .bubble{font-size:40px;padding:12px 22px}
+body.wide .s_coda.main{gap:12px}
+body.wide .srow{font-size:40px;padding:0}
+body.wide .col h3{font-size:40px}
+body.wide .bigurl{font-size:52px}
+body.wide .cta{font-size:40px}
 .cta{font-size:42px;opacity:.85;line-height:1.25;text-align:center}
 </style></head>
 {%- set team = colors.get(sc.agent, th.accent) if sc.agent else th.accent %}
@@ -156,7 +169,7 @@ body.tall .cols{flex-direction:column;gap:18px}
 <div class="prog">{% for k in range(count) %}<i class="{{ 'on' if k <= idx }}"></i>{% endfor %}</div>
 <div class="top"><span class="tag">Match of the Day</span><span class="meta">Round {{ sc.round_id }}</span></div>
 {%- set capfx = th.fx %}
-<div class="main" data-cam="{{ 'zoom' if sc.kind == 's_twist' else 'push' }}">
+<div class="main {{ sc.kind }}" data-cam="{{ 'zoom' if sc.kind == 's_twist' else 'push' }}">
 {% if sc.kind == 's_cold_open' %}
   {% if sc.stage == 'standoff' and sc.sides|length > 1 %}{{ standoff(sc.sides, 170 if fmt == 'tall' else 150) }}
   {% else %}<div class="troupe">{% for a in sc.cast %}{{ actor(a, 190 if fmt == 'tall' else 160, 'data-in="' ~ (0.08 * loop.index0) ~ '" data-fx="pop"') }}{% endfor %}</div>{% endif %}
@@ -217,7 +230,7 @@ body.tall .cols{flex-direction:column;gap:18px}
   <div class="sub" data-in="{{ 1.6 }}" data-fx="{{ capfx }}">{{ sc.caption }}</div>
 {% elif sc.kind == 's_coda' %}
   {% set stn = sc.standings %}
-  <div class="sub big" style="font-size:66px" data-in="0" data-fx="{{ capfx }}">{{ sc.caption }}</div>
+  <div class="sub big" style="font-size:{{ 66 if fmt == 'tall' else 52 }}px" data-in="0" data-fx="{{ capfx }}">{{ sc.caption }}</div>
   <div class="label" data-in="0.8" data-fx="fade">Season {{ stn.season }} standings{% if sc.asof %} · {{ sc.asof }}{% endif %}</div>
   <div class="cols">
     {% if stn.forecast %}<div class="col" data-in="1.0"><h3>Forecast accuracy (Brier, lower is better)</h3>
