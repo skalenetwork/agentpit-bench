@@ -62,7 +62,8 @@ cadence_enabled = true
 cadence_apply = true        # operator: apply automatically (one knob a day, hard bounds in code)
 selection_review_enabled = true
 opai_tasks = ["rate", "picks", "summary", "incident", "i18n", "translate", "motd_script", "weekly_episode",
-              "cadence", "proposal"]
+              "cadence", "proposal", "ab"]
+ab_gen_enabled = true      # operator 2026-10-12: Claude-written variants on (code validator + live control arm)
 
 [opai_task_budget]         # overrides only the tasks named here (code defaults for the rest); translate raised for the backfill
 rate = 24
