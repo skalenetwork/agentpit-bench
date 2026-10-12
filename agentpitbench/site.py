@@ -379,6 +379,25 @@ def vs_description(p: dict, _, as_of: float) -> str:
              y=f"{p['b_brier']:.3f}", w=p["a_closer"], l=p["b_closer"], date=discover.day(as_of))
 
 
+def home_poster(s: Settings, film: dict) -> str | None:
+    """A small JPEG of the film's poster for the front page (the film's own poster is a full-size PNG; the home
+    page stays light): cards/motd/<date>/poster-home.jpg, made once. None if the film has no poster."""
+    if not film.get("poster"):
+        return None
+    src = s.cards_dir / film["dir"].removeprefix("cards/") / film["poster"]
+    dst = src.with_name("poster-home.jpg")
+    try:
+        if not dst.exists() or dst.stat().st_mtime < src.stat().st_mtime:
+            from PIL import Image
+            im = Image.open(src).convert("RGB")
+            im.thumbnail((960, 960))
+            im.save(dst, "JPEG", quality=72, optimize=True, progressive=True)
+        return film["dir"] + dst.name
+    except Exception:
+        log.exception("home poster for %s skipped", film.get("date"))
+        return film["dir"] + film["poster"]
+
+
 def home_pairs(vsp: list[dict], n: int = 4) -> list[dict]:
     """The front page's head-to-head strip: AI-vs-AI pairs first (most shared markets first), then vs the Crowd."""
     return sorted(vsp, key=lambda p: (p["b"] == CROWD, -p["n"]))[:n]
@@ -773,10 +792,10 @@ def model_line(agent: str, _, eras: dict | None = None) -> str:
         if eras.get("since"):
             when = datetime.fromtimestamp(eras["since"], timezone.utc)
             day = when.strftime("%-d %b") if _.lang == "en" else when.strftime("%Y-%m-%d")
-            note = _("since {date}; earlier rounds on {models}", date=day, models=others)
+            note = _("(since {date}; earlier rounds on {models})", date=day, models=others)
         else:
-            note = _("not played yet; rounds so far on {models}", models=others)
-        line += f" ({note})"
+            note = _("(not played yet; rounds so far on {models})", models=others)
+        line += f" {note}"
     return line
 
 
@@ -924,6 +943,8 @@ def _build(s: Settings) -> Path:
     films = _films(s)
     cap_hit = _reply_caps(s, rounds)  # "first N picks counted"
     eras = {a: model_eras(rounds, a) for a in s.agents}  # the models each record was played on
+    if films:
+        films[0]["home_poster"] = home_poster(s, films[0])
     film_of = {}
     for f in films:  # newest first: a round filmed twice shows its latest film
         film_of.setdefault(f["round_id"], f)
