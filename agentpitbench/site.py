@@ -165,7 +165,7 @@ def round_share(r: dict, _, vs: str) -> ShareText:
     """Resolved: the results tweet's own hook, so the two never drift. Open: the question and every pick
     (or, while the picks are sealed, that the AIs are still betting)."""
     if r["state"] in ("resolved", "void"):
-        return ShareText(results_hook(r))
+        return ShareText(r.get("share_hook") or results_hook(r))   # the posted A/B hook, if one posted
     if r.get("sealed") or not any(e.get("outcome") for e in r["entries"]):
         return flex_text(_, _("{question}: {vs} are placing their bets. Who's right?"), "question", r["question"], vs=vs)
     picks = ", ".join(f"{e['name']} {e['outcome'] or _('no bet')}" for e in r["entries"])
@@ -421,7 +421,59 @@ def indexnow_ping(s: Settings, rels: list[str]) -> bool:
 
 SHARE_BAR = 'data-share-bar'  # every public page carries it (checked at build)
 OG_REQUIRED = ('property="og:title"', 'property="og:description"', 'property="og:image"', SHARE_BAR)
-NO_SHARE = ("widget/", "embed/", "404.html")  # embedded elsewhere, or the not-found page: no bar, no preview
+NO_SHARE = ("widget/", "embed/", "404.html", "go/")  # embedded elsewhere, the not-found page, or the A/B redirect hop: no bar, no preview
+
+
+GO_HTML = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>AgentpitBench → agentpit</title>
+<noscript><meta http-equiv="refresh" content="0;url={dest_attr}"></noscript>{beacon}
+<script>(function(){{var d={dest_js},done=false;function go(){{if(done)return;done=true;location.replace(d)}}
+function soon(){{setTimeout(go,300)}}if(document.readyState==="complete")soon();else addEventListener("load",soon);
+setTimeout(go,1500)}})();</script></head>
+<body style="font:16px system-ui;background:#0b1020;color:#e8ecf8;padding:24px"><p><a style="color:#9ecbff" href="{dest_attr}">Continue to the market →</a></p></body></html>
+"""
+
+
+def go_page(s: Settings, dest: str) -> str:
+    """The /go/ hop of the A/B site CTA: the Cloudflare beacon records the view (on load; it reports with
+    navigator.sendBeacon, which survives the navigation), then the page redirects to the unchanged destination
+    300 ms after load (1.5 s at the latest, if the beacon is blocked). Without JS: an instant meta refresh."""
+    from html import escape as h
+    beacon = (f'\n<script defer type="module" src="https://static.cloudflareinsights.com/beacon.min.js" '
+              f'data-cf-beacon=\'{{"token": "{s.cf_analytics_token}"}}\'></script>' if s.cf_analytics_token else "")
+    return GO_HTML.format(dest_attr=h(dest, quote=True), dest_js=json.dumps(dest).replace("</", "<\\/"), beacon=beacon)
+
+
+def site_cta(s: Settings) -> dict | None:
+    """The day's site.round_cta arm (English round pages): {arm, text, arms}; None without a database."""
+    if not s.db_path.exists():
+        return None
+    try:
+        from . import ab
+        from .db import DB as _DB
+        db = _DB(s.db_path)
+        ab.seed(db)
+        key = f"site-{datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
+        c = ab.choose(db, s, "site.round_cta", key, kind="site")
+        text = c.text or ab.CONTROL_TEXT["site.round_cta"]
+        ab.realize(db, key, "site.round_cta", c.arm_id, text)
+        return {"arm": c.arm_id, "text": None if c.is_control else c.text,
+                "arms": [a["arm_id"] for a in ab.arms(db, "site.round_cta", None)]}
+    except Exception:
+        log.exception("site CTA arm failed; English round pages use the control")
+        return None
+
+
+def experiments_data(s: Settings) -> dict | None:
+    if not s.db_path.exists():
+        return None
+    try:
+        from . import ab_report
+        from .db import DB as _DB
+        return ab_report.experiments(_DB(s.db_path), s)
+    except Exception:
+        log.exception("experiments data failed")
+        return None
 
 
 def check_pages(out: Path) -> None:
@@ -632,7 +684,8 @@ EXCLUSION_REASONS = {
 # Branded link-preview cards: page key -> title (message id), rendered per language
 BRANDED = {"methodology": _("Methodology"), "independence": _("Independence & conflicts"), "incidents": _("Incidents"),
            "press": _("Press kit"), "data": _("Data & method"), "splits": _("Split decisions"),
-           "hall-of-shame": _("Hall of shame"), "reports": _("Weekly reports"), "contrarian": _("Contrarian calls")}
+           "hall-of-shame": _("Hall of shame"), "reports": _("Weekly reports"), "contrarian": _("Contrarian calls"),
+           "experiments": _("Experiments")}
 
 REASONING = {"max": "max reasoning", "xhigh": "extra-high reasoning", "high": "high reasoning"}
 
@@ -780,6 +833,8 @@ def _build(s: Settings) -> Path:
     latest_cards = [c for c in (card_for(s, r) for r in past) if c][:6]
     previews = _previews(s, lb, rounds, cards, reports)
     extra = _db_extras(s)
+    cta = site_cta(s)                # A/B: the day's round-page CTA arm (English pages only)
+    exp_ab = experiments_data(s)     # A/B: the public /experiments/ numbers (posts older than 7 days)
     vsp = vs_pairs(lb, s.agents)
     vs_links = {(p["a"], p["b"]): f"vs/{vs_slug(p['a'], p['b'])}/" for p in vsp}
     seo: list[tuple[str, str, str, str]] = []  # (lang, page, title, description), checked after the build
@@ -868,7 +923,7 @@ def _build(s: Settings) -> Path:
                     if x is not r and category(x["question"]) == cat][:3]
             lr = loc(r)  # translated question/outcome labels for the page's own text; data stays English
             page(f"round/{rid}/index.html", "round.html", r=r, card=card, card_alt=card_alt(lr, _, ", ".join(names)),
-                 film=film_of.get(rid),
+                 film=film_of.get(rid), cta=cta if lang == "en" else None,
                  og=previews["rounds"].get(rid), share_text=round_share(lr, _, vs),
                  prev_r=by_id[i - 1] if i else None, next_r=by_id[i + 1] if i + 1 < len(by_id) else None,
                  cat=cat, same_cat=same,
@@ -912,6 +967,9 @@ def _build(s: Settings) -> Path:
         page("independence/index.html", "independence.html", title=branded(_("Independence & conflicts")),
              share_text=_("How AgentpitBench tests frontier AIs on real markets (methodology v{v}).", v=s.methodology_version),
              description=_("Who runs AgentpitBench, how it stays independent of the markets it bets on, and the conflicts we disclose."))
+        if exp_ab is not None:
+            page("experiments/index.html", "experiments.html", ab=exp_ab, title=branded(_("Experiments")),
+                 share_text=_("How AgentpitBench tests the wording of its posts. Facts are never varied."))
         page("incidents/index.html", "incidents.html", incidents=extra["incidents"] + INCIDENTS, title=branded(_("Incidents")),
              share_text=_("AgentpitBench publishes its own incidents. Here's the log."))
         page("contrarian/index.html", "contrarian.html", calls=lb.get("contrarian") or [],
@@ -933,6 +991,12 @@ def _build(s: Settings) -> Path:
             page("widget/index.html", "widget.html", title="AgentpitBench standings")
             page("embed/index.html", "embed.html", title="AgentpitBench leaderboard")
 
+    if cta:  # the A/B CTA hop: one static redirect per (arm, round), so a click on any arm's link is counted
+        for arm in cta["arms"]:
+            for r in rounds:
+                f = out / "go" / "round-cta" / str(arm) / str(r["round_id"]) / "index.html"
+                f.parent.mkdir(parents=True, exist_ok=True)
+                f.write_text(go_page(s, r["market_link"]))
     check_seo(seo)  # an empty or duplicate title/description on a fixed page type is a template bug
     (out / "404.html").write_text(not_found_page(s, rounds, vsp))
     if s.google_site_verification.endswith(".html"):  # Search Console's file method
@@ -955,7 +1019,10 @@ def _build(s: Settings) -> Path:
     rss, jf = feeds(s, rounds)
     (out / "feed.xml").write_text(rss)
     (out / "feed.json").write_text(jf)
-    (out / ".nojekyll").write_text("")
+    (out / ".nojekyll").write_text("")  # also lets GitHub Pages serve .well-known/
+    if s.bluesky_did:  # the @agentpitbench.org handle proof (docs/bluesky-spec.md §7); DNS TXT is the primary route
+        (out / ".well-known").mkdir(exist_ok=True)
+        (out / ".well-known" / "atproto-did").write_text(s.bluesky_did.strip())
     for f in ("favicon.svg", "favicon-32.png", "apple-touch-icon.png", og.DEFAULT):  # the emblem; the fallback preview
         shutil.copyfile(Path(__file__).resolve().parent / "static" / f, out / f)
     host = urlparse(s.site_url).hostname or ""
@@ -963,7 +1030,7 @@ def _build(s: Settings) -> Path:
         (out / "CNAME").write_text(host + "\n")
     d = out / "data"
     for name in ("rounds.json", "leaderboard.json", "bets.csv", "metrics.json", "reports.json", "sealed.json",
-                 "newsworthiness.json"):
+                 "experiments.json", "newsworthiness.json"):
         if (exp / name).exists():
             shutil.copy2(exp / name, d / name)
     # sealed daily forecasts: the hash is public at once (/methodology/), the content and transcripts only once

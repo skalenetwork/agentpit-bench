@@ -108,11 +108,12 @@ async def collect(s: Settings, db: DB, rnd: dict, runner=None) -> list[dict]:
             for e in db.round_entries(rnd["round_id"]) if e["statement"]]
 
 
-def texts(statements: list[dict], limit: int = 280, max_replies: int = 3) -> list[str]:
+def texts(statements: list[dict], limit: int = 280, max_replies: int = 3,
+          head: str = "Post-match statements:") -> list[str]:
     """'Post-match statements:' plus one line per loser, in link-free replies. Every loser is heard:
-    statements are trimmed so all fit in at most `max_replies` posts (4 losers x ~130 chars)."""
+    statements are trimmed so all fit in at most `max_replies` posts (4 losers x ~130 chars).
+    head is the A/B `press.head` slot (at most as long as today's, so no statement is trimmed more)."""
     from .twitter import tweet_len
-    head = "Post-match statements:"
     if not statements:
         return []
     per_post = -(-len(statements) // max_replies)          # statements per reply, rounded up

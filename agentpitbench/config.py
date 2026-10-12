@@ -96,7 +96,43 @@ class Settings:
     x_app_owned: bool = False            # @agentpitbench owns the developer app: timeline mode, owned-read prices
     x_reward_max_age_ratio: float = 1.5  # a snapshot counts as a reward only if age_s <= ratio x bucket age
     x_series_free_rereads: bool = True   # re-read posts already billed today (free under X's same-day dedup)
+    # Bluesky (docs/bluesky-spec.md): mirror the X posts to @agentpitbench.org. Secrets BSKY_HANDLE /
+    # BSKY_APP_PASSWORD in secrets.env. bluesky_did: emitted at /.well-known/atproto-did by the site build.
+    bluesky_enabled: bool = False
+    bluesky_pds_url: str = "https://bsky.social"
+    bluesky_did: str = ""
+    bluesky_vendor_handles: dict = field(default_factory=dict)   # agent -> verified official Bluesky handle only
+    # automated A/B testing (docs/ab-testing-spec.md): wording and presentation only, never facts
+    ab_gen_enabled: bool = False         # gates arm creation only; posting always goes through ab.choose
+    ab_max_arms: int = 3
+    ab_min_posts: int = 20
+    ab_min_days_tone: int = 10
+    ab_half_life_days: float = 14
+    ab_prior_n: float = 2
+    ab_baseline_days: int = 30
+    ab_weight_1h: float = 0.5
+    ab_weights: dict = field(default_factory=lambda: {"replies": 5, "quotes": 3, "reposts": 2, "bookmarks": 2,
+                                                      "link_clicks": 2, "likes": 1})
+    ab_gen_model: str = "sonnet"
+    ab_gen_hour_utc: int = 3
+    ab_gen_timeout_s: int = 180
+    ab_gen_max_calls_per_day: int = 2
+    ab_digest_hour_utc: int = 8
+    ab_public_delay_days: float = 7      # /experiments/ numbers only from posts older than this (operator decision)
     explorer_url: str = "https://skale-base-explorer.skalenodes.com"   # agentpit settles on SKALE Base
+    # YouTube Shorts (docs/youtube-shorts-spec.md): the daily film as a Short. Off until the operator has run
+    # `agentpitbench youtube auth` and `youtube check`; also needs motd_enabled.
+    youtube_enabled: bool = False
+    youtube_channel_id: str = ""         # the brand channel UC...; empty = no uploads (channel guard)
+    youtube_channel_url: str = ""        # https://www.youtube.com/@agentpitbench (Organization.sameAs)
+    youtube_privacy: str = "private"     # "public" once the first upload proves unlocked (spec §4b)
+    youtube_comment: bool = True         # the round-link comment, once the video is public
+    youtube_category_id: str = "28"      # Science & Technology
+    youtube_synthetic_media: bool = False  # status.containsSyntheticMedia (spec §6; re-check for a TTS narrator)
+    youtube_units_budget: int = 2000     # soft daily cap on default-bucket units (Pacific day)
+    youtube_unit_costs: dict = field(default_factory=lambda: {
+        "videos.insert": 1, "videos.list": 1, "channels.list": 1, "commentThreads.insert": 50,
+        "videos.update": 50, "videoCategories.list": 1, "reports.query": 0})
     # operator AI ("opai", docs/ai-automation-spec.md): never a contestant, never on a round's critical path
     opai_enabled: bool = False          # master switch; false = every task uses its rule-based fallback
     opai_tasks: list[str] = field(default_factory=lambda: ["rate", "picks", "summary", "incident", "i18n",
@@ -179,6 +215,8 @@ def load(path: str | Path = "bench.toml") -> Settings:
         data["data_dir"] = Path(data["data_dir"])
     if "x_read_prices" in data:  # a partial [x_read_prices] table overrides only the prices it names
         data["x_read_prices"] = {**Settings().x_read_prices, **data["x_read_prices"]}
+    if "youtube_unit_costs" in data:
+        data["youtube_unit_costs"] = {**Settings().youtube_unit_costs, **data["youtube_unit_costs"]}
     s = Settings(**data)
     if os.environ.get("BENCH_DRY_RUN") in ("0", "false"):
         s.dry_run = False

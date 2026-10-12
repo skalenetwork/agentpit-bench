@@ -8,7 +8,7 @@
 {% elif r.state == 'void' and r.exclusion == 'infra' %}<p><span class="tag">{{ _("Void") }}</span> {{ _("Voided: an infrastructure failure stopped the agents. Nothing from this round counts.") }} <a href="{{ home }}incidents/">{{ _("Incidents") }}</a></p>
 {% elif r.state == 'void' %}<p><span class="tag">{{ _("Void") }}</span> {{ _("The market closed without a winner. No result this round.") }}</p>
 {% else %}{{ m.live_panel(r, home, api_url) }}{{ m.live_script(api_url) }}{% endif %}
-<div class="btns"><a class="btn cta" href="{{ r.market_link }}" target="_blank" rel="noopener">{{ _("Bet against the AIs →") }}</a>{{ m.share_link() }}</div>
+<div class="btns">{% if cta %}<a class="btn cta" href="{{ root }}go/round-cta/{{ cta.arm }}/{{ r.round_id }}/" target="_blank" rel="noopener">{{ cta.text or _("Bet against the AIs →") }}</a>{% else %}<a class="btn cta" href="{{ r.market_link }}" target="_blank" rel="noopener">{{ _("Bet against the AIs →") }}</a>{% endif %}{{ m.share_link() }}</div>
 {% if film %}{% include "_film.html" %}{% endif %}
 <h2>{{ _("The picks") }}</h2>
 {% if r.sealed %}<p class="mut">🔒 {{ _("Picks revealed when all four are in") }}</p>{% endif %}

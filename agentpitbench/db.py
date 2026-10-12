@@ -73,6 +73,18 @@ CREATE TABLE IF NOT EXISTS tweets (
     metrics_json TEXT
 );
 CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT);
+CREATE TABLE IF NOT EXISTS bsky_posts (   -- Bluesky mirror of a tweets row (same post_key); docs/bluesky-spec.md
+    post_key TEXT PRIMARY KEY,
+    uri TEXT, cid TEXT,                    -- at://did/app.bsky.feed.post/rkey, or dry-<key> from the outbox
+    root_uri TEXT, root_cid TEXT,          -- the thread root (a top-level post is its own root)
+    kind TEXT, round_id INTEGER, text TEXT, posted_at REAL,
+    deleted INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS bsky_metrics (  -- one row per public read of one Bluesky post (free)
+    uri TEXT NOT NULL, taken_at REAL NOT NULL, age_s REAL,
+    likes INTEGER, reposts INTEGER, replies INTEGER, quotes INTEGER,
+    PRIMARY KEY (uri, taken_at)
+);
 CREATE TABLE IF NOT EXISTS humans (       -- followers' picks, replied to a round's opener tweet
     round_id INTEGER NOT NULL REFERENCES rounds(round_id),
     user_id TEXT NOT NULL,
@@ -235,9 +247,75 @@ CREATE TABLE IF NOT EXISTS tweet_metrics (   -- one row per read of one post: th
     PRIMARY KEY (tweet_id, taken_at)
 );
 CREATE UNIQUE INDEX IF NOT EXISTS tweet_metrics_bucket ON tweet_metrics(tweet_id, bucket) WHERE bucket IS NOT NULL;
+CREATE TABLE IF NOT EXISTS operator_ai_outputs (   -- every operator-AI output, tagged (ab-testing-spec.md section 7)
+    output_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    purpose TEXT NOT NULL,            -- 'ab:<slot>' (ai-automation reuses this table)
+    model TEXT NOT NULL,              -- as reported by the CLI's json output, else the requested id
+    prompt_version TEXT NOT NULL,
+    created_at REAL NOT NULL,
+    content TEXT NOT NULL,            -- the candidate JSON
+    accepted INTEGER NOT NULL,
+    reject_reason TEXT,
+    run_raw_path TEXT,                -- full CLI output under var/ab_gen/
+    call_id INTEGER,                  -- ai_calls row (ai-automation-spec.md section 3; NULL before opai)
+    subject TEXT,
+    public INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS ab_arms (
+    arm_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    slot TEXT NOT NULL,
+    is_control INTEGER NOT NULL DEFAULT 0,
+    code_key TEXT,                    -- media/tags/tone value; NULL for text arms
+    template_json TEXT,               -- {"situations": {...}} or {"text": "..."}; NULL for code arms
+    output_id INTEGER REFERENCES operator_ai_outputs(output_id),
+    status TEXT NOT NULL DEFAULT 'live',   -- live / queued / retired
+    created_at REAL NOT NULL, live_at REAL, retired_at REAL, retire_note TEXT
+);
+CREATE TABLE IF NOT EXISTS ab_assignments (
+    post_key TEXT NOT NULL, slot TEXT NOT NULL,
+    arm_id INTEGER NOT NULL REFERENCES ab_arms(arm_id),            -- chosen
+    realized_arm_id INTEGER REFERENCES ab_arms(arm_id),           -- what posted (control on fallback)
+    kind TEXT NOT NULL,               -- tweets.kind, or 'site'
+    assigned_at REAL NOT NULL,
+    rendered TEXT,                    -- the exact text that posted
+    excluded TEXT,                    -- 'void' | NULL
+    PRIMARY KEY (post_key, slot)
+);
+CREATE TABLE IF NOT EXISTS cf_clicks (       -- /go/ redirect page views per UTC day (Cloudflare GraphQL)
+    day TEXT NOT NULL, path TEXT NOT NULL, views INTEGER NOT NULL, taken_at REAL NOT NULL,
+    PRIMARY KEY (day, path)
+);
 CREATE TABLE IF NOT EXISTS account_metrics (
     day TEXT PRIMARY KEY, followers INTEGER, following INTEGER, tweets INTEGER, listed INTEGER, taken_at REAL
 );
+-- YouTube Shorts (docs/youtube-shorts-spec.md §7)
+CREATE TABLE IF NOT EXISTS yt_videos (
+    post_key TEXT PRIMARY KEY,          -- motd-<date>: the same key as the X post
+    video_id TEXT,                      -- NULL until the upload completes
+    round_id INTEGER, file TEXT, title TEXT,
+    privacy_requested TEXT,             -- youtube_privacy at upload
+    privacy TEXT,                       -- last status.privacyStatus seen
+    upload_status TEXT,                 -- last status.uploadStatus seen
+    state TEXT NOT NULL,                -- uploading | uploaded | failed | outbox | paused | hidden | rejected
+    upload_session TEXT,                -- resumable session URI while uploading
+    uploaded_at REAL, published_at REAL,-- published_at = first seen public
+    comment_id TEXT, error TEXT
+);
+CREATE TABLE IF NOT EXISTS yt_metrics (
+    video_id TEXT NOT NULL, taken_at REAL NOT NULL, age_s REAL NOT NULL,
+    source TEXT NOT NULL,                   -- 'data' (videos.list) | 'analytics'
+    bucket TEXT,                            -- data: 1h|24h|72h|7d; analytics: 7d|28d; NULL = series row
+    views INTEGER, likes INTEGER, comments INTEGER,
+    engaged_views INTEGER, minutes_watched REAL, avg_view_s REAL, avg_view_pct REAL,
+    shares INTEGER, subs_gained INTEGER,
+    retention_json TEXT,
+    data_through TEXT,
+    raw_json TEXT,
+    PRIMARY KEY (video_id, taken_at, source)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS yt_metrics_bucket ON yt_metrics(video_id, source, bucket) WHERE bucket IS NOT NULL;
+CREATE TABLE IF NOT EXISTS yt_channel_metrics (day TEXT PRIMARY KEY, subscribers INTEGER, views INTEGER, videos INTEGER, taken_at REAL);
+CREATE TABLE IF NOT EXISTS yt_quota (day_pt TEXT NOT NULL, bucket TEXT NOT NULL, units INTEGER NOT NULL, PRIMARY KEY (day_pt, bucket));
 """
 
 MIGRATIONS = [  # (table, column, definition): added when missing, so old databases keep working
@@ -262,6 +340,8 @@ MIGRATIONS = [  # (table, column, definition): added when missing, so old databa
     ("rounds", "nw_source", "TEXT"),
     ("tweets", "boosted", "INTEGER NOT NULL DEFAULT 0"),  # operator-marked (x-boosted); excluded from rewards
     ("tweets", "deleted", "INTEGER NOT NULL DEFAULT 0"),  # X returned Not Found: never read again
+    ("tweets", "reply_to", "TEXT"),                      # A/B: our own replies are not engagement
+    ("tweets", "quote_of", "TEXT"),                      # A/B: our own quotes are not engagement
 ]
 
 
