@@ -539,6 +539,21 @@ def test_mentions_ledger_label(env, owned, label):
     assert [(r["resource"], r["caller"]) for r in ledger(db, id="u1")] == [("user", "mentions")]
 
 
+def test_engagement_numbers_stay_private(env):
+    """Open question for the operator: until decided, no metric reaches the public export."""
+    from agentpitbench import exports
+    s, db = env
+    rid = make_round(db, {"claude": ("CYBERSHOKE", 0.62, 0.7)}, winner="Nexus")
+    add_post(db, "1301", 30 * H, round_id=rid)
+    add_row(db, "1301", "24h", 24.1 * H, 98765, link_clicks=4321)
+    db.x("UPDATE tweets SET metrics_json=? WHERE tweet_id='1301'", json.dumps({"impressions": 98765}))
+    exports.export(s, db)
+    for f in s.export_dir.rglob("*"):
+        if f.is_file():
+            body = f.read_text(errors="ignore")
+            assert "98765" not in body and "impressions" not in body, f
+
+
 def test_config_prices_partial_override(tmp_path, monkeypatch):
     from agentpitbench import config
     monkeypatch.setenv("BENCH_SECRETS_FILE", str(tmp_path / "none.env"))     # never the real secrets
