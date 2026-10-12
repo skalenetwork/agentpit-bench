@@ -293,9 +293,19 @@ class CardRenderer:
     def host(self) -> str:
         return self.s.site_url.replace("https://", "").replace("http://", "").rstrip("/")
 
+    def _sig_for(self, agent: str | None) -> str | None:
+        """Single-agent cards carry that agent's own verdict (with direction); others the multi-agent line."""
+        try:
+            sig = json.loads((self.s.export_dir / "leaderboard.json").read_text()).get("significance") or {}
+        except (OSError, ValueError):
+            sig = {}
+        if agent and (sig.get("agent_labels") or {}).get(agent):
+            return sig["agent_labels"][agent]
+        return sig.get("multi_label") or self.sig
+
     def _strip(self, url_path: str, agent: str | None = None) -> dict:
         """The credibility strip every card carries: model and reasoning, n and significance, methodology, URL."""
-        url, sig, ml = f"{self.host}/{url_path}".rstrip("/"), short_sig(self.sig), model_line(agent)
+        url, sig, ml = f"{self.host}/{url_path}".rstrip("/"), short_sig(self._sig_for(agent)), model_line(agent)
         # one line at 26px holds ~107 condensed characters (with the URL); past that, multi-agent cards drop the model detail
         if agent is None and len(f"{ml} · {sig or ''} · Methodology v{self.s.methodology_version} {url}") > 107:
             ml = None

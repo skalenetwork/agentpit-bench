@@ -129,9 +129,16 @@ async def test_sweep_score_seal_and_metrics(env):
 def test_sign_test_and_significance():
     assert forecast._sign_test([-1] * 10) < 0.01 and forecast._sign_test([1, -1]) == 1.0
     m = {"agents": [{"agent": "claude", "n": 40, "vs_crowd": {"verdict": "better", "sign_test_p": 0.01}}]}
-    assert forecast.significance([], m, ["claude"])["label"] == "n=40 · significant vs the Crowd (p<0.05)"
+    sig = forecast.significance([], m, ["claude"])
+    assert sig["label"] == "1 of 1 AIs beat the Crowd (95% CI) · n=40 forecasts each"
+    assert sig["agent_labels"]["claude"] == "Claude beats the Crowd (95% CI, n=40)"
+    m["agents"][0]["vs_crowd"]["verdict"] = "worse"           # direction is always stated
+    sig = forecast.significance([], m, ["claude"])
+    assert sig["agent_labels"]["claude"] == "Claude trails the Crowd (95% CI, n=40)" and "trail" in sig["label"]
     m["agents"][0]["vs_crowd"]["verdict"] = "inconclusive"
-    assert forecast.significance([], m, ["claude"])["label"] == "n=40 · not yet significant"
+    sig = forecast.significance([], m, ["claude"])
+    assert sig["label"] == "vs Crowd: not yet significant · n=40 forecasts each"
+    assert sig["agent_labels"]["claude"] == "vs Crowd: not yet significant (n=40)"
 
 
 def test_contrarian_calls(env):

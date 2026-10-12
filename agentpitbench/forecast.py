@@ -545,8 +545,33 @@ def sign_test_rounds(rounds: list[dict], agent: str) -> tuple[int, float]:
 
 
 def significance(rounds: list[dict], forecast_metrics: dict, agents: list[str]) -> dict:
-    """The one-line verdict the cards and badge carry: n (every resolved observation behind the tests: counted
-    betting rounds plus scored sweep forecasts), and whether anything beats the Crowd at p<0.05."""
+    """What the cards and badge may claim, from the forecast sweep only: per agent, whether the 95% bootstrap CI
+    of its paired Brier difference against the Crowd excludes zero (better / worse), with its n. Always states
+    the direction; betting rounds are too few for a public significance claim and stay on the site."""
+    from .config import AGENT_NAMES
+    per_agent = {}
+    for row in forecast_metrics.get("agents", []):
+        vs = row.get("vs_crowd") or {}
+        per_agent[row["agent"]] = {"verdict": vs.get("verdict") or "inconclusive", "n": row.get("n") or 0}
+    def agent_label(a: str) -> str:
+        v = per_agent.get(a) or {"verdict": "inconclusive", "n": 0}
+        name = AGENT_NAMES.get(a, a)
+        if v["verdict"] == "better":
+            return f"{name} beats the Crowd (95% CI, n={v['n']})"
+        if v["verdict"] == "worse":
+            return f"{name} trails the Crowd (95% CI, n={v['n']})"
+        return f"vs Crowd: not yet significant (n={v['n']})"
+    better = [a for a, v in per_agent.items() if v["verdict"] == "better"]
+    worse = [a for a, v in per_agent.items() if v["verdict"] == "worse"]
+    n_each = max((v["n"] for v in per_agent.values()), default=0)
+    if better:
+        multi = f"{len(better)} of {len(agents)} AIs beat the Crowd (95% CI)"
+    elif worse:
+        multi = f"no AI beats the Crowd yet; {len(worse)} trail it (95% CI)"
+    else:
+        multi = "vs Crowd: not yet significant"
+    multi += f" · n={n_each} forecasts each"
+    sig_new = {"per_agent": per_agent, "agent_labels": {a: agent_label(a) for a in agents}, "multi_label": multi}
     n_rounds = sum(1 for r in rounds if r["state"] == "resolved" and not r.get("exhibition"))
     n_forecasts = sum(r.get("n") or 0 for r in forecast_metrics.get("agents", []))
     hits = []
@@ -560,4 +585,5 @@ def significance(rounds: list[dict], forecast_metrics: dict, agents: list[str]) 
             hits.append({"agent": a, "test": "betting", "p": p, "direction": None})
     n = n_rounds + n_forecasts
     label = f"n={n} · significant vs the Crowd (p<0.05)" if hits else f"n={n} · not yet significant"
-    return {"n": n, "n_rounds": n_rounds, "n_forecasts": n_forecasts, "significant": hits, "label": label}
+    return {"n": n, "n_rounds": n_rounds, "n_forecasts": n_forecasts, "significant": hits, **sig_new,
+            "label": sig_new["multi_label"]}
