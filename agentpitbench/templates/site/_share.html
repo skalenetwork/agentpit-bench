@@ -1,0 +1,25 @@
+{#- Share UX v2 (docs/share-ux-v2-spec.md): the share row at the top of every page, the result box, quote shares.
+    Import with context. Everything is server-rendered and works with JavaScript off; _share_bar.html wires it up. -#}
+
+{# html.ns before the first row is painted: a phone with a native share sheet. CSS then shows Share… and folds the
+   networks behind More, so nothing moves after first paint. #}
+{% macro ns_flag() %}<script>try{if(navigator.share&&matchMedia("(pointer:coarse)").matches)document.documentElement.classList.add("ns")}catch(e){}</script>{% endmacro %}
+
+{# sh: a share_bar() / grid_share() dict. extra: markup appended to the row (Save image). dark: Share… is not the
+   page's primary action (round pages keep "Bet against the AIs" as the one red button). #}
+{% macro row(sh, extra='', dark=false, top=true) %}{{ ns_flag() }}
+<div class="shrow" data-share-row{% if top %} data-share-top{% endif %} data-title="{{ sh.title }}" data-text="{{ sh.text }}" data-url="{{ sh.native_url }}"{% if sh.copy_text %} data-copy-text="{{ sh.copy_text }}"{% endif %}>
+<button type="button" class="btn {{ 'dark' if dark else 'cta' }}" data-native>{{ _("Share…") }}</button>
+{%- for net, label, href in sh.links if net in sh.top %}<a class="btn" href="{{ href }}" data-net="{{ net }}"{% if net != 'email' %} target="_blank" rel="noopener"{% endif %}>{{ label }}</a>{% endfor -%}
+<a class="btn" href="{{ sh.copy_url }}" data-copy>{{ _("Copy result") if sh.copy_text else _("Copy link") }}</a>{{ extra }}
+<details><summary class="btn">{{ _("More") }}</summary><div class="pop">{% for net, label, href in sh.links %}<a class="btn sm" href="{{ href }}" data-net="{{ net }}"{% if net in sh.top %} data-top{% endif %}{% if net != 'email' %} target="_blank" rel="noopener"{% endif %}>{{ label }}</a>{% endfor %}</div></details>
+<span class="ok" role="status" data-copied hidden>{{ _("Copied") }}</span></div>
+{%- endmacro %}
+
+{# Resolved round: the result grid, shown as it will be shared, with its share row (spec §3) #}
+{% macro result_box(g, extra='') %}<section class="rbox" aria-label="{{ _("Share result") }}"><pre dir="ltr">{{ g.preview }}</pre>
+{{ row(g, extra=extra, dark=true) }}</section>{% endmacro %}
+
+{# Quote card (spec §4): phones share the decision card as a file; desktop posts the quote and saves the card #}
+{% macro quote(q) %}<div class="shrow qs" data-share-row data-text="{{ q.text }}" data-url="{{ q.url }}" data-file="{{ root }}{{ q.card }}" data-fname="{{ q.name }}">
+<span class="ql">{{ _("Share") }}</span><button type="button" class="btn sm" data-native>{{ _("Share") }}</button><a class="btn sm" href="{{ q.x }}" data-net="x" target="_blank" rel="noopener">X</a><a class="btn sm" href="{{ q.bluesky }}" data-net="bluesky" target="_blank" rel="noopener">Bluesky</a><a class="btn sm" href="{{ root }}{{ q.card }}" download="{{ q.name }}" data-save>{{ _("Save image") }}</a></div>{% endmacro %}

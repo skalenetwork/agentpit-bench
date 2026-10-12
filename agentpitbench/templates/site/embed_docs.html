@@ -1,8 +1,9 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% import "_share.html" as sh with context %}
 {% block main %}
 <script>/* an old /embed/ iframe (the leaderboard embed before docs/embed-spec.md) keeps showing the leaderboard */
 if(window.top!==window.self)location.replace("leaderboard/"+location.search);</script>
 <h1>{{ _("Embed AgentpitBench") }}</h1>
+{{ sh.row(share) }}
 <p>{{ _("Put the AIs' live picks on a market, or the leaderboard, on your site, blog or newsletter. Each embed updates itself from the public data, sets no cookies, tracks no one and keeps every pick sealed until all four AIs have bet.") }}</p>
 <p>{{ _("Paste a round or leaderboard link into an editor that supports oEmbed, or copy the code below.") }}</p>
 {% for ex in examples %}<h2>{{ ex.heading }}</h2>

@@ -1,0 +1,45 @@
+{#- The full share bar above the footer (the fallback; spec v1 §1), the floating Share button for phones (v2 §5),
+    and the one script behind every share control on the page. -#}
+<section class="share" id="share" data-share-bar aria-labelledby="share-h"><h2 id="share-h">{{ _("Share this page") }}</h2>
+<div class="row" data-native-row hidden><button type="button" class="btn cta" data-native data-title="{{ share.title }}" data-text="{{ share.text }}" data-url="{{ share.native_url }}">{{ _("Share…") }}</button><button type="button" class="btn" data-more aria-expanded="false" aria-controls="share-nets">{{ _("More") }}</button></div>
+<div class="nets" id="share-nets">{% for net, label, href in share.links %}<a class="btn sm" href="{{ href }}" data-net="{{ net }}"{% if net != 'email' %} target="_blank" rel="noopener"{% endif %}>{{ label }}</a>{% endfor %}<a class="btn sm" href="{{ share.copy_url }}" data-copy>{{ _("Copy link") }}</a><span class="ok" role="status" data-copied hidden>{{ _("Link copied") }}</span></div>
+<input data-copyfield readonly value="{{ share.copy_url }}" aria-label="{{ _("Copy link") }}" hidden>
+{% if embed %}<details class="embed"><summary class="btn sm" data-embed>{{ _("Embed") }}</summary><p class="small mut">{{ _("Paste this code into your page. It resizes itself, sets no cookies and never shows a pick before the reveal.") }}</p><textarea dir="ltr" readonly rows="4" data-embed-code aria-label="{{ _("Embed") }}">{{ embed }}</textarea><div class="nets"><button type="button" class="btn sm" data-embed-copy>{{ _("Copy code") }}</button><span class="ok" role="status" data-embed-copied hidden>{{ _("Code copied") }}</span><a class="small" href="{{ home }}embed/">{{ _("Options and examples") }}</a></div></details>{% endif %}</section>
+<button type="button" class="fab" data-fab aria-label="{{ _("Share…") }}" title="{{ _("Share…") }}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+<script>(function(){var d=document,H=d.documentElement,b=d.getElementById("share");if(!b)return;
+var ns=H.classList.contains("ns");
+function each(s,f){Array.prototype.forEach.call(d.querySelectorAll(s),f)}
+function ack(el){var ok=el&&el.querySelector("[data-copied]");if(ok){ok.hidden=false;setTimeout(function(){ok.hidden=true},2500)}}
+function copy(t,el,fb){if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(t).then(function(){ack(el)},fb);else fb()}
+function sh(o){return navigator.share(o).catch(function(){})}
+var files=false;try{files=!!(window.File&&navigator.canShare&&navigator.canShare({files:[new File([""],"x.png",{type:"image/png"})]}))}catch(e){}
+/* the bottom bar (v1) */
+var n=b.querySelector("[data-native]"),row=b.querySelector("[data-native-row]"),more=b.querySelector("[data-more]"),nets=b.querySelector("#share-nets");
+if(navigator.share){row.hidden=false;n.onclick=function(){sh({title:n.dataset.title,text:n.dataset.text,url:n.dataset.url})};
+if(matchMedia("(pointer:coarse)").matches){nets.hidden=true;more.onclick=function(){nets.hidden=!nets.hidden;more.setAttribute("aria-expanded",String(!nets.hidden))}}else more.hidden=true}
+var c=b.querySelector("[data-copy]"),f=b.querySelector("[data-copyfield]");
+c.onclick=function(e){e.preventDefault();copy(c.href,b,function(){f.hidden=false;f.focus();f.select()})};
+var ec=b.querySelector("[data-embed-copy]");if(ec){var et=b.querySelector("[data-embed-code]"),eo=b.querySelector("[data-embed-copied]");ec.onclick=function(){function sel(){et.focus();et.select()}
+if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(et.value).then(function(){eo.hidden=false;setTimeout(function(){eo.hidden=true},2500)},sel);else sel()}}
+/* share rows (v2): Share… opens the sheet (with the card file where there is one), Copy copies the link or the result */
+each("[data-share-row]",function(r){var nb=r.querySelector("[data-native]"),cp=r.querySelector("[data-copy]"),p=null;
+function blob(){return p||(p=fetch(r.dataset.file).then(function(x){if(!x.ok)throw Error(x.status);return x.blob()}))}
+if(nb&&navigator.share){if(r.dataset.file&&files)nb.addEventListener("pointerdown",function(){blob().catch(function(){})});
+nb.onclick=function(){var o={text:r.dataset.text,url:r.dataset.url};if(r.dataset.title)o.title=r.dataset.title;
+if(r.dataset.file&&files)blob().then(function(x){o.files=[new File([x],r.dataset.fname,{type:"image/png"})];return navigator.share(o)}).catch(function(e){if(!e||e.name!=="AbortError")sh({text:o.text,url:o.url})});else sh(o)}}
+if(cp)cp.onclick=function(e){e.preventDefault();var t=r.dataset.copyText||cp.href;copy(t,r,function(){window.prompt("",t)})}});
+/* film end screen: share or watch again */
+each("[data-fend]",function(o){var v=o.parentNode.querySelector("video");if(!v)return;v.addEventListener("ended",function(){o.hidden=false});
+v.addEventListener("play",function(){o.hidden=true});var rp=o.querySelector("[data-replay]");if(rp)rp.onclick=function(){o.hidden=true;v.currentTime=0;v.play()}});
+/* facts: each fact's # shares that sentence */
+var canon=(d.querySelector('link[rel="canonical"]')||{}).href||location.href.split("#")[0];
+each("[data-fact]",function(a){a.onclick=function(e){e.preventDefault();var li=a.parentNode,t=li.textContent.replace(/\s*#\s*$/,"").trim(),
+u=canon+"?utm_campaign=site&utm_content=share-fact&utm_medium=share&utm_source="+(navigator.share?"native":"x")+a.getAttribute("href");
+if(navigator.share)sh({text:t,url:u});else window.open("https://x.com/intent/tweet?text="+encodeURIComponent(t)+"&url="+encodeURIComponent(u),"_blank","noopener")}});
+/* the floating Share button: phones only, when the top row has scrolled away and the bar and footer are not in view */
+var fab=d.querySelector("[data-fab]"),top=d.querySelector("[data-share-top]"),ft=d.querySelector("footer");
+if(fab&&ns&&top&&window.IntersectionObserver){var vis=new Map();var io=new IntersectionObserver(function(es){es.forEach(function(e){vis.set(e.target,e.isIntersecting)});
+var t=vis.get(top),on=t===false&&!vis.get(b)&&!vis.get(ft);fab.classList.toggle("on",on);
+top.getBoundingClientRect().top<0||fab.classList.remove("on")});[top,b,ft].forEach(function(x){if(x)io.observe(x)});
+fab.onclick=function(){var o={text:top.dataset.text,url:top.dataset.url};if(top.dataset.title)o.title=top.dataset.title;sh(o)}}
+else if(fab)fab.remove()})();</script>

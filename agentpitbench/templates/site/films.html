@@ -1,7 +1,8 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% import "_share.html" as sh with context %}
 {% block main %}
 <h1 lang="en">Match of the Day</h1>
 <p lang="en">Once a day, the most dramatic round resolved the day before, as a one-minute film. The round is chosen by a published drama score, so you can check the pick.</p>
+{{ sh.row(share) }}
 {% for ep in episodes or [] %}<section class="film" lang="en" id="week-{{ ep.week }}"><h2>Week in the Pit · {{ ep.week }}{% if ep.title %}: {{ ep.title }}{% endif %}</h2>
 {% if ep.files.wide %}<video controls preload="none" playsinline width="1920" height="1080" style="width:100%;height:auto;background:#0b1020"{% if ep.poster %} poster="{{ root }}{{ ep.dir }}{{ ep.poster }}"{% endif %}>
 <source src="{{ root }}{{ ep.dir }}{{ ep.files.wide }}" type="video/mp4"></video>{% endif %}

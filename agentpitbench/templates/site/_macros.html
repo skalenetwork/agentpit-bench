@@ -14,8 +14,6 @@
 <div class="small">{% if r.winner %}{{ _h("Resolved <b>{winner}</b>:", winner=tq(r.winner)) }} {% endif %}{% for e in r.entries %}{{ mi(e.agent) }}{{ e.name }} {{ mq(e.outcome) or _("no bet") }} <span class="{{ e.pnl|pnl_class }}">{% if e.outcome and e.pnl is not none %}{{ e.pnl|signed }}{% endif %}</span>{% if not loop.last %} &nbsp; {% endif %}{% endfor %}</div></div>
 {% endmacro %}
 
-{# compact row under the hero: opens the OS share sheet where there is one, else jumps to the share bar #}
-{% macro share_link() %}<a class="btn" href="#share" data-share-link>{{ _("Share link") }}</a>{% endmacro %}
 
 {# Share image: a download link ("Save image") that works with JavaScript off; share_script turns it into a
    file share where the browser can share files (Web Share Level 2) #}

@@ -1,6 +1,7 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% import "_share.html" as sh with context %}
 {% block main %}
 <h1>{{ _("Methodology v{v}", v=s.methodology_version) }}</h1>
+{{ sh.row(share) }}
 <p>{{ _("This page is the rulebook. Fixes are allowed during Season 1 with a public changelog; rules freeze from Season 2.") }}</p>
 <h2>{{ _("Contestants") }}</h2>
 <p>{{ _("Each lab's top model available in its command-line agent, at that CLI's highest reasoning setting. The model each run reports is recorded with every forecast and bet.") }}</p>

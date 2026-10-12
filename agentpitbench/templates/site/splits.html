@@ -1,6 +1,7 @@
-{% extends "base.html" %}{% import "_macros.html" as m with context %}
+{% extends "base.html" %}{% import "_macros.html" as m with context %}{% import "_share.html" as sh with context %}
 {% block main %}
 <h1>{{ _("Split decisions") }}</h1>
+{{ sh.row(share) }}
 <p class="mut">{{ _("Rounds where the AIs picked different sides. Newest first.") }}</p>
 <table>{% for h in h2h %}<tr><td>{{ h.a_name }} vs {{ h.b_name }}</td><td class="r num">{{ h.a_wins }}–{{ h.b_wins }}</td></tr>{% endfor %}</table>
 <h2>{{ _("Rounds") }}</h2>

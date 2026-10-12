@@ -70,7 +70,8 @@ def test_every_page_previews_and_shares(env):
 def test_share_links_utm_and_lengths(env):
     s, out = _built(env)
     html = (out / "round/2/index.html").read_text()
-    links = {net: href for href, net in re.findall(r'href="([^"]+)" data-net="(\w+)"', html)}
+    bar = html[html.index('id="share"'):]  # the full bar above the footer (the row up top has its own test)
+    links = {net: href for href, net in re.findall(r'href="([^"]+)" data-net="(\w+)"', bar)}
     assert list(links) == NETS
     for net, href in links.items():
         q = parse_qs(urlparse(unescape(href)).query)
@@ -78,7 +79,7 @@ def test_share_links_utm_and_lengths(env):
         u = parse_qs(urlparse(shared).query)
         assert u == {"utm_source": [net], "utm_medium": ["share"], "utm_campaign": ["site"],
                      "utm_content": ["share-round"]}, net
-    copy = re.search(r'href="([^"]+)" data-copy', html).group(1)
+    copy = re.search(r'href="([^"]+)" data-copy', bar).group(1)
     assert "utm_source=copy" in unescape(copy) and "utm_content=share-round" in unescape(copy)
     assert "utm_source=native" in re.search(r'data-url="([^"]+)"', html).group(1)
 
@@ -116,13 +117,16 @@ def test_share_text_clipped_per_network():
 def test_check_pages_fails_without_preview(tmp_path):
     (tmp_path / "ok").mkdir()
     good = ('<meta property="og:title" content="t"><meta property="og:description" content="d">'
-            '<meta property="og:image" content="i"><section data-share-bar></section>')
+            '<meta property="og:image" content="i"><div data-share-top></div><section data-share-bar></section>')
     (tmp_path / "ok/index.html").write_text(good)
     (tmp_path / "widget").mkdir()
     (tmp_path / "widget/index.html").write_text("<html></html>")  # exempt
     site.check_pages(tmp_path)
     (tmp_path / "bad").mkdir()
     (tmp_path / "bad/index.html").write_text(good.replace("og:description", "x"))
+    with pytest.raises(RuntimeError, match="bad/index.html"):
+        site.check_pages(tmp_path)
+    (tmp_path / "bad/index.html").write_text(good.replace("data-share-top", "x"))  # share UX v2: no top control
     with pytest.raises(RuntimeError, match="bad/index.html"):
         site.check_pages(tmp_path)
 
@@ -335,3 +339,77 @@ def test_share_my_win(env):
     x = unescape(re.search(r'href="(https://x.com/intent/tweet\?[^"]+)" target="_blank" rel="noopener">X<', html).group(1))
     text = parse_qs(urlparse(x).query)["text"][0]
     assert text.startswith("I beat ") and "Claude" in text and "Grok" not in text  # Grok picked Nexus and won
+
+
+# ---------- share UX v2 (docs/share-ux-v2-spec.md) ----------
+
+def test_share_row_at_the_top_of_every_page(env):
+    """Every public page has a share control in its first screen (the row, or the result box on a resolved round),
+    before the content and long before the bar above the footer."""
+    s, out = _built(env, card=True)
+    for code in ("en", "ar"):
+        prefix = "" if code == "en" else f"{code}/"
+        for p in PUBLIC + ["facts/index.html", "films/index.html", "challenge/index.html"]:
+            html = (out / prefix / p).read_text()
+            top = html.find("data-share-top")
+            assert 0 < top < html.index('id="share"'), (code, p)
+            assert top < html.index("</h1>") + 1500, (code, p)  # right under the heading, not further down
+            row = html[top:html.index("</div>", top)]
+            nets = re.findall(r'data-net="(\w+)"', row.split("<details>", 1)[0])
+            assert nets in (["x", "linkedin", "bluesky"], ["x", "bluesky"]), (code, p, nets)  # few buttons up top
+            assert "data-native" in row and "data-copy" in row
+    assert "data-share-link" not in (out / "agent/claude/index.html").read_text()  # the old jump-to-bottom link
+
+
+def test_result_grid_only_on_resolved_rounds(env):
+    s, out = _built(env, card=True)
+    done = (out / "round/1/index.html").read_text()
+    box = re.search(r'<section class="rbox".*?</section>', done, re.S).group(0)
+    pre = unescape(re.search(r"<pre dir=\"ltr\">(.*?)</pre>", box, re.S).group(1))
+    assert pre.splitlines()[0] == "AgentpitBench · Round 1" and "→ Nexus" in pre.splitlines()[1]
+    assert [ln[0] for ln in pre.splitlines()[2:]] == ["🟢", "🔴", "🔴", "🔴"]  # Grok won; ranked like the page
+    assert done.index('class="rbox"') < done.index("The picks")  # at the moment of the result
+    x = parse_qs(urlparse(unescape(re.search(r'href="([^"]+)" data-net="x"', box).group(1))).query)
+    assert "\n🟢 Grok" in x["text"][0] and "utm_content=share-result" in x["url"][0]
+    assert "AgentpitBench · Round 1\n" in unescape(re.search(r'data-copy-text="([^"]+)"', box).group(1))
+    assert 'class="rbox"' not in (out / "round/2/index.html").read_text()  # open: no result, no grid
+    assert "الجولة" in (out / "ar/round/1/index.html").read_text().split('class="rbox"', 1)[1][:400]
+
+
+def test_grid_fits_x_with_emoji_weighted():
+    r = {"state": "resolved", "winner": "Yes", "round_id": 7, "question": "Will " + "very " * 80 + "long happen?",
+         "entries": [{"name": n, "outcome": "Yes", "won": True, "pnl": 32.0, "decided_s": i}
+                     for i, n in enumerate(["Claude", "ChatGPT", "Gemini", "Grok"])]}
+    g = site.result_grid(r, Translator("en"))
+    t = site.grid_text(g, 280 - 24, site.x_len)
+    assert site.x_len(t) <= 256 and t.count("\n") == 5 and t.endswith("🟢 Grok +32")  # question clipped, rows kept
+    assert site.x_len("🟢") == 2 and site.x_len("a→b") == 4 and site.x_len("https://agentpitbench.org/x") == 23
+    assert site.result_grid(dict(r, state="running"), Translator("en")) is None
+    assert site.result_grid(dict(r, state="void"), Translator("en")) is None
+
+
+def test_quote_share_never_for_sealed_or_without_a_card(env):
+    s, rid, out = _open_round(env, thread=None, state="running")  # agents deciding: sealed
+    assert 'class="shrow qs"' not in (out / f"round/{rid}/index.html").read_text()
+    r = {"round_id": 5, "state": "resolved", "question": "Q?", "exclusion": None,
+         "entries": [{"agent": "claude", "name": "Claude", "outcome": "Yes", "quote": "Easy money.", "rationale": "x"},
+                     {"agent": "grok", "name": "Grok", "outcome": "No", "quote": None, "rationale": "Too risky. More."}]}
+    (s.cards_dir / "5").mkdir(parents=True, exist_ok=True)
+    Image.new("RGB", (1200, 675)).save(s.cards_dir / "5/decision-claude.png")
+    q = site.quote_shares(s, r, "https://x.org/round/5/")
+    assert list(q) == ["claude"]  # Grok has no card
+    assert q["claude"]["text"] == 'Claude on "Q?": “Easy money.”' and q["claude"]["card"] == "cards/5/decision-claude.png"
+    assert "utm_content=share-quote" in unquote(q["claude"]["x"])
+    Image.new("RGB", (1200, 675)).save(s.cards_dir / "5/decision-grok.png")
+    assert site.quote_shares(s, r, "u")["grok"]["text"].endswith("“Too risky.”")  # first sentence of the rationale
+    assert site.quote_shares(s, dict(r, exclusion="infra"), "u") == {}
+    assert site.quote_shares(s, dict(r, state="running"), "u") == {}
+    long = site.quote_text("Claude", "Q" * 300, "w " * 200, 256, site.x_len)
+    assert site.x_len(long) <= 256 and long.startswith('Claude on "')
+
+
+def test_facts_share_each_sentence(env):
+    s, out = _built(env)
+    html = (out / "facts/index.html").read_text()
+    assert html.count("data-fact") > 5 and 'aria-label="Share"' in html
+    assert 'aria-label="مشاركة"' in (out / "ar/facts/index.html").read_text()

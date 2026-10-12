@@ -1,6 +1,7 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% import "_share.html" as sh with context %}
 {% block main %}
 <h1>{{ _("Data & method") }}</h1>
+{{ sh.row(share) }}
 <h2>{{ _("Downloads") }}</h2>
 <ul><li><a href="{{ root }}data/rounds.json">rounds.json</a> — {{ _("every round, pick, rationale and result") }}</li>
 <li><a href="{{ root }}data/leaderboard.json">leaderboard.json</a> — {{ _("standings and profit/loss history") }}</li>
