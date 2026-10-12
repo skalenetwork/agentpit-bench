@@ -93,7 +93,8 @@ def posterior(db, s, slot: str, now: float | None = None) -> list[dict]   # per 
 - **Fallback:** if `check_rendered` fails for this post, the control posts and `realize` sets `realized_arm_id` to the
   control. Rendering a variant fails whenever `twitter.fit` would have to **clip anything** (the variant, the picks line,
   the season line, the hook, the question) beyond what the control clips for the same round, so a variant can never
-  squeeze a fact. The observation goes to `realized_arm_id`, the arm that actually posted.
+  squeeze a fact. Detection is mechanical: `clip` always appends `…`, so a variant render with more `…` than the
+  control render for the same post counts as clipping. The observation goes to `realized_arm_id`, the arm that actually posted.
 - **Several slots on one post: `ab.finish`.** A reveal carries three slots, a results post four, and variants that each
   fit alone can overflow together. Every hook point builds its text through one function:
   ```python
@@ -117,7 +118,7 @@ def posterior(db, s, slot: str, now: float | None = None) -> list[dict]   # per 
 | Where | Change |
 |---|---|
 | `cards.py`, `twitter.py` | new `cards.split_shape(rnd) -> (situation, facts)` and `twitter.results_shape(rnd) -> (situation, facts)`; `split_headline` and `results_hook` are rewritten on top of them, so the control output stays byte-identical |
-| `publish._reveal` | `choose` `reveal.hook` (situation and facts from `split_shape`), `reveal.cta`, `reveal.media`, `tags`; build media list from the media arm (`four_decisions`: as today; `split_card`: `cards/<round>/split.png`, else fall back to decisions + `realize` control) |
+| `publish._reveal` | `choose` `reveal.hook` (situation and facts from `split_shape`), text built through `ab.finish`, `reveal.cta`, `reveal.media`, `tags`; build media list from the media arm (`four_decisions`: as today; `split_card`: `cards/<round>/split.png`, else fall back to decisions + `realize` control) |
 | `twitter.reveal_text(rnd, headline, cta="", extra_tags="")` | `cta` line inserted directly before `"\nReply with your pick: …"`; `extra_tags` after `TAG` |
 | `publish.on_resolved` | `day_tone` replaces `headline_variant(round_id)`; `choose` `results.hook` (from `results_shape`), `results.cta`, `results.media`, `tags`; text built through `ab.finish`; `utm_content={tone}` exactly as today (nothing can read it; changing it would break byte-identical control output) |
 | `twitter.results_text(s, rnd, board, round_url, crowd=None, cast=None, hook=None, cta="", extra_tags="")` | `hook=None` → `results_hook(rnd)` (control); `cta` line goes before the URL line |
@@ -367,7 +368,8 @@ accepted/rejected counts with reasons); posts that fell back to control and why;
    or duplicate placeholder, unknown placeholder, too long at worst case, incomplete situation set); `check_rendered`
    rejects a reveal without "Reply with your pick", a non-results post with a URL, results without the round URL.
 4. Fallback: a long-label round where the variant would force clipping → control posts, `realized_arm_id` = control,
-   observation goes to control. Video failure records `still`. A results variant can't add, drop or change the URL;
+   observation goes to control. Two variants that each fit alone but overflow together → `tags` dropped first, then
+   `*.cta`; `*.hook` survives; each dropped slot's `realized_arm_id` is control. Video failure records `still`. A results variant can't add, drop or change the URL;
    `report-<week>-3` and summon replies keep theirs.
 5. Generator with a fake runner: bad JSON / timeout → no arms, run recorded failed; valid output → `live`/`queued` by seat;
    every candidate in `operator_ai_outputs`; does nothing when a round is running.
