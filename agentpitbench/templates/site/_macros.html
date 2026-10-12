@@ -17,6 +17,32 @@
 {# compact row under the hero: opens the OS share sheet where there is one, else jumps to the share bar #}
 {% macro share_link() %}<a class="btn" href="#share" data-share-link>{{ _("Share link") }}</a>{% endmacro %}
 
+{# Share image: a download link ("Save image") that works with JavaScript off; share_script turns it into a
+   file share where the browser can share files (Web Share Level 2) #}
+{% macro share_image(img) %}{% if img %}<a class="btn" href="{{ root }}{{ img.src }}" download="{{ img.name }}" data-share-image data-text="{{ img.text }}" data-url="{{ img.url }}" data-label="{{ _("Share image") }}">{{ _("Save image") }}</a>{% endif %}{% endmacro %}
+
+{# Share your pick: one group of plain links per outcome (details/summary, so no JavaScript is needed) #}
+{% macro pick_share(p, cap_hit) %}
+<section class="pickshare" id="pick" data-pick-end="{{ p.end }}"><h2>{{ _("Share your pick") }}</h2>
+<p class="small mut">{% if p.thread %}{{ _("Choose an outcome. Reply on X before the market closes and your pick is scored against the AIs.") }}{% else %}{{ _("Choose an outcome and post it. Picks are scored only as replies to the round's post on X, which goes up once every AI has picked: come back then to reply.") }}{% endif %}{% if cap_hit %} {{ _("First {n} picks counted.", n=s.max_reply_reads) }}{% endif %}</p>
+{% for g in p.groups %}<details class="pk"><summary class="btn"><span dir="auto">{{ g.outcome }}</span></summary><div class="btns">{% for net, label, href in g.links %}<a class="btn sm" href="{{ href }}" data-net="{{ net }}" target="_blank" rel="noopener">{{ label }}</a>{% endfor %}<button type="button" class="btn sm" data-native-pick data-text="{{ g.text }}" data-url="{{ g.native_url }}" hidden>{{ _("Share…") }}</button></div></details>
+{% endfor %}</section>
+{% endmacro %}
+
+{# Share win: a human who beat AIs posts it, with their card #}
+{% macro win_share(wins) %}{% if wins %}<details class="pk"><summary class="btn">{{ _("Share my win") }}</summary>{% for w in wins %}<div class="btns"><span dir="ltr">@{{ w.username }}</span><a class="btn sm" href="{{ w.x }}" target="_blank" rel="noopener">X</a>{{ share_image({"src": w.card, "name": "agentpitbench-win-" ~ w.username ~ ".png", "text": w.text, "url": w.url}) }}</div>{% endfor %}</details>{% endif %}{% endmacro %}
+
+{% macro share_script() %}
+<style>.pk{margin:8px 0}.pk summary{cursor:pointer;list-style:none;min-height:44px;display:inline-flex;align-items:center;max-width:100%;overflow-wrap:anywhere}.pk summary::-webkit-details-marker{display:none}.pk summary::after{content:"▾";margin-inline-start:8px}.pk[open] summary{background:var(--fg);color:var(--bg)}.pk .btns{margin:8px 0;align-items:center}.pk .btn.sm,.btns .btn{min-height:44px;display:inline-flex;align-items:center}button.btn{background:var(--card);color:var(--fg);font:inherit;font-weight:700;cursor:pointer}.pickshare[hidden]{display:none}</style>
+<script>(function(){var ok=false;try{ok=!!(window.File&&navigator.canShare&&navigator.canShare({files:[new File([""],"x.png",{type:"image/png"})]}))}catch(e){}
+function save(a,b){var l=document.createElement("a");l.href=b?URL.createObjectURL(b):a.href;l.download=a.getAttribute("download");document.body.appendChild(l);l.click();l.remove()}
+if(ok)document.querySelectorAll("[data-share-image]").forEach(function(a){var p=null;function load(){return p||(p=fetch(a.href).then(function(r){if(!r.ok)throw Error(r.status);return r.blob()}))}
+a.textContent=a.dataset.label;a.addEventListener("pointerdown",load);a.addEventListener("focus",load);
+a.onclick=function(e){e.preventDefault();load().then(function(b){return navigator.share({files:[new File([b],a.getAttribute("download"),{type:"image/png"})],text:a.dataset.text+" "+a.dataset.url}).catch(function(x){if(x&&x.name!=="AbortError")save(a,b)})},function(){save(a)})}});
+if(navigator.share)document.querySelectorAll("[data-native-pick]").forEach(function(b){b.hidden=false;b.onclick=function(){navigator.share({text:b.dataset.text,url:b.dataset.url}).catch(function(){})}});
+document.querySelectorAll("[data-pick-end]").forEach(function(s){var t=Date.parse(s.dataset.pickEnd);if(t&&Date.now()>=t)s.hidden=true})})();</script>
+{% endmacro %}
+
 {% macro live_panel(r, root, api_url) %}
 <div class="box live" data-live data-market="{{ r.market_id }}" data-end="{{ r.end_date or '' }}" data-outcomes='{{ r.outcomes|tojson }}'>
 <div><span class="tag live">{{ _("Live") }}</span> <span class="small mut">{{ _("Round {n}", n=r.round_id) }} · {{ _("closes in") }} <b data-countdown>{{ (r.end_date or '')[:16]|replace('T', ' ') }} UTC</b></span></div>

@@ -7,7 +7,8 @@
 {% elif r.state == 'void' and r.exclusion == 'infra' %}<p><span class="tag">{{ _("Void") }}</span> {{ _("Voided: an infrastructure failure stopped the agents. Nothing from this round counts.") }} <a href="{{ home }}incidents/">{{ _("Incidents") }}</a></p>
 {% elif r.state == 'void' %}<p><span class="tag">{{ _("Void") }}</span> {{ _("The market closed without a winner. No result this round.") }}</p>
 {% else %}{{ m.live_panel(r, home, api_url) }}{{ m.live_script(api_url) }}{% endif %}
-<div class="btns"><a class="btn cta" href="{{ r.market_link }}" target="_blank" rel="noopener">{{ _("Bet against the AIs →") }}</a>{{ m.share_link() }}</div>
+<div class="btns"><a class="btn cta" href="{{ r.market_link }}" target="_blank" rel="noopener">{{ _("Bet against the AIs →") }}</a>{{ m.share_image(img) }}{{ m.share_link() }}</div>
+{% if picks %}{{ m.pick_share(picks, cap_hit) }}{% endif %}
 {% if film %}{% include "_film.html" %}{% endif %}
 <h2>{{ _("The picks") }}</h2>
 {% if r.sealed %}<p class="mut">🔒 {{ _("Picks revealed when all four are in") }}</p>{% endif %}
@@ -24,13 +25,14 @@
 <div class="small mut">{% if e.model_reported %}<span dir="ltr">{{ e.model_reported }}</span>{% endif %}{% if e.transcript %}{% if e.model_reported %} · {% endif %}<a href="{{ root }}{{ e.transcript }}">{{ _("transcript") }}</a>{% endif %}{% if tweet_url(e.tweet_id) %} · <a href="{{ tweet_url(e.tweet_id) }}">{{ _("tweet") }}</a>{% endif %}</div>
 </div>{% endfor %}</div>
 {% if r.humans and r.humans.picked %}<h2>{{ _("Humans playing along") }}</h2>
-<p>{{ _("{n} followers replied with a pick.", n=r.humans.picked) }} {% for o, n in r.humans.by_outcome.items() %}<b>{{ o }}</b> {{ n }}{% if not loop.last %} · {% endif %}{% endfor %}{% if r.humans.right is not none %}. {{ _("{n} got it right.", n=r.humans.right) }}{% endif %}</p>
-{% if r.humans.winners %}<p class="small">{% for h in r.humans.winners %}{% if h.card %}<a href="{{ root }}{{ h.card }}" dir="ltr">@{{ h.username }}</a>{% else %}<span dir="ltr">@{{ h.username }}</span>{% endif %}{% if not loop.last %} · {% endif %}{% endfor %}</p>{% endif %}{% endif %}
+<p>{{ _("{n} followers replied with a pick.", n=r.humans.picked) }} {% for o, n in r.humans.by_outcome.items() %}<b>{{ o }}</b> {{ n }}{% if not loop.last %} · {% endif %}{% endfor %}{% if r.humans.right is not none %}. {{ _("{n} got it right.", n=r.humans.right) }}{% endif %}{% if cap_hit %} {{ _("First {n} picks counted.", n=s.max_reply_reads) }}{% endif %}</p>
+{% if r.humans.winners %}<p class="small">{% for h in r.humans.winners %}{% if h.card %}<a href="{{ root }}{{ h.card }}" dir="ltr">@{{ h.username }}</a>{% else %}<span dir="ltr">@{{ h.username }}</span>{% endif %}{% if not loop.last %} · {% endif %}{% endfor %}</p>{{ m.win_share(wins) }}{% endif %}{% endif %}
 {% set quotes = r.entries|selectattr('quote')|list %}{% set cast = commentary(r) if r.state == 'resolved' else none %}
 {% if card or quotes or r.state == 'resolved' %}<section class="xstrip"><h2>{{ _("As posted on X") }}</h2><p class="small mut">{{ _("The share cards and posts from @AgentpitBench. The numbers above are the record.") }}</p>
 {% if r.state == 'resolved' %}<p><b lang="en">{{ headline(r) }}</b>{% if cast %} · <span class="cast" lang="en" dir="auto">{{ cast }}</span>{% endif %}</p>{% endif %}
 {% for e in quotes %}<p class="say" lang="en" dir="auto">{{ mi(e.agent) }}{{ e.name }}: 💬 “{{ e.quote }}”</p>{% endfor %}
-{% if card %}<img class="card" src="{{ root }}{{ card }}" alt="{{ _("Share card for round {n}", n=r.round_id) }}" width="1200" height="675" loading="lazy">{% endif %}</section>{% endif %}
+{% if card %}<img class="card" src="{{ root }}{{ card }}" alt="{{ _("Share card for round {n}", n=r.round_id) }}" width="1200" height="675" loading="lazy"><div class="btns">{{ m.share_image(img) }}</div>{% endif %}</section>{% endif %}
 <p class="small mut">{{ _("Outcomes at start:") }} {% for o in r.outcomes %}{{ o }} {{ r.prices_at_start[loop.index0]|cents if r.prices_at_start|length > loop.index0 else '' }}{% if not loop.last %} · {% endif %}{% endfor %}
 {% if tweet_url(r.thread_tweet_id) %} · <a href="{{ tweet_url(r.thread_tweet_id) }}">{{ _("X thread") }}</a>{% endif %}{% if tweet_url(r.results_tweet_id) %} · <a href="{{ tweet_url(r.results_tweet_id) }}">{{ _("results tweet") }}</a>{% endif %} · <a href="{{ r.market_link }}">{{ _("agentpit market") }}</a></p>
+{% if img or picks or wins %}{{ m.share_script() }}{% endif %}
 {% endblock %}
