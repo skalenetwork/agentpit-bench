@@ -1,6 +1,6 @@
 # AI automation: operator AI for selection, picks, summaries, reports, anomalies and ops (spec)
 
-Status: v1 draft · 2026-10-12 · not built. Encodes the operator decisions of 2026-10-09 ("AI AUTOMATION") and
+Status: reviewed (v2.2, advisor, three passes) · 2026-10-12 · not built. Encodes the operator decisions of 2026-10-09 ("AI AUTOMATION") and
 2026-10-12. Siblings: `x-analytics-spec.md` (prerequisite: every X metric this spec uses comes from its
 `xstats` layer), `ab-testing-spec.md` (owns every post-copy variant; this spec writes no X copy variants).
 Queue position: cards → A/B → **automation** → Match of the Day.
@@ -216,7 +216,10 @@ CREATE TABLE IF NOT EXISTS ai_calls (            -- every call attempt, includin
     detail TEXT                                  -- first 300 chars of the error, redacted
 );
 -- The tag table is the A/B spec's `operator_ai_outputs` (ab-testing-spec.md §7), shared, not a second table.
--- A/B builds first and creates it; this build only adds columns (MIGRATIONS below). Mapping for opai rows:
+-- Both build today in parallel worktrees, so this build also carries A/B §7's
+-- `CREATE TABLE IF NOT EXISTS operator_ai_outputs (...)` verbatim: either merge order works. Whichever lands
+-- second moves the A/B generator behind opai.call(task="ab"). This build adds columns (MIGRATIONS below).
+-- Mapping for opai rows:
 --   purpose = task name ('rate', 'picks', 'summary', ...; A/B keeps 'ab:<slot>'),
 --   prompt_version = '<task>.v<N>' (TEXT, as A/B defines it), content = the output JSON,
 --   accepted = 1 if it passed the validator, else 0 with reject_reason (rejected outputs kept for audit).
@@ -286,8 +289,9 @@ CREATE TABLE IF NOT EXISTS alerts (
   - `opai_backoff_until`
   - `cadence_policy` (the current policy)
   - `rater_shadow_until`
-- **Accessor:** `db.paused(what) -> bool` returns `s.posting_paused` (posting only) **or**
-  `kv['pause'][what]`.
+- **Accessor:** `opai.paused(s, db, what) -> bool` (it needs `Settings`, which `DB` doesn't hold) returns
+  `s.posting_paused` (posting only) **or** `kv['pause'][what]`. Below, `db.paused(x)` is shorthand for
+  `opai.paused(s, db, x)`.
 
 ## 4. Methodology lock: `agentpitbench/methodology.py` + `agentpitbench/methodology.json` (new)
 
@@ -407,7 +411,8 @@ public git history time-stamps every change.
 
 ### 5.2 Use in selection (methodology)
 
-`watcher.priority(m, db, s)`:
+`watcher.priority(m, db, s)`. `Watcher.pick` and `Engage.high_stakes_market` keep their
+`sorted(..., key=…)` shape and pass `key=lambda m: priority(m, self.db, self.s)`:
 
 ```python
 kw = news_tier(m)                       # 0..3
@@ -436,8 +441,9 @@ return (score, _num(m, "volume"), _num(m, "liquidity"), int(m["id"]))
   score (0–100, published per market; keyword rule as fallback and as a floor for esports and minor
   leagues)."
 - **Methodology page:** the "Market eligibility" text gains one sentence, rendered from the lock: "Newsworthy
-  markets go first: {scoring rule}, rated by {model alias} with rater prompt v{n}; every rating is published
-  in data/newsworthiness.json." The exact sentence ships in the same PR as the code, as a new message id
+  markets go first: {scoring rule}, rated with rater prompt v{n}; the model that produced each rating is
+  recorded per market in data/newsworthiness.json" (a model alias like `sonnet` isn't reproducible; the
+  reported model id per row is). The exact sentence ships in the same PR as the code, as a new message id
   translated by §12.
 
 ### 5.3 Selection review (proposal author, weekly)
@@ -601,6 +607,10 @@ return (score, _num(m, "volume"), _num(m, "liquidity"), int(m["id"]))
   | `deploy-stale` | warn | No successful site deploy for 2 h while rounds changed (new `kv['site_deployed_at']` written by `SiteDeployer._once` on success) |
   | `opai-failing` | warn | ≥ 5 non-`ok`, non-`unavailable` `ai_calls` in 6 h |
 
+- **Values never travel:** `anomalies.detail_json` carries field names, ids and positions, never the leaked
+  or matched values. For example, `embargo-breach` stores `{round_id, fields: ["outcome","quote"], where:
+  "export/rounds.json"}`, and `secret-in-transcript` stores `{path, pattern, line}`. So neither the
+  `incident` task, the alert body nor the ops snapshot can carry a sealed pick or a secret, even mid-round.
 - **On critical** (`anomaly.raise_(…)`, idempotent by `key`):
   1. Set `kv['pause'] = {posting: True, rounds: True, …}`. For `methodology-drift` and `void-burst`, only
      `rounds` is set. This happens first, in the same tick, before any model call.
@@ -681,16 +691,19 @@ return (score, _num(m, "volume"), _num(m, "liquidity"), int(m["id"]))
 
      It carries **no** DB file, no unrevealed forecasts and no transcripts. It is written to
      `~/.cache/agentpitbench/ops/<date>/`.
-  2. **Worktree:** `git worktree add ~/.cache/agentpitbench/ops/wt-<date> origin/main` on a branch
-     `ops/<date>`. It sits outside every `var/`, so hiding `var/` doesn't hide it.
+  2. **Checkout:** `git clone --shared --branch main <repo> ~/.cache/agentpitbench/ops/wt-<date>`, then
+     `git checkout -b ops/<date>`. Not `git worktree`: its metadata lives in the main repo's
+     `.git/worktrees/`, which is read-only inside the ops sandbox, so `git status`/`diff` would fail on the
+     index lock. It sits outside every `var/`, so hiding `var/` doesn't hide it.
   3. **Agent run** (`claude -p --safe-mode --no-session-persistence --strict-mcp-config --mcp-config
      '{"mcpServers":{}}'`, opai config dir, model `opai_ops_model`) inside **its own** bwrap profile,
      `ops.ops_sandbox()`. This is a separate function from the contestant `sandboxed()`, and it shares no
      homes.
-     - **Visible:** the worktree (rw), the snapshot (ro), the opai config dir (rw), the system (ro).
+     - **Visible:** the checkout (rw), the snapshot (ro), the opai config dir (rw), the main checkout's
+       `.venv` (ro; the clone has none), the system (ro).
      - **Hidden (tmpfs):** `~/.config/agentpitbench`, `~/.claude`, `~/.codex`, `~/.grok`, `~/.ssh`,
        `~/.gitconfig` credentials, `var/` of every checkout, `/d/PythonProject/agentpitbench-live`.
-     - **Tools:** `--tools "Read,Grep,Glob,Edit,Write,Bash"` with `--allowedTools "Bash(python -m pytest:*)"
+     - **Tools:** `--tools "Read,Grep,Glob,Edit,Write,Bash"` with `--allowedTools "Bash(<main>/.venv/bin/python -m pytest:*)"
        "Bash(git diff:*)" "Bash(git status:*)"`.
      - **Prompt** (`prompts/ops.v1.md`): fix at most one problem visible in the snapshot (an exception, a
        failing test, missing translations); never touch methodology, contestant prompts, the sandbox or
@@ -710,7 +723,7 @@ return (score, _num(m, "volume"), _num(m, "liquidity"), int(m["id"]))
      `GH_OPS_TOKEN`. That's a fine-grained PAT on `skalenetwork/agentpit-bench` with Contents RW and Pull
      requests RW only, read from `~/.config/agentpitbench/ops.env` by the runner. It's never in the agent's env
      or view. A `proposal.json` is copied to `var/proposals/` (§4) and never into the PR.
-  6. Clean up the worktree. A one-line summary goes into the digest.
+  6. Delete the checkout. A one-line summary goes into the digest.
 - **Creds:** the ops agent has no agentpit keys, no X token and no DB handle. The runner's only write
   credential is the PR-scoped PAT.
 - **Branch protection:** `main` needs a ruleset so the PAT can't push to it (see Open questions).
@@ -835,7 +848,8 @@ with exit 1, sleep past the timeout, auth error. The fixture records the receive
 10. **Report prose:** a digit outside a placeholder is rejected; an unknown placeholder is rejected;
     "significant" is rejected; "best" for a non-lowest Brier is rejected; fill formats.
 11. **Anomalies:** one fixture per detector. `logs.clean` on a synthetic log keeps only the resolved round's
-    lines and drops every `bet … @` line. Then:
+    lines and drops every `bet … @` line. For `embargo-breach` and `secret-in-transcript`, `detail_json`
+    contains no outcome label, quote text or secret value (asserted on the fixture). Then:
     - critical sets the pause before any opai call (fake claude asserts the pause kv is already set when it's
       invoked);
     - while paused, `Poster.post` returns None and writes no `tweets` row and no outbox file;
