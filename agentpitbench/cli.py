@@ -294,6 +294,30 @@ async def one_round(s: config.Settings, market_id: str, agents: list[str] | None
     await api.close()
 
 
+async def motd_post(s: config.Settings, film: str) -> str | None:
+    """Post one already-rendered film to X the production way (motd.post: the 9:16 film with the template post
+    text, then the round link as a self-reply; post_key motd-<date>, so it posts once per date and the 17:00 job
+    won't post a second film that day). dry_run / posting_paused send it to the outbox as usual."""
+    from pathlib import Path
+    from . import motd
+    d = Path(film)
+    rec = json.loads((d / "film.json").read_text())
+    db = DB(s.db_path)
+    pub = make_publisher(s, db)
+    poster = getattr(pub, "poster", None)
+    if poster is None:
+        raise SystemExit("no X poster available (publishing layer missing)")
+    try:
+        tid = await motd.post(s, db, poster, rec, d)
+    finally:
+        if hasattr(pub, "close"):
+            await pub.close()
+    if tid:
+        db.put(f"motd_{rec['date']}", "done")  # the daily job sees today's film as done
+    print(f"posted {rec['date']} round {rec['round_id']}: {tid}" if tid else "not posted (see log)")
+    return tid
+
+
 async def motd_render(s: config.Settings, day: str | None, round_id: int | None, out: str | None) -> None:
     """Render a Match of the Day film for review. Never posts."""
     from . import motd
@@ -598,7 +622,10 @@ def main(argv: list[str] | None = None) -> None:
     du.add_argument("new_model")
     ds = sub.add_parser("dataset", help="build the monthly open dataset (and upload if HF/Kaggle creds are set)")
     ds.add_argument("--month", required=True, help="YYYY-MM")
-    mo = sub.add_parser("motd", help="render a Match of the Day film (both formats) for review; never posts")
+    mo = sub.add_parser("motd", help="render a Match of the Day film (both formats) for review; never posts. "
+                                     "`motd post --film DIR` posts an already-rendered film to X")
+    mo.add_argument("action", nargs="?", choices=["render", "post"], default="render")
+    mo.add_argument("--film", help="post: the film directory (with film.json and the 9:16 mp4)")
     mo.add_argument("--date", help="film date YYYY-MM-DD (covers rounds resolved the day before; default today UTC)")
     mo.add_argument("--round", type=int, help="film this round instead of the day's pick")
     mo.add_argument("--out", help="output directory (default: cards/motd/<date>/)")
@@ -675,6 +702,10 @@ def main(argv: list[str] | None = None) -> None:
         asyncio.run(sweep_now(s))
     elif a.cmd == "duel":
         asyncio.run(duel(s, a.agent, a.old_model, a.new_model))
+    elif a.cmd == "motd" and a.action == "post":
+        if not a.film:
+            raise SystemExit("motd post needs --film DIR")
+        asyncio.run(motd_post(s, a.film))
     elif a.cmd == "motd":
         asyncio.run(motd_render(s, a.date, a.round, a.out))
     elif a.cmd == "x-login":

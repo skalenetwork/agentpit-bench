@@ -4,6 +4,7 @@ import json
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -270,6 +271,29 @@ async def test_daily_quiet_hour_idempotent_and_outbox(env, monkeypatch):
     assert out["image"].endswith("-tall.mp4")
     link = json.loads((s.outbox_dir / f"motd-{DAY}-link.json").read_text())
     assert link["reply_to"] == out["tweet_id"] and "/round/1/" in link["text"]
+
+
+async def test_cli_motd_post_posts_a_rendered_film_once(env, monkeypatch, tmp_path):
+    """`agentpitbench motd post --film DIR`: the production post path for an already-rendered film (dry-run here
+    goes to the outbox), the template X text, the round link as a self-reply, once per date; the daily job then
+    sees the date as done."""
+    from agentpitbench import cli
+    s, db = env
+    film = tmp_path / "film"
+    film.mkdir()
+    (film / f"motd-{DAY}-tall.mp4").write_bytes(b"\0")
+    (film / "film.json").write_text(json.dumps({
+        "date": DAY, "round_id": 9, "hook": "All rise.", "post_hook": "Gemini took No at 84.5¢.",
+        "files": {"tall": f"motd-{DAY}-tall.mp4"}}))
+    monkeypatch.setattr(cli, "make_publisher", lambda s_, db_: SimpleNamespace(poster=Poster(s_, db_)))
+    monkeypatch.setattr(cli, "DB", lambda path: db)
+    tid = await cli.motd_post(s, str(film))
+    assert tid and db.get(f"motd_{DAY}") == "done"
+    out = json.loads((s.outbox_dir / f"motd-{DAY}.json").read_text())
+    assert out["text"] == "Gemini took No at 84.5¢. Match of the Day #AgentpitBench"  # template, not the AI's hook
+    assert json.loads((s.outbox_dir / f"motd-{DAY}-link.json").read_text())["reply_to"] == tid
+    assert await cli.motd_post(s, str(film)) == tid  # idempotent: same post_key, no second post
+    assert db.one("SELECT COUNT(*) n FROM tweets WHERE post_key=?", f"motd-{DAY}")["n"] == 1
 
 
 async def test_posting_paused_records_nothing(env, monkeypatch):
