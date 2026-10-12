@@ -12,13 +12,13 @@ import asyncio
 import logging
 from pathlib import Path
 
-from . import exports, press
-from .cards import CardRenderer, headline_variant, split_headline
+from . import ab, exports, press
+from .cards import CardRenderer, headline_variant, split_headline, split_shape
 from .config import Settings
 from .db import DB
 from .engage import Engage
 from .site import SiteDeployer
-from .twitter import Poster, clip, decision_text, price_str, results_text, split_text, reveal_text
+from .twitter import Poster, clip, decision_text, price_str, results_shape, results_text, split_text, reveal_text
 from .virality import commentary, grudge, grudge_headline
 
 log = logging.getLogger(__name__)
@@ -40,6 +40,7 @@ class BenchPublisher:
         self.poster = Poster(s, db)
         self.site = SiteDeployer(s)
         self.engage = Engage(s, db, self.poster, self.cards)
+        ab.seed(db)
         self._locks: dict[int, asyncio.Lock] = {}
         self._pending: dict[int, set[asyncio.Task]] = {}  # in-flight on_bet calls per round
 
@@ -134,6 +135,8 @@ class BenchPublisher:
         others = [t for t in self._pending.get(round_id, ()) if t is not asyncio.current_task()]
         if others:
             await asyncio.gather(*others, return_exceptions=True)
+        self.db.x("UPDATE ab_assignments SET excluded='void' WHERE post_key IN "
+                  "(SELECT post_key FROM tweets WHERE round_id=?) OR post_key LIKE ?", round_id, f"r{round_id}-%")
         for row in self.db.q("SELECT post_key, tweet_id FROM tweets WHERE round_id=?", round_id):
             if await self.poster.delete(row["tweet_id"], row["post_key"]):
                 self.db.x("DELETE FROM tweets WHERE post_key=?", row["post_key"])
@@ -194,19 +197,44 @@ class BenchPublisher:
         """The round's opener on X, once every pick is in: the decision cards as up to four images, the split
         headline, every pick and the reply invite. Results quote it; human picks are read from its replies."""
         kind, headline = split_headline(rnd)
-        if sum(1 for e in rnd["entries"] if e["outcome"]) < 2:
+        few = sum(1 for e in rnd["entries"] if e["outcome"]) < 2
+        if few:
             headline = "Picks are in"
+        key = f"r{round_id}-reveal"
         shown = [(p, e) for e in rnd["entries"]
                  if (p := self.s.cards_dir / str(round_id) / f"decision-{e['agent']}.png").exists()][:4]
         cards = [p for p, _ in shown]
+        try:
+            text, media = self._reveal_ab(round_id, rnd, key, headline, few, cards)
+        except Exception:  # A/B never blocks a post: the control goes out
+            log.exception("A/B for %s failed; posting the control", key)
+            text, media = reveal_text(rnd, headline), cards or None
+        alt = [card_alt(rnd, e) for _, e in shown] if media and list(media) == cards else None
         async with self._lock(round_id):
-            tid = await self.poster.post(f"r{round_id}-reveal", "reveal", reveal_text(rnd, headline), cards or None,
-                                         round_id=round_id, alt=[card_alt(rnd, e) for _, e in shown])
+            tid = await self.poster.post(key, "reveal", text, media, round_id=round_id, alt=alt)
             if tid:
                 self.db.set_round(round_id, thread_tweet_id=tid)
                 self.db.x("UPDATE bets SET tweet_id=? WHERE tweet_id IS NULL AND run_id IN "
                           "(SELECT run_id FROM runs WHERE round_id=?)", tid, round_id)
         exports.export(self.s, self.db)
+
+    def _reveal_ab(self, round_id: int, rnd: dict, key: str, headline: str, few: bool, cards: list):
+        """The reveal's A/B slots: hook, cta, tags (text, through ab.finish) and media."""
+        sit, facts = split_shape(rnd)
+        hook = ab.choose(self.db, self.s, "reveal.hook", key, None if few else sit, facts, kind="reveal")
+        choices = [hook] + [ab.choose(self.db, self.s, sl, key, kind="reveal") for sl in ("reveal.cta", "tags")]
+        text = ab.finish(self.db, key, choices,
+                         lambda v: reveal_text(rnd, v.get("reveal.hook", headline), v.get("reveal.cta", ""),
+                                               v.get("tags", "")), "reveal")
+        media = cards or None
+        m = ab.choose(self.db, self.s, "reveal.media", key, kind="reveal")
+        if m.key == "split_card":
+            split = self.s.cards_dir / str(round_id) / "split.png"
+            if split.exists():
+                media = split
+            else:  # no split card (fewer than 2 bettors, or the render failed): the decision cards, as the control
+                ab.realize_control(self.db, key, "reveal.media")
+        return text, media
 
     async def on_resolved(self, round_id: int) -> None:
         try:  # humans' picks: read once (if not already, after the market closed), then scored
@@ -220,19 +248,50 @@ class BenchPublisher:
         board, crowd = lb["agents"], lb["crowd"]
         self.cards.significance = lb["significance"]["label"]
         cast = commentary(rnd)
-        variant = self.db.round(round_id)["headline_variant"] or headline_variant(round_id)
+        # tone: the day's A/B draw once the plain arm is live; until then today's per-round parity
+        variant = self.db.round(round_id)["headline_variant"]
+        key = f"r{round_id}-results"
+        media_key = "clip"
+        try:   # A/B never blocks a post: on any failure, today's parity tone, the clip and the control text
+            variant = variant or (ab.day_tone(self.db, self.s) if ab.tone_live(self.db) else None)
+            media_key = ab.choose(self.db, self.s, "results.media", key, kind="results").key
+        except Exception:
+            log.exception("A/B for %s failed; posting the control", key)
+        variant = variant or headline_variant(round_id)
         self.db.set_round(round_id, headline_variant=variant)  # recorded so clicks per tone can be compared
         png = await self._card(self.cards.results(rnd, board, crowd, cast=cast, top_humans=lb["humans"][:3],
                                                   variant=variant))
-        video = await self._clip(self.cards.results_clip(rnd, board, crowd, cast=cast, top_humans=lb["humans"][:3],
-                                                         variant=variant))
+        video = None
+        if media_key != "still":
+            video = await self._clip(self.cards.results_clip(rnd, board, crowd, cast=cast,
+                                                             top_humans=lb["humans"][:3], variant=variant))
         link = (f"{self.round_url(round_id)}?utm_source=x&utm_medium=social&utm_campaign=results"
                 f"&utm_content={variant}")
+        def render(v):
+            return results_text(self.s, rnd, board, link, crowd, cast, hook=v.get("results.hook"),
+                                cta=v.get("results.cta", ""), extra_tags=v.get("tags", ""))
+        try:
+            sit, facts = results_shape(rnd)
+            choices = [ab.choose(self.db, self.s, "results.hook", key, sit, facts, kind="results")]
+            choices += [ab.choose(self.db, self.s, sl, key, kind="results") for sl in ("results.cta", "tags")]
+            text = ab.finish(self.db, key, choices, render, "results")
+        except Exception:
+            log.exception("A/B for %s failed; posting the control", key)
+            text = render({})
         async with self._lock(round_id):
-            tid = await self._standalone(round_id, f"r{round_id}-results", "results",
-                                         results_text(self.s, rnd, board, link, crowd, cast), png, video)
+            tid = await self._standalone(round_id, key, "results", text, png, video)
         if tid:
             self.db.set_round(round_id, results_tweet_id=tid)
+            try:
+                row = self.db.one("SELECT image_path FROM tweets WHERE post_key=?", key)
+                posted_clip = bool(row and row["image_path"] and row["image_path"].endswith((".mp4", ".gif")))
+                if media_key == "clip" and not posted_clip:   # animation off/failed or the video upload failed
+                    still = next((a for a in ab.arms(self.db, "results.media", None) if a["code_key"] == "still"), None)
+                    if still and self.db.one("SELECT 1 FROM ab_assignments WHERE post_key=? AND slot='results.media'",
+                                             key):
+                        ab.realize(self.db, key, "results.media", still["arm_id"])
+            except Exception:
+                log.exception("A/B media realization for %s failed", key)
         data = exports.export(self.s, self.db)
         try:
             await self.engage.after_resolution(round_id, data, tid)
@@ -247,8 +306,25 @@ class BenchPublisher:
         statements = await press.collect(self.s, self.db, rnd)
         results_id = self.db.round(round_id)["results_tweet_id"]
         reply_to = results_id
+        key = f"r{round_id}-press-1"
+        h = ab.CONTROL_TEXT["press.head"]
+        try:   # the press.head arm; on any A/B failure, today's head
+            head = ab.choose(self.db, self.s, "press.head", key, kind="press") if statements else None
+            if head and not head.is_control and head.text:
+                def first(v):
+                    return press.texts(statements, max_replies=self.s.press_max_replies,
+                                       head=v.get("press.head", ab.CONTROL_TEXT["press.head"]))[0]
+                if ab.finish(self.db, key, [head], first, "press") != first({}):
+                    h = head.text
+            elif head and statements:
+                ab.realize(self.db, key, "press.head", head.arm_id,
+                           press.texts(statements, max_replies=self.s.press_max_replies)[0])
+        except Exception:
+            log.exception("A/B for %s failed; posting the control", key)
+            h = ab.CONTROL_TEXT["press.head"]
+        texts = press.texts(statements, max_replies=self.s.press_max_replies, head=h)
         async with self._lock(round_id):
-            for i, text in enumerate(press.texts(statements, max_replies=self.s.press_max_replies), 1):
+            for i, text in enumerate(texts, 1):
                 reply_to = await self.poster.post(f"r{round_id}-press-{i}", "press", text, None,
                                                   reply_to=reply_to, round_id=round_id) or reply_to
         exports.export(self.s, self.db)
