@@ -367,6 +367,11 @@ def test_results_hook_from_data():
     even = [("Claude", "Predators"), ("Codex", "Predators"), ("Gemini", "Canadiens"), ("Grok", "Canadiens")]
     assert results_hook(_rec(even)) == "Resolved: Predators. Claude & Codex win, Gemini & Grok lose. 2-2."
     assert results_hook(_rec([(n, None) for n in four])) == "Resolved: Predators. No AI placed a bet."
+    # one bettor (ab_golden round 6 posted "Claude win,  lose. 1-0.")
+    alone_right = [("Claude", "Predators"), ("Codex", None), ("Gemini", None), ("Grok", None)]
+    assert results_hook(_rec(alone_right)) == "Resolved: Predators. Claude bet alone and won. 1-0."
+    alone_wrong = [("Claude", "Canadiens"), ("Codex", None), ("Gemini", None), ("Grok", None)]
+    assert results_hook(_rec(alone_wrong)) == "Resolved: Predators. Nobody had it. 0-1."
 
 
 def test_commentary_has_no_verb_on_the_outcome():

@@ -174,6 +174,8 @@ def results_hook(rnd: dict) -> str:
         return f"Resolved: {w}. {f['winners']} cash; {f['lone']} alone got it wrong."
     if sit == "nobody" or (sit is None and not f["winners"]):   # one bettor, wrong: today's wording
         return f"Resolved: {w}. Nobody had it. 0-{n}."
+    if not f["losers"]:   # one bettor, right (a sweep needs 2+)
+        return f"Resolved: {w}. {f['winners']} bet alone and won. {f['record']}."
     return f"Resolved: {w}. {f['winners']} win, {f['losers']} lose. {f['record']}."
 
 
