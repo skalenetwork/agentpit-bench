@@ -8,6 +8,7 @@
 {% elif r.state == 'void' %}<p><span class="tag">{{ _("Void") }}</span> {{ _("The market closed without a winner. No result this round.") }}</p>
 {% else %}{{ m.live_panel(r, home, api_url) }}{{ m.live_script(api_url) }}{% endif %}
 <div class="btns"><a class="btn cta" href="{{ r.market_link }}" target="_blank" rel="noopener">{{ _("Bet against the AIs →") }}</a>{{ m.share_link() }}</div>
+{% if film %}{% include "_film.html" %}{% endif %}
 <h2>{{ _("The picks") }}</h2>
 {% if r.sealed %}<p class="mut">🔒 {{ _("Picks revealed when all four are in") }}</p>{% endif %}
 <div class="picks">{% for e in (ranked(r.entries) if r.state == 'resolved' else r.entries) %}

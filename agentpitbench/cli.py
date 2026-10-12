@@ -38,6 +38,26 @@ async def _every(seconds: float, fn, name: str):
         await asyncio.sleep(seconds)
 
 
+X_METRICS_INTERVAL_S = 600
+
+
+def metrics_task(s: config.Settings, db: DB, pub):
+    """The X analytics cycle (docs/x-analytics-spec.md §3), or None when there is no poster (NullPublisher).
+    Reads run in a thread, so posting and rounds never wait on them; pull_due itself skips without
+    can_read (dry_run or no OAuth 2.0 token). posting_paused doesn't stop reads."""
+    poster = getattr(pub, "poster", None)
+    if poster is None:
+        return None
+    from . import xstats
+
+    async def x_metrics():
+        try:
+            await asyncio.to_thread(xstats.pull_due, s, db, poster)
+        finally:
+            await asyncio.to_thread(xstats.digest_due, s, db)
+    return x_metrics
+
+
 async def run_forever(s: config.Settings) -> None:
     db = DB(s.db_path)
     api = Agentpit(s.api_url)
@@ -141,6 +161,14 @@ async def run_forever(s: config.Settings) -> None:
         if engage is not None:
             await engage.poll_summons()
 
+    async def match_of_the_day():
+        """Hourly; does nothing unless motd_enabled: at motd_hour_utc, yesterday's most dramatic round as a film."""
+        if not s.motd_enabled or not hasattr(pub, "cards"):
+            return
+        from . import motd
+        if await motd.daily(s, db, pub.cards, pub.poster):
+            pub.site.request()
+
     if engage is not None:
         await engage.cache_wallets()
     stop = asyncio.Event()
@@ -156,8 +184,12 @@ async def run_forever(s: config.Settings) -> None:
         asyncio.create_task(_every(s.summon_poll_s, summons, "summons")),
         asyncio.create_task(_every(3600, scheduled, "scheduled")),
         asyncio.create_task(_every(1800, daily_sweep, "sweep")),
+        asyncio.create_task(_every(3600, match_of_the_day, "match of the day")),
         asyncio.create_task(_every(s.resolution_check_s, score_forecasts, "forecast scoring")),
     ]
+    x_metrics = metrics_task(s, db, pub)
+    if x_metrics is not None:
+        tasks.append(asyncio.create_task(_every(X_METRICS_INTERVAL_S, x_metrics, "x-metrics")))
     await stop.wait()
     log.info("stopping; in-flight rounds will be marked crashed on next start")
     for t in tasks + list(running):
@@ -188,6 +220,20 @@ async def one_round(s: config.Settings, market_id: str, agents: list[str] | None
     if hasattr(pub, "close"):
         await pub.close()
     await api.close()
+
+
+async def motd_render(s: config.Settings, day: str | None, round_id: int | None, out: str | None) -> None:
+    """Render a Match of the Day film for review. Never posts."""
+    from . import motd
+    from .cards import CardRenderer
+    db = DB(s.db_path)
+    day = day or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    cards = CardRenderer(s)
+    try:
+        rec = await motd.make_film(s, db, cards, day, round_id=round_id, out_dir=out)
+    finally:
+        await cards.close()
+    print(json.dumps(rec, indent=1) if rec else f"no film for {day} (quiet day or round not eligible)")
 
 
 async def check(s: config.Settings) -> None:
@@ -236,23 +282,94 @@ async def whoami(s: config.Settings) -> None:
 
 def x_check(s: config.Settings, probe_upload: bool) -> None:
     """Refresh the X OAuth 2.0 token (rotating it), show scopes and account; optionally upload, never tweet."""
-    from .twitter import ME_URL, NEEDED_SCOPES, Poster, token_file
-    p = Poster(s, DB(s.db_path))
+    from . import xstats
+    from .twitter import ME_URL, NEEDED_SCOPES, READ_SCOPES, Poster, token_file
+    db = DB(s.db_path)
+    p = Poster(s, db)
     if not p.oauth2.ready:
         sys.exit("OAuth 2.0 not configured: need X_CLIENT_ID, X_CLIENT_SECRET and X_OAUTH2_REFRESH_TOKEN")
     if not p.oauth2.scopes():
         p.oauth2.get(stale=p.oauth2._load().get("access_token"))  # first run: refresh so scopes are known
     scopes = p.oauth2.scopes()
     print(f"token file: {token_file()}  scopes: {' '.join(sorted(scopes))}")
-    missing = NEEDED_SCOPES - scopes
-    print("missing scopes:", ", ".join(sorted(missing)) if missing else "none")
-    me = p._call("GET", ME_URL).json()["data"]
+    missing = (NEEDED_SCOPES | READ_SCOPES) - scopes
+    print("missing scopes:", ", ".join(sorted(missing)) if missing else "none",
+          "(re-run x-login)" if missing else "")
+    me = p.read(ME_URL, {}, "user", "me")["data"]   # a billed user read: ledgered like every other read
     print(f"posting as @{me['username']} ({me['name']})")
+    r = xstats.reads(db, s=s)
+    print(f"reads today: ${r['usd']:.3f} ({r['n']} billed); by caller: "
+          + (", ".join(f"{c} {v['n']} ${v['usd']:.3f}" for c, v in r["by_caller"].items()) or "none"))
+    print(f"metrics budget: ${s.x_metrics_budget_usd:.2f}/day (spent ${r['metrics_usd']:.3f}); "
+          f"alert at ${s.x_read_alert_usd:.2f}/day")
+    print(f"x_app_owned={s.x_app_owned}: metrics pull in {'timeline' if s.x_app_owned else 'lookup'} mode")
     if probe_upload:
         img = s.data_dir / "x-probe.png"
         img.parent.mkdir(parents=True, exist_ok=True)
         img.write_bytes(_probe_png())
         print("media upload ok, id", p.upload(img), "(not attached to any tweet; expires in 24h)")
+
+
+def x_metrics_now(s: config.Settings, force_budget: bool) -> None:
+    """One pull_due cycle now (billed reads; respects the daily budget unless --force-budget)."""
+    from . import xstats
+    from .twitter import Poster
+    db = DB(s.db_path)
+    p = Poster(s, db)
+    if not p.can_read:
+        sys.exit("cannot read from X: dry_run is on or OAuth 2.0 is not configured")
+    print(json.dumps(xstats.pull_due(s, db, p, force_budget=force_budget)))
+
+
+def _table(rows: list[dict]) -> str:
+    if not rows:
+        return "  (no rows)"
+    cols = list(rows[0])
+    fmt = lambda v: "-" if v is None else (f"{v:.4f}" if isinstance(v, float) and v < 1 else str(v))  # noqa: E731
+    cells = [[fmt(r.get(c)) for c in cols] for r in rows]
+    w = [max(len(c), *(len(row[i]) for row in cells)) for i, c in enumerate(cols)]
+    return "\n".join("  " + "  ".join(x.ljust(w[i]) for i, x in enumerate(line)) for line in [cols, *cells])
+
+
+def x_stats(s: config.Settings, days: float, by: str, bucket: str) -> None:
+    """Private engagement tables for the operator (nothing here is published)."""
+    from . import xstats
+    db = DB(s.db_path)
+    since = time.time() - days * 86400
+    fn = {"kind": xstats.by_kind, "agent": xstats.by_agent, "category": xstats.by_category}[by]
+    print(f"by {by}, {bucket} snapshots, posts from the last {days:g} day(s):")
+    print(_table(fn(db, since, bucket)))
+    if bucket in ("1h", "24h"):
+        print(f"\nheadline variant (results, {bucket}):")
+        print(_table([{"variant": k, **v} for k, v in xstats.reward_by_variant(db, bucket, since=since, s=s).items()]))
+    print("\nfollowers:")
+    print(_table(xstats.followers_series(db, since)[-int(days) - 1:]))
+    r = xstats.reads(db, s=s)
+    print(f"\nreads today ({r['day']}): {r['n']} billed, ${r['usd']:.3f} "
+          f"(metrics ${r['metrics_usd']:.3f} of ${s.x_metrics_budget_usd:.2f})")
+    print(_table([{"caller": k, **v} for k, v in r["by_caller"].items()]))
+    print("\nhealth:", json.dumps(xstats.health(db)))
+    drop = xstats.visibility_drop(db)
+    if drop:
+        print("VISIBILITY DROP:", json.dumps(drop))
+
+
+def x_boosted(s: config.Settings, tweet_id: str, off: bool, check: bool) -> None:
+    from . import xstats
+    db = DB(s.db_path)
+    if check:
+        from .twitter import Poster
+        p = Poster(s, db)
+        if not p.can_read:
+            sys.exit("cannot read from X: dry_run is on or OAuth 2.0 is not configured")
+        out = xstats.boost_check(db, p, tweet_id)
+        print(json.dumps(out))
+        if out.get("found") and not out.get("promoted"):
+            print("promoted_metrics empty: the post was never promoted")
+        return
+    if not xstats.set_boosted(db, tweet_id, not off):
+        sys.exit(f"{tweet_id} is not one of the bench's posts")
+    print(f"{tweet_id}: boosted={'0' if off else '1'}" + ("" if off else " (excluded from rewards)"))
 
 
 def x_login(s: config.Settings, redirected: str | None, redirect_uri: str | None) -> None:
@@ -303,8 +420,23 @@ def main(argv: list[str] | None = None) -> None:
     du.add_argument("new_model")
     ds = sub.add_parser("dataset", help="build the monthly open dataset (and upload if HF/Kaggle creds are set)")
     ds.add_argument("--month", required=True, help="YYYY-MM")
+    mo = sub.add_parser("motd", help="render a Match of the Day film (both formats) for review; never posts")
+    mo.add_argument("--date", help="film date YYYY-MM-DD (covers rounds resolved the day before; default today UTC)")
+    mo.add_argument("--round", type=int, help="film this round instead of the day's pick")
+    mo.add_argument("--out", help="output directory (default: cards/motd/<date>/)")
     xc = sub.add_parser("x-check", help="refresh the X OAuth 2.0 token, show scopes and account (never tweets)")
     xc.add_argument("--upload", action="store_true", help="also upload a tiny test image (not attached to a tweet)")
+    xm = sub.add_parser("x-metrics", help="run one X metrics pull now (billed reads, within the daily budget)")
+    xm.add_argument("--force-budget", action="store_true", help="operator only: ignore x_metrics_budget_usd")
+    xs = sub.add_parser("x-stats", help="print the private X engagement tables (no X reads)")
+    xs.add_argument("--days", type=float, default=7)
+    xs.add_argument("--by", choices=["kind", "agent", "category"], default="kind")
+    xs.add_argument("--bucket", choices=["1h", "24h", "72h", "7d"], default="24h")
+    xb = sub.add_parser("x-boosted", help="mark a post as promoted (excluded from rewards)")
+    xb.add_argument("tweet_id")
+    g = xb.add_mutually_exclusive_group()
+    g.add_argument("--off", action="store_true", help="unmark it")
+    g.add_argument("--check", action="store_true", help="one billed read of its organic/promoted metrics")
     xl = sub.add_parser("x-login", help="authorize the X account with every scope the bench needs")
     xl.add_argument("--url", help="the URL X redirected you to (step 2)")
     xl.add_argument("--redirect-uri", help="callback URL registered on the X app (default: site_url)")
@@ -333,10 +465,18 @@ def main(argv: list[str] | None = None) -> None:
         asyncio.run(sweep_now(s))
     elif a.cmd == "duel":
         asyncio.run(duel(s, a.agent, a.old_model, a.new_model))
+    elif a.cmd == "motd":
+        asyncio.run(motd_render(s, a.date, a.round, a.out))
     elif a.cmd == "x-login":
         x_login(s, a.url, a.redirect_uri)
     elif a.cmd == "x-check":
         x_check(s, a.upload)
+    elif a.cmd == "x-metrics":
+        x_metrics_now(s, a.force_budget)
+    elif a.cmd == "x-stats":
+        x_stats(s, a.days, a.by, a.bucket)
+    elif a.cmd == "x-boosted":
+        x_boosted(s, a.tweet_id, a.off, a.check)
 
 
 if __name__ == "__main__":

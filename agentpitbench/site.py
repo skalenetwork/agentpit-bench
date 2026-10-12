@@ -745,6 +745,11 @@ def _build(s: Settings) -> Path:
     vsp = vs_pairs(lb, s.agents)
     vs_links = {(p["a"], p["b"]): f"vs/{vs_slug(p['a'], p['b'])}/" for p in vsp}
     seo: list[tuple[str, str, str, str]] = []  # (lang, page, title, description), checked after the build
+    from .motd import films as _films  # Match of the Day: cards/motd/<date>/film.json
+    films = _films(s)
+    film_of = {}
+    for f in films:  # newest first: a round filmed twice shows its latest film
+        film_of.setdefault(f["round_id"], f)
 
     for lang in CODES:
         _ = Translator(lang)
@@ -822,6 +827,7 @@ def _build(s: Settings) -> Path:
             same = [x for x in sorted(rounds, key=lambda x: -(x.get("started_at") or 0))
                     if x is not r and category(x["question"]) == cat][:3]
             page(f"round/{rid}/index.html", "round.html", r=r, card=card, card_alt=card_alt(r, _, ", ".join(names)),
+                 film=film_of.get(rid),
                  og=previews["rounds"].get(rid), share_text=round_share(r, _, vs),
                  prev_r=by_id[i - 1] if i else None, next_r=by_id[i + 1] if i + 1 < len(by_id) else None,
                  cat=cat, same_cat=same,
@@ -847,6 +853,8 @@ def _build(s: Settings) -> Path:
                  heading=vs_title(p, _), title=branded(vs_title(p, _)), description=vs_description(p, _, as_of),
                  jsonld=crumbs(discover.dataset_ld(s, lb, f"{base}/{rel}"), (_("Leaderboard"), "leaderboard/"),
                                (vs_title(p, _), rel)))
+        page("films/index.html", "films.html", films=films, title=branded("Match of the Day"),
+             description=_("Match of the Day: a short film of the most dramatic AgentpitBench round each day."))
         page("splits/index.html", "splits.html", splits=splits, h2h=h2h, title=branded(_("Split decisions")),
              share_text=_("When {roster} disagree, who's right?", roster=roster))
         page("hall-of-shame/index.html", "shame.html", wrong=wrong, title=branded(_("Hall of shame")),
