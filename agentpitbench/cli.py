@@ -9,6 +9,7 @@ import signal
 import sys
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 
 from . import config, exports
 from .agentpit import Agentpit
@@ -129,6 +130,25 @@ async def run_forever(s: config.Settings) -> None:
                 await job()
             except Exception:
                 log.exception("%s failed", job.__name__)
+        await ab_jobs()
+
+    async def ab_jobs():
+        """A/B (docs/ab-testing-spec.md): the generator (idle windows only), site-click counts, the digest."""
+        from . import ab_gen, ab_report, cf
+        try:
+            r = await ab_gen.run(s, db, idle=lambda: not running)
+            if r.get("status") != "skipped":
+                log.info("A/B generator: %s", {k: v for k, v in r.items() if k != "candidates"})
+        except Exception:
+            log.exception("A/B generator failed")
+        try:
+            await asyncio.to_thread(cf.fetch_due, s, db)
+        except Exception:
+            log.exception("Cloudflare click counts failed")
+        try:
+            ab_report.digest_due(db, s)
+        except Exception:
+            log.exception("A/B digest failed")
 
     async def humans():
         if engage is not None:
@@ -437,6 +457,21 @@ def main(argv: list[str] | None = None) -> None:
     g = xb.add_mutually_exclusive_group()
     g.add_argument("--off", action="store_true", help="unmark it")
     g.add_argument("--check", action="store_true", help="one billed read of its organic/promoted metrics")
+    abp = sub.add_parser("ab", help="A/B testing of post wording: status, retire, propose, validate, add, digest")
+    absub = abp.add_subparsers(dest="ab_cmd", required=True)
+    st = absub.add_parser("status", help="arms per slot with n, mean ± sd, p_best and a posted example")
+    st.add_argument("--slot")
+    rt = absub.add_parser("retire", help="retire an arm (never the control); promotes the oldest queued arm")
+    rt.add_argument("arm_id", type=int)
+    rt.add_argument("--note")
+    pr = absub.add_parser("propose", help="run the copy generator now (same guards, incl. the idle check)")
+    pr.add_argument("--dry", action="store_true", help="print candidates and validation results, insert nothing")
+    va = absub.add_parser("validate", help="validate a hand-written arm set: {slot: [template, ...]}")
+    va.add_argument("file")
+    ad = absub.add_parser("add", help="insert a hand-written arm set (operator-written arms)")
+    ad.add_argument("file")
+    dg = absub.add_parser("digest", help="print the A/B digest")
+    dg.add_argument("--date")
     xl = sub.add_parser("x-login", help="authorize the X account with every scope the bench needs")
     xl.add_argument("--url", help="the URL X redirected you to (step 2)")
     xl.add_argument("--redirect-uri", help="callback URL registered on the X app (default: site_url)")
@@ -477,6 +512,45 @@ def main(argv: list[str] | None = None) -> None:
         x_stats(s, a.days, a.by, a.bucket)
     elif a.cmd == "x-boosted":
         x_boosted(s, a.tweet_id, a.off, a.check)
+    elif a.cmd == "ab":
+        ab_cli(s, a)
+
+
+def _round_running(db: DB) -> bool:
+    return db.one("SELECT 1 FROM rounds WHERE state='running' LIMIT 1") is not None
+
+
+def ab_cli(s: config.Settings, a) -> None:
+    from . import ab, ab_gen, ab_report
+    db = DB(s.db_path)
+    ab.seed(db)
+    if a.ab_cmd == "status":
+        ab_report.print_status(db, s, a.slot)
+    elif a.ab_cmd == "retire":
+        try:
+            promoted = ab.retire(db, a.arm_id, a.note)
+        except ValueError as e:
+            sys.exit(str(e))
+        print(f"arm {a.arm_id} retired" + (f"; arm {promoted} is live" if promoted else ""))
+    elif a.ab_cmd == "propose":
+        r = asyncio.run(ab_gen.run(s, db, idle=lambda: not _round_running(db), dry=a.dry, force=True))
+        print(json.dumps(r, indent=1, ensure_ascii=False))
+    elif a.ab_cmd in ("validate", "add"):
+        sets = json.loads(Path(a.file).read_text())
+        bad = 0
+        for slot, items in sets.items():
+            for tpl in items if isinstance(items, list) else [items]:
+                errs = ab.validate(slot, tpl)
+                bad += bool(errs)
+                if a.ab_cmd == "add" and not errs:
+                    aid, status = ab.add_arm(db, s, slot, tpl)
+                    print(f"{slot}: arm {aid} {status}")
+                else:
+                    print(f"{slot}: {'OK' if not errs else 'REJECTED: ' + '; '.join(errs)}  {json.dumps(tpl, ensure_ascii=False)}")
+        if bad:
+            sys.exit(1)
+    elif a.ab_cmd == "digest":
+        print(json.dumps(ab_report.digest(db, s, a.date), indent=1, ensure_ascii=False))
 
 
 if __name__ == "__main__":

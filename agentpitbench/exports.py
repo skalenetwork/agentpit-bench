@@ -113,7 +113,16 @@ def round_record(s: Settings, db: DB, r) -> dict:
                    "right": sum(1 for h in hp if h["won"]) if r["state"] == "resolved" else None,
                    "winners": [{"username": h["username"], "pick": h["pick"],
                                 "card": _site_card(s, h["card_path"])} for h in hp if h["won"]]},
+        **_share_hook(db, r["round_id"]),
     }
+
+
+def _share_hook(db: DB, round_id: int) -> dict:
+    """When an A/B results hook posted, the share text is that posted hook (docs/ab-testing-spec.md section 12)."""
+    row = db.one("SELECT t.text FROM ab_assignments a JOIN ab_arms m ON m.arm_id=a.realized_arm_id"
+                 " JOIN tweets t ON t.post_key=a.post_key WHERE a.post_key=? AND a.slot='results.hook'"
+                 " AND m.is_control=0", f"r{round_id}-results")
+    return {"share_hook": row["text"].split("\n")[0]} if row and row["text"] else {}
 
 
 def all_rounds(s: Settings, db: DB) -> list[dict]:
