@@ -378,7 +378,7 @@ the tables.
 - **Void after filming:** `publish.void_round` gets one added call. If the round has a `yt_videos` row with a
   `video_id`, `videos.update?part=status` sets it private (50 units), with `state='hidden'`. The request re-sends
   every status field the upload set (`selfDeclaredMadeForKids`, `containsSyntheticMedia`, `embeddable`,
-  `publicStatsViewable`, `license`), because an update replaces the whole part. It's never deleted, so the id stays
+  `publicStatsViewable`), because an update replaces the whole part. It's never deleted, so the id stays
   auditable. A failure is logged and never blocks the void.
 - **Errors:**
   - Every exception is caught by `_every`'s handler, and the next cycle retries what's retryable (§3).
@@ -446,7 +446,7 @@ Secrets: `YT_CLIENT_ID` and `YT_CLIENT_SECRET` in `secrets.env`. Token: `yt_oaut
 ## 12. Tests (`tests/test_youtube.py`, `tests/test_ytstats.py`; fixtures only, no network)
 
 1. **Metadata:**
-   - Title ≤ 100 characters with the question clipped first. The title is exactly `film.json` `hook` + `" | "` +
+   - Title ≤ 100 characters with the question clipped first. The title is built from exactly two parts, `film.json` `hook` + `" | "` +
      the question: no P&L, no "won" or "right", no score.
    - Description ≤ 5000 bytes with multibyte questions. Tags ≤ 500 under the comma and quote counting rule.
    - `<` and `>` stripped.
