@@ -360,6 +360,9 @@ class Round:
         self._bet_queue: list[tuple[str, dict, asyncio.Future]] = []
         self._bet_flush: asyncio.Task | None = None
         self._hooks: set[asyncio.Task] = set()
+        # picks stay secret until every agent is done: agents may search the web mid-round, so a pick
+        # posted the moment it's placed could be read by a slower rival
+        self._reveal: list[int] = []
         self.infra: dict[str, str] = {}   # agent -> sandbox / auth / quota: the round gets voided
         self.clients = {a: Agentpit(s.api_url, s.agentpit_key(a)) for a in self.agents}
 
@@ -468,7 +471,7 @@ class Round:
         )
         self.bet_done[agent].set()
         log.info("round %s: %s bet %s @ %s", self.round_id, agent, label, fill["avg_price"])
-        self._hook(self.pub.on_bet(self.round_id, run_id))
+        self._reveal.append(run_id)
         resp = {"placed": True, "outcome": label, "avg_price": round(fill["avg_price"], 4),
                 "shares": round(fill["shares"], 4), "stake_filled": round(fill["cost"], 2),
                 "unspent": round(self._stake() - fill["cost"], 2)}
@@ -580,7 +583,7 @@ class Round:
                 log.error("round %s: %s hit an infrastructure failure (%s); the round will be voided",
                           self.round_id, agent, kind)
             else:
-                self._hook(self.pub.on_bet(self.round_id, self.run_ids[agent]))
+                self._reveal.append(self.run_ids[agent])
         self.db.finish_run(self.run_ids[agent], exit_reason, str(tpath), model)
         log.info("round %s: %s finished (%s)", self.round_id, agent, exit_reason)
 
@@ -634,6 +637,8 @@ class Round:
             await self.void_for_infra()
         else:
             self.db.set_round(self.round_id, state="awaiting_resolution")
+            for run_id in self._reveal:  # all picks revealed together, in the order they were placed
+                await self._safe(self.pub.on_bet(self.round_id, run_id))
             await self._safe(self.pub.on_bets_done(self.round_id))
         for c in self.clients.values():
             await c.close()

@@ -292,9 +292,10 @@ async def test_round_end_to_end(s, db, tmp_path, monkeypatch):
     s.restart_min_remaining_s = 1
 
     class Pub(NullPublisher):
-        bets, done = [], []
+        bets, done, states = [], [], []
         async def on_bet(self, round_id, run_id):
             self.bets.append(run_id)
+            self.states.append(db.round(round_id)["state"])  # picks must stay secret while running
         async def on_bets_done(self, round_id):
             self.done.append(round_id)
 
@@ -310,6 +311,7 @@ async def test_round_end_to_end(s, db, tmp_path, monkeypatch):
     assert "restarting" in Path(by["grok"]["transcript_path"]).read_text()           # one restart, then gives up
     assert db.round(rid)["state"] == "awaiting_resolution"
     assert pub.done == [rid] and sorted(pub.bets) == sorted(e["run_id"] for e in by.values())
+    assert pub.states and set(pub.states) == {"awaiting_resolution"}   # no pick published mid-round
     transcript = Path(by["claude"]["transcript_path"]).read_text()
     assert "--- prompt ---" in transcript and '"placed": true' in transcript
 
