@@ -189,9 +189,12 @@ class Settings:
     # policy.BOUNDS) only with cadence_apply. Also needs "cadence" in opai_tasks.
     cadence_enabled: bool = False
     cadence_apply: bool = False
-    # §5.3 selection review: Sunday 19:00 UTC, drafts at most one methodology proposal into var/proposals/
-    # (never applied; `method approve` is the only path). Also needs "proposal" in opai_tasks.
+    # §5.3 selection review: Sunday 19:00 UTC, drafts at most one methodology proposal into var/proposals/.
+    # Also needs "proposal" in opai_tasks. With selection_auto_apply, a valid proposal (one change, within
+    # methodology.PROPOSAL_BOUNDS, at most one per 7 days) is applied at once through methodology.auto_apply:
+    # version bump, generated changelog line, published evidence, info alert. Off: `method approve` only.
     selection_review_enabled: bool = False
+    selection_auto_apply: bool = False
     # §11 nightly ops agent (`agentpitbench ops nightly`, run by the agentpitbench-ops.timer): PRs only
     ops_agent_enabled: bool = False
     opai_ops_timeout_s: int = 1200
