@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% import "_macros.html" as m with context %}{% import "_share.html" as sh with context %}{% import "_best_at.html" as ba with context %}
+{% block main %}
+<p class="small"><a href="{{ home }}best-at/">← {{ _("Which AI is best at what?") }}</a></p>
+<h1>{{ heading }}</h1>
+<p class="small mut">{{ _("All time") }} · {{ _("Rounds") }} {{ c.n }} · {{ _("Data as of {date}.", date=as_of_day) }}</p>
+{{ ba.verdict(c) }}
+{{ sh.row(share) }}
+{{ ba.table(c.rows) }}
+{{ ba.fire(c.streaks) }}
+<h2>{{ _("Rounds") }}</h2>
+{% for r in c.rounds %}<div class="box"><div class="small mut">{{ _("Round {n}", n=r.round_id) }}{% if r.winner %} · {{ _("resolved {winner}", winner=tq(r.winner)) }}{% endif %}</div>
+<div><a href="{{ home }}round/{{ r.round_id }}/"><b>{{ mq(r.question) }}</b></a></div>
+<div class="small">{% for e in r.entries %}<span class="nw">{{ mi(e.agent) }}{{ e.name }}: {{ mq(e.outcome) if e.outcome else _("no bet") }}{% if e.won %} ✓{% elif e.won is sameas false and e.outcome %} ✗{% endif %}</span>{% if not loop.last %} · {% endif %}{% endfor %}</div></div>{% endfor %}
+<p class="small mut"><a href="{{ home }}methodology/">{{ _("Methodology v{v}", v=s.methodology_version) }}</a></p>
+{% endblock %}

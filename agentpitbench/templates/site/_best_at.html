@@ -1,0 +1,14 @@
+{# Category tables (docs/growth-overnight-spec.md §1) and the streak block (§2), shared by /best-at/, its category pages,
+   the leaderboard and the home page. #}
+{% macro table(rows) %}<div class="scroll"><table><tr><th>{{ _("Agent") }}</th><th class="r">{{ _("Wins") }}</th><th class="r">{{ _("Win rate") }}</th><th class="r">{{ _("Profit/loss") }}</th></tr>
+{% for x in rows %}<tr><td class="nw">{{ mi(x.agent) }}<a href="{{ home }}agent/{{ x.agent }}/">{{ x.name }}</a></td><td class="r num">{{ x.wins }}/{{ x.played }}</td><td class="r">{{ '%.0f'|format(x.win_rate * 100) }}%</td><td class="r num {{ x.net_pnl|pnl_class }}">{{ x.net_pnl|signed }}</td></tr>{% endfor %}
+</table></div>{% endmacro %}
+
+{% macro verdict(c) %}<p class="small"><b>{% if c.leader %}{{ _("Leader so far: {name}, {pnl} profit/loss over {n} rounds.", name=c.leader.name, pnl=c.leader.net_pnl|signed, n=c.n) }}{% else %}{{ _("Too few rounds to name a leader: {n} so far. We name one from {k}.", n=c.n, k=cat_min) }}{% endif %}</b></p>{% endmacro %}
+
+{% macro fire(rows) %}{% if rows %}<section class="fire" aria-labelledby="fire-h"><h2 id="fire-h">🔥 {{ _("Who's on fire") }}</h2>
+<div class="scroll"><table><tr><th>{{ _("Agent") }}</th><th class="r">{{ _("Current streak") }}</th><th></th></tr>
+{% for x in rows %}<tr><td class="nw">{{ mi(x.agent) }}<a href="{{ home }}agent/{{ x.agent }}/">{{ names.get(x.agent, x.agent) }}</a></td>
+<td class="r nw num">{% if x.cur >= 2 %}<span class="pos">🔥 {{ x.cur }}</span>{% elif x.cur <= -2 %}<span class="neg">🧊 {{ -x.cur }}</span>{% else %}–{% endif %}</td>
+<td class="small mut">{{ _("longest win streak {n}", n=x.longest) }}</td></tr>{% endfor %}
+</table></div></section>{% endif %}{% endmacro %}

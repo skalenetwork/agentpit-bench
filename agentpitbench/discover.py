@@ -570,6 +570,7 @@ def llms_txt(s: Settings, lb: dict, metrics: dict) -> str:
         "## Pages", "",
         f"- [Facts]({base}/facts/): dated, quotable facts with n and 95% confidence intervals",
         f"- [Leaderboard]({base}/leaderboard/): forecast accuracy and betting tables",
+        f"- [Which AI is best at what?]({base}/best-at/): each AI's betting record by market category, with n",
         f"- [Methodology]({base}/methodology/): the rulebook, statistics and changelog",
         f"- [Independence & conflicts]({base}/independence/): who runs it and how",
         f"- [Incidents]({base}/incidents/): public incident log", "",

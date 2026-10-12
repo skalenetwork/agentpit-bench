@@ -766,13 +766,56 @@ def shame(rounds: list[dict], limit: int = 50) -> list[tuple[dict, dict]]:
     return wrong[:limit]
 
 
+def streak(rounds: list[dict], agent: str) -> dict:
+    """An AI's runs over resolved rounds in resolution order (docs/growth-overnight-spec.md §2): `cur` > 0 is the
+    current run of wins, < 0 the current run of rounds not won (a no-bet counts as a loss, as on the betting table);
+    `longest` is the longest run of wins. Only resolved rounds count, so a sealed pick never reaches it."""
+    longest = cur = 0
+    for r in sorted((r for r in rounds if r["state"] == "resolved"), key=lambda r: r["resolved_at"] or 0):
+        e = next((e for e in r["entries"] if e["agent"] == agent), None)
+        if e is None:
+            continue
+        cur = (max(cur, 0) + 1) if e["won"] else (min(cur, 0) - 1)
+        longest = max(longest, cur)
+    return {"agent": agent, "cur": cur, "longest": longest}
+
+
+def streaks(rounds: list[dict], agents: list[str]) -> list[dict] | None:
+    """'Who's on fire': every AI's streak, hottest first; None while no AI has a current run of 2 or more."""
+    rows = [streak(rounds, a) for a in agents]
+    if not any(abs(x["cur"]) >= 2 for x in rows):
+        return None
+    return sorted(rows, key=lambda x: (-x["cur"], -x["longest"]))
+
+
+CATEGORY_MIN = 10  # resolved rounds a category needs before its page names a leader (§1)
+CATEGORY_SLUGS = {"Sports": "sports", "Crypto": "crypto", "Politics": "politics", "Economy": "economy",
+                  "Esports": "esports"}  # the categories with a page; "Other" has none
+
+
+def category_pages(rounds: list[dict], lb: dict, agents: list[str]) -> list[dict]:
+    """Per market category (§1): the table pivoted from the export's all-time `by_category` (never recomputed),
+    ranked like the betting table (profit, then win rate); the resolved rounds of that category, newest first;
+    the leader, named only from CATEGORY_MIN rounds and a strict lead. `rounds` must be the counted rounds."""
+    by = lb.get("by_category") or {}
+    out = []
+    for cat in [*CATEGORY_SLUGS, "Other"]:
+        rows = [{"agent": a, "name": AGENT_NAMES.get(a, a), **c} for a in agents for c in by.get(a, [])
+                if c["category"] == cat]
+        rows.sort(key=lambda x: (-x["net_pnl"], -x["win_rate"]))
+        rs = sorted((r for r in rounds if r["state"] == "resolved" and not r.get("exhibition")
+                     and category(r["question"]) == cat), key=lambda r: -(r["resolved_at"] or 0))
+        n = len(rs)
+        leader = rows[0] if (n >= CATEGORY_MIN and len(rows) > 1 and rows[0]["net_pnl"] > rows[1]["net_pnl"]) else None
+        out.append({"category": cat, "slug": CATEGORY_SLUGS.get(cat), "rows": rows, "rounds": rs[:30], "n": n,
+                    "leader": leader, "streaks": streaks(rs, agents) if n >= CATEGORY_MIN else None})
+    return out
+
+
 def agent_stats(rounds: list[dict], agent: str) -> dict:
     picks = [(r, e) for r, e in _flat(rounds) if e["agent"] == agent]
     resolved = sorted([(r, e) for r, e in picks if r["state"] == "resolved"], key=lambda x: x[0]["resolved_at"] or 0)
-    longest = cur = 0
-    for _, e in resolved:
-        cur = cur + 1 if e["won"] else 0
-        longest = max(longest, cur)
+    longest = streak(rounds, agent)["longest"]
     cats: dict[str, list[int]] = {}
     for r, e in resolved:
         c = cats.setdefault(category(r["question"]), [0, 0])
@@ -911,7 +954,7 @@ EXCLUSION_REASONS = {
 BRANDED = {"methodology": _("Methodology"), "independence": _("Independence & conflicts"), "incidents": _("Incidents"),
            "press": _("Press kit"), "data": _("Data & method"), "splits": _("Split decisions"),
            "hall-of-shame": _("Hall of shame"), "reports": _("Weekly reports"), "contrarian": _("Contrarian calls"),
-           "experiments": _("Experiments"), "challenge": _("Beat the AIs")}
+           "experiments": _("Experiments"), "challenge": _("Beat the AIs"), "best-at": _("Which AI is best at what?")}
 
 # Extra top-nav links, after Films and Head to head: (path under the language root, English label passed
 # through _()). The slot for sections that land later, e.g. ("challenge/", "Beat the AIs"); the label must be a
@@ -1062,6 +1105,9 @@ def _build(s: Settings) -> Path:
     prompt = (Path(__file__).parent / "prompt.txt").read_text()
     upset, wrong = biggest_upset(counted), shame(counted)
     stats = {a: agent_stats(counted, a) for a in s.agents}
+    fire = streaks(counted, s.agents)               # "Who's on fire" (docs/growth-overnight-spec.md §2)
+    cat_pages = category_pages(counted, lb, s.agents)  # /best-at/ (§1)
+    cat_live = [c for c in cat_pages if c["slug"] and c["n"]]  # a category gets its page once it has a round
     # an infra-voided round's posts were taken down, so its cards are not shown either
     # nor a running round's: its cards are not published (they would reveal the sealed picks)
     cards = {r["round_id"]: (None if r.get("exclusion") == "infra" or discover.seal(r) else card_for(s, r))
@@ -1119,6 +1165,7 @@ def _build(s: Settings) -> Path:
                   "fc": lb.get("forecast") or {}, "sig": lb.get("significance") or {},
                   "tq": tq, "mq": mq}
         common["vs_links"] = vs_links
+        common["cat_links"] = {c["category"]: f"best-at/{c['slug']}/" for c in cat_live}
         common.update(nav_extra=NAV_EXTRA, has_experiments=exp_ab is not None)
         prefix = _.prefix()
         common["film_share"] = lambda f, _=_, prefix=prefix: film_share(f, f"{base}/{prefix}round/{f['round_id']}/", _)
@@ -1179,7 +1226,7 @@ def _build(s: Settings) -> Path:
                          state_sig=discover.iso(as_of), every=300000)
 
         page("index.html", "index.html", live=live, past=past[:30], upset=upset, description=None,
-             film=films[0] if films else None, h2h_strip=home_pairs(vsp),
+             film=films[0] if films else None, h2h_strip=home_pairs(vsp), fire=fire,
              today=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
              share_text=_("Four frontier AIs bet on real prediction markets. Live scoreboard:"),
              jsonld=discover.dataset_ld(s, lb, f"{base}/"),
@@ -1187,7 +1234,7 @@ def _build(s: Settings) -> Path:
         page("leaderboard/index.html", "leaderboard.html", ci_chart=ci_bar((lb.get("forecast") or {}).get("agents", []),
                                                                           (lb.get("forecast") or {}).get("crowd")),
              chart=pnl_chart(lb.get("series", {}), crowd=(lb.get("crowd") or {}).get("series"), _=_),
-             best=best, worst=worst, h2h=h2h, weekly=weekly, seasons=seasons,
+             best=best, worst=worst, h2h=h2h, weekly=weekly, seasons=seasons, fire=fire,
              title=branded(_("AI forecasting leaderboard: {names}", names=", ".join(names))),
              description=leaderboard_description(lb, _, ", ".join(names), as_of),
              share_text=leaderboard_share(lb, _), og=previews["standings"],
@@ -1252,6 +1299,19 @@ def _build(s: Settings) -> Path:
                  heading=vs_title(p, _), title=branded(vs_title(p, _)), description=vs_description(p, _, as_of),
                  jsonld=crumbs(discover.dataset_ld(s, lb, f"{base}/{rel}"), (_("Leaderboard"), "leaderboard/"),
                                (vs_title(p, _), rel)))
+        bt = _("Which AI is best at what?")
+        page("best-at/index.html", "best_at_index.html", cats=cat_pages, as_of_day=discover.day(as_of),
+             heading=bt, title=branded(bt),
+             description=_("Each AI's all-time record by market category: rounds won and profit/loss, with how many markets each table rests on."),
+             jsonld=crumbs(None, (_("Leaderboard"), "leaderboard/"), (bt, "best-at/")))
+        for c in cat_live:
+            rel, cn = f"best-at/{c['slug']}/", _(c["category"])
+            ct = _("{category}: which AI bets best?", category=cn)
+            page(rel + "index.html", "best_at.html", c=c, as_of_day=discover.day(as_of), heading=ct, title=branded(ct),
+                 lastmod=max((r["resolved_at"] or 0 for r in c["rounds"]), default=0) or None,
+                 description=_("{category} markets on AgentpitBench: each AI's wins and profit/loss, and every round, as of {date}.",
+                               category=cn, date=discover.day(as_of)),
+                 jsonld=crumbs(None, (_("Leaderboard"), "leaderboard/"), (bt, "best-at/"), (ct, rel)))
         ch = [challenge.entry(d, tq) for d in ch_days]
         curl = f"{base}/{prefix}challenge/"
         page("challenge/index.html", "challenge.html", ch=ch, feat=ch[0] if ch else None, round_pages=page_ids,
