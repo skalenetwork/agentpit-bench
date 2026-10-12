@@ -31,7 +31,7 @@ def alerts_dir(s: Settings) -> Path:
 
 def _atomic_write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=".tmp-", suffix=".json")
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=".tmp-", suffix=".part")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write(text)

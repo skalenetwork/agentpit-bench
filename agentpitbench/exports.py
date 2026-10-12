@@ -12,6 +12,7 @@ rounds.json = list (newest first) of:
   exhibition (bool), exclusion                               -- outside every neutral table and statistic, and why:
                                                                 summon / high-stakes / pre-season / infra (null = counts)
   humans: {picked, right (null until resolved), by_outcome: {label: n},
+           by_source: {exact: n, model: n} (model = read from free-form replies by the operator AI),
            winners: [{username, pick, card (site-relative PNG or null)}]}
 leaderboard.json = {updated_at, season (YYYY-MM, UTC month of resolution; tables below are this season's),
                     agents: [db.leaderboard rows + name, color, beat_crowd],
@@ -94,7 +95,7 @@ def round_record(s: Settings, db: DB, r) -> dict:
                      quote=None, rationale=None, decided_s=None, tweet_id=None, transcript=None,
                      tail_url=None, fade_url=None, txs=[], sealed=True)
     picks = {e["outcome"] for e in entries if e["outcome"]}
-    hp = db.q("SELECT username, pick, won, card_path FROM humans WHERE round_id=?", r["round_id"])
+    hp = db.q("SELECT username, pick, won, card_path, source FROM humans WHERE round_id=?", r["round_id"])
     by_outcome: dict[str, int] = {}
     for h in hp:
         by_outcome[h["pick"]] = by_outcome.get(h["pick"], 0) + 1
@@ -110,6 +111,8 @@ def round_record(s: Settings, db: DB, r) -> dict:
         "headline_variant": r["headline_variant"] if "headline_variant" in r.keys() else None,
         "crowd": crowd_pick(s, outcomes, snap.get("prices_list", []), r["state"], r["winner"], snap.get("bench_stake")),
         "humans": {"picked": len(hp), "by_outcome": by_outcome,
+                   "by_source": {"exact": sum(1 for h in hp if h["source"] != "model"),
+                                 "model": sum(1 for h in hp if h["source"] == "model")},
                    "right": sum(1 for h in hp if h["won"]) if r["state"] == "resolved" else None,
                    "winners": [{"username": h["username"], "pick": h["pick"],
                                 "card": _site_card(s, h["card_path"])} for h in hp if h["won"]]},

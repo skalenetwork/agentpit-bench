@@ -78,6 +78,13 @@ def test_real_export_of_running_round_is_clean(s, db):
     assert "embargo-breach" not in keys(anomaly.detect(s, db))
 
 
+def test_built_site_of_running_round_is_clean(s, db):
+    round_(db, state="running")
+    exports.export(s, db)
+    site.build(s)
+    assert "embargo-breach" not in keys(anomaly.detect(s, db))
+
+
 def test_embargo_breach_by_tweet(s, db):
     rid = round_(db, state="running")
     db.x("INSERT INTO tweets(post_key,tweet_id,kind,round_id,text,posted_at) VALUES('k','dry-k','reveal',?,'t',?)",
@@ -219,7 +226,7 @@ result = {{"pause_at_call": json.loads(v[0]) if v else None}}
     d = db.one("SELECT * FROM incident_drafts")
     assert d["title"] == "Picks exposed early" and d["output_id"] and d["state"] == "draft"
     files = list((s.data_dir / "alerts").glob("*.json"))
-    assert len(files) == 1 and not list((s.data_dir / "alerts").glob(".tmp-*"))
+    assert len(files) == 1 and not list((s.data_dir / "alerts").glob(".tmp-*.part"))
     al = json.loads(files[0].read_text())
     assert al["severity"] == "critical" and al["kind"] == "embargo-breach"
     assert al["action_taken"] == "paused posting and new rounds" and "ops resume" in al["how_to_resume"]
