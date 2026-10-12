@@ -31,7 +31,9 @@
 {% if card or quotes or r.state == 'resolved' %}<section class="xstrip"><h2>{{ _("As posted on X") }}</h2><p class="small mut">{{ _("The share cards and posts from @AgentpitBench. The numbers above are the record.") }}</p>
 {% if r.state == 'resolved' %}<p><b lang="en">{{ headline(r) }}</b>{% if cast %} · <span class="cast" lang="en" dir="auto">{{ cast }}</span>{% endif %}</p>{% endif %}
 {% for e in quotes %}<p class="say" lang="en" dir="auto">{{ mi(e.agent) }}{{ e.name }}: 💬 “{{ e.quote }}”</p>{% endfor %}
-{% if card %}<img class="card" src="{{ root }}{{ card }}" alt="{{ _("Share card for round {n}", n=r.round_id) }}" width="1200" height="675" loading="lazy">{% endif %}</section>{% endif %}
+{% if card %}<img class="card" src="{{ root }}{{ card }}" alt="{{ card_alt }}" width="1200" height="675" loading="lazy">{% endif %}</section>{% endif %}
 <p class="small mut">{{ _("Outcomes at start:") }} {% for o in r.outcomes %}{{ o }} {{ r.prices_at_start[loop.index0]|cents if r.prices_at_start|length > loop.index0 else '' }}{% if not loop.last %} · {% endif %}{% endfor %}
 {% if tweet_url(r.thread_tweet_id) %} · <a href="{{ tweet_url(r.thread_tweet_id) }}">{{ _("X thread") }}</a>{% endif %}{% if tweet_url(r.results_tweet_id) %} · <a href="{{ tweet_url(r.results_tweet_id) }}">{{ _("results tweet") }}</a>{% endif %} · <a href="{{ r.market_link }}">{{ _("agentpit market") }}</a></p>
+{% if same_cat %}<h2>{{ _("More markets in {category}", category=_(cat)) }}</h2><ul>{% for x in same_cat %}<li><a href="{{ home }}round/{{ x.round_id }}/">{{ x.question }}</a></li>{% endfor %}</ul>{% endif %}
+<p class="small">{% if prev_r %}<a href="{{ home }}round/{{ prev_r.round_id }}/" rel="prev">← {{ _("Previous round") }}</a>{% endif %}{% if prev_r and next_r %} · {% endif %}{% if next_r %}<a href="{{ home }}round/{{ next_r.round_id }}/" rel="next">{{ _("Next round") }} →</a>{% endif %}</p>
 {% endblock %}

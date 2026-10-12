@@ -221,7 +221,7 @@ def export(s: Settings, db: DB) -> dict:
           "by_category": by_category(rounds, s.agents),
           "forecast": forecast.metrics(db, s.agents), "sweeps": forecast.sweeps(db)[:60],
           "contrarian": forecast.contrarian(db, s.agents)[:200], "duels": forecast.duels(db),
-          "sealed": forecast.sealed_list(db)[:60]}
+          "sealed": forecast.sealed_list(db)[:60], "pairs": forecast.pair_metrics(db, s.agents)}
     lb["significance"] = forecast.significance(rounds, lb["forecast"], s.agents)
     _write(out / "rounds.json", json.dumps(rounds, indent=1))
     _write(out / "leaderboard.json", json.dumps(lb, indent=1))
