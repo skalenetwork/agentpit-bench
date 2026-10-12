@@ -339,6 +339,8 @@ async def test_post_square_on_x_trailer_on_bluesky(env):
     assert link["reply_to"] == tid and f"#week-{WEEK}" in link["text"]
     b = json.loads((s.outbox_dir / "bluesky" / f"week-{WEEK}.json").read_text())
     assert b["media"][0].endswith("-trailer.mp4")
+    from agentpitbench import bluesky, telegram
+    assert {"week", "week-link"} <= bluesky.MIRROR_KINDS and {"week", "week-link"} <= telegram.MIRROR_KINDS
     assert await week.post(s, db, poster, rec, out) == tid   # idempotent per key
 
 

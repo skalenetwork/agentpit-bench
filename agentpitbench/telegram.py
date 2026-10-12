@@ -31,7 +31,7 @@ PHOTO_MAX = 10_000_000       # sendPhoto: 10 MB
 UPLOAD_MAX = 50_000_000      # any other bot upload (sendVideo): 50 MB
 RETRY_AFTER_CAP = 60
 MIRROR_KINDS = {"reveal", "decision", "split", "results", "press", "motd", "motd-link", "milestone", "champion",
-                "race", "awards", "replay"}
+                "race", "awards", "replay", "week", "week-link"}   # week: the full square episode (< 50 MB)
 PICK_RE = re.compile(r"Reply with your pick")
 VIDEO_EXT = (".mp4",)
 ANIMATION_EXT = (".gif",)
