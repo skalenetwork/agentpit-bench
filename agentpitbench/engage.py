@@ -12,7 +12,7 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from . import exports, forecast, media
+from . import ab, exports, forecast, media
 from .agentpit import Agentpit
 from .cards import CardRenderer
 from .config import AGENT_NAMES, Settings
@@ -101,6 +101,10 @@ class Engage:
         self.s, self.db, self.poster, self.cards, self.api = s, db, poster, cards, api
 
     async def _post(self, key: str, kind: str, text: str, image: Path | None = None, **kw) -> str | None:
+        try:
+            text = ab.generic_text(self.db, self.s, key, kind, text)   # generic.cta (control: unchanged)
+        except Exception:
+            log.exception("A/B for %s failed; posting the control", key)
         try:
             return await self.poster.post(key, kind, text, image, **kw)
         except Exception:

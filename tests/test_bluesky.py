@@ -203,7 +203,13 @@ def test_outbox_when_not_live(env, monkeypatch, why):
     s.posting_paused = why == "paused"
     p = Poster(s, db)
     p.bsky.http = None  # any network call would fail
-    assert run(p.post("r1-reveal", "reveal", "Picks are in. #AgentpitBench", round_id=1)) == "dry-r1-reveal"
+    res = run(p.post("r1-reveal", "reveal", "Picks are in. #AgentpitBench", round_id=1))
+    if why == "paused":  # a pause records nothing on either platform, so the post can go out after resume
+        assert res is None
+        assert not (s.outbox_dir / "bluesky" / "r1-reveal.json").exists()
+        assert not db.q("SELECT * FROM bsky_posts")
+        return
+    assert res == "dry-r1-reveal"
     out = json.loads((s.outbox_dir / "bluesky" / "r1-reveal.json").read_text())
     assert out["uri"] == "dry-r1-reveal" and out["facets"]
     assert db.one("SELECT uri FROM bsky_posts WHERE post_key='r1-reveal'")["uri"] == "dry-r1-reveal"
