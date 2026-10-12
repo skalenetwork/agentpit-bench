@@ -78,7 +78,8 @@ def brief(db: DB, s: Settings, seats: dict[str, int]) -> dict:
             txt = (ab.CONTROL_TEXT.get(slot, "(today's code copy)") if a["is_control"]
                    else ab.template_text(a) or a["template_json"])
             live.append(f"- {slot}: {txt} (mean {a['mean']:+.2f} ± {a['sd']:.2f})")
-    return {"slots": lines, "live": live or ["(none)"], "per_seat": PER_SEAT}
+    return {"slots": lines, "live": live or ["(none)"], "per_seat": PER_SEAT,
+            "seats": dict(seats)}   # free seats per slot: opai._ab_schema declares one array per slot from it
 
 
 def guard(db: DB, s: Settings, idle: Callable[[], bool], now: float, force: bool = False) -> str | None:
