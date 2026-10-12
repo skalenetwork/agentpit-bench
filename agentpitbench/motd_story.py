@@ -304,7 +304,7 @@ def validate(data: dict, pl: dict) -> str | None:
         if len(fill(t, sl)) > MAX_CHARS[k]:
             return f"scene {i} ({k}) is too long ({len(fill(t, sl))} > {MAX_CHARS[k]} characters)"
         if k == "background":
-            for num in re.findall(r"\d[\d,]*(?:\.\d+)?", bare):
+            for num in re.findall(r"\d+(?:,\d{3})*(?:\.\d+)?s?", bare):
                 if not (re.fullmatch(r"\d{4}s?", num) and 1850 <= int(num[:4]) <= datetime.now(timezone.utc).year):
                     return f"background: only plausible years may be written as digits (got {num})"
             if re.search(r"[%$€£¢]", bare):
@@ -425,10 +425,33 @@ def build_scenes(data: dict, rnd: dict, ctx: dict, twist: dict, lb: dict, site: 
             sc["asof"] = (datetime.fromtimestamp(lb["updated_at"], timezone.utc).strftime("%Y-%m-%d")
                           if lb.get("updated_at") else None)
             sc["cta"] = "Pick against the AIs: reply to the next round's reveal post on @agentpitbench."
+            sc["shout"] = shoutout(rnd)
         out.append(sc)
     for sc in out:
         sc.update(round_id=rnd["round_id"], url=url, exhibition=bool(rnd.get("exhibition")), banner=_banner(rnd))
     return fit(out)
+
+
+_HANDLE = re.compile(r"^[A-Za-z0-9_]{1,15}$")
+
+
+def shoutout(rnd: dict) -> str | None:
+    """The coda's human shout-out (code-written): a follower who replied with a pick (their opt-in) and was right
+    when every AI that bet was wrong ('beat all four AIs') or most were. Handle exactly as posted, only if it is a
+    valid X handle that passes the quote safety filter."""
+    from .virality import clean_quote
+    b = [e for e in rnd["entries"] if e.get("outcome")]
+    wrong = sum(1 for e in b if e.get("won") is False)
+    if not b or wrong * 2 <= len(b):
+        return None
+    for h in (rnd.get("humans") or {}).get("winners") or []:
+        name = (h.get("username") or "").lstrip("@")
+        ok, _ = clean_quote(name)
+        if _HANDLE.match(name) and ok == name:
+            if wrong == len(b):
+                return f"@{name} beat all {len(b)} AIs: {h.get('pick')}."
+            return f"@{name} called it: {h.get('pick')}, while {wrong} of {len(b)} AIs missed."
+    return None
 
 
 def fit(scenes: list[dict]) -> list[dict]:
