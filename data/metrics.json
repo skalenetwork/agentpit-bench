@@ -2,7 +2,7 @@
  "benchmark": "AgentpitBench",
  "methodology_version": "1.0",
  "season_start": "2026-10-09T00:00:00Z",
- "generated_at": 1791768609.8100386,
+ "generated_at": 1791778699.5600474,
  "contestants": {
   "claude": {
    "name": "Claude",
@@ -32,139 +32,133 @@
  "forecast_accuracy": {
   "agents": [
    {
-    "agent": "codex",
-    "name": "Codex",
-    "n": 52,
-    "offered": 52,
+    "agent": "claude",
+    "name": "Claude",
+    "n": 56,
+    "offered": 56,
     "coverage": 1.0,
-    "brier": 0.1687,
+    "brier": 0.1895,
     "ci": [
-     0.123,
-     0.2189
+     0.1443,
+     0.241
     ],
     "vs_crowd": {
-     "mean_diff": -0.0581,
+     "mean_diff": -0.0413,
      "ci": [
-      -0.0875,
-      -0.0307
+      -0.0747,
+      -0.0049
      ],
-     "sign_test_p": 0.0113,
+     "sign_test_p": 0.4966,
      "verdict": "better"
     },
     "rank": 1
    },
    {
-    "agent": "claude",
-    "name": "Claude",
-    "n": 52,
-    "offered": 52,
+    "agent": "codex",
+    "name": "Codex",
+    "n": 56,
+    "offered": 56,
     "coverage": 1.0,
-    "brier": 0.171,
+    "brier": 0.2025,
     "ci": [
-     0.128,
-     0.2173
+     0.1432,
+     0.2668
     ],
     "vs_crowd": {
-     "mean_diff": -0.0559,
+     "mean_diff": -0.0283,
      "ci": [
-      -0.0839,
-      -0.029
+      -0.0713,
+      0.0238
      ],
-     "sign_test_p": 0.3222,
-     "verdict": "better"
+     "sign_test_p": 0.0385,
+     "verdict": "inconclusive"
     },
     "rank": 2
    },
    {
     "agent": "grok",
     "name": "Grok",
-    "n": 52,
-    "offered": 52,
+    "n": 56,
+    "offered": 56,
     "coverage": 1.0,
-    "brier": 0.1804,
+    "brier": 0.2086,
     "ci": [
-     0.1368,
-     0.2256
+     0.1568,
+     0.2651
     ],
     "vs_crowd": {
-     "mean_diff": -0.0464,
+     "mean_diff": -0.0223,
      "ci": [
-      -0.0767,
-      -0.0193
+      -0.0615,
+      0.0207
      ],
-     "sign_test_p": 0.5758,
-     "verdict": "better"
+     "sign_test_p": 0.7877,
+     "verdict": "inconclusive"
     },
     "rank": 3
    },
    {
     "agent": "agy",
     "name": "Gemini",
-    "n": 27,
-    "offered": 27,
+    "n": 30,
+    "offered": 30,
     "coverage": 1.0,
-    "brier": 0.236,
+    "brier": 0.2414,
     "ci": [
-     0.1766,
-     0.3067
+     0.1821,
+     0.31
     ],
     "vs_crowd": {
-     "mean_diff": 0.0048,
+     "mean_diff": 0.0039,
      "ci": [
-      0.0001,
-      0.0115
+      -0.0005,
+      0.0097
      ],
      "sign_test_p": 1.0,
-     "verdict": "worse"
+     "verdict": "inconclusive"
     },
     "rank": 4
    }
   ],
   "crowd": {
    "name": "The Crowd",
-   "n": 52,
-   "brier": 0.2268,
+   "n": 56,
+   "brier": 0.2309,
    "ci": [
-    0.1877,
-    0.2702
+    0.1934,
+    0.2731
    ]
   },
-  "markets_resolved": 52,
-  "markets_open": 38,
+  "markets_resolved": 56,
+  "markets_open": 34,
   "sweeps": 3,
   "metric": "Brier score, \u00bd\u00b7\u03a3(p\u2212y)\u00b2, lower is better; 95% bootstrap CI; paired vs the Crowd (market price at sweep time)"
  },
  "significance": {
-  "n": 195,
-  "n_rounds": 12,
-  "n_forecasts": 183,
+  "n": 211,
+  "n_rounds": 13,
+  "n_forecasts": 198,
   "significant": [
-   {
-    "agent": "codex",
-    "test": "forecast",
-    "p": 0.0113,
-    "direction": "better"
-   },
    {
     "agent": "claude",
     "test": "betting",
-    "p": 0.0039,
+    "p": 0.002,
     "direction": null
    },
    {
     "agent": "codex",
     "test": "betting",
-    "p": 0.0391,
+    "p": 0.0215,
     "direction": null
    },
    {
     "agent": "grok",
     "test": "betting",
-    "p": 0.0391,
+    "p": 0.0215,
     "direction": null
    }
   ],
-  "label": "n=195 \u00b7 significant vs the Crowd (p<0.05)"
+  "label": "n=211 \u00b7 significant vs the Crowd (p<0.05)"
  },
  "sealed_forecasts": [
   {
@@ -191,7 +185,7 @@
  ],
  "launch_day_duels": [],
  "betting_record": {
-  "rounds_counted": 12,
+  "rounds_counted": 13,
   "rounds_excluded": {
    "high-stakes": 1,
    "infra": 5,
@@ -201,17 +195,17 @@
   "agents": [
    {
     "agent": "agy",
-    "played": 12,
-    "wins": 10,
+    "played": 13,
+    "wins": 11,
     "losses": 2,
     "no_bets": 0,
-    "win_rate": 0.8333,
-    "net_pnl": 501.2,
-    "staked": 1143.65,
-    "roi": 0.4382,
-    "avg_entry": 0.6061,
-    "brier": 0.1934,
-    "streak": 1,
+    "win_rate": 0.8462,
+    "net_pnl": 519.52,
+    "staked": 1243.65,
+    "roi": 0.4177,
+    "avg_entry": 0.6245,
+    "brier": 0.1807,
+    "streak": 2,
     "rank": 1,
     "name": "Gemini",
     "color": "#4285F4",
@@ -219,17 +213,17 @@
    },
    {
     "agent": "claude",
-    "played": 12,
+    "played": 13,
     "wins": 8,
-    "losses": 4,
+    "losses": 5,
     "no_bets": 0,
-    "win_rate": 0.6667,
-    "net_pnl": -45.85,
-    "staked": 1200.08,
-    "roi": -0.0382,
-    "avg_entry": 0.6685,
-    "brier": 0.1883,
-    "streak": 4,
+    "win_rate": 0.6154,
+    "net_pnl": -145.85,
+    "staked": 1300.08,
+    "roi": -0.1122,
+    "avg_entry": 0.631,
+    "brier": 0.1798,
+    "streak": -1,
     "rank": 2,
     "name": "Claude",
     "color": "#D97757",
@@ -237,17 +231,17 @@
    },
    {
     "agent": "grok",
-    "played": 12,
+    "played": 13,
     "wins": 6,
-    "losses": 6,
+    "losses": 7,
     "no_bets": 1,
-    "win_rate": 0.5,
-    "net_pnl": -210.25,
-    "staked": 1101.42,
-    "roi": -0.1909,
-    "avg_entry": 0.5975,
-    "brier": 0.1893,
-    "streak": -1,
+    "win_rate": 0.4615,
+    "net_pnl": -310.25,
+    "staked": 1201.42,
+    "roi": -0.2582,
+    "avg_entry": 0.5628,
+    "brier": 0.181,
+    "streak": -2,
     "rank": 3,
     "name": "Grok",
     "color": "#1A1A1A",
@@ -255,17 +249,17 @@
    },
    {
     "agent": "codex",
-    "played": 12,
+    "played": 13,
     "wins": 4,
-    "losses": 8,
+    "losses": 9,
     "no_bets": 0,
-    "win_rate": 0.3333,
-    "net_pnl": -486.82,
-    "staked": 1144.18,
-    "roi": -0.4255,
-    "avg_entry": 0.4634,
-    "brier": 0.2554,
-    "streak": -3,
+    "win_rate": 0.3077,
+    "net_pnl": -585.71,
+    "staked": 1243.07,
+    "roi": -0.4712,
+    "avg_entry": 0.4414,
+    "brier": 0.2713,
+    "streak": -4,
     "rank": 4,
     "name": "Codex",
     "color": "#10A37F",
@@ -274,11 +268,11 @@
   ],
   "crowd": {
    "name": "The Crowd",
-   "played": 12,
-   "wins": 9,
+   "played": 13,
+   "wins": 10,
    "losses": 3,
-   "win_rate": 0.75,
-   "net_pnl": 156.15,
+   "win_rate": 0.7692,
+   "net_pnl": 175.91,
    "series": [
     [
      1791585879.0,
@@ -327,6 +321,10 @@
     [
      1791749471.0,
      156.15
+    ],
+    [
+     1791778421.0,
+     175.91
     ]
    ]
   }
