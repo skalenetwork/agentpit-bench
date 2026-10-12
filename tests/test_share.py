@@ -117,13 +117,16 @@ def test_share_text_clipped_per_network():
 def test_check_pages_fails_without_preview(tmp_path):
     (tmp_path / "ok").mkdir()
     good = ('<meta property="og:title" content="t"><meta property="og:description" content="d">'
-            '<meta property="og:image" content="i"><section data-share-bar></section>')
+            '<meta property="og:image" content="i"><div data-share-top></div><section data-share-bar></section>')
     (tmp_path / "ok/index.html").write_text(good)
     (tmp_path / "widget").mkdir()
     (tmp_path / "widget/index.html").write_text("<html></html>")  # exempt
     site.check_pages(tmp_path)
     (tmp_path / "bad").mkdir()
     (tmp_path / "bad/index.html").write_text(good.replace("og:description", "x"))
+    with pytest.raises(RuntimeError, match="bad/index.html"):
+        site.check_pages(tmp_path)
+    (tmp_path / "bad/index.html").write_text(good.replace("data-share-top", "x"))  # share UX v2: no top control
     with pytest.raises(RuntimeError, match="bad/index.html"):
         site.check_pages(tmp_path)
 
