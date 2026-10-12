@@ -477,6 +477,35 @@ def test_check_raises_rate_limited_still_runtime_error():
     assert e.value.reset == 0
 
 
+def test_x_5xx_and_unreachable_are_transient(env, caplog):
+    """A 503 or a DNS failure: one warning line, no traceback, nothing stored; the next cycle reads again."""
+    import logging
+    import requests
+    from agentpitbench.twitter import TransientError
+    with pytest.raises(RuntimeError) as e:  # still a RuntimeError: posting's retry path is unchanged
+        _check(FakeResp(503, {"title": "Service Unavailable"}))
+    assert isinstance(e.value, TransientError)
+    s, db = env
+    add_post(db, "1021", 1.2 * H)
+    fake = FakeX()
+    fake.status = 503
+    p = poster(s, db, fake)
+    with caplog.at_level(logging.WARNING):
+        out = xstats.pull_due(s, db, p, now=NOW)
+    assert out["stored"] == 0 and xstats.health(db, NOW)["consecutive_auth_failures"] == 0
+    warn = [r for r in caplog.records if r.name == "agentpitbench.xstats" and r.levelno >= logging.WARNING]
+    assert len(warn) == 1 and "503" in warn[0].getMessage() and warn[0].exc_info is None
+    fake.status = None
+    xstats.pull_due(s, db, p, now=NOW + 600)
+    assert fake.ids_requested()[-1] == "1021"
+
+    def down(*a, **kw):
+        raise requests.ConnectionError("Failed to resolve 'api.x.com'")
+    fake.request = down
+    with pytest.raises(TransientError):
+        p.read(ME_URL, {}, "user", "me")
+
+
 def test_auth_failures_counted_and_reset(env):
     s, db = env
     add_post(db, "1011", 1.2 * H)

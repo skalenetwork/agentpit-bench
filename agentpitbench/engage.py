@@ -17,6 +17,7 @@ from .agentpit import Agentpit
 from .cards import CardRenderer
 from .config import AGENT_NAMES, Settings
 from .db import DB
+from .twitter import TransientError
 from .twitter import (TAG, Poster, champion_text, clip, fit, milestone_text, race_text, summon_reply_text)
 from .virality import (UPSET_MAX, detect_milestones, human_picks, market_refs, milestone_state, prev_season,
                        reasoning_lines, season_of)
@@ -157,6 +158,9 @@ class Engage:
         try:
             replies = await asyncio.to_thread(self.poster.replies, thread, self.s.max_reply_reads)
             me = await asyncio.to_thread(self.poster.my_user_id)
+        except TransientError as e:
+            log.warning("reading replies for round %s: X unavailable (%s); retrying later", round_id, e)
+            return 0
         except Exception:
             log.exception("reading replies for round %s failed", round_id)
             return 0
@@ -371,6 +375,9 @@ class Engage:
             return 0
         try:
             tweets = await asyncio.to_thread(self.poster.mentions, self.db.get("mentions_since"), 100)
+        except TransientError as e:
+            log.warning("reading mentions: X unavailable (%s); retrying later", e)
+            return 0
         except Exception:
             log.exception("reading mentions failed")
             return 0
@@ -406,6 +413,8 @@ class Engage:
                 for r in rows:
                     r["likes"] = likes.get(r["tweet_id"], r["likes"])
                     self.db.x("UPDATE summons SET likes=? WHERE tweet_id=?", r["likes"], r["tweet_id"])
+            except TransientError as e:
+                log.warning("refreshing summon likes: X unavailable (%s)", e)
             except Exception:
                 log.exception("refreshing summon likes failed")
         for row in sorted(rows, key=lambda r: (-r["likes"], r["created_at"])):

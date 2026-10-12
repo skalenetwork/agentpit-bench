@@ -402,6 +402,9 @@ class Poster:
                 _check(r)
             log.info("deleted tweet %s (%s)", tweet_id, post_key)
             return True
+        except TransientError as e:
+            log.warning("could not delete tweet %s: X unavailable (%s)", tweet_id, e)
+            return False
         except Exception:
             log.exception("could not delete tweet %s", tweet_id)
             return False
@@ -426,17 +429,23 @@ class Poster:
             except PermanentError:
                 log.exception("tweet rejected")
                 return None
-            except Exception:
-                log.exception("tweet attempt %d failed", attempt + 1)
+            except Exception as e:
+                if isinstance(e, TransientError):
+                    log.warning("tweet attempt %d: X unavailable (%s); retrying", attempt + 1, e)
+                else:
+                    log.exception("tweet attempt %d failed", attempt + 1)
                 await asyncio.sleep(min(300, 5 * 2 ** attempt))
         return None
 
     def _call(self, method: str, url: str, **kw):
         """OAuth 2.0 request; on a 401, refresh once and retry once."""
-        tok = self.oauth2.get()
-        r = self.http_request(method, url, tok, **kw)
-        if r.status_code == 401:
-            r = self.http_request(method, url, self.oauth2.get(stale=tok), **kw)
+        try:
+            tok = self.oauth2.get()
+            r = self.http_request(method, url, tok, **kw)
+            if r.status_code == 401:
+                r = self.http_request(method, url, self.oauth2.get(stale=tok), **kw)
+        except (requests.ConnectionError, requests.Timeout) as e:  # DNS, resets, timeouts: X unreachable
+            raise TransientError(f"X unreachable: {type(e).__name__}: {str(e)[:200]}") from e
         _check(r)
         return r
 
@@ -622,6 +631,11 @@ class PermanentError(Exception):
         self.status = status
 
 
+class TransientError(RuntimeError):
+    """X's own trouble: a 5xx, a timeout or a connection failure. Still a RuntimeError, so posting's retry path is
+    unchanged; readers log one warning line (no traceback) and the next cycle tries again."""
+
+
 class RateLimited(RuntimeError):
     """A 429. Still a RuntimeError, so posting's retry path is unchanged; `reset` is X's x-rate-limit-reset
     (epoch seconds, 0 when absent)."""
@@ -659,5 +673,5 @@ def _check(r) -> None:
             reset = 0
         raise RateLimited(msg, reset)
     if r.status_code >= 500:
-        raise RuntimeError(msg)
+        raise TransientError(msg)
     raise PermanentError(msg, r.status_code)

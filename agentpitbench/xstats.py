@@ -185,7 +185,7 @@ def _metrics_rows(db: DB, day: str) -> int:
 def pull_due(s: Settings, db: DB, poster, now: float | None = None, force_budget: bool = False) -> dict:
     """One cycle: the daily account read, due canonical snapshots, free series re-reads. Respects the daily
     metrics budget (unless force_budget), a 429's reset time and the read prerequisites. Never posts."""
-    from .twitter import PermanentError, RateLimited
+    from .twitter import PermanentError, RateLimited, TransientError
     now = time.time() if now is None else now
     res = {"requested": 0, "stored": 0, "billed_new": 0, "skipped_budget": 0, "deleted": 0}
     if poster is None or not poster.can_read:
@@ -202,6 +202,9 @@ def pull_due(s: Settings, db: DB, poster, now: float | None = None, force_budget
     except RateLimited as e:
         db.put("x_read_resume_at", e.reset if e.reset > now else now + 900)
         log.warning("x-metrics: 429 from X; reads resume at %s", db.get("x_read_resume_at"))
+        return _finish(s, db, day, rows_before, res)
+    except TransientError as e:
+        log.warning("x-metrics: X unavailable (%s); retrying next cycle", e)
         return _finish(s, db, day, rows_before, res)
     except PermanentError as e:
         if getattr(e, "status", None) in (401, 403):
