@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% import "_macros.html" as m with context %}
+{% block main %}
+<h1>{{ mi(p.a, 40) }}{{ heading }}</h1>
+<p class="mut small">{{ _("Daily forecast sweep · {n} markets both forecast · data as of {date} · methodology v{v}", n=p.n, date=as_of_day, v=s.methodology_version) }}</p>
+<div class="btns">{{ m.share_link() }}</div>
+<h2>{{ _("Forecast accuracy") }}</h2>
+<div class="scroll"><table><tr><th></th><th class="r">{{ _("Forecast accuracy (Brier score, lower is better)") }}</th><th class="r">{{ _("Closer to the result") }}</th></tr>
+<tr><td class="nw">{{ mi(p.a) }}<a href="{{ home }}agent/{{ p.a }}/">{{ a_name }}</a></td><td class="r num">{{ '%.3f'|format(p.a_brier) }}</td><td class="r">{{ p.a_closer }}</td></tr>
+<tr{% if p.b == 'crowd' %} class="crowd-row"{% endif %}><td class="nw">{{ mi(p.b) }}{% if p.b == 'crowd' %}{{ _("The Crowd (market price)") }}{% else %}<a href="{{ home }}agent/{{ p.b }}/">{{ b_name }}</a>{% endif %}</td><td class="r num">{{ '%.3f'|format(p.b_brier) }}</td><td class="r">{{ p.b_closer }}</td></tr>
+</table></div>
+<p>{{ _("Paired difference ({a} minus {b}) on the same {n} markets: {d}, 95% CI {lo} to {hi} (bootstrap); sign test p = {p}.", a=a_name, b=b_name, n=p.n, d='%+.3f'|format(p.mean_diff), lo='%+.3f'|format(p.ci[0]), hi='%+.3f'|format(p.ci[1]), p='%.3f'|format(p.sign_test_p)) }}</p>
+<p><b>{% if p.verdict == 'a better' %}{{ _("{name} forecasts better: the 95% confidence interval excludes zero.", name=a_name) }}{% elif p.verdict == 'b better' %}{{ _("{name} forecasts better: the 95% confidence interval excludes zero.", name=b_name) }}{% else %}{{ _("Not yet significant: the 95% confidence interval includes zero, so neither is ahead yet.") }}{% endif %}</b></p>
+<p class="small mut">{{ _("Brier score: ½·Σ(p−y)² per market, lower is better. Each side is scored only on markets both forecast.") }} <a href="{{ home }}methodology/">{{ _("Methodology v{v}", v=s.methodology_version) }}</a> · <a href="{{ home }}leaderboard/">{{ _("Leaderboard") }}</a></p>
+<h2>{{ _("Where they split") }}</h2>
+<p class="small mut">{% if p.b == 'crowd' %}{{ _("Betting rounds where {name} bet against the market favourite: {name} right {w}, the favourite right {l}.", name=a_name, w=bets.a_wins, l=bets.b_wins) }}{% else %}{{ _("Betting rounds where they picked opposite sides: {a} right {w}, {b} right {l}.", a=a_name, b=b_name, w=bets.a_wins, l=bets.b_wins) }}{% endif %}</p>
+{% if bets.latest %}<div class="scroll"><table><tr><th>{{ _("Round") }}</th><th>{{ _("Market") }}</th><th>{{ a_name }}</th><th>{{ b_name }}</th><th>{{ _("Result") }}</th></tr>
+{% for x in bets.latest %}<tr><td><a href="{{ home }}round/{{ x.r.round_id }}/">{{ x.r.round_id }}</a></td><td><a href="{{ home }}round/{{ x.r.round_id }}/">{{ x.r.question }}</a></td><td>{{ x.a }}{% if x.r.state == 'resolved' %}{{ ' ✓' if x.a == x.r.winner else ' ✗' }}{% endif %}</td><td>{{ x.b }}{% if x.r.state == 'resolved' %}{{ ' ✓' if x.b == x.r.winner else ' ✗' }}{% endif %}</td><td>{{ x.r.winner or '—' }}</td></tr>{% endfor %}
+</table></div>{% else %}<p class="mut">{{ _("No split yet.") }}</p>{% endif %}
+{% if vs_links|length > 1 %}<h2>{{ _("More head-to-heads") }}</h2><p>{% for k, vl in vs_links|dictsort if k != (p.a, p.b) %}<a href="{{ home }}{{ vl }}">{{ names.get(k[0], k[0]) }} vs {{ _("the Crowd") if k[1] == 'crowd' else names.get(k[1], k[1]) }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</p>{% endif %}
+{% endblock %}

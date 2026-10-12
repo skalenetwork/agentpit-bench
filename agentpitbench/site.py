@@ -14,10 +14,12 @@ import json
 import logging
 import os
 import re
+import secrets
 import shutil
 import subprocess
 import threading
 import time
+import urllib.request
 from datetime import datetime, timezone
 from email.utils import formatdate
 from pathlib import Path
@@ -31,7 +33,7 @@ from . import og
 from .cards import cents, is_dark, fmt_time, is_upset, payout_x, ranked, results_headline, signed, split_headline
 from . import discover
 from .emblem import emblem_svg
-from .config import AGENT_COLORS, AGENT_NAMES, Settings, AGENT_MODELS
+from .config import AGENT_COLORS, AGENT_NAMES, AGENT_SLUGS, Settings, AGENT_MODELS
 from .i18n import CODES, LANGS, NAMES, Translator
 from .mascots import sprite, svg_file, use as mascot_use
 from .twitter import clip, results_hook
@@ -213,9 +215,215 @@ def contrarian_share(calls: list[dict], _) -> str | None:
              right=sum(1 for c in done if c["right"]), total=len(done))
 
 
+# ---------- search (docs/seo-spec.md) ----------
+
+BRAND = " · AgentpitBench"
+TITLE_MAX = 60   # what Google shows; the brand goes last and is dropped first
+ROUND_TITLE_MAX = 100  # round titles: the question is clipped first, the search words after it survive
+
+
+def branded(title: str) -> str:
+    return title + BRAND if len(title + BRAND) <= TITLE_MAX else title
+
+
+def round_title(r: dict, _, names: str, suffix: str = "") -> str:
+    """Resolved: '{question}: which AI got it right?'; open: '{question}: AI predictions from …'. Never a pick."""
+    if r["state"] == "resolved":
+        t = flex_text(_, _("{question}: which AI got it right?"), "question", r["question"])
+    elif r["state"] == "void":
+        t = flex_text(_, _("{question}: market voided"), "question", r["question"])
+    else:
+        t = flex_text(_, _("{question}: AI predictions from {names}"), "question", r["question"], names=names)
+    return branded(ShareText(t.head, t.flex, t.tail + suffix).fit(ROUND_TITLE_MAX))
+
+
+def _favourite(r: dict) -> tuple[str, float] | None:
+    c = r.get("crowd") or {}
+    if c.get("outcome") and c.get("price"):
+        return c["outcome"], c["price"]
+    ps = r.get("prices_at_start") or []
+    if ps and len(ps) == len(r.get("outcomes") or []):
+        i = max(range(len(ps)), key=ps.__getitem__)
+        return r["outcomes"][i], ps[i]
+    return None
+
+
+def round_description(r: dict, _, suffix: str = "") -> str:
+    """Search snippet of a round page. A running round's picks are sealed, so an open round never names one."""
+    fav = _favourite(r)
+    price = _("{outcome} at {price}", outcome=fav[0], price=cents(fav[1])) if fav else "—"
+    if r["state"] == "resolved":
+        right = [e["name"] for e in r["entries"] if e.get("won")]
+        wrong = [e["name"] for e in r["entries"] if not e.get("won")]  # a no-bet counts as a loss
+        if right and not wrong:
+            d = _("Resolved {winner}. All {n} AIs got it right. The market's favourite at the start: {price}.",
+                  winner=r["winner"], n=len(right), price=price)
+        elif right:
+            d = _("Resolved {winner}. Right: {right}. Wrong: {wrong}. The market's favourite at the start: {price}.",
+                  winner=r["winner"], right=", ".join(right), wrong=", ".join(wrong) or "—", price=price)
+        else:
+            d = _("Resolved {winner}. No AI got it right. The market's favourite at the start: {price}.",
+                  winner=r["winner"], price=price)
+    elif r["state"] == "void":
+        d = _("The market closed without a winner. No result this round.")
+    elif discover.seal(r):
+        d = _("Market favourite at the start: {price}. {n} AIs are placing their bets; the picks are revealed when all are in. Closes {date}.",
+              price=price, n=len(r["entries"]), date=(r.get("end_date") or "")[:10] or "—")
+    else:
+        d = _("Market favourite at the start: {price}. See how {n} AIs bet before the market closes on {date}.",
+              price=price, n=len(r["entries"]), date=(r.get("end_date") or "")[:10] or "—")
+    return d + suffix
+
+
+def card_alt(r: dict, _, names: str) -> str:
+    if r["state"] == "resolved":
+        return f"{results_headline(r, _)}: {r['question']}"
+    return _("{question}: picks by {names}", question=r["question"], names=names)
+
+
+def leaderboard_description(lb: dict, _, names: str, as_of: float) -> str:
+    fc = lb.get("forecast") or {}
+    scored = [a for a in fc.get("agents") or [] if a.get("brier") is not None and a.get("ci")]
+    if scored and fc.get("markets_resolved"):
+        a = min(scored, key=lambda x: x["brier"])
+        return _("{leader} leads on forecast accuracy after {n} markets (Brier {score}, 95% CI {lo}–{hi}). Updated {date}.",
+                 leader=a["name"], n=fc["markets_resolved"], score=f"{a['brier']:.3f}", lo=f"{a['ci'][0]:.3f}",
+                 hi=f"{a['ci'][1]:.3f}", date=discover.day(as_of))
+    return _("Forecast accuracy and betting record of {names} on real prediction markets, with confidence intervals.",
+             names=names)
+
+
+VS_MIN_N = 20  # no thin pages: a head-to-head page exists only with at least this many shared resolved markets
+
+
+def vs_slug(a: str, b: str) -> str:
+    return f"{AGENT_SLUGS.get(a, a)}-vs-{AGENT_SLUGS.get(b, b)}"
+
+
+def vs_pairs(lb: dict, agents: list[str]) -> list[dict]:
+    """The head-to-head pairs with a page: n >= VS_MIN_N, both sides still in the contest."""
+    return [p for p in lb.get("pairs") or [] if p.get("n", 0) >= VS_MIN_N and p["a"] in agents
+            and (p["b"] in agents or p["b"] == CROWD)]
+
+
+def side_name(x: str, _) -> str:
+    return _("the Crowd") if x == CROWD else AGENT_NAMES.get(x, x)
+
+
+def vs_title(p: dict, _) -> str:
+    if p["b"] == CROWD:
+        return _("{a} vs the Crowd: who forecasts better?", a=AGENT_NAMES.get(p["a"], p["a"]))
+    return _("{a} vs {b}: who forecasts better?", a=AGENT_NAMES.get(p["a"], p["a"]), b=AGENT_NAMES.get(p["b"], p["b"]))
+
+
+def vs_description(p: dict, _, as_of: float) -> str:
+    return _("{a} vs {b} on the same {n} markets: Brier {x} vs {y} (lower is better); {a} closer on {w}, {b} on {l}. Updated {date}.",
+             a=AGENT_NAMES.get(p["a"], p["a"]), b=side_name(p["b"], _), n=p["n"], x=f"{p['a_brier']:.3f}",
+             y=f"{p['b_brier']:.3f}", w=p["a_closer"], l=p["b_closer"], date=discover.day(as_of))
+
+
+def vs_rounds(rounds: list[dict], a: str, b: str) -> dict:
+    """Betting rounds where a and b (an agent or the Crowd's favourite) took opposite sides: W-L and the latest 10."""
+    out, aw, bw = [], 0, 0
+    for r in sorted(rounds, key=lambda r: -(r.get("started_at") or 0)):
+        if discover.seal(r) or r.get("exhibition"):
+            continue
+        ea = next((e for e in r["entries"] if e["agent"] == a), None)
+        pb = ((r.get("crowd") or {}).get("outcome") if b == CROWD
+              else next((e["outcome"] for e in r["entries"] if e["agent"] == b), None))
+        if not (ea and ea.get("outcome") and pb) or ea["outcome"] == pb:
+            continue
+        if r["state"] == "resolved":
+            aw += ea["outcome"] == r["winner"]
+            bw += pb == r["winner"]
+        out.append({"r": r, "a": ea["outcome"], "b": pb})
+    return {"a_wins": aw, "b_wins": bw, "latest": out[:10]}
+
+
+def check_seo(seen: list[tuple[str, str, str, str]]) -> None:
+    """The fixed page types (not rounds or weekly reports, which are data) must each have their own non-empty title
+    and description within a language. A clash here is a template bug, so it fails the build."""
+    bad = []
+    fixed = [x for x in seen if not x[1].startswith(("round/", "reports/2", "widget/", "embed/"))]
+    for lang in {x[0] for x in fixed}:
+        rows = [x for x in fixed if x[0] == lang]
+        for i, field in ((2, "title"), (3, "description")):
+            vals = [x[i] for x in rows]
+            bad += [f"{lang}/{x[1]}: empty {field}" for x in rows if not (x[i] or "").strip()]
+            bad += [f"{lang}/{x[1]}: duplicate {field} {x[i]!r}" for x in rows if x[i] and vals.count(x[i]) > 1]
+    if bad:
+        raise RuntimeError(f"{len(bad)} SEO problem(s): " + "; ".join(sorted(bad)[:10]))
+
+
+def round_suffixes(rounds: list[dict], _) -> dict[int, str]:
+    """' · round {n}' for every round whose question another round shares (daily markets, summon repeats)."""
+    seen: dict[str, int] = {}
+    for r in rounds:
+        seen[r["question"]] = seen.get(r["question"], 0) + 1
+    return {r["round_id"]: (" · " + _("round {n}", n=r["round_id"]) if seen[r["question"]] > 1 else "") for r in rounds}
+
+
+def indexnow_key(s: Settings) -> str | None:
+    """IndexNow's key (public by design, served at /<key>.txt): generated once when IndexNow is turned on."""
+    if not s.indexnow_enabled:
+        return None
+    f = s.data_dir / "indexnow-key.txt"
+    if not f.exists():
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(secrets.token_hex(16))
+    return f.read_text().strip()
+
+
+INDEXNOW_MAX = 100
+
+
+def indexnow_changes(s: Settings) -> list[str]:
+    """Pages worth announcing since the last ping: rounds that are new or changed state, and with any of them the
+    leaderboard and the home page (every page's footer timestamp changes on each build, so a file diff can't tell).
+    The round states last announced live in data_dir/indexnow-state.json."""
+    f = s.export_dir / "rounds.json"
+    rounds = json.loads(f.read_text()) if f.exists() else []
+    state_f = s.data_dir / "indexnow-state.json"
+    try:
+        old = json.loads(state_f.read_text())
+    except (OSError, ValueError):
+        old = {}
+    now = {str(r["round_id"]): r["state"] for r in rounds if not (s.site_hide_void and r["state"] == "void")}
+    fresh = [f"round/{rid}/" for rid, st in sorted(now.items(), key=lambda x: -int(x[0])) if old.get(rid) != st]
+    state_f.parent.mkdir(parents=True, exist_ok=True)
+    state_f.write_text(json.dumps(now))
+    return ["", "leaderboard/", *fresh] if fresh else []
+
+
+def indexnow_payload(s: Settings, key: str, rels: list[str]) -> dict | None:
+    """IndexNow's JSON body for English page paths ('' = home, 'round/7/'), at most 100 URLs."""
+    base = s.site_url.rstrip("/")
+    urls = [f"{base}/{rel}" for rel in rels][:INDEXNOW_MAX]
+    if not urls:
+        return None
+    return {"host": urlparse(base).hostname, "key": key, "keyLocation": f"{base}/{key}.txt", "urlList": urls}
+
+
+def indexnow_ping(s: Settings, rels: list[str]) -> bool:
+    """One POST per deploy; a failure is logged and never retried."""
+    key = indexnow_key(s)
+    body = indexnow_payload(s, key, rels) if key else None
+    if not body:
+        return False
+    try:
+        req = urllib.request.Request("https://api.indexnow.org/indexnow", data=json.dumps(body).encode(),
+                                     headers={"Content-Type": "application/json; charset=utf-8"}, method="POST")
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            log.info("IndexNow: %d URLs, HTTP %s", len(body["urlList"]), resp.status)
+        return True
+    except Exception as e:
+        log.warning("IndexNow ping failed: %s", e)
+        return False
+
+
 SHARE_BAR = 'data-share-bar'  # every public page carries it (checked at build)
 OG_REQUIRED = ('property="og:title"', 'property="og:description"', 'property="og:image"', SHARE_BAR)
-NO_SHARE = ("widget/", "embed/")  # embedded elsewhere: no bar, no preview
+NO_SHARE = ("widget/", "embed/", "404.html")  # embedded elsewhere, or the not-found page: no bar, no preview
 
 
 def check_pages(out: Path) -> None:
@@ -223,7 +431,8 @@ def check_pages(out: Path) -> None:
     bad = []
     for f in out.rglob("*.html"):
         rel = f.relative_to(out).as_posix()
-        if rel.startswith(("cards/", "data/", "transcripts/")) or any(f"{x}" in rel for x in NO_SHARE):
+        if (rel.startswith(("cards/", "data/", "transcripts/")) or any(f"{x}" in rel for x in NO_SHARE)
+                or re.fullmatch(r"google[\w-]*\.html", rel)):  # Search Console's verification file
             continue
         html = f.read_text()
         missing = [m for m in OG_REQUIRED if m not in html]
@@ -536,6 +745,9 @@ def _build(s: Settings) -> Path:
                    "bets": sum(1 for r in rounds for e in r["entries"] if e["outcome"])}
     latest_cards = [c for c in (card_for(s, r) for r in past) if c][:6]
     previews = _previews(s, lb, rounds, cards, reports)
+    vsp = vs_pairs(lb, s.agents)
+    vs_links = {(p["a"], p["b"]): f"vs/{vs_slug(p['a'], p['b'])}/" for p in vsp}
+    seo: list[tuple[str, str, str, str]] = []  # (lang, page, title, description), checked after the build
     from .motd import films as _films  # Match of the Day: cards/motd/<date>/film.json
     films = _films(s)
     film_of = {}
@@ -558,7 +770,10 @@ def _build(s: Settings) -> Path:
                   "commentary": commentary, "model_line": lambda a, _=_: model_line(a, _),
                   "models": AGENT_MODELS, "reasoning": REASONING, "exclusions": EXCLUSION_REASONS,
                   "fc": lb.get("forecast") or {}, "sig": lb.get("significance") or {}}
+        common["vs_links"] = vs_links
         prefix = _.prefix()
+        suffixes = round_suffixes(rounds, _)
+        blurb = _("{vs}, each on its lab's top model at maximum reasoning, bet 100 tokens on live prediction markets. Every bet, rationale and result is public.", vs=vs)
 
         def page(path: str, tpl: str, **ctx) -> None:
             depth = (prefix + path).count("/")
@@ -569,6 +784,8 @@ def _build(s: Settings) -> Path:
             text = ctx.pop("share_text", None) or ctx["title"]
             if "description" not in ctx:  # the share text describes the page; plain titles keep the site blurb
                 ctx["description"] = None if text is ctx["title"] else (text.full if isinstance(text, ShareText) else text)
+            ctx["description"] = ctx["description"] or blurb
+            seo.append((lang, rel, ctx["title"], ctx["description"]))
             ctx["share"] = share_bar(text, ctx["title"], ctx["canonical"], kind, _)
             og_rel = ctx.pop("og", None)
             if og_rel is None and kind in BRANDED:
@@ -582,65 +799,113 @@ def _build(s: Settings) -> Path:
             f.parent.mkdir(parents=True, exist_ok=True)
             f.write_text(html)
 
-        site_name = " · AgentpitBench"
+        def crumbs(ld: dict | None, *items: tuple[str, str]) -> dict:
+            """Adds a BreadcrumbList (Home › … › this page) to a page's JSON-LD graph."""
+            trail = [(_("Home"), f"{base}/{prefix}"), *((nm, f"{base}/{prefix}{rel}") for nm, rel in items)]
+            node = discover.breadcrumb_ld(trail)
+            if ld is None:
+                return {"@context": "https://schema.org", "@graph": [node]}
+            return {**ld, "@graph": [*ld["@graph"], node]}
+
         page("index.html", "index.html", live=live, past=past[:30], upset=upset, description=None,
              share_text=_("Four frontier AIs bet on real prediction markets. Live scoreboard:"),
              jsonld=discover.dataset_ld(s, lb, f"{base}/"),
-             title=_("AgentpitBench: {vs} bet on prediction markets", vs=vs))
+             title=_("AgentpitBench: {vs} on real prediction markets", vs=vs))
         page("leaderboard/index.html", "leaderboard.html", ci_chart=ci_bar((lb.get("forecast") or {}).get("agents", []),
                                                                           (lb.get("forecast") or {}).get("crowd")),
              chart=pnl_chart(lb.get("series", {}), crowd=(lb.get("crowd") or {}).get("series"), _=_),
-             best=best, worst=worst, h2h=h2h, weekly=weekly, seasons=seasons, title=_("Leaderboard") + site_name,
+             best=best, worst=worst, h2h=h2h, weekly=weekly, seasons=seasons,
+             title=branded(_("AI forecasting leaderboard: {names}", names=", ".join(names))),
+             description=leaderboard_description(lb, _, ", ".join(names), as_of),
              share_text=leaderboard_share(lb, _), og=previews["standings"],
              jsonld=discover.dataset_ld(s, lb, f"{base}/leaderboard/"))
         page("facts/index.html", "facts.html", sections=discover.fact_sections(s, lb, metrics, _),
              bibtex=discover.bibtex(s, as_of), as_of=discover.stamp(as_of),
-             jsonld=discover.dataset_ld(s, lb, f"{base}/facts/"), title=_("Facts") + site_name)
-        for r in rounds:
-            card = cards[r["round_id"]]
-            page(f"round/{r['round_id']}/index.html", "round.html", r=r, card=card, film=film_of.get(r["round_id"]),
-                 og=previews["rounds"].get(r["round_id"]), share_text=round_share(r, _, vs),
+             description=_("Dated, quotable facts about AgentpitBench: forecast accuracy, betting record and methodology, regenerated on every update."),
+             jsonld=discover.dataset_ld(s, lb, f"{base}/facts/"), title=branded(_("Facts")))
+        by_id = sorted(rounds, key=lambda r: r["round_id"])
+        for i, r in enumerate(by_id):
+            card, rid, sfx = cards[r["round_id"]], r["round_id"], suffixes[r["round_id"]]
+            cat = category(r["question"])
+            same = [x for x in sorted(rounds, key=lambda x: -(x.get("started_at") or 0))
+                    if x is not r and category(x["question"]) == cat][:3]
+            page(f"round/{rid}/index.html", "round.html", r=r, card=card, card_alt=card_alt(r, _, ", ".join(names)),
+                 film=film_of.get(rid),
+                 og=previews["rounds"].get(rid), share_text=round_share(r, _, vs),
+                 prev_r=by_id[i - 1] if i else None, next_r=by_id[i + 1] if i + 1 < len(by_id) else None,
+                 cat=cat, same_cat=same,
                  lastmod=r["resolved_at"] or r["started_at"],
-                 jsonld=discover.round_ld(s, r, f"{base}/round/{r['round_id']}/"),
-                 title=_("Round {n}", n=r["round_id"]) + f": {r['question']}")
+                 jsonld=crumbs(discover.round_ld(s, r, f"{base}/round/{rid}/"),
+                               (_("Round {n}", n=rid), f"round/{rid}/")),
+                 title=round_title(r, _, ", ".join(names), sfx), description=round_description(r, _, sfx))
         for a in s.agents:
             row = next((b for b in board if b["agent"] == a), None)
-            page(f"agent/{a}/index.html", "agent.html", agent=a, name=AGENT_NAMES.get(a, a),
+            nm = AGENT_NAMES.get(a, a)
+            page(f"agent/{a}/index.html", "agent.html", agent=a, name=nm,
                  row=row, st=stats[a], og=previews["agents"].get(a),
-                 share_text=agent_share(lb, a, AGENT_NAMES.get(a, a), row, _),
+                 share_text=agent_share(lb, a, nm, row, _),
                  cats=(lb.get("by_category") or {}).get(a, []),
-                 title=AGENT_NAMES.get(a, a) + site_name)
-        page("films/index.html", "films.html", films=films, title="Match of the Day" + site_name)
-        page("splits/index.html", "splits.html", splits=splits, h2h=h2h, title=_("Split decisions") + site_name,
+                 vs_mine=[p for p in vsp if a in (p["a"], p["b"])],
+                 jsonld=crumbs(None, (_("Leaderboard"), "leaderboard/"), (nm, f"agent/{a}/")),
+                 title=branded(_("{name} ({model}) forecasting record", name=nm,
+                                 model=AGENT_MODELS[a][1] if a in AGENT_MODELS else a)))
+        for p in vsp:
+            rel = f"vs/{vs_slug(p['a'], p['b'])}/"
+            page(rel + "index.html", "vs.html", p=p, a_name=AGENT_NAMES.get(p["a"], p["a"]), b_name=side_name(p["b"], _),
+                 bets=vs_rounds(counted, p["a"], p["b"]), as_of_day=discover.day(as_of),
+                 heading=vs_title(p, _), title=branded(vs_title(p, _)), description=vs_description(p, _, as_of),
+                 jsonld=crumbs(discover.dataset_ld(s, lb, f"{base}/{rel}"), (_("Leaderboard"), "leaderboard/"),
+                               (vs_title(p, _), rel)))
+        page("films/index.html", "films.html", films=films, title=branded("Match of the Day"),
+             description=_("Match of the Day: a short film of the most dramatic AgentpitBench round each day."))
+        page("splits/index.html", "splits.html", splits=splits, h2h=h2h, title=branded(_("Split decisions")),
              share_text=_("When {roster} disagree, who's right?", roster=roster))
-        page("hall-of-shame/index.html", "shame.html", wrong=wrong, title=_("Hall of shame") + site_name,
+        page("hall-of-shame/index.html", "shame.html", wrong=wrong, title=branded(_("Hall of shame")),
              share_text=_("The AI hall of shame: most confident wrong calls on AgentpitBench."))
-        page("data/index.html", "data.html", prompt=prompt, title=_("Data & method") + site_name)
+        page("data/index.html", "data.html", prompt=prompt, title=branded(_("Data & method")),
+             description=_("Download every AgentpitBench bet, forecast and transcript (CSV and JSON, CC BY 4.0), with the exact prompts the AIs receive."))
         page("press/index.html", "press.html", stats=press_stats, latest_cards=latest_cards,
-             title=_("Press kit") + site_name)
+             title=branded(_("Press kit")),
+             description=_("AgentpitBench press kit: key numbers, share cards, mascots and contacts for writing about the AI forecasting benchmark."))
         page("methodology/index.html", "methodology.html", prompt=prompt, sweep_prompt=sweep_prompt_example(s),
-             changelog=CHANGELOG, sealed=lb.get("sealed") or [], title=_("Methodology v{v}", v=s.methodology_version) + site_name,
+             changelog=CHANGELOG, sealed=lb.get("sealed") or [], title=branded(_("Methodology v{v}", v=s.methodology_version)),
              share_text=_("How AgentpitBench tests frontier AIs on real markets (methodology v{v}).", v=s.methodology_version),
              jsonld=discover.techarticle_ld(s, lb, f"{base}/methodology/", CHANGELOG))
-        page("independence/index.html", "independence.html", title=_("Independence & conflicts") + site_name,
-             share_text=_("How AgentpitBench tests frontier AIs on real markets (methodology v{v}).", v=s.methodology_version))
-        page("incidents/index.html", "incidents.html", incidents=INCIDENTS, title=_("Incidents") + site_name,
+        page("independence/index.html", "independence.html", title=branded(_("Independence & conflicts")),
+             share_text=_("How AgentpitBench tests frontier AIs on real markets (methodology v{v}).", v=s.methodology_version),
+             description=_("Who runs AgentpitBench, how it stays independent of the markets it bets on, and the conflicts we disclose."))
+        page("incidents/index.html", "incidents.html", incidents=INCIDENTS, title=branded(_("Incidents")),
              share_text=_("AgentpitBench publishes its own incidents. Here's the log."))
         page("contrarian/index.html", "contrarian.html", calls=lb.get("contrarian") or [],
-             title=_("Contrarian calls") + site_name, share_text=contrarian_share(lb.get("contrarian") or [], _),
+             title=branded(_("Contrarian calls")), share_text=contrarian_share(lb.get("contrarian") or [], _),
+             description=contrarian_share(lb.get("contrarian") or [], _)
+             or _("Every time an AI forecast strayed far from the market price, and whether it was right."),
              og=previews["contrarian"])
-        page("reports/index.html", "reports.html", reports=reports, title=_("Weekly reports") + site_name,
-             share_text=report_headline(reports[0], _) if reports else None)
+        page("reports/index.html", "reports.html", reports=reports, title=branded(_("Weekly reports")),
+             share_text=report_headline(reports[0], _) if reports else None,
+             description=_("State of the AIs: a weekly report on how {names} forecast and bet.", names=", ".join(names)))
         for rep in reports:
             page(f"reports/{rep['week']}/index.html", "report.html", rep=rep, share_text=report_headline(rep, _),
+                 description=report_headline(rep, _) or _("State of the AIs, {week}.", week=rep["week"]),
                  og=previews["weeks"].get(rep["week"]),
                  chart=ci_bar([dict(a, ci=[a["brier"], a["brier"]]) for a in rep["forecast"]],
                               {"brier": rep["crowd_brier"]} if rep.get("crowd_brier") is not None else None),
-                 title=_("State of the AIs") + f" · {rep['week']}" + site_name)
+                 title=branded(_("State of the AIs") + f" · {rep['week']}"))
         if lang == "en":  # embedded elsewhere; one shared copy
             page("widget/index.html", "widget.html", title="AgentpitBench standings")
             page("embed/index.html", "embed.html", title="AgentpitBench leaderboard")
 
+    check_seo(seo)  # an empty or duplicate title/description on a fixed page type is a template bug
+    (out / "404.html").write_text(not_found_page(s, rounds, vsp))
+    if s.google_site_verification.endswith(".html"):  # Search Console's file method
+        name = Path(s.google_site_verification).name
+        (out / name).write_text(f"google-site-verification: {name}")
+    if s.bing_site_verification:
+        (out / "BingSiteAuth.xml").write_text('<?xml version="1.0"?>\n<users>\n\t<user>'
+                                              f"{escape(s.bing_site_verification)}</user>\n</users>\n")
+    key = indexnow_key(s)
+    if key:
+        (out / f"{key}.txt").write_text(key)
     (out / "badge.svg").write_text(badge_svg(board, lb.get("crowd"), (lb.get("significance") or {}).get("label")))
     kit = out / "press" / "mascots"
     kit.mkdir(parents=True, exist_ok=True)
@@ -704,6 +969,22 @@ def _build(s: Settings) -> Path:
     out.rename(s.site_dir)
     shutil.rmtree(old, ignore_errors=True)
     return s.site_dir
+
+
+def not_found_page(s: Settings, rounds: list[dict], vsp: list[dict]) -> str:
+    """The one 404.html GitHub Pages serves for every missing path: absolute links, no share bar, noindex, and
+    its own language check (the path's language folder, else the browser's) over strings for every language."""
+    strings = {}
+    for code in CODES:
+        _ = Translator(code)
+        strings[code] = {"title": _("Page not found"), "lead": _("This page doesn't exist, or it has moved."),
+                         "home": _("Home"), "leaderboard": _("Leaderboard"), "latest": _("Latest round"),
+                         "h2h": _("Head to head"), "dir": "rtl" if _.rtl else "ltr",
+                         "vs": [vs_title(p, _) for p in vsp]}
+    latest = max(rounds, key=lambda r: r["round_id"], default=None)
+    return env.get_template("404.html").render(
+        base=s.site_url.rstrip("/"), strings=strings, latest=latest, s=s, t=strings["en"],
+        vs=[f"vs/{vs_slug(p['a'], p['b'])}/" for p in vsp])
 
 
 def _previews(s: Settings, lb: dict, rounds: list[dict], cards: dict, reports: list[dict]) -> dict:
@@ -804,6 +1085,11 @@ def deploy(s: Settings) -> bool:
     if r.returncode != 0:
         raise RuntimeError(f"gh-pages push failed: {r.stderr.strip()[:300]}")
     log.info("site deployed to %s", PAGES_BRANCH)
+    if s.indexnow_enabled:  # search engines that take IndexNow (Bing, Yandex, Seznam) learn of new pages at once
+        try:  # the push succeeded: nothing here may turn it into a failed deploy
+            indexnow_ping(s, indexnow_changes(s))
+        except Exception as e:
+            log.warning("IndexNow skipped: %s", e)
     return True
 
 
