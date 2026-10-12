@@ -8,7 +8,10 @@ from pathlib import Path
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 
+import json
+
 from .config import AGENT_COLORS, AGENT_NAMES, Settings, AGENT_MODELS
+from .emblem import emblem_svg
 from .mascots import mascot
 
 log = logging.getLogger(__name__)
@@ -93,6 +96,68 @@ def edge(color: str | None) -> str:
 env.filters.update(box_ring=box_ring, edge=edge)
 env.filters.update(cents=cents, payout_x=payout_x, fmt_time=fmt_time, signed=signed)
 env.globals["mascot"] = mascot
+env.globals["emblem"] = emblem_svg
+
+
+def card_state(r: dict | None) -> str | None:
+    """Colour state of a round's cards: live (open), final (resolved), grey (void / exhibition), gold (High Stakes)."""
+    if not r:
+        return None
+    if r.get("state") == "void":
+        return "grey"
+    if r.get("high_stakes"):
+        return "gold"
+    if r.get("exhibition"):
+        return "grey"
+    return "final" if r.get("state") == "resolved" else "live"
+
+
+def round_banner(r: dict | None) -> str | None:
+    """Text of the top ribbon on cards from rounds that don't count in the season statistics."""
+    if not r:
+        return None
+    if r.get("state") == "void":
+        return "VOID · NOT SCORED"
+    if r.get("high_stakes"):
+        return f"HIGH STAKES · {r.get('stake', 500):.0f} TOKENS · EXHIBITION"
+    if r.get("exhibition"):
+        return "EXHIBITION · NOT IN SEASON STATS"
+    return None
+
+
+def model_line(agent: str | None) -> str:
+    """'Fable 5.1 · max' for one agent (its name is already big on the card); the shared line otherwise."""
+    if agent in AGENT_MODELS:
+        _, name, effort = AGENT_MODELS[agent]
+        name = name.removeprefix(AGENT_NAMES.get(agent, "") + " ")  # "Claude Fable 5.1" -> "Fable 5.1"
+        return f"{name} · {effort}"
+    return "frontier models · max"
+
+
+def short_sig(label: str | None) -> str | None:
+    """The leaderboard's significance label, shortened for the one-line strip."""
+    if not label:
+        return None
+    return label.replace("significant vs the Crowd (p<0.05)", "significant vs Crowd p<.05")
+
+
+def start_price(r: dict, outcome: str | None) -> float | None:
+    """The market's price for an outcome at the round's start snapshot."""
+    outs, prices = r.get("outcomes") or [], r.get("prices_at_start") or []
+    if outcome in outs and len(prices) == len(outs):
+        return prices[outs.index(outcome)]
+    return None
+
+
+def cents_fine(p: float | None) -> str:
+    """Price to the half cent: 61.5¢, 62¢."""
+    if p is None:
+        return "—"
+    v = round(p * 100, 1)
+    return f"{v:g}¢"
+
+
+env.filters.update(cents_fine=cents_fine)
 
 
 def ranked(entries: list[dict]) -> list[dict]:
@@ -109,27 +174,42 @@ def _en(msg: str, **kw) -> str:
     return msg.format(**kw)
 
 
-def results_headline(rnd: dict, _=_en) -> str:
-    """`_` translates a message id with {placeholders}; the site passes one per language, cards stay English."""
+HEADLINE_VARIANTS = ("fun", "plain")
+_NUM = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five"}
+
+
+def headline_variant(round_id: int) -> str:
+    """A/B tone of a round's results headline, alternating by round so both run under the same conditions."""
+    return HEADLINE_VARIANTS[round_id % 2]
+
+
+def results_headline(rnd: dict, _=_en, variant: str = "fun") -> str:
+    """`_` translates a message id with {placeholders}; the site passes one per language, cards stay English.
+    variant 'fun' is the sportscaster tone, 'plain' the sober one (English only, cards and tweets)."""
+    plain = variant == "plain"
     if rnd["state"] == "void":
         return _("Market voided")
     bettors = [e for e in rnd["entries"] if e["outcome"]]
     winners = [e for e in rnd["entries"] if e["won"]]
+    n = _NUM.get(len(bettors), str(len(bettors)))
     if not winners:
-        return _("Everyone got rekt")
+        return f"All {n} wrong" if plain else _("Everyone got rekt")
     if len(winners) == len(rnd["entries"]) and len(winners) > 1:
-        return _("Clean sweep")
+        return f"All {n} right" if plain else _("Clean sweep")
     crowd_lost = (rnd.get("crowd") or {}).get("won") is False
     if len(winners) == 1:
         w = winners[0]
         if w["avg_price"] is not None and w["avg_price"] <= UPSET_PRICE:
-            return _("Upset! {name} cashes at {price}", name=w["name"], price=cents(w["avg_price"]))
+            return (f"{w['name']} wins at {cents(w['avg_price'])}" if plain else
+                    _("Upset! {name} cashes at {price}", name=w["name"], price=cents(w["avg_price"])))
         if crowd_lost:
-            return _("{name} beats the crowd", name=w["name"])
+            return f"{w['name']} right, the crowd wrong" if plain else _("{name} beats the crowd", name=w["name"])
         if len(bettors) > 1:
-            return _("{name} takes it alone", name=w["name"])
-        return _("{name} takes it", name=w["name"])
+            return f"Only {w['name']} right" if plain else _("{name} takes it alone", name=w["name"])
+        return f"{w['name']} right" if plain else _("{name} takes it", name=w["name"])
     names = " & ".join(e["name"] for e in winners)
+    if plain:
+        return f"{names} right" + (", the crowd wrong" if crowd_lost else "")
     return _("{names} beat the crowd", names=names) if crowd_lost else _("{names} take it", names=names)
 
 
@@ -198,16 +278,46 @@ class CardRenderer:
     def _dir(self, rnd: dict) -> Path:
         return self.s.cards_dir / str(rnd["round_id"])
 
-    def _ctx(self, rnd: dict, board: list[dict] | None) -> dict:
+    @property
+    def sig(self) -> str | None:
+        """The significance line; set by the publisher, else read from the latest export."""
+        if self.significance:
+            return self.significance
+        try:
+            lb = json.loads((self.s.export_dir / "leaderboard.json").read_text())
+            return (lb.get("significance") or {}).get("label")
+        except (OSError, ValueError):
+            return None
+
+    @property
+    def host(self) -> str:
+        return self.s.site_url.replace("https://", "").replace("http://", "").rstrip("/")
+
+    def _strip(self, url_path: str, agent: str | None = None) -> dict:
+        """The credibility strip every card carries: model and reasoning, n and significance, methodology, URL."""
+        url, sig, ml = f"{self.host}/{url_path}".rstrip("/"), short_sig(self.sig), model_line(agent)
+        # one line at 26px holds ~107 condensed characters (with the URL); past that, multi-agent cards drop the model detail
+        if agent is None and len(f"{ml} · {sig or ''} · Methodology v{self.s.methodology_version} {url}") > 107:
+            ml = None
+        return {"url": url, "model_line": ml, "sig": sig,
+                "mver": self.s.methodology_version}
+
+    def _ctx(self, rnd: dict, board: list[dict] | None, agent: str | None = None) -> dict:
         return {"r": rnd, "board": board or [], "colors": AGENT_COLORS, "names": AGENT_NAMES, "models": AGENT_MODELS,
-                "site": self.s.site_url.replace("https://", ""), "sig": self.significance}
+                "site": self.host, "state": card_state(rnd), "banner": round_banner(rnd),
+                **self._strip(f"round/{rnd['round_id']}", agent)}
 
     async def decision(self, rnd: dict, entry: dict, board: list[dict] | None = None) -> Path:
         row = next((b for b in board or [] if b["agent"] == entry["agent"]), {})
         streak = row.get("streak", 0)
         form = "fire" if streak >= 3 else "tilt" if streak <= -3 else None
+        mkt = start_price(rnd, entry.get("outcome"))
+        conf = entry.get("confidence")
+        # bets although it rates the pick below the market; a point of slack keeps rounding noise from flagging
+        against = mkt is not None and conf is not None and conf <= mkt - 0.01
         html = env.get_template("decision.html").render(
-            **self._ctx(rnd, board), e=entry, status=entry_status(entry), form=form, streak=abs(streak))
+            **self._ctx(rnd, board, entry["agent"]), e=entry, status=entry_status(entry), form=form,
+            streak=abs(streak), mkt=mkt, against=against)
         return await self.render_html(html, self._dir(rnd) / f"decision-{entry['agent']}.png")
 
     async def split(self, rnd: dict, board: list[dict] | None = None, headline: str | None = None,
@@ -217,16 +327,20 @@ class CardRenderer:
                                                      headline=headline or default, grudge=grudge)
         return await self.render_html(html, self._dir(rnd) / "split.png")
 
-    async def results(self, rnd: dict, board: list[dict] | None = None, crowd: dict | None = None,
-                      cast: str | None = None, top_humans: list[dict] | None = None) -> Path:
-        html = env.get_template("results.html").render(
-            **self._ctx(rnd, board), ranked=ranked(rnd["entries"]), headline=results_headline(rnd),
+    def _results_html(self, rnd, board, crowd, cast, top_humans, variant) -> str:
+        return env.get_template("results.html").render(
+            **self._ctx(rnd, board), ranked=ranked(rnd["entries"]),
+            headline=results_headline(rnd, variant=variant or "fun"),
             upset=is_upset(rnd), crowd=crowd, cast=cast, top_humans=top_humans or [])
+
+    async def results(self, rnd: dict, board: list[dict] | None = None, crowd: dict | None = None,
+                      cast: str | None = None, top_humans: list[dict] | None = None, variant: str | None = None) -> Path:
+        html = self._results_html(rnd, board, crowd, cast, top_humans, variant)
         return await self.render_html(html, self._dir(rnd) / "results.png")
 
-    def _plain(self, **kw) -> dict:
-        return {"r": None, "board": [], "colors": AGENT_COLORS, "names": AGENT_NAMES,
-                "site": self.s.site_url.replace("https://", ""), **kw}
+    def _plain(self, url_path: str = "leaderboard/", agent: str | None = None, **kw) -> dict:
+        return {"r": None, "board": [], "colors": AGENT_COLORS, "names": AGENT_NAMES, "models": AGENT_MODELS,
+                "site": self.host, "state": None, "banner": None, "agent": agent, **self._strip(url_path, agent), **kw}
 
     async def trophy(self, season: str, board: list[dict], crowd: dict | None) -> Path:
         ctx = self._plain(season=season, champ=board[0], crowd=crowd)
@@ -235,8 +349,8 @@ class CardRenderer:
         return await self.render_html(html, self.s.cards_dir / "seasons" / f"{season}.png")
 
     async def milestone(self, key: str, headline: str, subline: str, agent: str | None, season: str) -> Path:
-        html = env.get_template("milestone.html").render(**self._plain(headline=headline, subline=subline,
-                                                                        agent=agent, season=season))
+        html = env.get_template("milestone.html").render(**self._plain("leaderboard/", agent, headline=headline,
+                                                                        subline=subline, season=season))
         return await self.render_html(html, self.s.cards_dir / "milestones" / f"{key}.png")
 
     async def human_winner(self, rnd: dict, human: dict, beaten: list[str]) -> Path:
@@ -249,7 +363,7 @@ class CardRenderer:
         return await self.render_html(html, self.s.cards_dir / "awards" / f"{week}.png")
 
     async def contrarian(self, week: str, calls: list[dict]) -> Path:
-        html = env.get_template("contrarian.html").render(**self._plain(week=week, calls=calls))
+        html = env.get_template("contrarian.html").render(**self._plain("contrarian/", week=week, calls=calls))
         return await self.render_html(html, self.s.cards_dir / "contrarian" / f"{week}.png")
 
     async def banner(self, board: list[dict], crowd: dict | None, season: str) -> Path:
@@ -304,10 +418,9 @@ class CardRenderer:
         return await self.clip(html, self._dir(rnd) / "split")
 
     async def results_clip(self, rnd: dict, board: list[dict] | None = None, crowd: dict | None = None,
-                           cast: str | None = None, top_humans: list[dict] | None = None) -> Path | None:
-        html = env.get_template("results.html").render(
-            **self._ctx(rnd, board), ranked=ranked(rnd["entries"]), headline=results_headline(rnd),
-            upset=is_upset(rnd), crowd=crowd, cast=cast, top_humans=top_humans or [])
+                           cast: str | None = None, top_humans: list[dict] | None = None,
+                           variant: str | None = None) -> Path | None:
+        html = self._results_html(rnd, board, crowd, cast, top_humans, variant)
         return await self.clip(html, self._dir(rnd) / "results")
 
     async def frames(self, template: str, contexts: list[dict], out_dir: Path) -> list[Path]:
@@ -320,7 +433,9 @@ class CardRenderer:
             page = await browser.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
             try:
                 for i, ctx in enumerate(contexts):
-                    await page.set_content(tpl.render(**self._plain(**ctx)), wait_until="load")
+                    rnd = ctx.get("r")
+                    base = (self._ctx(rnd, None, (ctx.get("e") or {}).get("agent")) if rnd else self._plain())
+                    await page.set_content(tpl.render(**{**base, **ctx}), wait_until="load")
                     path = out_dir / f"f{i:05d}.png"
                     await page.screenshot(path=str(path), clip={"x": 0, "y": 0, "width": W, "height": H})
                     paths.append(path)

@@ -146,6 +146,7 @@ MIGRATIONS = [  # (table, column, definition): added when missing, so old databa
     ("bets", "statement", "TEXT"),                       # losing agent's post-match line to the press
     # why a round is outside the neutral statistics: summon / high-stakes / pre-season / infra (NULL = counts)
     ("rounds", "exclusion", "TEXT"),
+    ("rounds", "headline_variant", "TEXT"),              # A/B tone of the results headline: fun / plain
 ]
 
 

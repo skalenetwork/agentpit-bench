@@ -10,11 +10,11 @@
 .who{font-size:120px;font-weight:700;line-height:1;color:{{ c|edge }}}
 .rec{font-size:40px;margin-top:10px}
 .table{margin-top:22px;display:flex;flex-direction:column;gap:6px}
-.table div{font-size:24px;color:#cfd6ea;display:flex;gap:14px;align-items:center}
-.table b{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:26px;width:150px}
+.table div{font-size:26px;color:#cfd6ea;display:flex;gap:14px;align-items:center}
+.table b{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:28px;width:160px}
 {% endblock %}
 {% block body %}
-<div class="top"><span class="tag" style="background:#ffd34d">Season champion</span><span class="disp dim" style="font-size:22px">Season {{ season }}</span></div>
+<div class="top"><span class="tag" style="background:#ffd34d">Season champion</span><span class="meta">Season {{ season }}</span></div>
 <div class="grid">
   <div class="cup"><div class="m">{{ mascot(champ.agent, 200) }}</div>
     <svg class="trophy" width="240" height="190" viewBox="0 0 240 190"><path d="M60 10h120v40c0 50-28 80-60 80s-60-30-60-80z" fill="#ffd34d" stroke="#b8860b" stroke-width="6"/>
@@ -30,4 +30,3 @@
   </div>
 </div>
 {% endblock %}
-{% block foot %}Final standings · a new season starts now{% endblock %}

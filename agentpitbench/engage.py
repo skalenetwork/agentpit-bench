@@ -134,8 +134,8 @@ class Engage:
     # ---------- humans play along ----------
 
     async def collect_humans(self, round_id: int) -> int:
-        """Read replies to the round's opener and its split post once, after the market closes. One pick per
-        user (their earliest reply in either conversation). Capped: X bills every read."""
+        """Read replies to the round's opener (the reveal post) once, after the market closes. One pick per
+        user (their earliest reply). Capped: X bills every read."""
         r = self.db.round(round_id)
         if r["humans_collected"]:
             return 0
@@ -144,13 +144,8 @@ class Engage:
             if thread and thread.startswith("dry-"):
                 self.db.set_round(round_id, humans_collected=1)
             return 0
-        split = self.db.one("SELECT tweet_id FROM tweets WHERE post_key=?", f"r{round_id}-split")
-        split_id = split["tweet_id"] if split and split["tweet_id"] and not split["tweet_id"].startswith("dry-") else None
-        try:  # one read budget across the opener's and the split post's conversations (reads are billed)
+        try:
             replies = await asyncio.to_thread(self.poster.replies, thread, self.s.max_reply_reads)
-            left = self.s.max_reply_reads - len(replies)
-            if split_id and left > 0:
-                replies += await asyncio.to_thread(self.poster.replies, split_id, left)
             me = await asyncio.to_thread(self.poster.my_user_id)
         except Exception:
             log.exception("reading replies for round %s failed", round_id)

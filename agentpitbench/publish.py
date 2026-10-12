@@ -13,12 +13,12 @@ import logging
 from pathlib import Path
 
 from . import exports, press
-from .cards import CardRenderer, split_headline
+from .cards import CardRenderer, headline_variant, split_headline
 from .config import Settings
 from .db import DB
 from .engage import Engage
 from .site import SiteDeployer
-from .twitter import Poster, decision_text, results_text, split_text
+from .twitter import Poster, decision_text, results_text, split_text, reveal_text
 from .virality import commentary, grudge, grudge_headline
 
 log = logging.getLogger(__name__)
@@ -105,6 +105,10 @@ class BenchPublisher:
         rnd, board = self._export(round_id)
         entry = next(e for e in rnd["entries"] if e["agent"] == run["agent"])
         png = await self._card(self.cards.decision(rnd, entry, board))
+        if not self.s.post_decisions:  # the reveal post carries the four decision cards as images
+            exports.export(self.s, self.db)
+            self.site.request()
+            return
         async with self._lock(round_id):
             tid = await self._post(round_id, f"r{round_id}-decision-{entry['agent']}", "decision",
                                    decision_text(self.s, rnd, entry), png,
@@ -145,14 +149,35 @@ class BenchPublisher:
                 headline = grudge_headline(g)
             png = await self._card(self.cards.split(rnd, board, headline=headline, grudge=g))
             video = await self._clip(self.cards.split_clip(rnd, board, headline=headline, grudge=g))
-            async with self._lock(round_id):
-                await self._standalone(round_id, f"r{round_id}-split", kind, split_text(self.s, rnd, kind, headline),
-                                       png, video)
+            if self.s.post_decisions:  # legacy shape: the split is its own post, quoting the decision thread
+                async with self._lock(round_id):
+                    await self._standalone(round_id, f"r{round_id}-split", kind,
+                                           split_text(self.s, rnd, kind, headline), png, video)
+            # otherwise the split card and clip stay on the site; the reveal below is the round's X post
+        if not self.s.post_decisions and rnd["entries"]:
+            await self._reveal(round_id, rnd)
         try:
             await self.engage.model_changes(round_id)
         except Exception:
             log.exception("model-change check failed")
         self.site.request()
+
+    async def _reveal(self, round_id: int, rnd: dict) -> None:
+        """The round's opener on X, once every pick is in: the decision cards as up to four images, the split
+        headline, every pick and the reply invite. Results quote it; human picks are read from its replies."""
+        kind, headline = split_headline(rnd)
+        if sum(1 for e in rnd["entries"] if e["outcome"]) < 2:
+            headline = "Picks are in"
+        cards = [p for e in rnd["entries"]
+                 if (p := self.s.cards_dir / str(round_id) / f"decision-{e['agent']}.png").exists()][:4]
+        async with self._lock(round_id):
+            tid = await self.poster.post(f"r{round_id}-reveal", "reveal", reveal_text(rnd, headline), cards or None,
+                                         round_id=round_id)
+            if tid:
+                self.db.set_round(round_id, thread_tweet_id=tid)
+                self.db.x("UPDATE bets SET tweet_id=? WHERE tweet_id IS NULL AND run_id IN "
+                          "(SELECT run_id FROM runs WHERE round_id=?)", tid, round_id)
+        exports.export(self.s, self.db)
 
     async def on_resolved(self, round_id: int) -> None:
         try:  # humans' picks: read once (if not already, after the market closed), then scored
@@ -166,12 +191,17 @@ class BenchPublisher:
         board, crowd = lb["agents"], lb["crowd"]
         self.cards.significance = lb["significance"]["label"]
         cast = commentary(rnd)
-        png = await self._card(self.cards.results(rnd, board, crowd, cast=cast, top_humans=lb["humans"][:3]))
-        video = await self._clip(self.cards.results_clip(rnd, board, crowd, cast=cast, top_humans=lb["humans"][:3]))
+        variant = self.db.round(round_id)["headline_variant"] or headline_variant(round_id)
+        self.db.set_round(round_id, headline_variant=variant)  # recorded so clicks per tone can be compared
+        png = await self._card(self.cards.results(rnd, board, crowd, cast=cast, top_humans=lb["humans"][:3],
+                                                  variant=variant))
+        video = await self._clip(self.cards.results_clip(rnd, board, crowd, cast=cast, top_humans=lb["humans"][:3],
+                                                         variant=variant))
+        link = (f"{self.round_url(round_id)}?utm_source=x&utm_medium=social&utm_campaign=results"
+                f"&utm_content={variant}")
         async with self._lock(round_id):
             tid = await self._standalone(round_id, f"r{round_id}-results", "results",
-                                         results_text(self.s, rnd, board, self.round_url(round_id), crowd, cast),
-                                         png, video)
+                                         results_text(self.s, rnd, board, link, crowd, cast), png, video)
         if tid:
             self.db.set_round(round_id, results_tweet_id=tid)
         data = exports.export(self.s, self.db)
@@ -189,7 +219,7 @@ class BenchPublisher:
         results_id = self.db.round(round_id)["results_tweet_id"]
         reply_to = results_id
         async with self._lock(round_id):
-            for i, text in enumerate(press.texts(statements), 1):
+            for i, text in enumerate(press.texts(statements, max_replies=self.s.press_max_replies), 1):
                 reply_to = await self.poster.post(f"r{round_id}-press-{i}", "press", text, None,
                                                   reply_to=reply_to, round_id=round_id) or reply_to
         exports.export(self.s, self.db)

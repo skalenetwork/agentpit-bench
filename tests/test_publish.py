@@ -117,6 +117,7 @@ async def test_cards_render(env):
 
 async def test_publisher_thread_and_idempotency(env):
     s, db = env
+    s.post_decisions = True  # the legacy four-post thread, still available behind the flag
     rid = make_round(db, {**PICKS, "agy": None})  # Gemini timed out
     pub = BenchPublisher(s, db)
     try:
@@ -376,7 +377,7 @@ def test_commentary_has_no_verb_on_the_outcome():
         assert "Predators lands" not in line and "Predators comes" not in line
 
 
-async def test_humans_read_from_opener_and_split(env):
+async def test_humans_read_from_the_reveal_only(env):
     from agentpitbench.engage import Engage
     s, db = env
     rid = make_round(db, PICKS)
@@ -398,13 +399,13 @@ async def test_humans_read_from_opener_and_split(env):
             return "me"
 
     eng = Engage(s, db, P(), None)
-    assert await eng.collect_humans(rid) == 3
-    assert calls == [("100", 5), ("200", 3)]                              # one budget across both posts
+    assert await eng.collect_humans(rid) == 2
+    assert calls == [("100", 5)]                                         # the reveal's replies, one budget
     picks = {r["user_id"]: r["pick"] for r in db.q("SELECT user_id, pick FROM humans WHERE round_id=?", rid)}
-    assert picks == {"u1": "Nexus", "u2": "CYBERSHOKE", "u3": "CYBERSHOKE"}  # earliest reply wins, either post
+    assert picks == {"u1": "Nexus", "u2": "Nexus"}
 
 
-async def test_split_and_results_post_video_with_png_fallback(env, monkeypatch):
+async def test_results_post_video_with_png_fallback(env, monkeypatch):
     s, db = env
     s.animate = True
     rid = make_round(db, PICKS)
@@ -418,6 +419,7 @@ async def test_split_and_results_post_video_with_png_fallback(env, monkeypatch):
         return vid
 
     async def fake_post(key, kind, text, image=None, reply_to=None, round_id=None, quote_of=None):
+        image = image[0] if isinstance(image, list) and image else image
         posted.append((key, Path(image).suffix if image else None))
         return None if (image and Path(image).suffix == ".mp4" and kind == "results") else f"t-{key}"
 
@@ -430,7 +432,7 @@ async def test_split_and_results_post_video_with_png_fallback(env, monkeypatch):
         await pub.on_resolved(rid)
     finally:
         await pub.close()
-    assert (f"r{rid}-split", ".mp4") in posted
+    assert not [k for k, _ in posted if k.endswith("-split")]                # the split clip stays on the site
     assert posted.count((f"r{rid}-results", ".mp4")) == 1 and (f"r{rid}-results", ".png") in posted  # fallback
 
 
@@ -452,3 +454,39 @@ async def test_clip_renders_mp4_ending_on_the_static_card(env):
     assert out and out.suffix == ".mp4" and 0 < out.stat().st_size < 5_000_000
     assert split and split.suffix == ".mp4" and split.stat().st_size < 5_000_000
     assert time.time() - t0 < 120
+
+
+
+async def test_compact_round_posts_reveal_results_only(env):
+    """Default X shape: reveal (decision cards as images) + results + at most one press reply."""
+    s, db = env
+    assert s.post_decisions is False
+    rid = make_round(db, {**PICKS, "agy": None})
+    pub = BenchPublisher(s, db)
+    try:
+        for e in db.round_entries(rid):
+            await pub.on_bet(rid, e["run_id"])
+        await pub.on_bets_done(rid)
+        db.set_round(rid, state="resolved", winner="Nexus", resolved_at=time.time())
+        await pub.on_resolved(rid)
+    finally:
+        await pub.close()
+    tweets = {json.loads(p.read_text())["post_key"]: json.loads(p.read_text()) for p in s.outbox_dir.glob("*.json")}
+    assert not [k for k in tweets if "decision" in k or k.endswith("-split")]   # no burst, no split post
+    reveal = tweets[f"r{rid}-reveal"]
+    assert reveal["quote_of"] is None and reveal["reply_to"] is None
+    assert "Reply with your pick: CYBERSHOKE / Nexus" in reveal["text"] and "http" not in reveal["text"]
+    assert "Claude: CYBERSHOKE · ChatGPT: CYBERSHOKE · Gemini: no bet · Grok: Nexus" in reveal["text"]
+    assert reveal["text"].startswith("2–1: Grok goes alone.") and reveal["length"] <= MAX_LEN
+    assert len(reveal["images"]) == 4 and all(i.endswith(".png") and "decision-" in i for i in reveal["images"])
+    assert db.round(rid)["thread_tweet_id"] == f"dry-r{rid}-reveal"         # human picks read from the reveal
+    assert tweets[f"r{rid}-results"]["quote_of"] == f"dry-r{rid}-reveal"
+    assert set(tweets) <= {f"r{rid}-reveal", f"r{rid}-results", f"r{rid}-press-1"}  # 2-3 posts per round
+    assert (s.cards_dir / str(rid) / "decision-claude.png").exists()        # decision cards still made for the site
+
+
+def test_press_fits_one_reply():
+    from agentpitbench import press
+    sts = [{"name": n, "statement": "y" * 190} for n in ("Claude", "ChatGPT", "Gemini", "Grok")]
+    t = press.texts(sts, max_replies=1)
+    assert len(t) == 1 and len(t[0]) <= 280 and all(f"{n}:" in t[0] for n in ("Claude", "ChatGPT", "Gemini", "Grok"))

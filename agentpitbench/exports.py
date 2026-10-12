@@ -87,6 +87,12 @@ def round_record(s: Settings, db: DB, r) -> dict:
         hashes = json.loads(e["tx_hashes"] or "[]")
         entries[-1].update(wallet=wallet, wallet_url=f"{s.explorer_url}/address/{wallet}" if wallet else None,
                            txs=[{"hash": h, "url": f"{s.explorer_url}/tx/{h}"} for h in hashes])
+    sealed = r["state"] == "running"
+    if sealed:  # picks stay secret until every agent is done: agents can search the web mid-round
+        for e in entries:
+            e.update(outcome=None, avg_price=None, shares_filled=None, stake_filled=None, confidence=None,
+                     quote=None, rationale=None, decided_s=None, tweet_id=None, transcript=None,
+                     tail_url=None, fade_url=None, txs=[], sealed=True)
     picks = {e["outcome"] for e in entries if e["outcome"]}
     hp = db.q("SELECT username, pick, won, card_path FROM humans WHERE round_id=?", r["round_id"])
     by_outcome: dict[str, int] = {}
@@ -99,8 +105,9 @@ def round_record(s: Settings, db: DB, r) -> dict:
         "resolved_at": r["resolved_at"], "market_link": link, "exhibition": bool(r["exhibition"]),
         "exclusion": r["exclusion"],
         "thread_tweet_id": r["thread_tweet_id"], "results_tweet_id": r["results_tweet_id"],
-        "split": len(picks) > 1, "entries": entries,
+        "split": len(picks) > 1, "entries": entries, "sealed": sealed,
         "stake": float(snap.get("bench_stake") or s.stake), "high_stakes": bool(snap.get("high_stakes")),
+        "headline_variant": r["headline_variant"] if "headline_variant" in r.keys() else None,
         "crowd": crowd_pick(s, outcomes, snap.get("prices_list", []), r["state"], r["winner"], snap.get("bench_stake")),
         "humans": {"picked": len(hp), "by_outcome": by_outcome,
                    "right": sum(1 for h in hp if h["won"]) if r["state"] == "resolved" else None,

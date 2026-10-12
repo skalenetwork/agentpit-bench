@@ -27,6 +27,7 @@ from xml.sax.saxutils import escape
 from jinja2 import Environment, PackageLoader, pass_context, select_autoescape
 
 from .cards import cents, is_dark, fmt_time, is_upset, payout_x, ranked, results_headline, signed, split_headline
+from .emblem import emblem_svg
 from .config import AGENT_COLORS, AGENT_NAMES, Settings, AGENT_MODELS
 from .i18n import CODES, LANGS, NAMES, Translator
 from .mascots import sprite, svg_file, use as mascot_use
@@ -203,7 +204,7 @@ def badge_svg(board: list[dict], crowd: dict | None = None, sig: str | None = No
         value += f" · Crowd {crowd['wins']}-{crowd['losses']}"
     if sig:
         value += f" · {sig}"
-    lw, vw = 7 * len(label) + 12, int(6.6 * len(value)) + 14
+    lw, vw = 7 * len(label) + 12 + 18, int(6.6 * len(value)) + 14  # +18: the emblem left of the label
     w = lw + vw
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="20" role="img" aria-label="{escape(label)}: {escape(value)}">'
@@ -213,7 +214,8 @@ def badge_svg(board: list[dict], crowd: dict | None = None, sig: str | None = No
         f'<g clip-path="url(#r)"><rect width="{lw}" height="20" fill="#0b1020"/><rect x="{lw}" width="{vw}" height="20" fill="#D97757"/>'
         f'<rect width="{w}" height="20" fill="url(#s)"/></g>'
         f'<g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">'
-        f'<text x="{lw / 2}" y="14">{escape(label)}</text><text x="{lw + vw / 2}" y="14">{escape(value)}</text></g></svg>'
+        f'<text x="{(lw + 18) / 2}" y="14">{escape(label)}</text><text x="{lw + vw / 2}" y="14">{escape(value)}</text></g>'
+        f'{str(emblem_svg(14, True)).replace("<svg ", "<svg x=\"3\" y=\"3\" ", 1)}</svg>'
     )
 
 
@@ -449,6 +451,8 @@ def _build(s: Settings) -> Path:
     (out / "feed.xml").write_text(rss)
     (out / "feed.json").write_text(jf)
     (out / ".nojekyll").write_text("")
+    for f in ("favicon.svg", "favicon-32.png", "apple-touch-icon.png"):  # the emblem, as the site icon
+        shutil.copyfile(Path(__file__).resolve().parent / "static" / f, out / f)
     host = urlparse(s.site_url).hostname or ""
     if host and not host.endswith(".github.io"):  # custom domain: GitHub Pages drops it without this file
         (out / "CNAME").write_text(host + "\n")

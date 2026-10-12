@@ -86,10 +86,22 @@ def decision_text(s: Settings, rnd: dict, e: dict, invite: bool = False) -> str:
     return fit(head, tail, e.get("rationale") or "", quote=True)
 
 
-def split_text(s: Settings, rnd: dict, kind: str, headline: str) -> str:
+def split_text(s: Settings, rnd: dict, kind: str, headline: str, invite: bool = False) -> str:
+    """invite=True when the split is the round's opener: followers reply with their own pick."""
     picks = ", ".join(f"{e['name']}: {e['outcome'] or 'no bet'}" for e in rnd["entries"])
     lead = headline + "."
-    return fit(f"{lead} {picks}. Who's right? ", f" {TAG}")
+    tail = f" {TAG}"
+    if invite:
+        tail = "\nReply with your pick: " + clip(" / ".join(rnd.get("outcomes") or []), 60) + tail
+    return fit(f"{lead} {picks}. Who's right? ", tail)
+
+
+def reveal_text(rnd: dict, headline: str) -> str:
+    """The round's opener on X, posted once every pick is in: the split headline, every pick, and the reply
+    invite (human picks are read from its replies). No link: X bills link posts ~13x."""
+    picks = " · ".join(f"{e['name']}: {e['outcome'] or 'no bet'}" for e in rnd["entries"])
+    invite = "\nReply with your pick: " + clip(" / ".join(rnd.get("outcomes") or []), 60)
+    return fit(f"{headline}.\n{picks}", f"{invite} {TAG}")
 
 
 def results_hook(rnd: dict) -> str:
@@ -269,9 +281,10 @@ class Poster:
         c = self.creds
         return OAuth1Session(c["X_API_KEY"], c["X_API_SECRET"], c["X_ACCESS_TOKEN"], c["X_ACCESS_SECRET"])
 
-    async def post(self, post_key: str, kind: str, text: str, image: Path | None = None,
+    async def post(self, post_key: str, kind: str, text: str, image: Path | list[Path] | None = None,
                    reply_to: str | None = None, round_id: int | None = None, quote_of: str | None = None) -> str | None:
-        """quote_of: tweet id to quote (a standalone post that embeds the round's thread)."""
+        """quote_of: tweet id to quote (a standalone post that embeds the round's thread).
+        image: one image or video, or a list of up to 4 images shown together (the round's reveal)."""
         row = self.db.one("SELECT tweet_id FROM tweets WHERE post_key=?", post_key)
         if row and row["tweet_id"]:
             return row["tweet_id"]
@@ -285,7 +298,7 @@ class Poster:
         if tweet_id:
             self.db.x("INSERT INTO tweets(post_key,tweet_id,kind,round_id,text,image_path,posted_at) VALUES(?,?,?,?,?,?,?)"
                       " ON CONFLICT(post_key) DO UPDATE SET tweet_id=excluded.tweet_id, posted_at=excluded.posted_at",
-                      post_key, tweet_id, kind, round_id, text, str(image) if image else None, time.time())
+                      post_key, tweet_id, kind, round_id, text, _media_str(image), time.time())
         return tweet_id
 
     async def delete(self, tweet_id: str | None, post_key: str = "") -> bool:
@@ -316,7 +329,8 @@ class Poster:
         tweet_id = f"dry-{safe}"
         (self.s.outbox_dir / f"{safe}.json").write_text(json.dumps({
             "post_key": post_key, "kind": kind, "text": text, "length": tweet_len(text),
-            "image": str(image) if image else None, "reply_to": reply_to, "quote_of": quote_of,
+            "image": _media_str(image), "images": [str(i) for i in _media_list(image)],
+            "reply_to": reply_to, "quote_of": quote_of,
             "tweet_id": tweet_id,
             "at": time.time()}, indent=1))
         log.info("[outbox] %s: %s", post_key, text.replace("\n", " ")[:120])
@@ -430,7 +444,7 @@ class Poster:
         if self.oauth2.ready:
             body: dict = {"text": text}
             if image:
-                body["media"] = {"media_ids": [self.upload_media(Path(image))]}
+                body["media"] = {"media_ids": [self.upload_media(Path(m)) for m in _media_list(image)]}
             if reply_to and not reply_to.startswith("dry-"):
                 body["reply"] = {"in_reply_to_tweet_id": reply_to}
             if quote_of and not quote_of.startswith("dry-"):
@@ -439,10 +453,13 @@ class Poster:
         sess = self._session()
         body: dict = {"text": text}
         if image:
-            with open(image, "rb") as f:
-                r = sess.post(UPLOAD_URL, files={"media": f}, timeout=60)
-            _check(r)
-            body["media"] = {"media_ids": [r.json()["media_id_string"]]}
+            ids = []
+            for m in _media_list(image):
+                with open(m, "rb") as f:
+                    r = sess.post(UPLOAD_URL, files={"media": f}, timeout=60)
+                _check(r)
+                ids.append(r.json()["media_id_string"])
+            body["media"] = {"media_ids": ids}
         if reply_to and not reply_to.startswith("dry-"):
             body["reply"] = {"in_reply_to_tweet_id": reply_to}
         if quote_of and not quote_of.startswith("dry-"):
@@ -454,6 +471,18 @@ class Poster:
 
 class PermanentError(Exception):
     pass
+
+
+def _media_list(image) -> list[Path]:
+    """One media file or a list of up to 4 images (X's limit per post)."""
+    if not image:
+        return []
+    return [Path(m) for m in (image if isinstance(image, (list, tuple)) else [image])][:4]
+
+
+def _media_str(image) -> str | None:
+    items = _media_list(image)
+    return ",".join(map(str, items)) if items else None
 
 
 def _check(r) -> None:

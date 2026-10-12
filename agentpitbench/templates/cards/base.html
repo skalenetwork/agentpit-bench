@@ -3,31 +3,46 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600;800&display=block" rel="stylesheet">
 <style>
+/* Legibility rule: cards are seen ~400px wide in a phone feed, so nothing here is below 26px at 1200 wide. */
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:1200px;height:675px;overflow:hidden}
-body{background:#0b1020;color:#f4f6fb;font-family:Inter,"DejaVu Sans",Arial,sans-serif;position:relative}
+body{background:#0b1020;color:#f4f6fb;font-family:Inter,"DejaVu Sans",Arial,sans-serif;position:relative;--state:#7b8cff}
+body.st-live{--state:#ff3b5c}
+body.st-final{--state:#22c55e}
+body.st-grey{--state:#8a93a8}
+body.st-gold{--state:#ffd34d}
 .bg{position:absolute;inset:0;background:
   radial-gradient(900px 500px at 0% 0%, var(--accent-soft,#1d2a55) 0%, transparent 60%),
   linear-gradient(160deg,#0b1020 0%,#121a36 100%)}
 .stripe{position:absolute;left:0;top:0;bottom:0;width:18px;background:var(--accent,#7b8cff)}
-.wrap{position:absolute;inset:0;padding:44px 56px 0 74px;display:flex;flex-direction:column}
+body.st-live .stripe,body.st-final .stripe,body.st-grey .stripe{background:var(--state)}
+body.st-gold .stripe{background:linear-gradient(180deg,#ffd34d,#b8860b)}
+body.st-gold{box-shadow:inset 0 0 0 6px #d4a017}
+.wrap{position:absolute;inset:0;bottom:62px;padding:40px 56px 0 74px;display:flex;flex-direction:column}
+body.has-ribbon .wrap{padding-top:54px}
 .disp{font-family:Oswald,"DejaVu Sans Condensed","Arial Narrow",sans-serif;text-transform:uppercase;letter-spacing:.5px}
-.top{display:flex;align-items:center;justify-content:space-between}
-.tag{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-weight:700;font-size:22px;letter-spacing:3px;text-transform:uppercase;background:#f4f6fb;color:#0b1020;padding:6px 14px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.meta{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;text-transform:uppercase;letter-spacing:.5px;font-size:26px;color:#8f9abb;white-space:nowrap}
+.tag{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-weight:700;font-size:26px;letter-spacing:3px;text-transform:uppercase;background:#f4f6fb;color:#0b1020;padding:4px 14px;white-space:nowrap}
 .tag.live{background:#ff3b5c;color:#fff}
+body.st-live .tag.st,body.st-final .tag.st,body.st-grey .tag.st,body.st-gold .tag.st{background:var(--state);color:#0b1020}
+body.st-live .tag.st{color:#fff}
 .q{font-size:30px;font-weight:600;line-height:1.25;color:#cfd6ea;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:1060px}
-.foot{white-space:nowrap;position:absolute;left:0;right:0;bottom:0;height:58px;background:#060912;display:flex;align-items:center;justify-content:space-between;padding:0 56px 0 74px;font-size:20px;color:#9aa4c4}
-.foot b{color:#f4f6fb;font-family:Oswald,"DejaVu Sans Condensed",sans-serif;letter-spacing:2px;font-size:22px}
-.badge{display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:14px;font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-weight:700;font-size:34px;color:#fff}
 .dim{color:#8f9abb}
-.hs{position:absolute;top:0;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#b8860b,#ffd34d,#b8860b);color:#1a1200;font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-weight:700;letter-spacing:4px;font-size:20px;padding:4px 22px;border-radius:0 0 10px 10px;z-index:5}
-body.gold .stripe{background:linear-gradient(180deg,#ffd34d,#b8860b)}
-body.gold{box-shadow:inset 0 0 0 6px #d4a017}
+.pos{color:#22c55e}.neg{color:#ff5c7a}.zero{color:#8f9abb}
+.ribbon{position:absolute;top:0;left:50%;transform:translateX(-50%);font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-weight:700;letter-spacing:3px;font-size:26px;padding:3px 26px;border-radius:0 0 12px 12px;z-index:5;white-space:nowrap;background:#8a93a8;color:#0b1020}
+body.st-gold .ribbon{background:linear-gradient(90deg,#b8860b,#ffd34d,#b8860b);color:#1a1200}
+/* the credibility strip: model, n and significance, methodology version, where to check it */
+.foot{position:absolute;left:0;right:0;bottom:0;height:62px;background:#060912;display:flex;align-items:center;gap:10px;padding:0 28px 0 26px;font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:26px;color:#9aa4c4;white-space:nowrap;overflow:hidden}
+.foot .em{flex:0 0 38px;width:38px;height:38px;border-radius:50%;overflow:hidden}
+.foot .em svg{display:block}
+.foot .cred{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.foot .url{color:#f4f6fb;flex:0 0 auto}
 </style>
 <style>{% block style %}{% endblock %}</style>
-</head><body class="{% if r is defined and r and r.high_stakes %}gold{% endif %}">
-{% if r is defined and r and r.high_stakes %}<div class="hs">HIGH STAKES · {{ '%.0f'|format(r.stake) }} TOKENS</div>{% endif %}
+</head><body class="{% if state %}st-{{ state }}{% endif %}{% if banner %} has-ribbon{% endif %}">
+{% if banner %}<div class="ribbon">{{ banner }}</div>{% endif %}
 <div class="bg"></div><div class="stripe"></div>
 <div class="wrap">{% block body %}{% endblock %}</div>
-<div class="foot"><span><b>AGENTPITBENCH</b> &nbsp;·&nbsp; {% block foot %}{% endblock %}</span><span>{{ site }}</span></div>
+<div class="foot"><span class="em">{{ emblem(38, True) }}</span><span class="cred">{% block cred %}{{ [model_line, sig, 'Methodology v' ~ mver]|select|join(' · ') }}{% endblock %}</span><span class="url">{{ url }}</span></div>
 </body></html>

@@ -44,6 +44,10 @@ class Settings:
     animate: bool = True             # split and results posts as short MP4s (static PNG fallback)
     site_hide_void: bool = True       # TEMP (2026-10-09): hide void rounds on the site until operations are stable
     infra_cooldown_s: int = 6 * 3600  # after a quota/infra failure, start no new rounds for this long
+    # X volume: picks are revealed together, so one reveal post (the split) opens the round instead of four
+    # decision posts in a burst; keeps a round at 2-3 posts (reveal, results, one press reply)
+    post_decisions: bool = False
+    press_max_replies: int = 1
     sandbox: bool = True             # run agents inside bubblewrap (bwrap); never disable in production
     # independent-standard layer
     methodology_version: str = "1.0"
