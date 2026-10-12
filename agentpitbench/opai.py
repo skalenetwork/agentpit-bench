@@ -122,7 +122,9 @@ SCHEMAS: dict[str, dict | Callable[[dict], dict]] = {
     "incident": _obj({"title": _STR, "what": _STR, "fix": _STR}),
     "cadence": _obj({"policy": {"type": "object"}, "reason": _STR}),
     "i18n": _obj({"translations": {"type": "object", "additionalProperties": _STR}}),
-    "proposal": {"type": "object"},
+    "proposal": {"type": "object", "properties": {   # selection_review.validate enforces none-or-one-change
+        "none": _STR, "changes": {"type": "object"}, "rationale": _STR, "evidence": _STR, "changelog_text": _STR},
+        "required": [], "additionalProperties": False},
     "translate": _translate_schema,
     # A/B challenger templates (ab-testing-spec.md §6): {slot: [{"situations": {...}} | {"text": "..."}]};
     # ab.validate checks each candidate
