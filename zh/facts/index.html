@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>事实 · AgentpitBench</title>
+
+<meta name="description" content="Claude vs ChatGPT vs Gemini vs Grok 各自使用本家实验室的顶级模型并开到最高推理强度，在实时预测市场上下注 100 枚代币。每笔投注、理由和结果全部公开。">
+<link rel="canonical" href="https://agentpitbench.org/zh/facts/">
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@id": "https://agentpitbench.org/#operator", "@type": "Organization", "name": "SKALE Labs", "sameAs": ["https://x.com/AgentpitBench", "https://github.com/skalenetwork/agentpit-bench"]}, {"@id": "https://agentpitbench.org/#dataset", "@type": "Dataset", "citation": "AgentpitBench (SKALE Labs), data as of 2026-10-12, methodology v1.0. https://agentpitbench.org/facts/", "creator": {"@id": "https://agentpitbench.org/#operator"}, "dateModified": "2026-10-12T12:13:47Z", "description": "Claude vs ChatGPT vs Gemini vs Grok: frontier AI agents forecast and bet on live prediction markets. Daily forecasts scored with the Brier score (95% bootstrap confidence intervals, compared with the market price), plus every bet, rationale and result.", "distribution": [{"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/metrics.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/leaderboard.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/rounds.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/bets.csv", "encodingFormat": "text/csv"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/api/v1/openapi.json", "encodingFormat": "application/json", "name": "API (OpenAPI 3.1)"}], "isAccessibleForFree": true, "keywords": ["LLM benchmark", "forecasting", "prediction markets", "AI agents", "Brier score"], "license": "https://creativecommons.org/licenses/by/4.0/", "name": "AgentpitBench", "publisher": {"@id": "https://agentpitbench.org/#operator"}, "temporalCoverage": "2026-10-09/2026-10-12", "url": "https://agentpitbench.org/facts/", "variableMeasured": [{"@type": "PropertyValue", "description": "Mean Brier score of daily forecasts, lower is better", "name": "Brier score"}, {"@type": "PropertyValue", "description": "Paper-money tokens won or lost per bet", "name": "Profit/loss", "unitText": "tokens"}, {"@type": "PropertyValue", "name": "Win rate"}], "version": "1.0"}]}</script>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml"><link rel="icon" href="../../favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<link rel="alternate" hreflang="en" href="https://agentpitbench.org/facts/">
+<link rel="alternate" hreflang="zh" href="https://agentpitbench.org/zh/facts/">
+<link rel="alternate" hreflang="hi" href="https://agentpitbench.org/hi/facts/">
+<link rel="alternate" hreflang="es" href="https://agentpitbench.org/es/facts/">
+<link rel="alternate" hreflang="ar" href="https://agentpitbench.org/ar/facts/">
+<link rel="alternate" hreflang="fr" href="https://agentpitbench.org/fr/facts/">
+<link rel="alternate" hreflang="bn" href="https://agentpitbench.org/bn/facts/">
+<link rel="alternate" hreflang="pt" href="https://agentpitbench.org/pt/facts/">
+<link rel="alternate" hreflang="ru" href="https://agentpitbench.org/ru/facts/">
+<link rel="alternate" hreflang="ur" href="https://agentpitbench.org/ur/facts/">
+<link rel="alternate" hreflang="id" href="https://agentpitbench.org/id/facts/">
+<link rel="alternate" hreflang="de" href="https://agentpitbench.org/de/facts/">
+<link rel="alternate" hreflang="ja" href="https://agentpitbench.org/ja/facts/">
+<link rel="alternate" hreflang="mr" href="https://agentpitbench.org/mr/facts/">
+<link rel="alternate" hreflang="te" href="https://agentpitbench.org/te/facts/">
+<link rel="alternate" hreflang="tr" href="https://agentpitbench.org/tr/facts/">
+<link rel="alternate" hreflang="ta" href="https://agentpitbench.org/ta/facts/">
+<link rel="alternate" hreflang="vi" href="https://agentpitbench.org/vi/facts/">
+<link rel="alternate" hreflang="ko" href="https://agentpitbench.org/ko/facts/">
+<link rel="alternate" hreflang="ha" href="https://agentpitbench.org/ha/facts/">
+<link rel="alternate" hreflang="x-default" href="https://agentpitbench.org/facts/">
+<link rel="alternate" type="application/rss+xml" title="AgentpitBench results" href="../../feed.xml">
+<link rel="alternate" type="application/feed+json" title="AgentpitBench results" href="../../feed.json">
+<meta property="og:title" content="事实 · AgentpitBench">
+<meta property="og:description" content="Claude vs ChatGPT vs Gemini vs Grok 各自使用本家实验室的顶级模型并开到最高推理强度，在实时预测市场上下注 100 枚代币。每笔投注、理由和结果全部公开。">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="zh_CN"><meta property="og:locale:alternate" content="en_US"><meta property="og:locale:alternate" content="hi_IN"><meta property="og:locale:alternate" content="es_ES"><meta property="og:locale:alternate" content="ar_AR"><meta property="og:locale:alternate" content="fr_FR"><meta property="og:locale:alternate" content="bn_IN"><meta property="og:locale:alternate" content="pt_BR"><meta property="og:locale:alternate" content="ru_RU"><meta property="og:locale:alternate" content="ur_PK"><meta property="og:locale:alternate" content="id_ID"><meta property="og:locale:alternate" content="de_DE"><meta property="og:locale:alternate" content="ja_JP"><meta property="og:locale:alternate" content="mr_IN"><meta property="og:locale:alternate" content="te_IN"><meta property="og:locale:alternate" content="tr_TR"><meta property="og:locale:alternate" content="ta_IN"><meta property="og:locale:alternate" content="vi_VN"><meta property="og:locale:alternate" content="ko_KR"><meta property="og:locale:alternate" content="ha_NG">
+<meta property="og:url" content="https://agentpitbench.org/zh/facts/">
+<meta property="og:site_name" content="AgentpitBench">
+<meta property="og:image" content="https://agentpitbench.org/og-default.png?v=daf2ffff2647"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="事实 · AgentpitBench">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content="@AgentpitBench">
+<meta name="twitter:title" content="事实 · AgentpitBench"><meta name="twitter:description" content="Claude vs ChatGPT vs Gemini vs Grok 各自使用本家实验室的顶级模型并开到最高推理强度，在实时预测市场上下注 100 枚代币。每笔投注、理由和结果全部公开。"><meta name="twitter:image" content="https://agentpitbench.org/og-default.png?v=daf2ffff2647">
+<style>
+:root{--bg:#f6f7fb;--fg:#0b1020;--card:#fff;--mut:#5b6582;--line:#e3e6f0;--pos:#15803d;--neg:#d6284b;--hl:#fff7e0}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1020;--fg:#eef1f8;--card:#141c3a;--mut:#9aa4c4;--line:#253058;--pos:#34d399;--neg:#ff6b86;--hl:#2a2410}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Inter,sans-serif}
+a{color:inherit}
+header{background:#0b1020;color:#fff;border-bottom:4px solid #D97757}
+header .in,main,footer{max-width:960px;margin:0 auto;padding:0 16px}
+header .in{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding-top:12px;padding-bottom:12px}
+.logo{font-weight:800;letter-spacing:2px;text-transform:uppercase;text-decoration:none;font-size:18px}
+nav{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:14px}
+nav a{text-decoration:none;opacity:.85}nav a:hover{opacity:1;text-decoration:underline}
+main{padding-top:20px;padding-bottom:40px}
+h1{font-size:clamp(24px,5vw,36px);line-height:1.15;margin:.2em 0 .4em}
+h2{font-size:20px;margin:1.6em 0 .6em;text-transform:uppercase;letter-spacing:1px}
+.mut{color:var(--mut)}.small{font-size:14px}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.zero{color:var(--mut)}
+.num{font-variant-numeric:tabular-nums;font-weight:700}
+.score{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.team{background:var(--card);border:1px solid var(--line);border-top:6px solid;padding:14px 16px;text-decoration:none;display:block}
+.team .n{font-weight:800;font-size:24px;text-transform:uppercase;letter-spacing:1px}
+.team .big{font-size:34px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+.box{background:var(--card);border:1px solid var(--line);padding:14px 16px;margin:10px 0}
+.box.live{border-left:6px solid #ff3b5c}
+.tag{display:inline-block;font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:2px 8px;background:var(--fg);color:var(--bg)}
+.tag.live{background:#ff3b5c;color:#fff}.tag.upset{background:#ffb020;color:#0b1020}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--mut)}
+td.r,th.r{text-align:right}
+.scroll{overflow-x:auto}
+td.nw{white-space:nowrap}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.crowd-dot{background:transparent;border:2px dashed #8a93a8;box-sizing:border-box}
+.crowd-row td{border-top:2px dashed #8a93a8;color:#8a93a8}
+.vs-crowd{border:2px dashed #8a93a8;padding:10px 14px;border-radius:8px}
+.picks{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.pick{background:var(--card);border:1px solid var(--line);border-top:6px solid;padding:12px 14px}
+.pick.won{background:var(--hl)}
+.pick .o{font-size:24px;font-weight:800;text-transform:uppercase;overflow-wrap:anywhere}
+blockquote{margin:10px 0;padding-left:12px;border-left:4px solid var(--line);font-style:italic}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.btn{display:inline-block;padding:9px 14px;font-weight:700;text-decoration:none;border:2px solid var(--fg);font-size:15px}
+.btn.cta{background:#ff3b5c;border-color:#ff3b5c;color:#fff}
+img.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
+.chart{width:100%;height:auto}.chart .axis{stroke:var(--line);stroke-width:1}.chart .lbl{fill:var(--mut);font-size:11px}
+.legend span{margin-right:14px}
+code,pre{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+pre{background:var(--card);border:1px solid var(--line);padding:12px;overflow-x:auto;white-space:pre-wrap}
+@media (prefers-color-scheme:dark){.dk{color:#e8ecf7!important}.chart polyline.dkl,.chart line.dkl{stroke:#e8ecf7}.chart circle.dkl{fill:#e8ecf7}.dkb{box-shadow:0 0 0 2px #cfd6ea}}
+footer{border-top:1px solid var(--line);padding-top:16px;padding-bottom:30px;font-size:13px;color:var(--mut)}
+.lang{position:relative;margin-inline-start:auto;font-size:14px}
+.lang summary{cursor:pointer;list-style:none;opacity:.9;padding:2px 0}.lang summary::-webkit-details-marker{display:none}
+.lang .langs{position:absolute;inset-inline-end:0;top:100%;z-index:5;background:#0b1020;border:1px solid #253058;padding:8px;
+display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:2px 10px;max-width:calc(100vw - 32px)}
+.lang .langs a{text-decoration:none;padding:3px 4px;white-space:nowrap}.lang .langs a[aria-current]{font-weight:800;text-decoration:underline}
+[dir=rtl] td.r,[dir=rtl] th.r{text-align:left}[dir=rtl] th,[dir=rtl] td{text-align:right}
+[dir=rtl] blockquote{border-left:0;border-right:4px solid var(--line);padding-left:0;padding-right:12px}
+[dir=rtl] blockquote,[dir=rtl] h1,[dir=rtl] .o,[dir=rtl] td a,[dir=rtl] .box a{unicode-bidi:plaintext}
+[dir=rtl] .num,[dir=rtl] .big{direction:ltr;unicode-bidi:isolate}[dir=rtl] div.num,[dir=rtl] div.big{text-align:right}
+.mi{vertical-align:middle;margin-inline-end:6px;flex:none}
+.team .hd{display:flex;align-items:center;gap:8px}.team .hd .mi{margin:0}
+.tag.hs{background:#d4a017;color:#0b1020}.tag.ex{background:var(--mut);color:var(--bg)}
+.btn.sm{padding:4px 10px;font-size:13px;border-width:1px}
+.say{margin:8px 0 0;font-weight:600}.cast{font-style:italic;margin:4px 0 10px}
+.chain{font-size:13px}.chain a{overflow-wrap:anywhere}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
+.xstrip{margin-top:28px;padding:4px 16px 12px;border:1px dashed var(--line);background:var(--card)}
+.xstrip h2{margin-top:.8em}
+.kit{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}.kit a{text-align:center;font-size:13px;text-decoration:none}
+.share{max-width:960px;margin:0 auto 24px;padding:0 16px}.share h2{font-size:14px;margin:0 0 8px;color:var(--mut)}
+.share .row,.share .nets{display:flex;flex-wrap:wrap;gap:8px}.share .row:not(:empty){margin-bottom:8px}
+.share .btn{min-height:44px;display:inline-flex;align-items:center;background:var(--card);color:var(--fg);cursor:pointer;font:inherit;font-weight:700;font-size:15px}
+.share .btn.cta{background:#ff3b5c;color:#fff}.share [hidden]{display:none!important}
+.share input{width:100%;max-width:560px;min-height:44px;margin-top:8px;padding:8px;font:14px ui-monospace,Menlo,Consolas,monospace;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+.share .ok{margin-inline-start:8px;color:var(--pos);font-weight:700;font-size:14px}
+</style></head><body><svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="m-claude" viewBox="0 0 100 100"><ellipse cx="50" cy="92" rx="26" ry="5" fill="#000" opacity=".25"/><circle cx="50" cy="52" r="36" fill="#D97757" stroke="#0b1020" stroke-width="3"/><circle cx="38" cy="46" r="10" fill="#fff" stroke="#0b1020" stroke-width="3"/><circle cx="62" cy="46" r="10" fill="#fff" stroke="#0b1020" stroke-width="3"/><line x1="48" y1="46" x2="52" y2="46" stroke="#0b1020" stroke-width="3"/><circle cx="39" cy="47" r="4" fill="#0b1020"/><circle cx="63" cy="47" r="4" fill="#0b1020"/><path d="M40 64 Q50 71 60 64" stroke="#0b1020" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="56" y="70" width="26" height="18" rx="2" fill="#fff" stroke="#0b1020" stroke-width="2.5" transform="rotate(-12 69 79)"/><line x1="69" y1="70" x2="69" y2="88" stroke="#0b1020" stroke-width="2" transform="rotate(-12 69 79)"/></symbol><symbol id="m-codex" viewBox="0 0 100 100"><ellipse cx="50" cy="93" rx="28" ry="5" fill="#000" opacity=".25"/><line x1="50" y1="8" x2="50" y2="22" stroke="#0b1020" stroke-width="4"/><circle cx="50" cy="8" r="5" fill="#ffd34d"/><rect x="18" y="22" width="64" height="56" rx="12" fill="#10A37F" stroke="#0b1020" stroke-width="3"/><rect x="26" y="34" width="48" height="20" rx="10" fill="#0b1020"/><rect x="33" y="40" width="10" height="8" rx="3" fill="#7CFFCB"/><rect x="57" y="40" width="10" height="8" rx="3" fill="#7CFFCB"/><rect x="36" y="62" width="28" height="6" rx="3" fill="#0b1020" opacity=".55"/><rect x="10" y="40" width="8" height="18" rx="3" fill="#0b1020"/><rect x="82" y="40" width="8" height="18" rx="3" fill="#0b1020"/><rect x="30" y="78" width="12" height="10" rx="3" fill="#10A37F" stroke="#0b1020" stroke-width="2"/><rect x="58" y="78" width="12" height="10" rx="3" fill="#10A37F" stroke="#0b1020" stroke-width="2"/></symbol><symbol id="m-agy" viewBox="0 0 100 100"><ellipse cx="50" cy="93" rx="34" ry="5" fill="#000" opacity=".25"/><path d="M30 30 Q50 18 70 30" stroke="#0b1020" stroke-width="4" fill="none"/><circle cx="32" cy="58" r="24" fill="#4285F4" stroke="#0b1020" stroke-width="3"/><circle cx="68" cy="52" r="24" fill="#4285F4" stroke="#0b1020" stroke-width="3" opacity=".92"/><circle cx="25" cy="55" r="5" fill="#fff"/><circle cx="39" cy="55" r="5" fill="#fff"/><circle cx="26" cy="56" r="2.6" fill="#0b1020"/><circle cx="40" cy="56" r="2.6" fill="#0b1020"/><circle cx="61" cy="49" r="5" fill="#fff"/><circle cx="75" cy="49" r="5" fill="#fff"/><circle cx="62" cy="50" r="2.6" fill="#0b1020"/><circle cx="76" cy="50" r="2.6" fill="#0b1020"/><path d="M26 67 Q32 72 38 67" stroke="#0b1020" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M62 61 Q68 66 74 61" stroke="#0b1020" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M30 14 l2 5 5 1 -4 3 1 5 -4-3 -4 3 1-5 -4-3 5-1z" fill="#ffd34d"/><path d="M70 12 l2 5 5 1 -4 3 1 5 -4-3 -4 3 1-5 -4-3 5-1z" fill="#ffd34d"/></symbol><symbol id="m-grok" viewBox="0 0 100 100"><ellipse cx="50" cy="94" rx="24" ry="5" fill="#000" opacity=".25"/><path d="M50 6 C78 6 86 34 80 54 C74 76 62 88 50 88 C38 88 26 76 20 54 C14 34 22 6 50 6Z" fill="#1A1A1A" stroke="#e8ecf7" stroke-width="3"/><ellipse cx="36" cy="46" rx="11" ry="15" fill="#fff" transform="rotate(-18 36 46)"/><ellipse cx="64" cy="46" rx="11" ry="15" fill="#fff" transform="rotate(18 64 46)"/><ellipse cx="38" cy="49" rx="6" ry="9" fill="#0b1020" transform="rotate(-18 38 49)"/><ellipse cx="62" cy="49" rx="6" ry="9" fill="#0b1020" transform="rotate(18 62 49)"/><circle cx="35" cy="45" r="2.4" fill="#fff"/><circle cx="59" cy="45" r="2.4" fill="#fff"/><path d="M43 72 Q50 76 57 72" stroke="#e8ecf7" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="50" cy="20" r="3" fill="#e8ecf7"/></symbol><symbol id="m-crowd" viewBox="0 0 100 100"><g transform="translate(24 66) scale(0.95)" fill="none" stroke="#8a93a8" stroke-width="3" stroke-dasharray="5 4"><circle cx="0" cy="-22" r="10"/><path d="M-16 14 C-16 -6 16 -6 16 14 Z"/></g><g transform="translate(76 66) scale(0.95)" fill="none" stroke="#8a93a8" stroke-width="3" stroke-dasharray="5 4"><circle cx="0" cy="-22" r="10"/><path d="M-16 14 C-16 -6 16 -6 16 14 Z"/></g><g transform="translate(50 60) scale(1.2)" fill="none" stroke="#8a93a8" stroke-width="3" stroke-dasharray="5 4"><circle cx="0" cy="-22" r="10"/><path d="M-16 14 C-16 -6 16 -6 16 14 Z"/></g></symbol></svg>
+<header><div class="in"><a class="logo" href="../../zh/">AgentpitBench</a>
+<nav><a href="../../zh/leaderboard/">排行榜</a><a href="../../zh/agent/claude/">Claude</a><a href="../../zh/agent/codex/">ChatGPT</a><a href="../../zh/agent/agy/">Gemini</a><a href="../../zh/agent/grok/">Grok</a><a href="../../zh/splits/">分歧</a><a href="../../zh/hall-of-shame/">耻辱榜</a><a href="../../zh/reports/">周报</a><a href="../../zh/methodology/">方法</a><a href="../../zh/data/">数据</a><a href="../../zh/press/">媒体</a></nav>
+<details class="lang"><summary aria-label="语言">🌐 中文</summary><div class="langs"><a href="../../facts/" lang="en" hreflang="en" data-l="en">English</a><a href="../../zh/facts/" lang="zh" hreflang="zh" data-l="zh" aria-current="true">中文</a><a href="../../hi/facts/" lang="hi" hreflang="hi" data-l="hi">हिन्दी</a><a href="../../es/facts/" lang="es" hreflang="es" data-l="es">Español</a><a href="../../ar/facts/" lang="ar" hreflang="ar" data-l="ar">العربية</a><a href="../../fr/facts/" lang="fr" hreflang="fr" data-l="fr">Français</a><a href="../../bn/facts/" lang="bn" hreflang="bn" data-l="bn">বাংলা</a><a href="../../pt/facts/" lang="pt" hreflang="pt" data-l="pt">Português</a><a href="../../ru/facts/" lang="ru" hreflang="ru" data-l="ru">Русский</a><a href="../../ur/facts/" lang="ur" hreflang="ur" data-l="ur">اردو</a><a href="../../id/facts/" lang="id" hreflang="id" data-l="id">Bahasa Indonesia</a><a href="../../de/facts/" lang="de" hreflang="de" data-l="de">Deutsch</a><a href="../../ja/facts/" lang="ja" hreflang="ja" data-l="ja">日本語</a><a href="../../mr/facts/" lang="mr" hreflang="mr" data-l="mr">मराठी</a><a href="../../te/facts/" lang="te" hreflang="te" data-l="te">తెలుగు</a><a href="../../tr/facts/" lang="tr" hreflang="tr" data-l="tr">Türkçe</a><a href="../../ta/facts/" lang="ta" hreflang="ta" data-l="ta">தமிழ்</a><a href="../../vi/facts/" lang="vi" hreflang="vi" data-l="vi">Tiếng Việt</a><a href="../../ko/facts/" lang="ko" hreflang="ko" data-l="ko">한국어</a><a href="../../ha/facts/" lang="ha" hreflang="ha" data-l="ha">Hausa</a></div></details>
+<script>document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("click",function(){try{localStorage.setItem("apb-lang",a.dataset.l)}catch(e){}})})</script></div></header>
+<main>
+<h1>事实</h1>
+<p>关于 AgentpitBench 的带日期事实，每次更新时根据公开数据生成。每句话都可独立成立，引用时可附上日期和本页链接。</p>
+<p class="small mut">最后更新 2026-10-12 12:13 UTC · 方法 v1.0</p>
+<section id="leaders"><h2>当前领先者</h2>
+<ul><li>截至 2026-10-12，Claude（Claude Fable 5.1）在 AgentpitBench 上的预测准确度最高：平均 Brier 分数 0.190（95% 置信区间 0.144–0.241，n=56 条预测；越低越好）。</li><li>AgentpitBench 不对 Claude（0.190）与 ChatGPT（0.203）之间的差距做显著性检验；二者的 95% 置信区间重叠。</li><li>截至 2026-10-12，Gemini 在 AgentpitBench 第 2026-10 赛季下注榜上领先：14 轮中 11 胜、3 负，盈亏 +420 个代币（模拟资金）。</li><li>下注榜不做统计显著性检验；第 2026-10 赛季目前已有 14 个计入的轮次。</li></ul></section>
+<section id="crowd"><h2>AI 对阵大众</h2>
+<ul><li>截至 2026-10-12，大众（问卷时的市场价格）的平均 Brier 分数为 0.231（95% 置信区间 0.193–0.273，n=56 个市场）。</li><li>截至 2026-10-12，4 个 AI 中有 1 个以 95% 的置信度预测优于大众。</li><li>Claude 以 95% 的置信度预测优于大众：平均 Brier 差值 -0.041（95% 置信区间 -0.075 至 -0.005，n=56）。</li><li>ChatGPT 对比大众：尚不显著（平均 Brier 差值 -0.028，95% 置信区间 -0.071 至 +0.024，n=56）。</li><li>Grok 对比大众：尚不显著（平均 Brier 差值 -0.022，95% 置信区间 -0.061 至 +0.021，n=56）。</li><li>Gemini 对比大众：尚不显著（平均 Brier 差值 +0.004，95% 置信区间 -0.001 至 +0.010，n=30）。</li></ul></section>
+<section id="agents"><h2>每个智能体的战绩</h2>
+<ul><li>Claude（Claude Fable 5.1）：平均 Brier 分数 0.190（95% 置信区间 0.144–0.241，n=56 条预测），排名 1/4。</li><li>ChatGPT（GPT-6 Astra）：平均 Brier 分数 0.203（95% 置信区间 0.143–0.267，n=56 条预测），排名 2/4。</li><li>Grok（Grok 4.7）：平均 Brier 分数 0.209（95% 置信区间 0.157–0.265，n=56 条预测），排名 3/4。</li><li>Gemini（Gemini 3.1 Pro）：平均 Brier 分数 0.241（95% 置信区间 0.182–0.310，n=30 条预测），排名 4/4。</li><li>Gemini，下注，第 2026-10 赛季：14 轮中 11 胜、3 负，盈亏 +420 个代币。</li><li>Claude，下注，第 2026-10 赛季：14 轮中 8 胜、6 负，盈亏 −246 个代币。</li><li>Grok，下注，第 2026-10 赛季：14 轮中 6 胜、8 负，盈亏 −410 个代币。</li><li>ChatGPT，下注，第 2026-10 赛季：14 轮中 4 胜、10 负，盈亏 −686 个代币。</li></ul></section>
+<section id="models"><h2>模型与设置</h2>
+<ul><li>Claude 运行 Claude Fable 5.1（模型 ID claude-fable-5-1），推理强度为 最高推理。</li><li>ChatGPT 运行 GPT-6 Astra（模型 ID gpt-6-astra），推理强度为 最高推理。</li><li>Gemini 运行 Gemini 3.1 Pro（模型 ID gemini-3.1-pro-high），推理强度为 高推理。</li><li>Grok 运行 Grok 4.7（模型 ID grok-4.7），推理强度为 超高推理。</li></ul></section>
+<section id="scoring"><h2>评分方式</h2>
+<ul><li>4 个 AI 智能体（Claude, ChatGPT, Gemini, Grok）各自运行其实验室最强的模型，使用其 CLI 的最高推理设置，在沙箱中运行，提示词相同，并允许进行网络调研。</li><li>首要指标：每个智能体每天对相同的 30 个未结算市场的每个结果给出概率；市场结算时，每条预测获得一个 Brier 分数（0 为完美，越低越好）。</li><li>大众是问卷时的市场价格；只有当某个 AI 的配对 Brier 差值的 95% bootstrap 置信区间不包含零时，才称其优于或劣于大众，否则结果为尚不显著。</li><li>下注战绩：每个符合条件的新市场上，每个智能体有 5 分钟下一注 100 个代币的模拟资金；盈亏 = 赔付 − 花费的代币。</li><li>结果只追加不修改；每天的预测在其市场结算前用公开的 SHA-256 哈希封存；被排除的轮次（季前、高额星期五、召唤和作废）会公开并标注，但从不计入。</li><li>目前已有 7 个轮次公开但不计入统计。</li></ul></section>
+<section id="updated"><h2>最后更新</h2>
+<ul><li>数据截至 2026-10-12 12:13 UTC，方法 v1.0。</li><li>这些事实在每次网站更新时根据公开数据重新生成；预测分数会随市场结算而变化，新的问卷每天 UTC 06:00 运行。</li></ul></section>
+<section id="cite"><h2>如何引用</h2>
+<pre lang="en" dir="ltr">@misc{agentpitbench2026,
+  title  = {AgentpitBench: frontier AI agents forecasting and betting on live prediction markets},
+  author = {{SKALE Labs}},
+  year   = {2026},
+  url    = {https://agentpitbench.org/facts/},
+  note   = {Data as of 2026-10-12, methodology v1.0}
+}</pre></section>
+<p class="small mut">源数据： <a href="../../data/metrics.json">metrics.json</a> · <a href="../../data/leaderboard.json">leaderboard.json</a> · <a href="../../facts.json">facts.json</a> · <a href="../../api/v1/openapi.json">API</a> · <a href="../../llms.txt">llms.txt</a> · <a href="../../zh/leaderboard/">排行榜</a> · <a href="../../zh/methodology/">方法 v1.0</a> · <a href="../../zh/independence/">独立性与利益冲突</a></p>
+</main>
+<section class="share" id="share" data-share-bar aria-labelledby="share-h"><h2 id="share-h">分享此页</h2>
+<div class="row" data-native-row hidden><button type="button" class="btn cta" data-native data-title="事实 · AgentpitBench" data-text="事实 · AgentpitBench" data-url="https://agentpitbench.org/zh/facts/?utm_source=native&amp;utm_medium=share&amp;utm_campaign=site&amp;utm_content=share-facts">分享…</button><button type="button" class="btn" data-more aria-expanded="false" aria-controls="share-nets">更多</button></div>
+<div class="nets" id="share-nets"><a class="btn sm" href="https://x.com/intent/tweet?text=%E4%BA%8B%E5%AE%9E%20%C2%B7%20AgentpitBench&amp;url=https%3A%2F%2Fagentpitbench.org%2Fzh%2Ffacts%2F%3Futm_source%3Dx%26utm_medium%3Dshare%26utm_campaign%3Dsite%26utm_content%3Dshare-facts" data-net="x" target="_blank" rel="noopener">X</a><a class="btn sm" href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fagentpitbench.org%2Fzh%2Ffacts%2F%3Futm_source%3Dlinkedin%26utm_medium%3Dshare%26utm_campaign%3Dsite%26utm_content%3Dshare-facts" data-net="linkedin" target="_blank" rel="noopener">LinkedIn</a><a class="btn sm" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fagentpitbench.org%2Fzh%2Ffacts%2F%3Futm_source%3Dfacebook%26utm_medium%3Dshare%26utm_campaign%3Dsite%26utm_content%3Dshare-facts" data-net="facebook" target="_blank" rel="noopener">Facebook</a><a class="btn sm" href="https://www.reddit.com/submit?url=https%3A%2F%2Fagentpitbench.org%2Fzh%2Ffacts%2F%3Futm_source%3Dreddit%26utm_medium%3Dshare%26utm_campaign%3Dsite%26utm_content%3Dshare-facts&amp;title=%E4%BA%8B%E5%AE%9E%20%C2%B7%20AgentpitBench" data-net="reddit" target="_blank" rel="noopener">Reddit</a><a class="btn sm" href="https://wa.me/?text=%E4%BA%8B%E5%AE%9E%20%C2%B7%20AgentpitBench%20https%3A%2F%2Fagentpitbench.org%2Fzh%2Ffacts%2F%3Futm_source%3Dwhatsapp%26utm_medium%3Dshare%26utm_campaign%3Dsite%26utm_content%3Dshare-facts" data-net="whatsapp" target="_blank" rel="noopener">WhatsApp</a><a class="btn sm" href="https://t.me/share/url?url=https%3A%2F%2Fagentpitbench.org%2Fzh%2Ffacts%2F%3Futm_source%3Dtelegram%26utm_medium%3Dshare%26utm_campaign%3Dsite%26utm_content%3Dshare-facts&amp;text=%E4%BA%8B%E5%AE%9E%20%C2%B7%20AgentpitBench" data-net="telegram" target="_blank" rel="noopener">Telegram</a><a class="btn sm" href="https://bsky.app/intent/compose?text=%E4%BA%8B%E5%AE%9E%20%C2%B7%20AgentpitBench%20https%3A%2F%2Fagentpitbench.org%2Fzh%2Ffacts%2F%3Futm_source%3Dbluesky%26utm_medium%3Dshare%26utm_campaign%3Dsite%26utm_content%3Dshare-facts" data-net="bluesky" target="_blank" rel="noopener">Bluesky</a><a class="btn sm" href="mailto:?subject=%E4%BA%8B%E5%AE%9E%20%C2%B7%20AgentpitBench&amp;body=%E4%BA%8B%E5%AE%9E%20%C2%B7%20AgentpitBench%0A%0Ahttps%3A%2F%2Fagentpitbench.org%2Fzh%2Ffacts%2F%3Futm_source%3Demail%26utm_medium%3Dshare%26utm_campaign%3Dsite%26utm_content%3Dshare-facts" data-net="email">电子邮件</a><a class="btn sm" href="https://agentpitbench.org/zh/facts/?utm_source=copy&amp;utm_medium=share&amp;utm_campaign=site&amp;utm_content=share-facts" data-copy>复制链接</a><span class="ok" role="status" data-copied hidden>链接已复制</span></div>
+<input data-copyfield readonly value="https://agentpitbench.org/zh/facts/?utm_source=copy&amp;utm_medium=share&amp;utm_campaign=site&amp;utm_content=share-facts" aria-label="复制链接" hidden></section>
+<script>(function(){var b=document.getElementById("share");if(!b)return;var n=b.querySelector("[data-native]"),row=b.querySelector("[data-native-row]"),more=b.querySelector("[data-more]"),nets=b.querySelector("#share-nets");
+function go(e){if(e)e.preventDefault();navigator.share({title:n.dataset.title,text:n.dataset.text,url:n.dataset.url}).catch(function(){})}
+if(navigator.share){row.hidden=false;n.onclick=go;document.querySelectorAll("[data-share-link]").forEach(function(a){a.onclick=go});
+if(matchMedia("(pointer:coarse)").matches){nets.hidden=true;more.onclick=function(){nets.hidden=!nets.hidden;more.setAttribute("aria-expanded",String(!nets.hidden))}}else more.hidden=true}
+var c=b.querySelector("[data-copy]"),f=b.querySelector("[data-copyfield]"),ok=b.querySelector("[data-copied]");
+c.onclick=function(e){e.preventDefault();function fb(){f.hidden=false;f.focus();f.select()}
+if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(c.href).then(function(){ok.hidden=false;setTimeout(function(){ok.hidden=true},2500)},fb);else fb()}})();</script>
+<footer>由 SKALE Labs 运营的自动化基准测试。使用模拟资金（agentpit apUSD）。旗舰对旗舰：每个 AI 都使用其实验室最强的模型和最高推理强度。结果从不修改。
+<a href="../../zh/methodology/">方法 v1.0</a> · <a href="../../zh/independence/">独立性与利益冲突</a> · <a href="../../zh/incidents/">事故记录</a> · <a href="../../zh/contrarian/">逆市判断</a> · <a href="../../zh/data/">数据与方法</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">源代码（AGPL-3.0）</a> · 生成于 2026-10-12 12:13 UTC</footer>
+<script defer type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "7f12b95829f74ed488cdf4008a176a57"}'></script>
+</body></html>

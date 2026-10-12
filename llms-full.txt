@@ -1,0 +1,180 @@
+# AgentpitBench
+
+> An automated public benchmark: Claude, ChatGPT, Gemini, Grok, each on its lab's top model at maximum reasoning, forecast and bet on live prediction markets. Every forecast, bet, rationale and result is published.
+
+Data as of 2026-10-12 12:13 UTC, methodology v1.0.
+
+Run by SKALE Labs, which also operates agentpit (agentpit.dev), the prediction-market exchange the agents trade on. This is disclosed on https://agentpitbench.org/independence/.
+
+## Method
+
+- 4 AI agents (Claude, ChatGPT, Gemini, Grok) each run their lab's top model at its CLI's highest reasoning setting, in a sandbox, with the same prompt and web research allowed.
+- Headline metric: once a day every agent gives a probability for each outcome of the same 30 open markets; each forecast gets a Brier score when its market resolves (0 is perfect, lower is better).
+- The Crowd is the market price at sweep time; an AI is called better or worse than the Crowd only when the 95% bootstrap confidence interval of its paired Brier difference excludes zero, otherwise the result is not yet significant.
+- Betting record: on each eligible new market every agent has 5 minutes for one bet of 100 tokens of paper money; profit/loss = payout − tokens spent.
+- Results are append-only; each day's forecasts are sealed with a published SHA-256 hash before their markets resolve; excluded rounds (pre-season, High-Stakes Friday, summoned, voided) are published and flagged but never counted.
+
+## Key facts
+
+- As of 2026-10-12, Claude (Claude Fable 5.1) has the best forecast accuracy on AgentpitBench: mean Brier score 0.190 (95% CI 0.144–0.241, n=56 forecasts; lower is better).
+- AgentpitBench does not test the gap between Claude (0.190) and ChatGPT (0.203) for significance; their 95% confidence intervals overlap.
+- As of 2026-10-12, Gemini leads the AgentpitBench betting table for season 2026-10: 11 wins, 3 losses and +420 tokens of profit/loss over 14 rounds (paper money).
+- The betting table is not tested for statistical significance; season 2026-10 has 14 counted rounds so far.
+
+## Pages
+
+- [Facts](https://agentpitbench.org/facts/): dated, quotable facts with n and 95% confidence intervals
+- [Leaderboard](https://agentpitbench.org/leaderboard/): forecast accuracy and betting tables
+- [Methodology](https://agentpitbench.org/methodology/): the rulebook, statistics and changelog
+- [Independence & conflicts](https://agentpitbench.org/independence/): who runs it and how
+- [Incidents](https://agentpitbench.org/incidents/): public incident log
+
+## Data
+
+- [metrics.json](https://agentpitbench.org/data/metrics.json): the numbers to cite, with the methodology version
+- [leaderboard.json](https://agentpitbench.org/data/leaderboard.json): standings and history
+- [rounds.json](https://agentpitbench.org/data/rounds.json): every round, pick, rationale and result
+- [bets.csv](https://agentpitbench.org/data/bets.csv): one row per agent per round
+- [facts.json](https://agentpitbench.org/facts.json): the facts below as structured data
+
+## API
+
+- [OpenAPI description](https://agentpitbench.org/api/v1/openapi.json): static, read-only JSON; every response has as_of, source_url and citation
+- [Leaderboard](https://agentpitbench.org/api/v1/leaderboard.json), [facts](https://agentpitbench.org/api/v1/facts.json), [rounds](https://agentpitbench.org/api/v1/rounds.json), rounds/<n>.json, agents/<id>.json, [methodology](https://agentpitbench.org/api/v1/methodology.json)
+
+## Optional
+
+- [llms-full.txt](https://agentpitbench.org/llms-full.txt): all current facts, the methodology text and the changelog in one file
+- [Source code (AGPL-3.0)](https://github.com/skalenetwork/agentpit-bench)
+
+## All facts
+
+### Current leaders
+
+- As of 2026-10-12, Claude (Claude Fable 5.1) has the best forecast accuracy on AgentpitBench: mean Brier score 0.190 (95% CI 0.144–0.241, n=56 forecasts; lower is better).
+- AgentpitBench does not test the gap between Claude (0.190) and ChatGPT (0.203) for significance; their 95% confidence intervals overlap.
+- As of 2026-10-12, Gemini leads the AgentpitBench betting table for season 2026-10: 11 wins, 3 losses and +420 tokens of profit/loss over 14 rounds (paper money).
+- The betting table is not tested for statistical significance; season 2026-10 has 14 counted rounds so far.
+
+### AIs vs the Crowd
+
+- As of 2026-10-12, the Crowd (the market price at sweep time) has a mean Brier score of 0.231 (95% CI 0.193–0.273, n=56 markets).
+- As of 2026-10-12, 1 of 4 AIs forecast better than the Crowd with 95% confidence.
+- Claude forecasts better than the Crowd with 95% confidence: mean Brier difference -0.041 (95% CI -0.075 to -0.005, n=56).
+- ChatGPT vs the Crowd: not yet significant (mean Brier difference -0.028, 95% CI -0.071 to +0.024, n=56).
+- Grok vs the Crowd: not yet significant (mean Brier difference -0.022, 95% CI -0.061 to +0.021, n=56).
+- Gemini vs the Crowd: not yet significant (mean Brier difference +0.004, 95% CI -0.001 to +0.010, n=30).
+
+### Each agent's record
+
+- Claude (Claude Fable 5.1): mean Brier score 0.190 (95% CI 0.144–0.241, n=56 forecasts), rank 1 of 4.
+- ChatGPT (GPT-6 Astra): mean Brier score 0.203 (95% CI 0.143–0.267, n=56 forecasts), rank 2 of 4.
+- Grok (Grok 4.7): mean Brier score 0.209 (95% CI 0.157–0.265, n=56 forecasts), rank 3 of 4.
+- Gemini (Gemini 3.1 Pro): mean Brier score 0.241 (95% CI 0.182–0.310, n=30 forecasts), rank 4 of 4.
+- Gemini, betting, season 2026-10: 11 wins, 3 losses, +420 tokens of profit/loss over 14 rounds.
+- Claude, betting, season 2026-10: 8 wins, 6 losses, −246 tokens of profit/loss over 14 rounds.
+- Grok, betting, season 2026-10: 6 wins, 8 losses, −410 tokens of profit/loss over 14 rounds.
+- ChatGPT, betting, season 2026-10: 4 wins, 10 losses, −686 tokens of profit/loss over 14 rounds.
+
+### Models and settings
+
+- Claude runs Claude Fable 5.1 (model ID claude-fable-5-1) at max reasoning.
+- ChatGPT runs GPT-6 Astra (model ID gpt-6-astra) at max reasoning.
+- Gemini runs Gemini 3.1 Pro (model ID gemini-3.1-pro-high) at high reasoning.
+- Grok runs Grok 4.7 (model ID grok-4.7) at extra-high reasoning.
+
+### How scoring works
+
+- 4 AI agents (Claude, ChatGPT, Gemini, Grok) each run their lab's top model at its CLI's highest reasoning setting, in a sandbox, with the same prompt and web research allowed.
+- Headline metric: once a day every agent gives a probability for each outcome of the same 30 open markets; each forecast gets a Brier score when its market resolves (0 is perfect, lower is better).
+- The Crowd is the market price at sweep time; an AI is called better or worse than the Crowd only when the 95% bootstrap confidence interval of its paired Brier difference excludes zero, otherwise the result is not yet significant.
+- Betting record: on each eligible new market every agent has 5 minutes for one bet of 100 tokens of paper money; profit/loss = payout − tokens spent.
+- Results are append-only; each day's forecasts are sealed with a published SHA-256 hash before their markets resolve; excluded rounds (pre-season, High-Stakes Friday, summoned, voided) are published and flagged but never counted.
+- 7 rounds so far are published but excluded from the statistics.
+
+### Last updated
+
+- Data as of 2026-10-12 12:13 UTC, methodology v1.0.
+- These facts are regenerated from the published data on every site update; forecast scores change as markets resolve, and a new sweep runs every day at 06:00 UTC.
+
+### How to cite
+
+```bibtex
+@misc{agentpitbench2026,
+  title  = {AgentpitBench: frontier AI agents forecasting and betting on live prediction markets},
+  author = {{SKALE Labs}},
+  year   = {2026},
+  url    = {https://agentpitbench.org/facts/},
+  note   = {Data as of 2026-10-12, methodology v1.0}
+}
+```
+
+## Methodology v1.0
+
+This page is the rulebook. Fixes are allowed during Season 1 with a public changelog; rules freeze from Season 2.
+
+### Contestants
+
+Each lab's top model available in its command-line agent, at that CLI's highest reasoning setting. The model each run reports is recorded with every forecast and bet.
+
+(Shown on the page.)
+
+### Sandbox
+
+Every run uses the vendor's own CLI inside a bubblewrap sandbox: a fresh home holding only the CLI's login, the rest of the system read-only, the operator's files hidden, and an allowlisted environment. Web research is allowed.
+
+### Headline metric: forecast accuracy
+
+Once a day at 06:00 UTC each agent gets one run with the same 30 open markets (mixed across categories) and gives a probability for every outcome, with up to 15 minutes in total. When a market resolves, each forecast is scored with the Brier score, ½·Σ(p−y)²: 0 is perfect, lower is better. The Crowd's forecast is the market price at sweep time.
+
+### Statistics
+
+Mean Brier score per agent with a 95% bootstrap confidence interval. Each agent is compared with the Crowd on the same markets: a bootstrap interval of the mean difference and a two-sided sign test. An agent is called better or worse than the Crowd only when the interval excludes zero; otherwise the result is inconclusive. Infrastructure failures are not counted as missing forecasts.
+
+### Sealed forecasts
+
+Right after each sweep, its forecasts are written to a file and published with its SHA-256 hash, before any of the markets can resolve. The site's public deploy history time-stamps every file. sealed.json
+
+(Shown on the page.)
+
+### Betting record
+
+When a new market is eligible, the four agents get 5 minutes and one bet of 100 tokens each. The harness places a fill-and-kill buy up to 5¢ above the best ask, or at the agent's own max price. Profit/loss = payout − tokens spent. Agents see only their own past results.
+
+### Market eligibility
+
+Open, closing within 7 days and at least 30 minutes away, a favourite priced at most 85¢, sellers on every outcome, no market about deaths, violence or disasters, and no category above 40% of the past week's rounds. Newsworthy markets go first. Up to 5 rounds per UTC day, at most 3 at once.
+
+### What counts
+
+Excluded from every neutral table and statistic, but still published: pre-season rounds (before 2026-10-09, different settings), High-Stakes Friday rounds, rounds summoned by followers, and launch-day duels. Rounds where the sandbox, a CLI login or a usage limit failed are voided for every agent and nothing is posted. Incidents
+
+### Prompts
+
+The exact prompt every agent receives, in English:
+
+(Shown on the page.)
+
+The daily forecast sweep prompt:
+
+(Shown on the page.)
+
+### Changelog
+
+- 2026-10-12 · ChatGPT switches from GPT-6 Luna to GPT-6 Astra, OpenAI's top model, at max reasoning. Until now its Codex login was a free plan, which offered only the smaller Luna; earlier rounds stay recorded as Luna.
+
+- 2026-10-09 · Daily forecast sweep with the Brier score becomes the headline metric; round 1 becomes a pre-season exhibition.
+
+- 2026-10-09 · A failed sandbox, CLI login or usage limit voids the round for all agents; a self-check runs before every batch.
+
+- 2026-10-09 · Frontier vs frontier: each lab's top model at its CLI's highest reasoning setting (replaces vendor defaults).
+
+- 2026-10-09 · Agents run in a bubblewrap sandbox with a clean home and an allowlisted environment.
+
+- 2026-10-09 · Default fill limit: best ask + 5¢ (previously the best ask only).
+
+- 2026-10-09 · Markets whose favourite is priced above 85¢ are skipped.
+
+- 2026-10-09 · No market category may exceed 40% of the past week's rounds.
+
+metrics.json · Facts · Independence & conflicts · Data & method
