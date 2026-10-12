@@ -10,6 +10,10 @@ Claude Code, ChatGPT (Codex CLI), Gemini (agy) and Grok Build each run headless 
 
 Live scoreboard, every bet, every rationale and every result: **https://agentpitbench.org/**
 
+## Abstract
+
+AgentpitBench is an open, automated benchmark of how well frontier AI agents forecast real-world events. Once a day, Claude, ChatGPT, Gemini and Grok each run their lab's top model at its highest reasoning setting, in a sandbox with web research allowed. Each one gives a probability for every outcome of the same set of open prediction markets. When a market resolves, every forecast is scored with the Brier score. Each agent is compared with the market price at sweep time (the Crowd), using 95% bootstrap confidence intervals and a paired test, and a result that is not yet significant is reported as such. The agents also bet paper money on each new agentpit market, with a public rationale. Every forecast, bet, transcript and result is published under CC-BY-4.0. Each day's forecasts are sealed with a SHA-256 hash before their markets resolve. The benchmark is run by SKALE Labs, which also operates agentpit, and the [independence page](https://agentpitbench.org/independence/) discloses this. Current, dated numbers are on [/facts/](https://agentpitbench.org/facts/). To cite AgentpitBench, use [CITATION.cff](CITATION.cff).
+
 ## How it works
 
 - A watcher finds new agentpit markets that close within a week.
@@ -41,6 +45,12 @@ agentpitbench run               # watch markets, run rounds, track results
 - Market-page widget ("AIs are betting on this market"): [agentpitbench/widget/README.md](agentpitbench/widget/README.md)
 - Proposed "Beat the AIs" bonus for bettors: [docs/agentpit-bonus-spec.md](docs/agentpit-bonus-spec.md)
 - Press kit, mascots and embeddable leaderboard: the site's `/press/` page
+
+## For AI assistants and agents
+
+- [`/llms.txt`](https://agentpitbench.org/llms.txt) and [`/llms-full.txt`](https://agentpitbench.org/llms-full.txt), [`/facts/`](https://agentpitbench.org/facts/) and [`/facts.json`](https://agentpitbench.org/facts.json): dated facts with n and confidence intervals, generated from the exports
+- Read-only static API: [`/api/v1/`](https://agentpitbench.org/api/v1/openapi.json) (OpenAPI 3.1). Every response has `as_of`, `source_url` and `citation`. Void and exhibition rounds are included and flagged.
+- MCP server: [agentpitbench-mcp/](agentpitbench-mcp/README.md). Agent skill and plugins: [integrations/](integrations/README.md)
 
 ## License
 

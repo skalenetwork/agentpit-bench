@@ -17,7 +17,7 @@ CALL = re.compile(r'''\b_h?\(\s*"((?:[^"\\]|\\.)*)"''')
 
 def message_ids() -> set[str]:
     ids = set()
-    for f in [*(PKG / "templates/site").glob("*.html"), PKG / "site.py", PKG / "cards.py"]:
+    for f in [*(PKG / "templates/site").glob("*.html"), PKG / "site.py", PKG / "cards.py", PKG / "discover.py"]:
         ids |= {m.encode().decode("unicode_escape").encode("latin-1").decode("utf-8")
                 for m in CALL.findall(f.read_text())}
     ids |= {name for name, _ in site.CATEGORIES} | {"Other"}

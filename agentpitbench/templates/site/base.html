@@ -8,6 +8,7 @@ if(w)location.replace({{ root|tojson }}+w+"/"+{{ rel|tojson }}+location.search+l
 <title>{{ title }}</title>
 <meta name="description" content="{{ _("{vs}, each on its lab's top model at maximum reasoning, bet 100 tokens on live prediction markets. Every bet, rationale and result is public.", vs=vs) }}">
 <link rel="canonical" href="{{ canonical }}">
+{% if jsonld %}<script type="application/ld+json">{{ jsonld|tojson }}</script>{% endif %}
 <link rel="icon" href="{{ root }}favicon.svg" type="image/svg+xml"><link rel="icon" href="{{ root }}favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="{{ root }}apple-touch-icon.png">
 {% for code, nm in langs %}<link rel="alternate" hreflang="{{ code }}" href="{{ base }}/{{ '' if code == 'en' else code ~ '/' }}{{ rel }}">
 {% endfor %}<link rel="alternate" hreflang="x-default" href="{{ base }}/{{ rel }}">
