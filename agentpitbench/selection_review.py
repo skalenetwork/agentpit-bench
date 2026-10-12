@@ -158,10 +158,13 @@ def _auto(s: Settings, db: DB, prop: dict, now: float) -> dict:
     alerts.send(s, db, "info", "selection-auto-apply", f"Methodology v{v}: {key} auto-applied",
                 f"{entry['change']['old']} → {entry['change']['new']} (proposal {prop['id']}; evidence "
                 f"{methodology.change_url(s, v)}). New rounds use it; earlier rounds keep their recorded version.",
-                action=f"methodology.json is now v{v} in the running checkout",
-                resume=f"Commit it so a deploy doesn't undo it: git add agentpitbench/methodology.json && git commit "
-                       f"-m 'Methodology v{v}: {key} {entry['change']['old']} -> {entry['change']['new']} "
-                       f"(automatic weekly review)'. Undo: agentpitbench method revert {v}")
+                action=f"methodology.json is now v{v} in the running (live) checkout, a detached HEAD",
+                resume=f"Carry it to main before the next deploy (a deploy resets the live checkout; the drift "
+                       f"detector would then pause new rounds): copy agentpitbench/methodology.json from the live "
+                       f"checkout into the main checkout, then there: git add agentpitbench/methodology.json && "
+                       f"git commit -m 'Methodology v{v}: {key} {entry['change']['old']} -> "
+                       f"{entry['change']['new']} (automatic weekly review)', then ship. "
+                       f"Undo: agentpitbench method revert {v}")
     return {"summary": f"v{v}: {key} {entry['change']['old']} → {entry['change']['new']} auto-applied "
                        f"(proposal {prop['id']})", "applied": v}
 

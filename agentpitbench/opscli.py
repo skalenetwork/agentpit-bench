@@ -180,8 +180,9 @@ def _method(s: Settings, db: DB, a) -> None:
                   f"evidence: {m.change_url(s, new['version'])}\n"
                   f"  git add agentpitbench/methodology.json\n"
                   f"  git commit -m 'Methodology v{new['version']}: revert v{a.version}'\n"
-                  "Then deploy, or restart the service if this is the live checkout: until the service reloads the "
-                  "lock, the methodology-drift detector holds new rounds (by design).")
+                  "Then deploy, or restart the service if this is the live checkout. Until the service reloads the "
+                  "lock, the methodology-drift detector pauses new rounds (by design); after the restart, clear "
+                  "the pause with `agentpitbench ops resume --rounds`.")
     except m.MethodologyError as e:
         sys.exit(f"refused: {e}")
 

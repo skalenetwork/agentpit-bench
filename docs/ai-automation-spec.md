@@ -422,12 +422,17 @@ the revert command; a refusal sends one too.
 **Revert.** `agentpitbench method revert <version>` (TTY + typed `revert v<version>`) applies the inverse of
 a generated change as a new version with the revert template and its own evidence file. It refuses when the
 key has changed again since. Run in the live checkout, the service keeps its old settings until restarted,
-so the drift detector holds new rounds meanwhile (by design).
+so the drift detector pauses new rounds meanwhile (by design); after the restart the operator runs
+`ops resume --rounds`. Nothing stops a later weekly review from proposing the reverted value again (the rate
+limit counts automatic changes only).
 
 **Deploys.** The service writes `methodology.json` in the live checkout. A deploy that resets the checkout
 without the committed lock would undo the change silently, so `verify(s)` also reports drift when
 `var/methodology-changes/` holds a version newer than the lock ("deployed without committing
-methodology.json?"). Commit the lock (the alert prints the commands) before the next deploy.
+methodology.json?"), which pauses new rounds until the lock is restored and the operator runs `ops resume`.
+The live checkout is a detached HEAD, so the alert says to copy the lock from it into the main checkout,
+commit there, then ship. Until then the main checkout's `test_repo_lock_verifies` fails too (it reads the same
+`var/`), so the ship script refuses to deploy a lock that would undo the change.
 
 ### Enforcement tests
 
