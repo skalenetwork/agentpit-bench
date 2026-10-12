@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 # task -> active prompt version (prompts/<task>.v<N>.md). `rate` is methodology: its version comes from
 # methodology.json (selection.rater.prompt_version), never from here.
 PROMPTS = {"rate": 1, "picks": 1, "summary": 1, "report": 1, "incident": 1, "cadence": 1, "i18n": 1,
-           "proposal": 1, "translate": 1, "ab": 1, "motd_script": 1}
+           "proposal": 1, "translate": 1, "ab": 1, "motd_script": 1, "weekly_episode": 1}
 SYSTEM_PROMPT = "system.v1.md"
 LIGHT_TASKS = {"picks"}
 CHILD_PATH = "/usr/local/bin:/usr/bin:/bin"
@@ -128,7 +128,13 @@ SCHEMAS: dict[str, dict | Callable[[dict], dict]] = {
     # ab.validate checks each candidate
     "ab": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "object"}}},
     "motd_script": lambda payload: _motd_schema(),
+    "weekly_episode": lambda payload: _week_schema(payload),
 }
+
+
+def _week_schema(payload: dict) -> dict:
+    from .week import schema  # Week in the Pit: the host's lines, one per segment present this week
+    return schema(payload)
 
 
 def _motd_schema() -> dict:
@@ -363,7 +369,8 @@ def call(s: Settings, db: DB, task: str, payload: dict, *, subject: str,
                        task, subject, utc_day(start), start, alias, task, version, sha(ptext), sha(stdin))
         timeout = timeout or {"translate": s.opai_translate_timeout_s,
                               "ab": getattr(s, "ab_gen_timeout_s", s.opai_timeout_s),
-                              "motd_script": getattr(s, "opai_motd_timeout_s", 360)}.get(task, s.opai_timeout_s)
+                              "motd_script": getattr(s, "opai_motd_timeout_s", 360),
+                              "weekly_episode": getattr(s, "opai_week_timeout_s", 360)}.get(task, s.opai_timeout_s)
         status, detail, data, model = _run(s, db, task, schema, stdin, alias, config_dir, timeout)
         if status == "ok":
             err = check(data, schema) or (validate(data) if validate else None)

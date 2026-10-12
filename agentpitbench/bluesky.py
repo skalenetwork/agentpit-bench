@@ -33,7 +33,7 @@ VIDEO_MAX = 100_000_000      # lexicon allows 300 MB now; the bench's films are 
 VIDEO_SERVICE = "https://video.bsky.app"
 PUBLIC_APPVIEW = "https://public.api.bsky.app"
 MIRROR_KINDS = {"reveal", "decision", "split", "results", "press", "motd", "motd-link", "milestone", "champion",
-                "race", "awards", "replay"}
+                "race", "awards", "replay", "week", "week-link"}
 # the labs behind the X handles in twitter.VENDOR_HANDLES, used when no verified Bluesky handle is configured
 LAB_NAMES = {"claude": "Anthropic", "codex": "OpenAI", "agy": "Google DeepMind", "grok": "xAI"}
 URL_RE = re.compile(r"https?://[^\s]+")

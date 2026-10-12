@@ -1,0 +1,239 @@
+<!doctype html>
+{#- Week in the Pit: one HOST scene of the weekly episode (docs/week-in-the-pit-spec.md). body.wide (1920x1080) /
+    body.square (1080x1080). Animated by MOTD_JS (data-in / data-fx / data-count / data-cam); the race scenes add
+    their own timeline through window.__extraInit. Every number on screen is code-built from data; the subtitle is
+    the host's line with slots filled. Legibility rule: nothing below 40px. -#}
+{%- set th = sc.theme %}
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&family=Oswald:wght@500;700&display=block" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:{{ w }}px;height:{{ h }}px;overflow:hidden}
+:root{--bg1:{{ th.bg1 }};--bg2:{{ th.bg2 }};--ink:{{ th.ink }};--acc:{{ th.accent }};--panel:{{ th.panel }};
+  --disp:"Bebas Neue",Oswald,"DejaVu Sans Condensed",sans-serif}
+body{background:var(--bg1);color:var(--ink);font-family:Inter,"DejaVu Sans",sans-serif;position:relative;font-size:44px}
+.bg{position:absolute;inset:0;background:radial-gradient(1200px 900px at 50% 25%,rgba(255,207,51,.12) 0%,transparent 60%),linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 100%)}
+.tex{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(115deg,rgba(255,207,51,.05) 0 40px,transparent 40px 140px);z-index:1}
+.top{position:absolute;left:0;right:0;top:26px;display:flex;justify-content:space-between;align-items:center;padding:0 50px;gap:20px;z-index:4}
+.tag{font-family:Oswald,sans-serif;font-weight:700;font-size:40px;letter-spacing:3px;text-transform:uppercase;background:var(--acc);color:var(--bg1);padding:2px 16px;white-space:nowrap}
+.meta{font-family:Oswald,sans-serif;font-size:40px;text-transform:uppercase;white-space:nowrap;opacity:.75}
+.main{position:absolute;left:0;right:0;display:flex;flex-direction:column;justify-content:safe center;align-items:stretch;overflow:hidden;gap:22px;transform-origin:50% 45%;z-index:2}
+body.wide .main{top:100px;bottom:160px;padding:0 100px}
+body.square .main{top:96px;bottom:150px;padding:0 44px;gap:14px}
+.label{font-family:Oswald,sans-serif;font-size:44px;letter-spacing:5px;color:var(--acc);text-transform:uppercase;text-align:center}
+.sub{font-family:Inter,sans-serif;font-weight:700;line-height:1.2;text-align:center;text-wrap:balance;background:rgba(0,0,0,.5);padding:16px 26px;border-radius:6px;align-self:center;max-width:100%}
+body.wide .sub{font-size:50px;max-width:1560px}
+body.square .sub{font-size:42px}
+.big{font-family:var(--disp);text-transform:uppercase;line-height:.98;text-align:center}
+body.wide .big{font-size:150px}
+body.square .big{font-size:112px}
+.mid{font-family:var(--disp);text-transform:uppercase;line-height:1.02;text-align:center}
+body.wide .mid{font-size:84px}
+body.square .mid{font-size:66px}
+.small{font-family:Oswald,sans-serif;font-size:40px;opacity:.8;text-align:center;line-height:1.2}
+.rule{height:6px;background:var(--acc);width:40%;margin:0 auto}
+.troupe{display:flex;justify-content:center;align-items:flex-end;gap:30px}
+.actor{display:flex;flex-direction:column;align-items:center;gap:6px}
+.actor .nm{font-family:var(--disp);font-size:48px;text-transform:uppercase;line-height:1}
+.fact{font-family:Oswald,sans-serif;font-weight:700;line-height:1.12;border:5px solid var(--acc);padding:20px 26px;background:rgba(0,0,0,.45);text-align:center}
+body.wide .fact{font-size:58px}
+body.square .fact{font-size:46px}
+.twlabel{font-family:var(--disp);text-transform:uppercase;color:var(--bg1);background:var(--acc);padding:4px 24px;align-self:center;font-size:76px;line-height:1.05}
+/* race */
+.race{position:relative;width:100%}
+.rrow{position:absolute;left:0;right:0;display:flex;align-items:center}
+.rlab{display:flex;align-items:center;gap:10px;font-family:Oswald,sans-serif;text-transform:uppercase;white-space:nowrap}
+body.wide .rlab{width:330px;font-size:44px}
+body.square .rlab{width:250px;font-size:40px}
+.track{position:relative;flex:1;height:58px}
+.zero{position:absolute;top:-8px;bottom:-8px;width:3px;background:#5d6888}
+.fill{position:absolute;top:0;bottom:0}
+.val{position:absolute;top:2px;font-family:Oswald,sans-serif;font-size:44px;font-weight:700;white-space:nowrap}
+.step{font-family:Oswald,sans-serif;font-size:44px;text-align:center;color:var(--acc)}
+/* awards */
+.grid{display:grid;gap:18px}
+body.wide .grid{grid-template-columns:1fr 1fr}
+body.square .grid{grid-template-columns:1fr}
+.aw{background:var(--panel);border-left:10px solid var(--acc);padding:12px 22px;display:flex;align-items:center;gap:18px}
+.aw .t{font-family:Oswald,sans-serif;font-size:40px;text-transform:uppercase;color:var(--acc);letter-spacing:2px}
+.aw .n{font-family:var(--disp);font-size:58px;line-height:1;text-transform:uppercase}
+.card{align-self:center;background:var(--panel);border:6px solid var(--acc);padding:20px 34px;display:flex;flex-direction:column;align-items:center;gap:10px;max-width:100%}
+.card .t{font-family:var(--disp);font-size:80px;letter-spacing:4px;color:var(--acc);line-height:1;text-transform:uppercase;text-align:center}
+.card .n{font-family:var(--disp);font-size:100px;line-height:1;text-transform:uppercase}
+.card .d{font-family:Oswald,sans-serif;font-size:44px;text-align:center;line-height:1.2}
+/* teaser */
+.mk{background:var(--panel);border:4px solid rgba(255,207,51,.6);padding:12px 22px;display:flex;flex-direction:column;gap:8px}
+.mk .q{font-family:Oswald,sans-serif;font-weight:700;font-size:44px;line-height:1.15}
+.mk .p{display:flex;flex-wrap:wrap;gap:10px 22px;font-family:Oswald,sans-serif;font-size:40px}
+.mk .p b{text-transform:uppercase}
+/* standings */
+.cols{display:flex;gap:50px}
+body.square .cols{flex-direction:column;gap:10px}
+.col{flex:1}
+.col h3{font-family:Oswald,sans-serif;font-size:40px;letter-spacing:2px;text-transform:uppercase;color:var(--acc);font-weight:500}
+.srow{display:flex;justify-content:space-between;align-items:baseline;font-size:44px;padding:2px 0;border-bottom:2px solid rgba(127,127,127,.3)}
+.srow b{font-family:Oswald,sans-serif;text-transform:uppercase}
+.srow .v{font-family:Oswald,sans-serif;font-weight:700}
+.pos{color:#22c55e}.neg{color:#ff5c7a}.zerov{opacity:.6}.dim{opacity:.68}
+.bigurl{font-family:Oswald,sans-serif;font-size:56px;font-weight:700;text-align:center}
+/* credibility strip */
+.foot{position:absolute;left:0;right:0;bottom:0;background:#060912;font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:40px;line-height:1.2;color:#9aa4c4;display:flex;align-items:center;gap:22px;z-index:7}
+body.wide .foot{height:150px;padding:0 50px}
+body.square .foot{height:140px;padding:0 30px}
+.foot .em{flex:0 0 84px;width:84px;height:84px;border-radius:50%;overflow:hidden}
+.foot .em svg{display:block;width:84px;height:84px}
+.foot .lines{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.foot .sig{color:#e6eaf5}
+.foot .url{color:#f4f6fb}
+.foot .one{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trans{position:absolute;inset:0;background:var(--bg1);z-index:5;pointer-events:none}
+</style></head>
+{%- set sq = fmt == 'square' %}
+{%- macro actor(a, size, extra='') -%}
+<div class="actor" {{ extra|safe }}>{{ mascot(a.agent, size) }}<span class="nm" style="color:{{ colors.get(a.agent, '#888')|edge }}">{{ a.name }}</span></div>
+{%- endmacro %}
+<body class="{{ fmt }}">
+<div class="bg"></div><div class="tex"></div>
+<div class="top"><span class="tag">Week in the Pit</span><span class="meta">{{ sc.week }}</span></div>
+<div class="main {{ sc.kind }}" data-cam="push">
+{% if sc.kind == 'w_cold' %}
+  <div class="twlabel" data-in="0.1" data-fx="slam">The twist of the week</div>
+  {% if sc.cast %}<div class="troupe">{% for a in sc.cast %}{{ actor(a, 200 if not sq else 150, 'data-in="' ~ (0.3 + 0.1 * loop.index0) ~ '" data-fx="pop"') }}{% endfor %}</div>{% endif %}
+  <div class="fact" data-in="0.8" data-fx="slam">{{ sc.fact }}</div>
+  <div class="small" data-in="1.2" data-fx="fade">Round {{ sc.round_id }}: “{{ sc.question }}”</div>
+  <div class="sub" data-in="1.5" data-fx="fade">{{ sc.caption }}</div>
+{% elif sc.kind == 'w_title' %}
+  <div class="label" data-in="0" data-fx="fade">{{ sc.span }}</div>
+  <div class="rule" data-in="0.15" data-fx="wipe"></div>
+  <div class="big" data-in="0.25" data-fx="pop">Week in the Pit</div>
+  <div class="mid" style="color:var(--acc)" data-in="0.55" data-fx="up">{{ sc.title }}</div>
+  <div class="rule" data-in="0.7" data-fx="wipe"></div>
+  <div class="sub" data-in="1.0" data-fx="fade">{{ sc.caption }}</div>
+{% elif sc.kind in ('w_race_pnl', 'w_race_fc') %}
+  <div class="mid" data-in="0" data-fx="fade">{{ sc.heading }}</div>
+  <div class="small" data-in="0.1" data-fx="fade">{{ sc.sub }}</div>
+  <div class="step" id="step">{{ sc.labels[-1] if sc.labels else '' }}</div>
+  <div class="race" id="race" style="height:{{ sc.race['keys']|length * (78 if not sq else 66) }}px">
+  {% for k in sc.race['keys'] %}{% set c = sc.race.colors[k] %}
+    <div class="rrow" data-key="{{ k }}" style="top:{{ loop.index0 * (78 if not sq else 66) }}px">
+      <div class="rlab">{{ mascot(k, 52 if not sq else 44) }}<span style="color:{{ '#8a93a8' if k == 'crowd' else c|edge }}">{{ sc.race.names[k] }}</span></div>
+      <div class="track"><div class="zero"></div>
+        <div class="fill" style="{% if k == 'crowd' %}border:4px dashed #8a93a8;background:transparent{% else %}background:{{ c }};{{ c|box_ring }}{% endif %}"></div>
+        <div class="val"></div></div>
+    </div>{% endfor %}
+  </div>
+  <script id="racedata" type="application/json">{{ {'race': sc.race, 'labels': sc.labels, 'row': 78 if not sq else 66}|tojson }}</script>
+  <div class="sub" data-in="0.6" data-fx="fade">{{ sc.caption }}</div>
+{% elif sc.kind == 'w_film' %}
+  <div class="label" data-in="0" data-fx="fade">Film of the week · {{ sc.rank }} of {{ sc.of }}</div>
+  <div class="mid" data-in="0.2" data-fx="pop">{{ sc.film_title }}</div>
+  <div class="small" data-in="0.45" data-fx="fade">Match of the Day · {{ sc.date }} · Round {{ sc.round_id }} · drama score {{ sc.score }}</div>
+  <div class="troupe" data-in="0.6" data-fx="up">{% for a in sc.cast %}{{ actor(a, 130 if not sq else 100) }}{% endfor %}</div>
+  <div class="sub" data-in="0.9" data-fx="fade">{{ sc.caption }}</div>
+{% elif sc.kind == 'w_awards' %}
+  <div class="mid" data-in="0" data-fx="pop">The weekly awards</div>
+  <div class="grid">{% for a in sc.awards %}<div class="aw" data-in="{{ 0.3 + 0.2 * loop.index0 }}" data-fx="up">{{ mascot(a.agent, 80) }}<div><div class="t">{{ a.title }}</div><div class="n" style="color:{{ colors.get(a.agent, '#888')|edge }}">{{ a.name }}</div></div></div>{% endfor %}</div>
+  <div class="sub" data-in="1.2" data-fx="fade">{{ sc.caption }}</div>
+{% elif sc.kind == 'w_award' %}
+  {% set a = sc.award %}
+  <div class="card" data-in="0" data-fx="pop">
+    <div class="t">{{ a.title }}</div>
+    <div data-in="0.2" data-fx="pop">{{ mascot(a.agent, 220 if not sq else 170) }}</div>
+    <div class="n" style="color:{{ colors.get(a.agent, '#888')|edge }}">{{ a.name }}</div>
+    <div class="d" data-in="0.5" data-fx="fade">{{ a.detail }}</div>
+  </div>
+  <div class="sub" data-in="0.9" data-fx="fade">{{ sc.caption }}</div>
+{% elif sc.kind == 'w_human' %}
+  <div class="label" data-in="0" data-fx="fade">Best human of the week</div>
+  <div class="big" style="color:var(--acc);text-transform:none" data-in="0.2" data-fx="slam">@{{ sc.human.handle }}</div>
+  <div class="mid" data-in="0.6" data-fx="up"><span data-count data-in="0.6" data-cd="1.0" data-to="{{ sc.human.wins }}" data-fmt="int">{{ sc.human.wins }}</span> of {{ sc.human.picks }} picks right</div>
+  <div class="small" data-in="0.9" data-fx="fade">Picked by replying to our round reveal posts on X</div>
+  <div class="sub" data-in="1.2" data-fx="fade">{{ sc.caption }}</div>
+{% elif sc.kind == 'w_teaser' %}
+  <div class="mid" data-in="0" data-fx="pop">Riding into next week</div>
+  {% for m in sc.markets %}<div class="mk" data-in="{{ 0.3 + 0.25 * loop.index0 }}" data-fx="up">
+    <div class="q">{{ m.question }}{% if m.close %} <span class="dim" style="font-weight:400">· closes {{ m.close }}</span>{% endif %}</div>
+    <div class="p">{% for e in m.picks %}<span><b style="color:{{ colors.get(e.agent, '#888')|edge }}">{{ e.name }}</b> {{ e.outcome or 'no bet' }}</span>{% endfor %}</div>
+  </div>{% endfor %}
+  <div class="sub" data-in="1.2" data-fx="fade">{{ sc.caption }}</div>
+{% elif sc.kind == 'w_signoff' %}
+  {% set stn = sc.standings %}
+  <div class="label" data-in="0" data-fx="fade">Season {{ stn.season }} standings{% if sc.asof %} · {{ sc.asof }}{% endif %}</div>
+  <div class="cols">
+    {% if stn.forecast %}<div class="col" data-in="0.3"><h3>Forecast accuracy (Brier, lower is better)</h3>
+      {% for a in stn.forecast %}<div class="srow"><b style="color:{{ colors.get(a.agent, '#888')|edge }}">{{ a.name }}</b><span class="v">{{ '%.3f'|format(a.brier) }} <span class="dim" style="font-weight:400">n={{ a.n }}</span></span></div>{% endfor %}
+      {% if stn.crowd_brier is not none %}<div class="srow"><b class="dim">The Crowd</b><span class="v dim">{{ '%.3f'|format(stn.crowd_brier) }}</span></div>{% endif %}</div>{% endif %}
+    {% if not sq or not stn.forecast %}<div class="col" data-in="0.6"><h3>Betting record</h3>
+      {% for a in stn.betting %}<div class="srow"><b style="color:{{ colors.get(a.agent, '#888')|edge }}">{{ a.name }}</b><span class="v">{{ a.wins }}–{{ a.losses }} <span class="{{ 'pos' if a.net > 0 else 'neg' if a.net < 0 else 'zerov' }}">{{ a.net|signed }}</span></span></div>{% endfor %}</div>{% endif %}
+  </div>
+  <div class="bigurl" data-in="0.9">{{ sc.site }}</div>
+  <div class="sub" data-in="1.1" data-fx="fade">{{ sc.caption }}</div>
+{% elif sc.kind == 'w_end' %}
+  <div class="big" data-in="0" data-fx="pop">Week in the Pit</div>
+  <div class="mid" style="color:var(--acc)" data-in="0.3" data-fx="up">{{ sc.week }}</div>
+  <div class="sub" data-in="0.6" data-fx="fade">{{ sc.caption }}</div>
+  <div class="small" data-in="0.9" data-fx="fade">Also on YouTube · every pick, price and transcript on the site</div>
+{% endif %}
+</div>
+{% if idx > 0 %}<div class="trans" data-trans="fade"></div>{% endif %}
+<div class="foot"><span class="em">{{ emblem(84, True) }}</span><div class="lines">
+  {% if sig_line %}<div class="sig one">{{ sig_line }}</div>{% endif %}
+  <div class="one">{{ [model, 'Methodology v' ~ mver]|select|join(' · ') }}{% if not sq %} · <span class="url">{{ url }}</span>{% endif %}</div>
+  {% if sq %}<div class="url one">{{ url }}</div>{% endif %}
+</div></div>
+<script>
+window.__extraInit = function () {
+  const el = document.getElementById('racedata');
+  if (!el) return;
+  const R = JSON.parse(el.textContent), race = R.race, keys = race.keys, steps = race.steps, n = steps.length;
+  const brier = race.fmt === 'brier';
+  const base = window.__motd, baseDur = window.__motdDur;
+  let D = 10;
+  window.__motdDur = d => { D = d; baseDur(d); };
+  window.__motdEnd = () => D;   // the race moves for the whole scene
+  const all = steps.flatMap(st => keys.map(k => st[k])).filter(v => v !== null && v !== undefined);
+  const lo = brier ? 0 : Math.min(0, ...all), hi = Math.max(brier ? 0.01 : 0, ...all), span = (hi - lo) || 1;
+  const zero = brier ? 2 : 2 + (-lo) / span * 76;
+  const rankAt = i => {
+    const st = steps[i];
+    const order = keys.slice().sort((a, b) => {
+      const va = st[a], vb = st[b];
+      if (va === null || va === undefined) return 1;
+      if (vb === null || vb === undefined) return -1;
+      return brier ? va - vb : vb - va;
+    });
+    const r = {}; order.forEach((k, j) => { r[k] = j; }); return r;
+  };
+  const ranks = steps.map((_, i) => rankAt(i));
+  const fmtv = v => v === null || v === undefined ? '—' : brier ? v.toFixed(3) :
+    (v >= 0 ? '+' : '−') + Math.round(Math.abs(v)).toLocaleString('en-US');
+  const ease = x => x <= 0 ? 0 : x >= 1 ? 1 : x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+  function race_(t) {
+    const t0 = 0.8, t1 = Math.max(t0 + 1, D - 2.5);
+    const p = n <= 1 ? 1 : Math.max(0, Math.min(1, (t - t0) / (t1 - t0)));
+    const x = p * (n - 1), i = Math.min(Math.max(0, n - 2), Math.floor(x)), f = n <= 1 ? 0 : ease(x - i);
+    const j = Math.min(n - 1, i + 1);
+    document.querySelectorAll('.rrow').forEach(row => {
+      const k = row.dataset.key, a = steps[i][k], b = steps[j][k];
+      const v = (a === null || a === undefined) ? b : (b === null || b === undefined) ? a : a + (b - a) * f;
+      const y = (ranks[i][k] + (ranks[j][k] - ranks[i][k]) * f) * R.row;
+      row.style.top = y + 'px';
+      const fill = row.querySelector('.fill'), val = row.querySelector('.val'), z = row.querySelector('.zero');
+      z.style.left = zero + '%';
+      if (v === null || v === undefined) { fill.style.width = '0'; val.textContent = 'no forecasts'; val.style.left = (zero + 1) + '%'; return; }
+      const w = Math.abs(v) / span * 76, left = brier || v >= 0 ? zero : zero - w;
+      fill.style.left = left + '%'; fill.style.width = w + '%';
+      val.style.left = (brier || v >= 0 ? left + w + 1 : Math.max(0, left - 14)) + '%';
+      val.style.color = brier ? '#e6eaf5' : (v >= 0 ? '#22c55e' : '#ff5c7a');
+      val.textContent = fmtv(v);
+    });
+    const labs = R.labels || [];
+    const s = document.getElementById('step');
+    if (s && labs.length) s.textContent = brier ? labs[Math.min(labs.length - 1, Math.round(x))] :
+      (Math.round(x) === 0 ? 'Start of the week' : labs[Math.min(labs.length - 1, Math.round(x) - 1)]);
+  }
+  window.__motd = t => { base(t); race_(t); };
+};
+</script>
+</body></html>

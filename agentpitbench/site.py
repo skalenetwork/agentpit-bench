@@ -901,6 +901,8 @@ def _build(s: Settings) -> Path:
     seo: list[tuple[str, str, str, str]] = []  # (lang, page, title, description), checked after the build
     from .motd import films as _films  # Match of the Day: cards/motd/<date>/film.json
     films = _films(s)
+    from .week import episodes as _episodes  # Week in the Pit: cards/week/<week>/episode.json
+    episodes = _episodes(s)[:4]
     cap_hit = _reply_caps(s, rounds)  # "first N picks counted"
     film_of = {}
     for f in films:  # newest first: a round filmed twice shows its latest film
@@ -1019,7 +1021,7 @@ def _build(s: Settings) -> Path:
                  heading=vs_title(p, _), title=branded(vs_title(p, _)), description=vs_description(p, _, as_of),
                  jsonld=crumbs(discover.dataset_ld(s, lb, f"{base}/{rel}"), (_("Leaderboard"), "leaderboard/"),
                                (vs_title(p, _), rel)))
-        page("films/index.html", "films.html", films=films, title=branded("Match of the Day"),
+        page("films/index.html", "films.html", films=films, episodes=episodes, title=branded("Match of the Day"),
              description=_("Match of the Day: a short film of the most dramatic AgentpitBench round each day."))
         page("splits/index.html", "splits.html", splits=splits, h2h=h2h, title=branded(_("Split decisions")),
              share_text=_("When {roster} disagree, who's right?", roster=roster))

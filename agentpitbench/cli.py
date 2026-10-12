@@ -72,7 +72,7 @@ def youtube_task(s: config.Settings, db: DB, client=None):
     """The YouTube Shorts cycle (docs/youtube-shorts-spec.md §8), or None unless youtube_enabled and motd_enabled.
     A separate loop (never inside motd.daily), run in a thread, so a slow upload can't delay X, rounds or the
     scheduler. Without a token it still runs in dry-run (outbox) mode, and otherwise logs once and idles."""
-    if not (s.youtube_enabled and s.motd_enabled):
+    if not (s.youtube_enabled and (s.motd_enabled or s.week_episode_enabled)):
         return None
     from . import youtube, ytstats
 
@@ -235,6 +235,14 @@ async def run_forever(s: config.Settings) -> None:
         if await motd.daily(s, db, pub.cards, pub.poster):
             pub.site.request()
 
+    async def week_in_the_pit():
+        """Hourly; does nothing unless week_episode_enabled: Sundays, the weekly episode (docs/week-in-the-pit-spec.md)."""
+        if not s.week_episode_enabled or not hasattr(pub, "cards"):
+            return
+        from . import week
+        if await week.weekly(s, db, pub.cards, pub.poster):
+            pub.site.request()
+
     if engage is not None:
         await engage.cache_wallets()
     stop = asyncio.Event()
@@ -251,6 +259,7 @@ async def run_forever(s: config.Settings) -> None:
         asyncio.create_task(_every(3600, scheduled, "scheduled")),
         asyncio.create_task(_every(1800, daily_sweep, "sweep")),
         asyncio.create_task(_every(3600, match_of_the_day, "match of the day")),
+        asyncio.create_task(_every(1800, week_in_the_pit, "week in the pit")),
         asyncio.create_task(_every(s.resolution_check_s, score_forecasts, "forecast scoring")),
         asyncio.create_task(_every(300, lambda: ops_tick(s, db), "anomalies")),  # also runs once at startup
     ]
@@ -330,6 +339,22 @@ async def motd_render(s: config.Settings, day: str | None, round_id: int | None,
     finally:
         await cards.close()
     print(json.dumps(rec, indent=1) if rec else f"no film for {day} (quiet day or round not eligible)")
+
+
+async def week_render(s: config.Settings, wk: str | None, out: str | None, writer: bool,
+                      voice_lines: int | None, now: float | None = None, days: list[str] | None = None) -> None:
+    """Render a Week in the Pit episode for review (docs/week-in-the-pit-spec.md). Never posts or uploads."""
+    from . import week
+    from .cards import CardRenderer
+    db = DB(s.db_path)
+    wk = wk or week.iso_week(now or time.time())
+    cards = CardRenderer(s)
+    try:
+        rec = await week.make_episode(s, db, cards, wk, out_dir=out, writer=writer, voice_lines=voice_lines,
+                                      now=now, days=days)
+    finally:
+        await cards.close()
+    print(json.dumps(rec, indent=1, ensure_ascii=False) if rec else f"no episode for {wk} (no rounds or films)")
 
 
 async def check(s: config.Settings) -> None:
@@ -629,6 +654,16 @@ def main(argv: list[str] | None = None) -> None:
     mo.add_argument("--date", help="film date YYYY-MM-DD (covers rounds resolved the day before; default today UTC)")
     mo.add_argument("--round", type=int, help="film this round instead of the day's pick")
     mo.add_argument("--out", help="output directory (default: cards/motd/<date>/)")
+    wk = sub.add_parser("week", help="render a Week in the Pit episode (16:9, 1:1 and the trailer) for review; "
+                                     "never posts")
+    wk.add_argument("--week", help="ISO week YYYY-Www (default: this week so far)")
+    wk.add_argument("--out", help="output directory (default: cards/week/<week>/)")
+    wk.add_argument("--no-writer", action="store_true", help="templated host lines (no opai call)")
+    wk.add_argument("--voice-lines", type=int, default=None,
+                    help="narrate at most this many uncached host lines (sample renders); default: all in budget")
+    wk.add_argument("--film-days", help="comma-separated film dates to pick the top films from (default: the "
+                                        "episode's own: the Sunday before the week through its Saturday)")
+    wk.add_argument("--now", help="render as of this UTC time (ISO), e.g. a past week's Sunday evening")
     xc = sub.add_parser("x-check", help="refresh the X OAuth 2.0 token, show scopes and account (never tweets)")
     xc.add_argument("--upload", action="store_true", help="also upload a tiny test image (not attached to a tweet)")
     xm = sub.add_parser("x-metrics", help="run one X metrics pull now (billed reads, within the daily budget)")
@@ -708,6 +743,10 @@ def main(argv: list[str] | None = None) -> None:
         asyncio.run(motd_post(s, a.film))
     elif a.cmd == "motd":
         asyncio.run(motd_render(s, a.date, a.round, a.out))
+    elif a.cmd == "week":
+        asyncio.run(week_render(s, a.week, a.out, not a.no_writer, a.voice_lines,
+                                datetime.fromisoformat(a.now).replace(tzinfo=timezone.utc).timestamp() if a.now else None,
+                                a.film_days.split(",") if a.film_days else None))
     elif a.cmd == "x-login":
         x_login(s, a.url, a.redirect_uri)
     elif a.cmd == "x-check":

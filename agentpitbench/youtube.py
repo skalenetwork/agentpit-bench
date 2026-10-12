@@ -542,19 +542,21 @@ def _range_end(r) -> int | None:
 
 
 def upload(s: Settings, db, client: Client | None, rec: dict, film_dir: Path, rnd: dict | None = None,
-           manual: bool = False, max_tries: int = 3) -> dict:
+           manual: bool = False, max_tries: int = 3, key: str | None = None, file_key: str = "tall",
+           resource: dict | None = None) -> dict:
     """Upload one film (idempotent per post_key). Returns the yt_videos row. Pause and dry-run never touch the
-    network. A failed or paused row is only retried by hand (`manual`)."""
-    key = post_key(rec["date"])
+    network. A failed or paused row is only retried by hand (`manual`). The weekly episode passes its own key
+    (week-<week>), file (the 16:9 cut: a regular video, not a Short) and resource (week.yt_resource)."""
+    key = key or post_key(rec["date"])
     cur = row(db, key)
     if cur and cur.get("video_id"):
         return cur
     if cur and cur["state"] in ("failed", "paused", "outbox", "rejected", "hidden") and not manual:
         return cur
-    path = Path(film_dir) / ((rec.get("files") or {}).get("tall") or "")
+    path = Path(film_dir) / ((rec.get("files") or {}).get(file_key) or "")
     if not path.is_file():
-        raise YouTubeError(f"{key}: no 9:16 film file at {path}")
-    resource = video_resource(s, rec, rnd)
+        raise YouTubeError(f"{key}: no {file_key} video file at {path}")
+    resource = resource or video_resource(s, rec, rnd)
     if not cur:
         db.x("INSERT INTO yt_videos(post_key, round_id, file, title, privacy_requested, state) VALUES(?,?,?,?,?,?)",
              key, rec.get("round_id"), str(path), resource["snippet"]["title"], s.youtube_privacy, "uploading")

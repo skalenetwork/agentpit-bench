@@ -53,7 +53,7 @@ SLOTS: dict[str, dict] = {
 }
 GENERATED = [k for k, v in SLOTS.items() if v["kind"] != "code"]
 GENERIC_KINDS = {"milestone", "race", "awards", "contrarian", "report", "champion", "model", "duel", "replay",
-                 "summon", "movie", "motd"}
+                 "summon", "movie", "motd", "week"}
 DROP_ORDER = ["tags", "reveal.cta", "results.cta", "generic.cta", "press.head", "reveal.hook", "results.hook"]
 CONTROL_TEXT = {"press.head": "Post-match statements:", "site.round_cta": "Bet against the AIs →"}
 

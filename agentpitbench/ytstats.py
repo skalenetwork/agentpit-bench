@@ -55,6 +55,26 @@ def film_candidates(s: Settings, now: float) -> list[tuple[dict, object]]:
     return out
 
 
+def episode_candidates(s: Settings, now: float) -> list[tuple[dict, object]]:
+    """Week in the Pit (docs/week-in-the-pit-spec.md): this and last ISO week's episode.json, once its post time has
+    come (the 16:9 cut, a regular video). Only with week_episode_enabled; never older (no backfill)."""
+    if not getattr(s, "week_episode_enabled", False):
+        return []
+    from .week import episode_dir, iso_week
+    out = []
+    for d in (0, 7):
+        f = episode_dir(s, iso_week(now - d * 86400)) / "episode.json"
+        if f.exists():
+            try:
+                rec = json.loads(f.read_text())
+            except (OSError, ValueError):
+                log.warning("yt: unreadable %s", f)
+                continue
+            if now >= (rec.get("post_after") or 0) and (rec.get("files") or {}).get("wide"):
+                out.append((rec, f.parent))
+    return out
+
+
 def round_export(s: Settings, db, round_id: int) -> dict | None:
     from . import exports
     r = db.round(round_id)
@@ -76,6 +96,20 @@ def pull_due(s: Settings, db, client, now: float | None = None) -> dict:
             out["uploaded"].append({key: r["state"]})
         except youtube.ChannelMismatch:
             pass  # logged at ERROR by the guard; no row change, retried next cycle once the config is fixed
+        except Exception as e:
+            log.exception("yt %s: upload step failed", key)
+            out["uploaded"].append({key: f"error: {e}"})
+    for rec, d in episode_candidates(s, now):
+        key = f"week-{rec['week']}"
+        cur = youtube.row(db, key)
+        if cur and cur["state"] != "uploading":
+            continue
+        try:
+            from . import week
+            r = youtube.upload(s, db, client, rec, d, key=key, file_key="wide", resource=week.yt_resource(s, rec))
+            out["uploaded"].append({key: r["state"]})
+        except youtube.ChannelMismatch:
+            pass
         except Exception as e:
             log.exception("yt %s: upload step failed", key)
             out["uploaded"].append({key: f"error: {e}"})
@@ -123,11 +157,17 @@ def _poll(s: Settings, db, client, now: float, out: dict) -> None:
         if r.get("state") == "rejected" or r["published_at"] is None or r["upload_status"] != "processed":
             continue
         if s.youtube_comment and not r["comment_id"] and not s.posting_paused:
-            from .motd import film_dir
-            fj = film_dir(s, r["post_key"][len("motd-"):]) / "film.json"
-            rec = json.loads(fj.read_text()) if fj.exists() else {"round_id": r["round_id"], "date": r["post_key"][5:]}
+            if r["post_key"].startswith("week-"):  # the weekly episode: its own comment
+                from .week import yt_comment
+                text = yt_comment(s, {"week": r["post_key"][len("week-"):]})
+            else:
+                from .motd import film_dir
+                fj = film_dir(s, r["post_key"][len("motd-"):]) / "film.json"
+                rec = (json.loads(fj.read_text()) if fj.exists()
+                       else {"round_id": r["round_id"], "date": r["post_key"][5:]})
+                text = youtube.comment_text(s, rec)
             try:
-                cid = client.comment(r["video_id"], youtube.comment_text(s, rec))
+                cid = client.comment(r["video_id"], text)
                 out["comments"] += 1
             except youtube.YouTubeError as e:
                 if e.status is None or e.status >= 500:

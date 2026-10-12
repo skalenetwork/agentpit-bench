@@ -62,6 +62,17 @@ class Settings:
     opai_motd_timeout_s: int = 360          # a script call takes 1.5-3 min
     motd_narrator: bool = True        # ElevenLabs narrator when ELEVENLABS_API_KEY is set; false = captions only
     motd_music: bool = True           # the CC0 music bed (static/motd/theme.m4a); false = silent films
+    # Week in the Pit (docs/week-in-the-pit-spec.md): the ~5-minute narrated weekly episode, Sundays. Off until the
+    # first episode is reviewed; gates the writer, the render and every post and upload.
+    week_episode_enabled: bool = False
+    week_episode_weekday: int = 6           # 0 = Monday ... 6 = Sunday (UTC)
+    week_episode_prep_hour_utc: int = 14    # from this hour: the writer (idle windows only), then the render
+    week_episode_hour_utc: int = 18         # from this hour: the post (after that week's race/awards post)
+    week_episode_fps: int = 15
+    week_episode_credit_budget: int = 4000  # ElevenLabs credits per episode for the host's uncached lines
+    week_episode_calls_per_week: int = 1    # opai weekly_episode calls per ISO week (no retry: templated lines)
+    opai_model_weekly_episode: str = "fable"
+    opai_week_timeout_s: int = 360
     sandbox: bool = True             # run agents inside bubblewrap (bwrap); never disable in production
     # independent-standard layer
     methodology_version: str = "1.0"
@@ -140,7 +151,7 @@ class Settings:
     # operator AI ("opai", docs/ai-automation-spec.md): never a contestant, never on a round's critical path
     opai_enabled: bool = False          # master switch; false = every task uses its rule-based fallback
     opai_tasks: list[str] = field(default_factory=lambda: ["rate", "picks", "summary", "incident", "i18n",
-                                                           "translate", "motd_script"])
+                                                           "translate", "motd_script", "weekly_episode"])
     opai_config_dir: str = "~/.config/agentpitbench/opai-claude"   # CLAUDE_CONFIG_DIR of opai's own login
     opai_model: str = "sonnet"
     opai_model_light: str = "haiku"     # picks
@@ -151,7 +162,8 @@ class Settings:
     # i18n: fill makes one call per non-English site language (39), so a new id fits in one day
     opai_task_budget: dict = field(default_factory=lambda: {
         "rate": 24, "picks": 12, "summary": 12, "incident": 4, "cadence": 1, "report": 2, "i18n": 40,
-        "proposal": 1, "ab": 2, "translate": 10, "motd_script": 3})  # motd: one film a day, one retry, one spare
+        "proposal": 1, "ab": 2, "translate": 10, "motd_script": 3,   # motd: one film a day, one retry, one spare
+        "weekly_episode": 1})  # Week in the Pit: one call a week (also capped per ISO week in week.py)
     opai_backoff_s: int = 21600
     opai_sweep_guard_min: int = 30
     opai_rate_batch: int = 40
@@ -220,6 +232,9 @@ def load(path: str | Path = "bench.toml") -> Settings:
         data["data_dir"] = Path(data["data_dir"])
     if "x_read_prices" in data:  # a partial [x_read_prices] table overrides only the prices it names
         data["x_read_prices"] = {**Settings().x_read_prices, **data["x_read_prices"]}
+    if "opai_task_budget" in data:  # a partial [opai_task_budget] table overrides only the tasks it names, so a
+        # task added in code (motd_script, weekly_episode) is not silently budgeted at 0 by an older bench.toml
+        data["opai_task_budget"] = {**Settings().opai_task_budget, **data["opai_task_budget"]}
     if "youtube_unit_costs" in data:
         data["youtube_unit_costs"] = {**Settings().youtube_unit_costs, **data["youtube_unit_costs"]}
     s = Settings(**data)

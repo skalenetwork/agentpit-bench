@@ -597,8 +597,10 @@ class CardRenderer:
             page = await browser.new_page(viewport={"width": width, "height": height}, device_scale_factor=1)
         try:
             for i, sc in enumerate(scenes):
-                strip = self._strip(f"round/{sc['round_id']}", sc.get("agent"))
-                tpl = env.get_template("motd_story.html" if sc["kind"].startswith("s_") else "motd.html")
+                strip = self._strip(sc.get("url_path") or f"round/{sc['round_id']}", sc.get("agent"))
+                # w_: a Week in the Pit host scene (docs/week-in-the-pit-spec.md); s_: a scripted film scene
+                tpl = env.get_template("week.html" if sc["kind"].startswith("w_") else
+                                       "motd_story.html" if sc["kind"].startswith("s_") else "motd.html")
                 html = tpl.render(sc=sc, fmt=fmt, w=width, h=height, idx=i, count=len(scenes),
                                   colors=AGENT_COLORS, names=AGENT_NAMES, **strip,
                                   sig_line=sc.get("sig") or strip["sig"],
@@ -608,6 +610,8 @@ class CardRenderer:
                     await page.set_content(html, wait_until="load")
                     await page.evaluate("document.fonts && document.fonts.ready")
                     await page.add_script_tag(content=MOTD_JS)
+                    # a template may extend the timeline (the episode's race bars): it wraps __motd / __motdEnd
+                    await page.evaluate("window.__extraInit && window.__extraInit()")
                     await page.evaluate("d => window.__motdDur(d)", sc["dur"])
                     end = await page.evaluate("window.__motdEnd()")
                     moving = min(total - 1, int(end * fps) + 1)
