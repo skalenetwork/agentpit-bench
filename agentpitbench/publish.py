@@ -144,6 +144,9 @@ class BenchPublisher:
         bsky = getattr(self.poster, "bsky", None)
         if bsky is not None and bsky.enabled:
             await bsky.delete_round(round_id)
+        tg = getattr(self.poster, "tg", None)
+        if tg is not None and tg.enabled:
+            await tg.delete_round(round_id)
         self.db.x("UPDATE bets SET tweet_id=NULL WHERE run_id IN (SELECT run_id FROM runs WHERE round_id=?)", round_id)
         self.db.set_round(round_id, thread_tweet_id=None)
         await self._hide_youtube(round_id)
