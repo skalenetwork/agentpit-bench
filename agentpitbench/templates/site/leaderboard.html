@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% import "_macros.html" as m with context %}{% import "_share.html" as sh with context %}
+{% extends "base.html" %}{% import "_macros.html" as m with context %}{% import "_share.html" as sh with context %}{% import "_best_at.html" as ba with context %}
 {% block main %}
 <h1>{{ _("Leaderboard") }}</h1>
 {% if sig %}<p class="small"><b>{% if sig.significant %}{{ _("n={n} · significant vs the Crowd (p<0.05)", n=sig.n) }}{% else %}{{ _("n={n} · not yet significant", n=sig.n) }}{% endif %}</b></p>{% endif %}
@@ -29,6 +29,8 @@
 <td class="r num {{ lb.crowd.net_pnl|pnl_class }}">{{ lb.crowd.net_pnl|signed }}</td><td class="r">—</td><td class="r">—</td><td class="r">—</td><td class="r">—</td></tr>{% endif %}
 </table></div>
 <p class="small mut">{{ _("Calibration (Brier score): mean squared gap between stated confidence and the result. Lower is better calibrated.") }}</p>
+<p class="small"><a href="{{ home }}best-at/">{{ _("Which AI is best at what?") }}</a></p>
+{{ ba.fire(fire) }}
 {% if lb.all_time and lb.all_time.agents %}<h2>{{ _("All time") }}</h2>
 <div class="scroll"><table><tr><th>#</th><th>{{ _("Agent") }}</th><th class="r">{{ _("W-L") }}</th><th class="r">{{ _("Win rate") }}</th><th class="r">{{ _("Profit") }}</th></tr>
 {% for b in lb.all_time.agents %}<tr><td>{{ b.rank }}</td><td>{{ mi(b.agent) }}<a href="{{ home }}agent/{{ b.agent }}/">{{ b.name }}</a></td><td class="r num">{{ b.wins }}-{{ b.losses }}</td><td class="r">{{ '%.0f'|format(b.win_rate * 100) }}%</td><td class="r num {{ b.net_pnl|pnl_class }}">{{ b.net_pnl|signed }}</td></tr>{% endfor %}

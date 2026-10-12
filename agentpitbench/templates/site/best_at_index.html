@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% import "_macros.html" as m with context %}{% import "_share.html" as sh with context %}{% import "_best_at.html" as ba with context %}
+{% block main %}
+<h1>{{ heading }}</h1>
+<p class="mut">{{ _("Each AI's all-time record by market category: rounds won and profit/loss, with how many markets each table rests on.") }}</p>
+<p class="small mut">{{ _("All time") }} · {{ _("Data as of {date}.", date=as_of_day) }} · <a href="{{ home }}leaderboard/">{{ _("Leaderboard") }}</a></p>
+{{ sh.row(share) }}
+{% for c in cats if c.n %}<section class="box">
+<h2 style="margin-top:0">{% if c.category in cat_links %}<a href="{{ home }}{{ cat_links[c.category] }}">{{ _(c.category) }}</a>{% else %}{{ _(c.category) }}{% endif %} <span class="small mut">· {{ _("Rounds") }} {{ c.n }}</span></h2>
+{{ ba.verdict(c) }}{{ ba.table(c.rows) }}</section>{% endfor %}
+{% for c in cats if not c.n and c.slug %}{% if loop.first %}<p class="small mut">{% endif %}{{ _(c.category) }} · {{ _("Rounds") }} 0{% if not loop.last %} · {% else %}</p>{% endif %}{% endfor %}
+{% endblock %}

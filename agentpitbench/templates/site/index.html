@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% import "_macros.html" as m with context %}{% import "_share.html" as sh with context %}
+{% extends "base.html" %}{% import "_macros.html" as m with context %}{% import "_share.html" as sh with context %}{% import "_best_at.html" as ba with context %}
 {% block main %}
 <h1>{{ _("Which AI is smartest with money?") }}</h1>
 <p class="mut">{{ _("{roster} each get 5 minutes and 100 tokens to bet on every new agentpit market. Frontier vs frontier: each lab's top model at maximum reasoning, same prompt, no help.", roster=roster) }}</p>
@@ -13,6 +13,7 @@
 <span class="small">{{ _("Brier {x} vs {y} on {n} markets", x='%.3f'|format(p.a_brier), y='%.3f'|format(p.b_brier), n=p.n) }} · {% if p.verdict == 'a better' %}{{ _("{name} ahead", name=an) }}{% elif p.verdict == 'b better' %}{{ _("{name} ahead", name=bn) }}{% else %}{{ _("too close to call") }}{% endif %}</span></a>{% endfor %}
 <p class="small"><a href="{{ home }}vs/">{{ _("All head-to-heads") }}</a></p></section>{% endif %}
 </div>{% endif %}
+{{ ba.fire(fire) }}
 <style>.newrow{margin:6px 0 12px}.tag.new{background:#D97757;color:#fff}.today{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;margin:4px 0 18px}.today.one{grid-template-columns:minmax(0,1fr)}
 .today h2{margin:0 0 8px;font-size:16px}.today video{width:100%;height:auto;display:block;background:#0b1020}.today p{margin:6px 0 0}
 .pair{display:block;text-decoration:none;background:var(--card);border:1px solid var(--line);padding:8px 12px;margin-bottom:6px}.pair:hover b{text-decoration:underline}.pair span{display:block;color:var(--mut)}

@@ -50,13 +50,18 @@
 <p class="small mut">{{ _("Picks made here stay on this device and are just for fun. To count on the public humans leaderboard, reply on X before the market closes.") }}</p>
 
 <section data-hist hidden><h2>{{ _("Your challenges") }}</h2><ul class="ch-hist" data-hist-list></ul></section>
+<section data-rec hidden aria-labelledby="ch-rec"><h2 id="ch-rec">{{ _("Your record vs the AIs") }}</h2>
+<p class="small mut">{{ _("Green: you beat it. Red: it beat you. Yellow: same result.") }}</p>
+<ul class="ch-rows" data-rec-list></ul>
+<div class="btns"><button type="button" class="btn cta" data-rec-share hidden>{{ _("Share image") }}</button><a class="btn" href="#" download="agentpitbench-my-record.png" data-rec-save>{{ _("Save image") }}</a></div></section>
 </div>
 {% if picks %}{{ m.share_script() }}{% endif %}
 <script type="application/json" id="ch-data">{{ ch|tojson }}</script>
 <script>(function(){
 var T={{ {"pick": _("Your pick: {pick}"), "beat": _("You beat {n} of {m} AIs"), "share": _("I beat {n} of {m} AIs in the AgentpitBench challenge"),
-"stats": _("Streak {s} · played {n} · right {r} · best streak {b}"), "you": _("You"), "nobet": _("no bet"), "right": _("Right"), "wrong": _("Wrong")}|tojson }},
-WIN={{ _("Resolved <b>{winner}</b>.")|tojson }},PAGE={{ canonical|tojson }},DATA={{ root|tojson }}+"data/challenge.json",K="apb-challenge";
+"stats": _("Streak {s} · played {n} · right {r} · best streak {b}"), "you": _("You"), "rec": _("Your record vs the AIs"), "tally": _("won {w} · lost {l} · tied {d}"), "nobet": _("no bet"), "right": _("Right"), "wrong": _("Wrong")}|tojson }},
+WIN={{ _("Resolved <b>{winner}</b>.")|tojson }},PAGE={{ canonical|tojson }},DATA={{ root|tojson }}+"data/challenge.json",K="apb-challenge",
+AG={{ s.agents|tojson }},NM={{ names|tojson }},COL={{ colors|tojson }};
 var D=[];try{D=JSON.parse(document.getElementById("ch-data").textContent)}catch(e){}
 var S={};try{S=JSON.parse(localStorage.getItem(K))||{}}catch(e){}S.picks=S.picks||{};S.res=S.res||{};
 function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
@@ -67,7 +72,7 @@ function txt(el,s){if(el)el.textContent=s}
 function li(s){var l=document.createElement("li");l.textContent=s;return l}
 function open(c){var e=Date.parse(c.end_date||"");return(c.state==="running"||c.state==="awaiting_resolution")&&!(e&&Date.now()>=e)}
 function verdict(c,p){var ok=p===c.winner,g="",n=0,rows=[];c.ais.forEach(function(a){var w=!!a.won,q=ok&&!w?"🟩":(!ok&&w?"🟥":"🟨");if(q==="🟩")n++;g+=q;
-rows.push(q+" "+iso(a.name)+": "+(a.outcome?loc(c,a.outcome):T.nobet))});return{d:c.date,r:c.round_id,q:c.q_local,p:loc(c,p),ok:ok,g:g,n:n,m:c.ais.length,w:loc(c,c.winner),rows:rows}}
+rows.push(q+" "+iso(a.name)+": "+(a.outcome?loc(c,a.outcome):T.nobet))});return{a:c.ais.map(function(a){return a.agent}),d:c.date,r:c.round_id,q:c.q_local,p:loc(c,p),ok:ok,g:g,n:n,m:c.ais.length,w:loc(c,c.winner),rows:rows}}
 function render(){
 var F=D[0],root=$("#ch");
 if(F){var pk=S.picks[F.round_id],play=$("[data-play]",root),mine=$("[data-mine]",root);
@@ -92,7 +97,32 @@ share(fmt(T.share,{n:L.n,m:L.m})+" "+L.g)}
 var H=$("[data-hist]"),hl=$("[data-hist-list]");hl.textContent="";var ids={};
 all.forEach(function(v){ids[v.r]=1;hl.appendChild(li(v.d+" · "+iso(v.q)+" · "+v.p+" "+(v.ok?"✓":"✗")+" "+v.g))});
 Object.keys(S.picks).forEach(function(k){if(ids[k])return;var p=S.picks[k];hl.appendChild(li((p.d||"")+" · "+iso(p.q||"")+" · "+(p.l||p.p)+" …"))});
-H.hidden=!hl.children.length}
+H.hidden=!hl.children.length;record(all,{s:s,n:Object.keys(S.picks).length,r:right,b:S.best})}
+// Your record vs the AIs (docs/growth-overnight-spec.md §3): per-AI tally over every stored verdict, from the
+// visitor's side, and a 1200x675 card drawn here. Nothing leaves the device.
+function ids(v){if(v.a)return v.a;var c=null;D.forEach(function(x){if(x.round_id===v.r&&!x.sealed&&x.ais)c=x});
+if(c)return c.ais.map(function(a){return a.agent});var by={};AG.forEach(function(a){by[NM[a]||a]=a});
+return(v.rows||[]).map(function(x){var m=/\u2068(.*?)\u2069/.exec(x);return m?by[m[1]]:null})}
+function tally(all){var t={};all.forEach(function(v){var a=ids(v);Array.from(v.g||"").forEach(function(q,i){var k=a[i];if(!k)return;
+var x=t[k]=t[k]||{w:0,l:0,d:0};x[q==="🟩"?"w":q==="🟥"?"l":"d"]++})});
+return AG.filter(function(a){return t[a]}).map(function(a){var x=t[a];return{a:a,name:NM[a]||a,w:x.w,l:x.l,d:x.d}})}
+function card(rows,st){var cv=document.createElement("canvas"),x=cv.getContext&&cv.getContext("2d");if(!x)return null;cv.width=1200;cv.height=675;
+var rtl=document.documentElement.dir==="rtl",FF=getComputedStyle(document.body).fontFamily||"sans-serif",L=rtl?1140:60,A=rtl?"right":"left";
+function t(s,X,y,f,c,w){x.font=f+" "+FF;x.fillStyle=c;x.textAlign=A;x.direction=rtl?"rtl":"ltr";x.fillText(s.replace(/[\u2066-\u2069]/g,""),X,y,w)}
+x.fillStyle="#fff";x.fillRect(0,0,1200,675);x.fillStyle="#ff3b5c";x.fillRect(0,0,1200,12);
+t(T.rec,L,105,"800 56px","#111",1080);
+rows.forEach(function(r,i){var y=200+i*88;x.fillStyle=COL[r.a]||"#888";x.fillRect(rtl?1112:60,y-38,28,40);
+t(r.name,rtl?1090:110,y,"700 44px","#111",300);t(fmt(T.tally,{w:r.w,l:r.l,d:r.d}),rtl?760:420,y,"400 38px","#333",700)});
+t(fmt(T.stats,st),L,590,"400 32px","#555",1080);
+x.font="700 28px "+FF;x.fillStyle="#111";x.textAlign="left";x.direction="ltr";x.fillText("agentpitbench.org/challenge",60,645);return cv}
+var recUrl=null;
+function record(all,st){var R=$("[data-rec]");if(!R)return;var rows=tally(all),cv=rows.length?card(rows,st):null;R.hidden=!cv;if(!cv)return;
+var ul=$("[data-rec-list]",R);ul.textContent="";rows.forEach(function(r){ul.appendChild(li(iso(r.name)+": "+fmt(T.tally,{w:r.w,l:r.l,d:r.d})))});
+var msg=T.rec+": "+rows.map(function(r){return r.name+" "+r.w+"–"+r.l}).join(" · ")+" · AgentpitBench";
+cv.toBlob(function(b){if(!b)return;if(recUrl)URL.revokeObjectURL(recUrl);recUrl=URL.createObjectURL(b);$("[data-rec-save]",R).href=recUrl;
+var f=null;try{f=new File([b],"agentpitbench-my-record.png",{type:"image/png"})}catch(e){}
+var sb=$("[data-rec-share]",R);sb.hidden=!(f&&navigator.canShare&&navigator.canShare({files:[f]}));
+sb.onclick=function(){navigator.share({files:[f],text:msg,url:PAGE}).catch(function(){})}},"image/png")}
 function share(msg){var bar=document.getElementById("share");if(!bar)return;
 document.querySelectorAll("#share a[data-net],[data-share-top] a[data-net]").forEach(function(a){try{var u=new URL(a.href),p=u.searchParams,n=a.dataset.net;
 if(n==="x"||n==="telegram")p.set("text",msg);else if(n==="reddit")p.set("title",msg);

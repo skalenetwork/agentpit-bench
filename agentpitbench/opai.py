@@ -134,12 +134,32 @@ SCHEMAS: dict[str, dict | Callable[[dict], dict]] = {
         "none": _STR, "changes": {"type": "object"}, "rationale": _STR, "evidence": _STR, "changelog_text": _STR},
         "required": [], "additionalProperties": False},
     "translate": _translate_schema,
-    # A/B challenger templates (ab-testing-spec.md §6): {slot: [{"situations": {...}} | {"text": "..."}]};
-    # ab.validate checks each candidate
-    "ab": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "object"}}},
+    "ab": lambda payload: _ab_schema(payload),
     "motd_script": lambda payload: _motd_schema(),
     "weekly_episode": lambda payload: _week_schema(payload),
 }
+
+
+def _ab_schema(payload: dict) -> dict:
+    """A/B challenger templates (ab-testing-spec.md §6): {slot: [{"situations": {sit: "..."}} | {"text": "..."}]},
+    one declared property per free slot. The shape must be spelled out: with only `additionalProperties` the
+    CLI's structured-output tool has no declared fields, the model sends each slot as a JSON-encoded string and
+    every attempt fails ("must be array"). Lengths, placeholders and missing situations are left to ab.validate,
+    which rejects one candidate at a time instead of the whole call."""
+    from . import ab
+    seats = payload.get("seats") or {}
+    per = int(payload.get("per_seat") or 1)
+    props = {}
+    for slot, n in seats.items():
+        d = ab.SLOTS.get(slot)
+        if not d or d["kind"] == "code":
+            continue
+        if d["kind"] == "hook":
+            item = _obj({"situations": _obj({sit: _STR for sit in d["situations"]}, required=[], extra=True)})
+        else:
+            item = _obj({"text": _STR})
+        props[slot] = {"type": "array", "items": item, "maxItems": max(1, int(n)) * per}
+    return _obj(props, required=[])
 
 
 def _week_schema(payload: dict) -> dict:
@@ -328,26 +348,75 @@ def _redact(text: str) -> str:
     return redact(text or "")[:300]
 
 
-def _parse(stdout: str) -> tuple[dict | None, str | None, bool]:
-    """(data, reported model, is_error) from `--output-format json`."""
+def _json_object(text: str) -> dict | None:
+    """The first top-level JSON object in a model's text answer: bare, inside ```json fences, or after a line of
+    prose. None if there is none."""
+    text = (text or "").strip()
     try:
-        obj = json.loads(stdout.strip().splitlines()[-1] if stdout.strip() else "")
-    except (ValueError, IndexError):
+        obj = json.loads(text)
+        return obj if isinstance(obj, dict) else None
+    except ValueError:
+        pass
+    dec = json.JSONDecoder()
+    for m in re.finditer(r"\{", text):
         try:
-            obj = json.loads(stdout)
+            obj, _ = dec.raw_decode(text, m.start())
         except ValueError:
-            return None, None, False
+            continue
+        if isinstance(obj, dict):
+            return obj
+    return None
+
+
+def _parse(stdout: str) -> tuple[dict | None, str | None, bool]:
+    """(data, reported model, is_error) from `--output-format json`. The answer is `structured_output` when the
+    CLI enforced --json-schema, else the first JSON object in the `result` text."""
+    obj = None
+    for cand in ([stdout.strip().splitlines()[-1]] if stdout.strip() else []) + [stdout]:
+        try:
+            obj = json.loads(cand)
+            break
+        except ValueError:
+            continue
     if not isinstance(obj, dict):
         return None, None, False
     model = next(iter(obj.get("modelUsage") or {}), None) or obj.get("model")
     data = obj.get("structured_output")
-    if data is None and isinstance(obj.get("result"), str):
-        txt = re.sub(r"^```(?:json)?\s*|\s*```$", "", obj["result"].strip())
-        try:
-            data = json.loads(txt)
-        except ValueError:
-            data = None
+    if not isinstance(data, dict) and isinstance(obj.get("result"), str):
+        data = _json_object(obj["result"])
     return (data if isinstance(data, dict) else None), model, bool(obj.get("is_error"))
+
+
+# ---------------------------------------------------------------- raw answers of failed calls (debugging only)
+
+RAW_MAX_BYTES = 64_000   # per file
+RAW_KEEP = 20            # newest files kept per task
+
+
+def save_raw(s: Settings, task: str, call_id: int, status: str, detail: str | None, out: str | None,
+             err: str | None) -> Path | None:
+    """Keep the CLI's raw answer of an invalid or failed call at <data_dir>/opai/<task>/<call_id>.txt, secrets
+    redacted, size-capped, the newest RAW_KEEP per task. Never raises."""
+    try:
+        from .virality import redact
+        d = Path(s.data_dir) / "opai" / re.sub(r"[^a-z0-9_]", "_", task)
+        d.mkdir(parents=True, exist_ok=True)
+        half = RAW_MAX_BYTES // 2
+
+        def cap(x: str) -> str:
+            x = redact(x or "")
+            return x if len(x) <= half else x[:half // 2] + f"\n[... {len(x) - half} chars cut ...]\n" + x[-half // 2:]
+
+        path = d / f"{call_id}.txt"
+        path.write_text(f"call_id {call_id} task {task} status {status}\ndetail {redact(detail or '')}\n"
+                        f"--- stdout ---\n{cap(out)}\n--- stderr ---\n{cap(err)}\n", "utf-8")
+        old = sorted(d.glob("*.txt"), key=lambda q: (q.stat().st_mtime, q.name))[:-RAW_KEEP]
+        for q in old:
+            q.unlink(missing_ok=True)
+        return path
+    except Exception:
+        log.exception("opai raw answer not saved")
+        return None
 
 
 def tag(db: DB, task: str, model: str, version: int, content, accepted: bool, reason: str | None,
@@ -381,11 +450,13 @@ def call(s: Settings, db: DB, task: str, payload: dict, *, subject: str,
                               "ab": getattr(s, "ab_gen_timeout_s", s.opai_timeout_s),
                               "motd_script": getattr(s, "opai_motd_timeout_s", 360),
                               "weekly_episode": getattr(s, "opai_week_timeout_s", 360)}.get(task, s.opai_timeout_s)
-        status, detail, data, model = _run(s, db, task, schema, stdin, alias, config_dir, timeout)
+        status, detail, data, model, raw = _run(s, db, task, schema, stdin, alias, config_dir, timeout)
         if status == "ok":
             err = check(data, schema) or (validate(data) if validate else None)
             if err:
                 status, detail = "invalid", err
+        if status != "ok":
+            save_raw(s, task, call_id, status, detail, *raw)
         db.x("UPDATE ai_calls SET status=?, detail=?, duration_s=?, model_reported=? WHERE call_id=?",
              status, _redact(detail or "") or None, time.time() - start, model, call_id)
     if data is not None:
@@ -406,7 +477,7 @@ def _forced_available(s: Settings, db: DB, task: str) -> tuple[bool, str]:
 
 
 def _run(s: Settings, db: DB, task: str, schema: dict, stdin: str, alias: str, config_dir: str | None,
-         timeout: float) -> tuple[str, str | None, dict | None, str | None]:
+         timeout: float) -> tuple[str, str | None, dict | None, str | None, tuple[str, str]]:
     cwd = tempfile.mkdtemp(prefix="opai-")
     try:
         p = subprocess.Popen(argv(s, task, schema, alias), cwd=cwd, env=child_env(s, config_dir),
@@ -419,12 +490,13 @@ def _run(s: Settings, db: DB, task: str, schema: dict, stdin: str, alias: str, c
                 os.killpg(p.pid, signal.SIGKILL)
             except ProcessLookupError:
                 pass
-            p.communicate()
-            return "timeout", f"over {timeout:.0f}s", None, None
+            out, err = p.communicate()
+            return "timeout", f"over {timeout:.0f}s", None, None, (out or "", err or "")
     except OSError as e:
-        return "crash", str(e), None, None
+        return "crash", str(e), None, None, ("", "")
     finally:
         shutil.rmtree(cwd, ignore_errors=True)
+    raw = (out or "", err or "")
     data, model, is_error = _parse(out)
     if p.returncode != 0 or is_error or data is None:
         from .orchestrator import infra_failure
@@ -441,11 +513,11 @@ def _run(s: Settings, db: DB, task: str, schema: dict, stdin: str, alias: str, c
                                 resume=f"CLAUDE_CONFIG_DIR={s.opai_config_dir} claude /login")
                 except Exception:
                     log.exception("auth alert failed")
-            return kind, (err or out)[-300:], None, model
+            return kind, (err or out)[-300:], None, model, raw
         if p.returncode != 0 or is_error:
-            return "crash", (err or out)[-300:], None, model
-        return "invalid", "no JSON object in the result", None, model
-    return "ok", None, data, model
+            return "crash", (err or out)[-300:], None, model, raw
+        return "invalid", "no JSON object in the result", None, model, raw
+    return "ok", None, data, model, raw
 
 
 async def acall(s: Settings, db: DB, task: str, payload: dict, *, subject: str,

@@ -192,3 +192,54 @@ def test_operator_ai_outputs_columns_agree(tmp_path):
         return sorted(r["name"] for r in d.q("PRAGMA table_info(operator_ai_outputs)"))
     assert cols(DB(p)) == cols(DB(tmp_path / "new.sqlite"))
     assert {"call_id", "subject", "public"} <= set(cols(DB(p)))
+
+
+@pytest.mark.parametrize("text", [
+    '{"title": "a", "what": "b", "fix": "c"}',
+    '```json\n{"title": "a", "what": "b", "fix": "c"}\n```',
+    'Here are the variants:\n\n```json\n{"title": "a", "what": "b", "fix": "c"}\n```\nHope this helps {not json}.',
+    'Sure. {"title": "a", "what": "b", "fix": "c"} -- and {"other": 1}',
+])
+def test_parse_finds_the_first_object_in_prose_or_fences(text):
+    out = json.dumps({"type": "result", "is_error": False, "result": text, "modelUsage": {"m": {}}})
+    data, model, err = opai._parse("progress line\n" + out)
+    assert data == {"title": "a", "what": "b", "fix": "c"} and model == "m" and not err
+    assert opai._parse(json.dumps({"result": "no object here [1, 2]"}))[0] is None
+
+
+def test_failed_call_keeps_the_raw_answer(s, db, fake_claude, monkeypatch):
+    monkeypatch.setattr(opai, "RAW_KEEP", 2)
+    s.opai_task_budget = {**s.opai_task_budget, "incident": 10}
+    fake_claude.mode = "badjson"
+    for _ in range(3):
+        assert opai.call(s, db, "incident", {}, subject="t") is None
+    d = s.data_dir / "opai" / "incident"
+    ids = [r["call_id"] for r in db.q("SELECT call_id FROM ai_calls ORDER BY call_id")]
+    assert sorted(p.name for p in d.glob("*.txt")) == sorted(f"{i}.txt" for i in ids[1:])   # rotated: newest 2
+    body = (d / f"{ids[-1]}.txt").read_text()
+    assert "status invalid" in body and "this is not json" in body
+    # a schema rejection with a secret in the answer: kept, redacted, capped
+    fake_claude.mode = "result_text"
+    fake_claude.respond({"title": "x", "what": "key sk-abcdefghijklmnopqrstuvwxyz " + "y " * 100_000})
+    assert opai.call(s, db, "incident", {}, subject="t") is None
+    last = db.one("SELECT MAX(call_id) i FROM ai_calls")["i"]
+    body = (d / f"{last}.txt").read_text()
+    assert "missing fix" in body and "sk-abcdef" not in body and len(body) < opai.RAW_MAX_BYTES + 500
+    # an accepted call writes nothing
+    fake_claude.mode = "ok"
+    fake_claude.respond(INC)
+    assert opai.call(s, db, "incident", {}, subject="t")
+    assert not (d / f"{last + 1}.txt").exists()
+
+
+def test_ab_schema_declares_every_free_slot():
+    from agentpitbench import ab_gen
+    sc = opai.schema_for("ab", {"seats": {"reveal.hook": 1, "reveal.cta": 2}, "per_seat": ab_gen.PER_SEAT})
+    assert set(sc["properties"]) == {"reveal.hook", "reveal.cta"}
+    hook = sc["properties"]["reveal.hook"]
+    assert hook["type"] == "array" and hook["maxItems"] == 2
+    assert set(hook["items"]["properties"]["situations"]["properties"]) == {
+        "agree", "alone", "dead_split", "nobody_agrees", "nway"}
+    assert sc["properties"]["reveal.cta"]["items"]["properties"] == {"text": {"type": "string"}}
+    assert opai.check({"reveal.cta": [{"text": "Your call"}]}, sc) is None
+    assert opai.check({"reveal.cta": '[{"text": "Your call"}]'}, sc)        # the stringified-array failure
