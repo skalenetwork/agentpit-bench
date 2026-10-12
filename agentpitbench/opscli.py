@@ -257,7 +257,20 @@ def _news(s: Settings, db: DB, a) -> None:
         print(rating.shadow_report(db, a.days))
     else:
         import asyncio
-        print(asyncio.run(rating.rate_pending(s, db, limit=a.limit)))
+
+        async def go():
+            from .agentpit import Agentpit
+            api = Agentpit(s.api_url)
+            try:
+                ids = [r["market_id"] for r in db.q(
+                    "SELECT market_id FROM seen_markets sm WHERE eligible=1 AND started=0 AND NOT EXISTS "
+                    "(SELECT 1 FROM market_ratings mr WHERE mr.market_id=sm.market_id) ORDER BY first_seen DESC "
+                    "LIMIT ?", a.limit)]
+                rating.observe([m for m in [await api.market(i) for i in ids] if m])
+            finally:
+                await api.close()
+            return await rating.rate_pending(s, db, limit=a.limit, force_gap=False)
+        print(asyncio.run(go()))
 
 
 def _i18n(s: Settings, db: DB, a) -> None:
