@@ -41,9 +41,9 @@ class Resp:
 class FakeHTTP:
     """Answers createSession, uploadBlob, createRecord, deleteRecord, getServiceAuth, video upload, getPosts."""
 
-    def __init__(self, fail_post=False, fail_video=False):
+    def __init__(self, fail_post=False, fail_video=False, expire_once=False):
         self.calls, self.records, self.n = [], [], 0
-        self.fail_post, self.fail_video = fail_post, fail_video
+        self.fail_post, self.fail_video, self.expire_once = fail_post, fail_video, expire_once
 
     def _answer(self, method, url, kw):
         self.calls.append((method, url, kw))
@@ -51,7 +51,12 @@ class FakeHTTP:
         if nsid == "com.atproto.server.createSession":
             return Resp(200, {"did": "did:plc:bench", "accessJwt": "A", "refreshJwt": "R", "didDoc": {"service": [
                 {"id": "#atproto_pds", "serviceEndpoint": "https://pds.example.host"}]}})
+        if nsid == "com.atproto.server.refreshSession":
+            return Resp(200, {"accessJwt": "A2", "refreshJwt": "R2"})
         if nsid == "com.atproto.repo.uploadBlob":
+            if self.expire_once:
+                self.expire_once = False
+                return Resp(400, {"error": "ExpiredToken"})
             return Resp(200, {"blob": {"$type": "blob", "ref": {"$link": f"b{len(self.calls)}"},
                                        "mimeType": kw["headers"]["Content-Type"], "size": len(kw["data"])}})
         if nsid == "com.atproto.repo.createRecord":
@@ -95,6 +100,10 @@ def env(tmp_path, monkeypatch):
         monkeypatch.delenv(k, raising=False)
     monkeypatch.setenv("BENCH_X_TOKEN_FILE", str(tmp_path / "x_oauth2.json"))
     monkeypatch.setattr(bluesky.time, "sleep", lambda s: None)
+
+    async def no_wait(s):
+        return None
+    monkeypatch.setattr(bluesky.asyncio, "sleep", no_wait)
     s = Settings(data_dir=tmp_path / "var", dry_run=True, bluesky_enabled=True, animate=False)
     db = DB(s.db_path)
     return s, db
@@ -263,6 +272,23 @@ def test_failure_never_blocks_x(env, monkeypatch):
     p.bsky.http.post = boom
     p.bsky._client = None
     assert run(p.post("r3-reveal", "reveal", "Picks", round_id=3)) == "dry-r3-reveal"
+
+
+def test_expired_token_retry_keeps_content_type(env, monkeypatch, tmp_path):
+    p, fake = live(env, monkeypatch, expire_once=True)
+    run(p.post("m2", "milestone", "Streak", png(tmp_path / "a.png")))
+    ups = [kw for _, u, kw in fake.calls if u.endswith("uploadBlob")]
+    assert len(ups) == 2 and ups[1]["headers"]["Content-Type"] == "image/png"
+    assert ups[1]["headers"]["Authorization"] == "Bearer A2"
+    assert len(fake.records) == 1
+
+
+def test_reply_without_mirrored_parent_is_skipped(env, monkeypatch):
+    p, fake = live(env, monkeypatch, fail_post=True)
+    results = run(p.post("r1-results", "results", "Resolved", round_id=1))   # X ok, Bluesky failed
+    fake.fail_post = False
+    assert run(p.post("r1-press-1", "press", "Grok: we go again.", reply_to=results, round_id=1)) == "dry-r1-press-1"
+    assert fake.records == [] and db_rows(p) == []
 
 
 def db_rows(p):

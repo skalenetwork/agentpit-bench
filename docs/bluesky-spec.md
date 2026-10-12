@@ -55,7 +55,10 @@ still card is posted instead, so a post is never lost.
 `bsky_posts` row. A reply needs both refs (`app.bsky.feed.post#replyRef`): `parent` is the row found, `root` is that
 row's own `root_uri/root_cid` (a top-level post is its own root). So press reply #2 replies to #1 with root = the
 results post. A quote is `app.bsky.embed.record`; quote plus media is `app.bsky.embed.recordWithMedia`. A parent
-whose uri is `dry-…` is dropped (outbox posts have no real ref), as X does with `dry-` ids.
+whose uri is `dry-…` is dropped (outbox posts have no real ref), as X does with `dry-` ids. **No orphans:** when
+the X post is a reply but its parent was never mirrored (the Bluesky results post failed, say), the reply is skipped
+on Bluesky rather than posted top-level without context. A results post whose reveal is missing still goes out,
+without the quote; the card stands on its own.
 
 ## 3. Text
 
@@ -89,7 +92,10 @@ The X text is the source. `bluesky.adapt(text)`:
   removed.
 - **Video** (`app.bsky.embed.video`, MP4): the lexicon allows 300 MB (formerly 100 MB). The mirror caps at
   **100 MB** and 3 minutes, which every film and clip is far below (clips about 6 s, films 45–60 s, about 10 MB).
-  Daily cap per account: 25 videos / 10 GB, more than the 6–8 a day the bench makes. Flow:
+  Daily cap per account: 25 videos / 10 GB as last published (unverified on 2026-10-12;
+  `app.bsky.video.getUploadLimits` reports it), more than the 6–8 a day the bench makes. Flow (from the
+  `app.bsky.video.*` and `getServiceAuth` lexicons; the `did`/`name` query parameters come from the video tutorial,
+  which couldn't be read on 2026-10-12):
   1. `com.atproto.server.getServiceAuth` on the PDS with `aud = did:web:<PDS host>` and
      `lxm = com.atproto.repo.uploadBlob`, `exp` = now + 30 min;
   2. `POST https://video.bsky.app/xrpc/app.bsky.video.uploadVideo?did=<did>&name=<file>` with the MP4 body and
@@ -103,8 +109,8 @@ The X text is the source. `bluesky.adapt(text)`:
 - `com.atproto.server.createSession` with `BSKY_HANDLE` and `BSKY_APP_PASSWORD` (an **app password**, never the
   account password) on `bluesky_pds_url` (default `https://bsky.social`, which redirects requests to the account's
   PDS). The PDS endpoint from the returned `didDoc` is used for writes. The session is cached in memory;
-  `refreshSession` is used on `ExpiredToken`, then a fresh login. createSession is rate-limited (30 per 5 min,
-  300 per day), so the process logs in once.
+  `refreshSession` is used on `ExpiredToken`, then a fresh login. createSession is tightly rate-limited (about 30
+  per 5 min and 300 per day as last published; unverified), so the process logs in once.
 - Secrets go in `~/.config/agentpitbench/secrets.env`, loaded by `config.load_secrets` (real env vars win). Nothing
   goes in `bench.toml`.
 - Config (`bench.toml`): `bluesky_enabled = false`, `bluesky_pds_url`, `bluesky_did = ""` (§6),
@@ -135,8 +141,9 @@ prove it (atproto handle spec):
 - **DNS TXT (primary):** `_atproto.agentpitbench.org` with value `did=did:plc:…`. No deploy or cache in the way.
 - **HTTPS well-known (fallback):** `https://agentpitbench.org/.well-known/atproto-did` returning the DID as plain
   text. `site.build` writes it when `bluesky_did` is set. The site already ships `.nojekyll`, so GitHub Pages serves
-  the dot-directory. GitHub Pages serves an extensionless file as `application/octet-stream`, not `text/plain`; the
-  spec says the content type "does not need to be strictly verified", so it still resolves, but DNS is the safer route.
+  the dot-directory, and `site.deploy` copies the whole tree (`shutil.copytree`, then `add -A`), so it reaches
+  `gh-pages`. GitHub Pages may not serve an extensionless file as `text/plain` (unverified); the handle spec says
+  the content type "does not need to be strictly verified", so it should still resolve, but DNS is the safer route.
 
 ### Operator steps
 

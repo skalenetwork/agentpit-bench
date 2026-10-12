@@ -205,8 +205,9 @@ class Client:
     def call(self, method: str, nsid: str, **kw):
         if not self.sess:
             self.login()
+        extra = kw.pop("headers", {})  # kept for the retry after a refresh (uploadBlob's Content-Type)
         for attempt in range(2):
-            headers = {"Authorization": f"Bearer {self.sess['accessJwt']}", **kw.pop("headers", {})}
+            headers = {"Authorization": f"Bearer {self.sess['accessJwt']}", **extra}
             r = self.http.request(method, f"{self.pds}/xrpc/{nsid}", headers=headers, timeout=120, **kw)
             expired = r.status_code in (400, 401) and "ExpiredToken" in (r.text or "")
             if not expired or attempt:
@@ -304,6 +305,9 @@ class Mirror:
                 return row["uri"]
             text, links = build_text(self.s, x_text, kind, round_id)
             parent, quoted = self._row_for_tweet(reply_to), self._row_for_tweet(quote_of)
+            if reply_to and not parent:  # a press line or link without its parent on Bluesky: no orphan posts
+                log.info("bluesky: %s skipped, its parent was not mirrored", post_key)
+                return None
             from .twitter import _media_list
             files = _media_list(media)
             if self.live:
