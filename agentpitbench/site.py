@@ -768,14 +768,14 @@ def shame(rounds: list[dict], limit: int = 50) -> list[tuple[dict, dict]]:
 
 def streak(rounds: list[dict], agent: str) -> dict:
     """An AI's runs over resolved rounds in resolution order (docs/growth-overnight-spec.md §2): `cur` > 0 is the
-    current run of wins, < 0 the current run of rounds not won (a no-bet counts as a loss, as on the betting table);
-    `longest` is the longest run of wins. Only resolved rounds count, so a sealed pick never reaches it."""
+    current run of wins, < 0 the current run of rounds it bet on and lost; a no-bet round breaks both. `longest` is
+    the longest run of wins (the agent page's figure). Only resolved rounds count, so a sealed pick never reaches it."""
     longest = cur = 0
     for r in sorted((r for r in rounds if r["state"] == "resolved"), key=lambda r: r["resolved_at"] or 0):
         e = next((e for e in r["entries"] if e["agent"] == agent), None)
         if e is None:
             continue
-        cur = (max(cur, 0) + 1) if e["won"] else (min(cur, 0) - 1)
+        cur = (max(cur, 0) + 1) if e["won"] else (min(cur, 0) - 1) if e.get("outcome") else 0
         longest = max(longest, cur)
     return {"agent": agent, "cur": cur, "longest": longest}
 
@@ -1166,6 +1166,7 @@ def _build(s: Settings) -> Path:
                   "tq": tq, "mq": mq}
         common["vs_links"] = vs_links
         common["cat_links"] = {c["category"]: f"best-at/{c['slug']}/" for c in cat_live}
+        common["cat_min"] = CATEGORY_MIN
         common.update(nav_extra=NAV_EXTRA, has_experiments=exp_ab is not None)
         prefix = _.prefix()
         common["film_share"] = lambda f, _=_, prefix=prefix: film_share(f, f"{base}/{prefix}round/{f['round_id']}/", _)
