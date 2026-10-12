@@ -4,7 +4,7 @@ import io
 import re
 from html import unescape
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 import pytest
 
@@ -163,3 +163,143 @@ async def test_previews_render_once_per_input(env, monkeypatch):
     site.build(s)
     assert not calls and (cards / "standings-og.png").stat().st_mtime_ns == mtime
     assert _meta((s.site_dir / "leaderboard/index.html").read_text(), "og:image") == img
+
+
+# ---------- part B: Share image, Share your pick, Share my win ----------
+
+FUTURE = "2099-01-01T00:00:00Z"
+OUTCOMES = ["CYBERSHOKE", "Nexus"]
+
+
+def _open_round(env, thread: str | None = "1900000000000000001", state="awaiting_resolution", end=FUTURE):
+    s, db = env
+    rid = make_round(db, PICKS, state=state, market_id="m9")
+    db.x("UPDATE rounds SET end_date=?, thread_tweet_id=? WHERE round_id=?", end, thread, rid)
+    if state == "running":  # agents still deciding: their decision cards exist but are never published
+        (s.cards_dir / str(rid)).mkdir(parents=True)
+        Image.new("RGB", (1200, 675), (40, 60, 200)).save(s.cards_dir / f"{rid}/decision-claude.png")
+    exports.export(s, db)
+    return s, rid, site.build(s)
+
+
+def _pick_links(html: str) -> dict[str, list[tuple[str, str]]]:
+    """{outcome: [(net, href)]} from the Share your pick section."""
+    sec = re.search(r'<section class="pickshare".*?</section>', html, re.S).group(0)
+    out = {}
+    for o, body in re.findall(r'<summary class="btn"><span dir="auto">([^<]+)</span></summary>(.*?)</details>', sec, re.S):
+        out[unescape(o)] = [(n, unescape(h)) for h, n in re.findall(r'href="([^"]+)" data-net="(\w+)"', body)]
+    return out
+
+
+def test_pick_reply_is_collected_in_every_language(env):
+    """The X link replies to the round's opener with the outcome label first, so collect_humans' exact-match
+    parser reads back exactly that pick, whatever the page language."""
+    from agentpitbench.virality import parse_pick
+    s, rid, out = _open_round(env)
+    for code in i18n.CODES:
+        prefix = "" if code == "en" else f"{code}/"
+        html = (out / prefix / f"round/{rid}/index.html").read_text()
+        assert len(html.encode()) < 100_000, code
+        links = _pick_links(html)
+        assert list(links) == OUTCOMES, code
+        for o, nets in links.items():
+            assert sorted(n for n, _h in nets) == sorted(site.PICK_NETS), code
+            x = dict(nets)["x"]
+            q = parse_qs(urlparse(x).query)
+            assert x.startswith("https://x.com/intent/tweet?") and q["in_reply_to"] == ["1900000000000000001"]
+            assert "url" not in q, code
+            text = q["text"][0]
+            assert text.startswith(o + ": ") and "⁨" not in text and "#AgentpitBench" in text
+            assert len(text) <= 280
+            assert parse_pick("@AgentpitBench " + text, OUTCOMES) == o, (code, text)
+            for net, href in nets:  # other networks: a normal post with the round URL, attributed
+                if net != "x":
+                    assert "utm_content=share-pick" in unquote(href), (code, net)
+    en = (out / f"round/{rid}/index.html").read_text()
+    assert "Share your pick" in en and "Reply on X" in en and "picks counted" not in en
+    assert "Choisissez une issue" in (out / f"fr/round/{rid}/index.html").read_text()
+    assert 'dir="rtl"' in (out / f"ar/round/{rid}/index.html").read_text()
+
+
+@pytest.mark.parametrize("thread", [None, "dry-r1-reveal"])  # no opener yet, or one posted to the outbox only
+def test_pick_without_opener_posts_normally(env, thread):
+    s, rid, out = _open_round(env, thread=thread)
+    html = (out / f"round/{rid}/index.html").read_text()
+    x = parse_qs(urlparse(dict(_pick_links(html)["Nexus"])["x"]).query)
+    assert "in_reply_to" not in x and "utm_source=x" in x["url"][0]
+    assert x["text"][0].startswith("Nexus: my pick.")
+    assert "come back then to reply" in html and "Reply on X" not in html
+
+
+def test_pick_never_reveals_sealed_picks(env):
+    """While the agents are still deciding the visitor can share a pick, and nothing leaks theirs."""
+    s, rid, out = _open_round(env, thread=None, state="running")
+    for code in ("en", "ar"):
+        prefix = "" if code == "en" else f"{code}/"
+        html = (out / prefix / f"round/{rid}/index.html").read_text()
+        links = _pick_links(html)
+        assert set(links) == set(OUTCOMES)
+        assert "decision-claude" not in html and "data-share-image data-text" not in html  # no unpublished card
+        assert "cards/" not in _meta(html, "og:image")
+        for o, nets in links.items():
+            other = OUTCOMES[1 - OUTCOMES.index(o)]
+            for _n, href in nets:
+                text = unquote(href)
+                assert other not in text.split(o, 1)[0] and "Grok" not in text  # own pick first, no agent's
+    assert not (out / "cards" / str(rid)).exists()
+
+
+def test_pick_hidden_after_close(env):
+    s, rid, out = _open_round(env, end="2020-01-01T00:00:00Z")
+    assert 'class="pickshare"' not in (out / f"round/{rid}/index.html").read_text()  # replies after the close don't count
+
+
+def test_pick_cap_note(env, monkeypatch):
+    from agentpitbench import xstats
+    monkeypatch.setattr(xstats, "reply_cap_hit", lambda db, rid, cap=None: True)
+    s, rid, out = _open_round(env)
+    assert "First 100 picks counted." in (out / f"round/{rid}/index.html").read_text()
+    assert "100" in (out / f"ja/round/{rid}/index.html").read_text().split('class="pickshare"', 1)[1]
+
+
+def test_reply_cap_on_a_fresh_db(env):
+    s, rid, out = _open_round(env)
+    assert site._reply_caps(s, [{"round_id": rid, "thread_tweet_id": "1900000000000000001"}]) == {}
+
+
+def test_share_image_on_round(env):
+    s, out = _built(env, card=True)
+    html = (out / "round/1/index.html").read_text()
+    a = re.search(r'<a class="btn" href="([^"]+)" download="([^"]+)" data-share-image data-text="([^"]*)" '
+                  r'data-url="([^"]+)"', html)
+    assert a and a.group(1) == "../../cards/1/results.png" and a.group(2) == "agentpitbench-round-1.png"
+    assert "utm_medium=share-image" in unescape(a.group(4)) and "Save image" in html  # works with JavaScript off
+    assert "navigator.canShare" in html and (out / "cards/1/results.png").exists()
+    ar = (out / "ar/round/1/index.html").read_text()
+    assert "حفظ الصورة" in ar and 'href="../../../cards/1/results.png"' in ar
+    # no browser here, so no standings card: the leaderboard simply has no Share image
+    assert "data-share-image data-text" not in (out / "leaderboard/index.html").read_text()
+
+
+def test_share_image_link():
+    img = site.share_image("cards/agents/claude.png", "agent-claude", "Claude on AgentpitBench",
+                           "https://x.org/agent/claude/", "agent")
+    assert img["src"] == "cards/agents/claude.png" and img["name"] == "agentpitbench-agent-claude.png"
+    assert "utm_medium=share-image" in img["url"] and "utm_content=share-agent" in img["url"]
+    assert site.share_image(None, "x", "t", "u", "agent") is None
+
+
+def test_share_my_win(env):
+    s, db = env
+    rid = make_round(db, PICKS, state="resolved", winner="Nexus", market_id="m1")
+    card = s.cards_dir / "humans" / str(rid) / "ann.png"
+    card.parent.mkdir(parents=True)
+    Image.new("RGB", (1200, 675)).save(card)
+    db.x("INSERT INTO humans(round_id,user_id,username,pick,tweet_id,created_at,won,card_path) VALUES(?,?,?,?,?,?,?,?)",
+         rid, "u1", "ann", "Nexus", "t1", 1.0, 1, str(card))
+    exports.export(s, db)
+    html = (site.build(s) / f"round/{rid}/index.html").read_text()
+    assert "Share my win" in html and "agentpitbench-win-ann.png" in html and 'class="pickshare"' not in html
+    x = unescape(re.search(r'href="(https://x.com/intent/tweet\?[^"]+)" target="_blank" rel="noopener">X<', html).group(1))
+    text = parse_qs(urlparse(x).query)["text"][0]
+    assert text.startswith("I beat ") and "Claude" in text and "Grok" not in text  # Grok picked Nexus and won

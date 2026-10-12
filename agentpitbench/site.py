@@ -37,7 +37,7 @@ from .emblem import emblem_svg
 from .config import AGENT_COLORS, AGENT_NAMES, AGENT_SLUGS, Settings, AGENT_MODELS
 from .i18n import CODES, LANGS, NAMES, Translator
 from .mascots import sprite, svg_file, use as mascot_use
-from .twitter import clip, results_hook
+from .twitter import TAG, clip, fit, results_hook
 from .virality import CATEGORIES, category, commentary  # noqa: F401  (CATEGORIES: category names the site translates)
 
 log = logging.getLogger(__name__)
@@ -170,6 +170,62 @@ def round_share(r: dict, _, vs: str) -> ShareText:
         return flex_text(_, _("{question}: {vs} are placing their bets. Who's right?"), "question", r["question"], vs=vs)
     picks = ", ".join(f"{e['name']} {e['outcome'] or _('no bet')}" for e in r["entries"])
     return flex_text(_, _("{question}: {picks}. Who's right?"), "question", r["question"], picks=picks)
+
+
+PICK_NETS = ("x", "bluesky", "whatsapp", "telegram", "reddit")  # the networks that take a prefilled text
+
+
+def _end_ts(r: dict) -> float | None:
+    try:
+        return datetime.fromisoformat((r.get("end_date") or "").replace("Z", "+00:00")).timestamp()
+    except ValueError:
+        return None
+
+
+def pick_share(r: dict, url: str, _, now: float | None = None) -> dict | None:
+    """Share your pick (spec section 3), for a round still taking picks: one group of links per outcome.
+
+    Only r["outcomes"] is used, never the entries: the visitor shares their own pick and nothing here can reveal
+    the agents' picks while they are sealed. With an X opener (the reveal post, posted once every agent has
+    picked), the X link replies to it: collect_humans reads picks from those replies, and parse_pick takes the
+    outcome named first, so the reply starts with the outcome label verbatim (never passed through the
+    translator, so no direction isolates either) and carries no question or link that could name another
+    outcome first. Without an opener, X gets a normal post with the URL, like the other networks."""
+    if r.get("state") not in ("running", "awaiting_resolution") or not r.get("outcomes"):
+        return None
+    end = _end_ts(r)
+    if end is not None and (now or time.time()) >= end:  # replies after the close are not counted
+        return None
+    thread = r.get("thread_tweet_id") if tweet_url(r.get("thread_tweet_id")) else None
+    mine, who = _("my pick."), _("Who's right, me or the AIs?")
+    groups = []
+    for o in r["outcomes"]:
+        t = ShareText(f"{o}: {mine} ", r["question"], f" {who}")
+        bar = share_bar(t, r["question"], url, "pick", _)
+        links = [(net, label, href) for net, label, href in bar["links"] if net in PICK_NETS]
+        if thread:
+            reply = fit(f"{o}: ", f" {TAG}", f"{mine} {who}", flex_max=200)  # the label is never clipped
+            links[0] = ("x", _("Reply on X"), "https://x.com/intent/tweet?" + urlencode(
+                {"in_reply_to": thread, "text": reply}, quote_via=quote))
+        groups.append({"outcome": o, "links": links, "text": bar["text"], "native_url": bar["native_url"]})
+    return {"groups": groups, "thread": thread, "end": r.get("end_date") or ""}
+
+
+def win_share(r: dict, url: str, _) -> list[dict]:
+    """Share my win: for each human who beat at least one AI and has a card, the post and the card image."""
+    beaten = [e["name"] for e in r.get("entries") or [] if e.get("outcome") and not e.get("won")]
+    if r.get("state") != "resolved" or not beaten:
+        return []
+    names = beaten[0] if len(beaten) == 1 else _("{a} and {b}", a=", ".join(beaten[:-1]), b=beaten[-1])
+    text = _("I beat {names} on AgentpitBench.", names=names)
+    out = []
+    for h in (r.get("humans") or {}).get("winners") or []:
+        if not h.get("card"):
+            continue
+        out.append({"username": h["username"], "card": h["card"], "text": text, "url": utm(url, "native", "win", "share-image"),
+                    "x": "https://x.com/intent/tweet?" + urlencode(
+                        {"text": f"{text} {TAG}", "url": utm(url, "x", "win")}, quote_via=quote)})
+    return out
 
 
 def leaderboard_share(lb: dict, _) -> str:
@@ -821,7 +877,9 @@ def _build(s: Settings) -> Path:
     upset, wrong = biggest_upset(counted), shame(counted)
     stats = {a: agent_stats(counted, a) for a in s.agents}
     # an infra-voided round's posts were taken down, so its cards are not shown either
-    cards = {r["round_id"]: (None if r.get("exclusion") == "infra" else card_for(s, r)) for r in rounds}
+    # nor a running round's: its cards are not published (they would reveal the sealed picks)
+    cards = {r["round_id"]: (None if r.get("exclusion") == "infra" or discover.seal(r) else card_for(s, r))
+             for r in rounds}
     built = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     weekly = {"race": _newest(s.cards_dir / "race", "race-*.*", {".mp4", ".gif", ".png"}),
               "awards": _newest(s.cards_dir / "awards", "*.png")}
@@ -840,6 +898,7 @@ def _build(s: Settings) -> Path:
     seo: list[tuple[str, str, str, str]] = []  # (lang, page, title, description), checked after the build
     from .motd import films as _films  # Match of the Day: cards/motd/<date>/film.json
     films = _films(s)
+    cap_hit = _reply_caps(s, rounds)  # "first N picks counted"
     film_of = {}
     for f in films:  # newest first: a round filmed twice shows its latest film
         film_of.setdefault(f["round_id"], f)
@@ -910,6 +969,9 @@ def _build(s: Settings) -> Path:
              title=branded(_("AI forecasting leaderboard: {names}", names=", ".join(names))),
              description=leaderboard_description(lb, _, ", ".join(names), as_of),
              share_text=leaderboard_share(lb, _), og=previews["standings"],
+             img=share_image(previews["standings_card"], "standings", leaderboard_share(lb, _),
+                             f"{base}/{prefix}leaderboard/", "leaderboard"),
+             img_url=utm(f"{base}/{prefix}leaderboard/", "native", "leaderboard", "share-image"),
              jsonld=discover.dataset_ld(s, lb, f"{base}/leaderboard/"))
         page("facts/index.html", "facts.html", sections=discover.fact_sections(s, lb, metrics, _),
              bibtex=discover.bibtex(s, as_of), as_of=discover.stamp(as_of),
@@ -921,9 +983,12 @@ def _build(s: Settings) -> Path:
             cat = category(r["question"])
             same = [x for x in sorted(rounds, key=lambda x: -(x.get("started_at") or 0))
                     if x is not r and category(x["question"]) == cat][:3]
+            rurl = f"{base}/{prefix}round/{rid}/"
             lr = loc(r)  # translated question/outcome labels for the page's own text; data stays English
             page(f"round/{rid}/index.html", "round.html", r=r, card=card, card_alt=card_alt(lr, _, ", ".join(names)),
                  film=film_of.get(rid), cta=cta if lang == "en" else None,
+                 picks=pick_share(r, rurl, _), wins=win_share(r, rurl, _), cap_hit=cap_hit.get(rid),
+                 img=share_image(card, f"round-{rid}", round_share(lr, _, vs), rurl, "round"),
                  og=previews["rounds"].get(rid), share_text=round_share(lr, _, vs),
                  prev_r=by_id[i - 1] if i else None, next_r=by_id[i + 1] if i + 1 < len(by_id) else None,
                  cat=cat, same_cat=same,
@@ -936,6 +1001,8 @@ def _build(s: Settings) -> Path:
             nm = AGENT_NAMES.get(a, a)
             page(f"agent/{a}/index.html", "agent.html", agent=a, name=nm,
                  row=row, st=stats[a], og=previews["agents"].get(a),
+                 img=share_image(previews["agent_cards"].get(a), f"agent-{a}",
+                                 agent_share(lb, a, nm, row, _), f"{base}/{prefix}agent/{a}/", "agent"),
                  share_text=agent_share(lb, a, nm, row, _),
                  cats=(lb.get("by_category") or {}).get(a, []),
                  vs_mine=[p for p in vsp if a in (p["a"], p["b"])],
@@ -1096,7 +1163,8 @@ def not_found_page(s: Settings, rounds: list[dict], vsp: list[dict]) -> str:
 def _previews(s: Settings, lb: dict, rounds: list[dict], cards: dict, reports: list[dict]) -> dict:
     """Queue every link preview the build needs, render the changed ones, return site-relative paths."""
     pv = og.Previews(s)
-    res: dict = {"pv": pv, "rounds": {}, "agents": {}, "pages": {}, "weeks": {}, "standings": None, "contrarian": None}
+    res: dict = {"pv": pv, "rounds": {}, "agents": {}, "pages": {}, "weeks": {}, "standings": None, "contrarian": None,
+                 "standings_card": None, "agent_cards": {}}
 
     def safe(fn, *a):
         try:
@@ -1109,11 +1177,11 @@ def _previews(s: Settings, lb: dict, rounds: list[dict], cards: dict, reports: l
             res["rounds"][rid] = safe(pv.letterbox, card)
     html = safe(og.standings_html, s, lb)
     if html:
-        res["standings"] = pv.card("standings", html)[1]
+        res["standings_card"], res["standings"] = pv.card("standings", html)
     for a in s.agents:
         html = safe(og.agent_html, s, lb, a)
         if html:
-            res["agents"][a] = pv.card(f"agents/{a}", html)[1]
+            res["agent_cards"][a], res["agents"][a] = pv.card(f"agents/{a}", html)
     for lang in CODES:
         tr = Translator(lang)
         for key, msg in BRANDED.items():
@@ -1125,7 +1193,40 @@ def _previews(s: Settings, lb: dict, rounds: list[dict], cards: dict, reports: l
         if (s.cards_dir / "awards" / f"{rep['week']}.png").exists():
             res["weeks"][rep["week"]] = safe(pv.letterbox, f"cards/awards/{rep['week']}.png")
     pv.run()
+    # Share image needs the 1200x675 card itself; without a browser it may not exist
+    res["standings_card"] = _existing(s, res["standings_card"])
+    res["agent_cards"] = {a: c for a, c in res["agent_cards"].items() if _existing(s, c)}
     return res
+
+
+def _existing(s: Settings, rel: str | None) -> str | None:
+    return rel if rel and (s.cards_dir / rel.removeprefix("cards/")).exists() else None
+
+
+def share_image(card: str | None, name: str, text: "ShareText | str | None", url: str, page_type: str) -> dict | None:
+    """Share image (spec section 2): the card PNG as a file via Web Share Level 2 where supported, else a plain
+    download link (also what JavaScript-off visitors get). The href is site-relative: same origin, so it can be
+    fetched and downloaded."""
+    if not card:
+        return None
+    text = text.fit(200) if isinstance(text, ShareText) else (text or "")
+    return {"src": card, "name": f"agentpitbench-{name}.png", "text": text,
+            "url": utm(url, "native", page_type, "share-image")}
+
+
+def _reply_caps(s: Settings, rounds: list[dict]) -> dict[int, bool]:
+    """Rounds whose opener has more replies than collect_humans reads (xstats.reply_cap_hit). Best effort."""
+    if not s.db_path.exists():
+        return {}
+    try:
+        from . import xstats
+        from .db import DB as _DB
+        db = _DB(s.db_path)
+        return {r["round_id"]: True for r in rounds if r.get("thread_tweet_id")
+                and xstats.reply_cap_hit(db, r["round_id"], s.max_reply_reads)}
+    except Exception:
+        log.exception("reply cap check skipped")
+        return {}
 
 
 # ---------- deploy ----------
