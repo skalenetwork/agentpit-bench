@@ -169,14 +169,15 @@ The decision card (`cards/<round>/decision-<agent>.png`) is already a quote card
 
 ## 9. New strings (translated into all 39 languages)
 
-Six, reusing "Share…", "Copy link", "Link copied", "More", "Save image", "Share image", "Share your pick", "Round {n}":
+Five. They reuse "Share…", "Copy link", "Link copied", "More", "Save image", "Share image", "Share your pick", "Round {n}" and "Share result". "Share result" was already translated for the challenge page.
 
 1. "Share" (quote and fact buttons)
-2. "Share result"
-3. "Copy result"
-4. "Copied"
-5. "Share this film" (in `_film.html`, whose wrapper is `lang="en"`: these two controls carry the page's `lang`)
-6. "Watch again"
+2. "Copy result"
+3. "Copied"
+4. "Share this film" (in `_film.html`, whose wrapper is `lang="en"`: these two controls carry the page's `lang`)
+5. "Watch again"
+
+"Share link" is gone: the old jump-to-bottom button was removed from every table. The build check (`site.check_pages`) fails any public page without `data-share-top`.
 
 ## 10. Build plan
 

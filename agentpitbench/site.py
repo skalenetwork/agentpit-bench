@@ -597,7 +597,8 @@ def indexnow_ping(s: Settings, rels: list[str]) -> bool:
 
 
 SHARE_BAR = 'data-share-bar'  # every public page carries it (checked at build)
-OG_REQUIRED = ('property="og:title"', 'property="og:description"', 'property="og:image"', SHARE_BAR)
+OG_REQUIRED = ('property="og:title"', 'property="og:description"', 'property="og:image"', SHARE_BAR,
+               'data-share-top')  # share UX v2: a share control in the first screen
 NO_SHARE = ("widget/", "embed/", "404.html", "go/")  # embedded elsewhere, the not-found page, or the A/B redirect hop: no bar, no preview
 
 
