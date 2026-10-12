@@ -23,7 +23,7 @@ the awards post of the same hour. Exhibition rounds may still appear as films (b
 | 1 | Cold open (~8 s) | The week's biggest true twist: the highest-surprise twist among the week's film.json records, else the top `twists.detect` result over the week's rounds | Twist card: the twist's agents, the code-written fact |
 | 2 | Title (~4 s) | Week label, episode title (writer, no numbers) | Title card |
 | 3 | Standings race (~35 s) | P&L race: cumulative P&L per agent and the Crowd round by round over the week (`media.race_contexts` maths). Forecast race: cumulative mean Brier per agent and the Crowd by sweep date over the week's resolved sweep markets (`forecasts` x `sweep_markets`) | Animated bars that grow and reorder; two scenes |
-| 4 | Top 3 films (~45 s each) | The week's films (cards/motd/<date>/film.json, film date in the window) ranked by their published drama score; days without a film are filled by the same drama score over that day's rounds | An intro card by the host, then a ~40 s re-cut of the film |
+| 4 | Top 3 films (~45 s each) | The episode's films: film dates from the Sunday before the week through its Saturday (each film covers the previous day's rounds, so the Sunday film aired an hour before belongs to the next episode: seven films an episode, none twice), ranked by their published drama score; a day without a film record is filled by the same drama score over that day's rounds (at or above `motd_min_score`) | An intro card by the host, then a ~40 s re-cut of the film |
 | 5 | Awards (~30 s) | `engage.weekly_awards` (MVP, Most Overconfident, Buzzer-Beater, Contrarian): the data of the weekly awards card | One card per award |
 | 6 | Best human (~10 s) | The X reply picker with the most correct picks in the week's rounds (ties: accuracy, then fewer picks, then name). Handle only if it is a valid X handle that passes the quote safety filter (as the film shout-out). None qualifies: skipped | Handle in big type, wins / picks |
 | 7 | Next week (~15 s) | Up to 3 rounds `awaiting_resolution` (picks revealed, never a running round), soonest close first, with each AI's pick | Market cards |
@@ -54,7 +54,8 @@ segment key present (`cold_open`, `welcome`, `race_pnl`, `race_forecast`, `film_
 The film rules applied per line: known slots only, no stray braces, no digits and no number words, no put-downs,
 no lab or model names (labs allowed only if a question in the input names one), no significance or superiority
 claims, per-line character caps and a total budget (1,700 characters, about 2.7 minutes of narration). Plus:
-a `film_i` line that names one agent with an outcome must match that agent's pick in that round, and win or loss
+a `film_i` line that names one agent with an outcome must match that agent's pick in that round (checked per
+clause: sentences split at semicolons and colons; "every AI but X", "not", "against" exclude the agent), and win or loss
 wording must match its result; an `award_i` line must name the award's winner; a race line claiming a leader
 (leads, on top, in front, first place...) may only name the actual leader of that race; the cold open must name one
 of the twist's agents when the twist has agents. Rejected: templated lines. Posting is never blocked.
@@ -63,9 +64,9 @@ of the twist's agents when the twist has agents. Rejected: templated lines. Post
 Host voice: ElevenLabs `eleven_v4`, a stock voice (Liam, `[warm, upbeat]`) different from the film concept voices;
 the film clips keep their own baked narration. Lines cached under `var/audio_cache/` as for films. **Budget:**
 `week_episode_credit_budget = 4000` ElevenLabs credits per episode: the uncached host characters are counted
-before any call (1 credit per character assumed); over budget, the host is captions only. Music: the cached
-`broadcast` library track if it is already in `var/audio_cache/` (never generated for the episode), else the
-procedural CC0 bed; ducked under the host.
+before any call (1 credit per character assumed); over budget, the host is captions only. Music: a cached
+`broadcast` library track if one is already in `var/audio_cache/` (never generated for the episode), else the
+procedural CC0 `broadcast` bed (`music.concept_bed`), else the committed theme; ducked under the host.
 
 ## Formats and posting
 - **16:9 1920x1080, 15 fps**, ~4.5-5.5 min: YouTube (regular video) and the site.
@@ -76,7 +77,7 @@ procedural CC0 bed; ducked under the host.
 - **Trailer, 1:1, 60-90 s** (cold open, title, the films' twist beats, the end card with the site URL): Bluesky
   (its video cap is 3 minutes) and the X fallback.
 - Post: `week-<week>` (kind `week`): the square episode on X with a template text, the trailer on Bluesky through
-  the mirror (`Poster.post(..., bsky_media=trailer)`); a self-reply `week-<week>-link` (kind `week-link`) with the
+  the mirror (`Poster.post(..., bsky_media=trailer)`), the square episode on Telegram (under its 50 MB bot limit); a self-reply `week-<week>-link` (kind `week-link`) with the
   site episode page. X text is always a code template (no opai-written X copy).
 - YouTube: the 16:9 file through `youtube.upload` (post_key `week-<week>`), title and description built by code;
   never the square cut (it would classify as a Short). Runs in the YouTube cycle like the films.
@@ -90,7 +91,8 @@ procedural CC0 bed; ducked under the host.
 window) then render (both formats and the trailer) into `cards/week/<week>/`; from the post hour, post. Idempotent
 per week (`week_<week>` kv: started / rendered / done / failed / quiet). `posting_paused` and `dry_run` behave as for
 every post (outbox). Any failure is logged and leaves the week without an episode; nothing else waits on it.
-CLI: `agentpitbench week [--week YYYY-Www] [--out DIR] [--no-writer] [--voice-lines N]` renders without posting.
+CLI: `agentpitbench week [--week YYYY-Www] [--out DIR] [--no-writer] [--voice-lines N] [--film-days D1,D2..]
+[--now ISO]` renders without posting or uploading.
 
 ## Tests
 Pure parts: week window and filters, P&L and forecast race steps, top-film ranking and fill-in, best human
@@ -98,6 +100,14 @@ Pure parts: week window and filters, P&L and forecast race steps, top-film ranki
 good script and rejects each rule, templated lines pass the validator, re-cut span maths, credit guard, the writer
 runs only when idle and once per week, posting order and keys, Bluesky trailer media, YouTube key and file.
 A render smoke test with tiny scenes. Tests never spawn `claude` or call ElevenLabs.
+
+## Sample (2026-10-12, week 2026-W41, scratch copy of var/)
+One real writer call (fable, 48 s): a good script, falsely rejected by the first validator on "Every AI but Gemini
+backs X; Gemini stands alone on Y" (fixed: clause split and exception words; regression test). With templated
+lines and two narrated host lines (21 credits reported for 159 characters) the 16:9 ran 174 s; the scripted draft
+re-rendered captions-only ran 194 s. No film records existed locally, so the three films were templated fill-ins
+(shorter re-cuts, no narration). A real week with narrated scripted films and a fully voiced host should land near
+five minutes; re-check on the first episode.
 
 ## Open questions
 1. Premium status of @agentpitbench is unknown; the 20-minute default limit is enough either way. Re-check the
