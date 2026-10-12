@@ -7,9 +7,14 @@ the branded page cards are rendered here from the leaderboard and the emblem.
 site.build runs after every bet, so an image is rendered only when its input changes: the input hash (the
 rendered card HTML, or the source card's bytes) is kept in a manifest, and the same hash is the ?v= cache key
 that makes X, LinkedIn and Facebook refetch a changed preview. Everything here is best effort: on any failure
-a page falls back to the committed static/og-default.png, and the site build goes on. That includes a missing
+a page falls back to the committed static/og-default.jpg, and the site build goes on. That includes a missing
 font: a branded card whose title has a character no installed font covers is not rendered (it would show empty
 boxes), so its page keeps the default image.
+
+Previews are JPEG (quality 82, about 30-80 KB; the truecolour PNGs were about 250-400 KB): X, Facebook, LinkedIn,
+WhatsApp and Telegram all take JPEG og:images, and JPEG keeps the soft background glows smooth where a palette
+PNG of the same size bands. The 1200x675 cards themselves stay PNG (palette, cards.shrink_png): they are
+posted and downloaded as images.
 """
 from __future__ import annotations
 
@@ -38,7 +43,10 @@ log = logging.getLogger(__name__)
 W, H = 1200, 630
 ENABLED = True          # tests switch the browser renders off (see tests/conftest.py); letterboxing still runs
 STATIC = Path(__file__).resolve().parent / "static"
-DEFAULT = "og-default.png"
+DEFAULT = "og-default.jpg"
+OG_EXT = "-og.jpg"
+JPEG_Q = 82
+OG_MAX = 80_000      # bytes; a busier preview is encoded a notch lower
 BG = (11, 16, 32)       # #0b1020, the cards' background: the letterbox bars blend into the card
 
 env = Environment(loader=PackageLoader("agentpitbench", "templates/cards"), autoescape=select_autoescape())
@@ -126,6 +134,10 @@ class Previews:
         """Queue out unless it exists with this input hash; returns its site-relative path."""
         rel = self._rel(out)
         self.urls[rel] = f"{self.base}/{rel}?v={h}"
+        old = out.with_suffix(".png")  # the preview's PNG from before previews were JPEG
+        if old.exists():
+            old.unlink(missing_ok=True)
+            self.manifest.pop(self._rel(old), None)
         if self.manifest.get(rel) != h or not out.exists():
             self.jobs.append(Job(out=out, hash=h, **job))
         return rel
@@ -133,15 +145,15 @@ class Previews:
     # --- requests ---
 
     def letterbox(self, card_rel: str) -> str:
-        """Preview of an existing card (cards/<round>/results.png -> cards/<round>/results-og.png)."""
+        """Preview of an existing card (cards/<round>/results.png -> cards/<round>/results-og.jpg)."""
         src = self.s.cards_dir / card_rel.removeprefix("cards/")
-        out = src.with_name(src.stem + "-og.png")
+        out = src.with_name(src.stem + OG_EXT)
         return self._want(out, digest(src.read_bytes()), src=src)
 
     def card(self, name: str, html: str) -> tuple[str, str]:
         """A 1200x675 card rendered from html plus its letterboxed preview: (card path, preview path)."""
         out = self.s.cards_dir / f"{name}.png"
-        og = out.with_name(out.stem + "-og.png")
+        og = out.with_name(out.stem + OG_EXT)
         h = digest(html)
         rel = self._rel(out)
         self.urls[rel] = f"{self.base}/{rel}?v={h}"
@@ -149,7 +161,7 @@ class Previews:
 
     def page(self, name: str, title: str, lang: str, rtl: bool) -> str:
         html = page_html(title, lang, rtl, host=self._host())
-        return self._want(self.s.cards_dir / "pages" / f"{name}-{lang}-og.png", digest(html), html=html, text=title)
+        return self._want(self.s.cards_dir / "pages" / f"{name}-{lang}{OG_EXT}", digest(html), html=html, text=title)
 
     def _host(self) -> str:
         return self.s.site_url.replace("https://", "").replace("http://", "").rstrip("/")
@@ -217,9 +229,13 @@ class Previews:
                         target.parent.mkdir(parents=True, exist_ok=True)
                         await page.set_content(j.html, wait_until="load")
                         await page.evaluate("document.fonts && document.fonts.ready")
-                        await page.screenshot(path=str(target), clip={"x": 0, "y": 0, "width": j.width, "height": j.height})
+                        clip = {"x": 0, "y": 0, "width": j.width, "height": j.height}
                         if j.card:
+                            await page.screenshot(path=str(target), clip=clip)
+                            cards.shrink_png(j.card)
                             letterbox_file(j.card, j.out)
+                        else:
+                            j.out.write_bytes(await _jpeg_shot(page, clip))
                         self.manifest[self._rel(j.out)] = j.hash
                     except Exception:
                         log.exception("preview %s failed", j.out)
@@ -241,9 +257,27 @@ def letterbox_bytes(png: bytes) -> bytes:
     size = (round(im.width * scale), round(im.height * scale))
     canvas = Image.new("RGB", (W, H), BG)
     canvas.paste(im.resize(size, Image.LANCZOS), ((W - size[0]) // 2, (H - size[1]) // 2))
-    buf = io.BytesIO()
-    canvas.save(buf, "PNG", optimize=True)
+    return jpeg_bytes(canvas)
+
+
+def jpeg_bytes(im) -> bytes:
+    """The preview as JPEG, at JPEG_Q unless that is over OG_MAX bytes (a busy card): then a notch lower."""
+    im = im.convert("RGB")
+    for q in (JPEG_Q, JPEG_Q - 6, JPEG_Q - 12):
+        buf = io.BytesIO()
+        im.save(buf, "JPEG", quality=q, optimize=True, progressive=True)
+        if buf.tell() <= OG_MAX:
+            break
     return buf.getvalue()
+
+
+async def _jpeg_shot(page, clip: dict) -> bytes:
+    """A screenshot as a preview JPEG: Pillow's encoder when there is Pillow, else Chromium's."""
+    try:
+        from PIL import Image
+    except ImportError:
+        return await page.screenshot(clip=clip, type="jpeg", quality=JPEG_Q)
+    return jpeg_bytes(Image.open(io.BytesIO(await page.screenshot(clip=clip))))
 
 
 def letterbox_file(src: Path, out: Path) -> None:
@@ -265,7 +299,7 @@ async def _letterbox_browser(png: bytes) -> bytes:
         try:
             page = await b.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
             await page.set_content(html, wait_until="load")
-            return await page.screenshot(clip={"x": 0, "y": 0, "width": W, "height": H})
+            return await page.screenshot(clip={"x": 0, "y": 0, "width": W, "height": H}, type="jpeg", quality=JPEG_Q)
         finally:
             await b.close()
 
@@ -327,7 +361,7 @@ def render_default(out: Path = STATIC / DEFAULT) -> Path:
                 page = await b.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
                 await page.set_content(html, wait_until="load")
                 await page.evaluate("document.fonts && document.fonts.ready")
-                await page.screenshot(path=str(out), clip={"x": 0, "y": 0, "width": W, "height": H})
+                out.write_bytes(await _jpeg_shot(page, {"x": 0, "y": 0, "width": W, "height": H}))
             finally:
                 await b.close()
     _in_thread(go())
