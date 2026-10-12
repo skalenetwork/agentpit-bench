@@ -316,6 +316,14 @@ def weekly_reports(s: Settings, db: DB, rounds: list[dict], lb: dict) -> list[di
     return out
 
 
+def _played_on(rounds: list[dict], agent: str) -> dict:
+    """`model` is today's config; this is what the record was played on (runs.model_reported): the current
+    model's first round (null if not played yet) and the other models with rounds in the record."""
+    from .cards import model_eras
+    e = model_eras(rounds, agent)
+    return {"current_since": e["since"], "earlier_models": e["earlier"]}
+
+
 def paper_metrics(s: Settings, rounds: list[dict], lb: dict) -> dict:
     """The numbers a write-up cites, with the rules that produced them."""
     counted = [r for r in rounds if r["state"] == "resolved" and not r["exhibition"]]
@@ -328,7 +336,8 @@ def paper_metrics(s: Settings, rounds: list[dict], lb: dict) -> dict:
         "benchmark": "AgentpitBench", "methodology_version": s.methodology_version,
         "season_start": s.season_start, "generated_at": time.time(),
         "contestants": {a: {"name": AGENT_NAMES.get(a, a), "model": AGENT_MODELS[a][1], "model_id": AGENT_MODELS[a][0],
-                            "reasoning": AGENT_MODELS[a][2]} for a in s.agents if a in AGENT_MODELS},
+                            "reasoning": AGENT_MODELS[a][2], "played_on": _played_on(rounds, a)}
+                        for a in s.agents if a in AGENT_MODELS},
         "forecast_accuracy": lb["forecast"], "significance": lb["significance"],
         "sealed_forecasts": lb["sealed"], "launch_day_duels": lb["duels"],
         "betting_record": {"rounds_counted": len(counted), "rounds_excluded": excluded,

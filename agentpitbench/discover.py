@@ -77,6 +77,11 @@ def bibtex(s: Settings, ts: float) -> str:
 
 # ---------- facts ----------
 
+def _played_on(rounds: list[dict], agent: str) -> dict:
+    from .exports import _played_on as p
+    return p(rounds, agent)
+
+
 def _model(agent: str) -> tuple[str, str, str]:
     """(model name, model id, reasoning effort) or empty strings."""
     m = AGENT_MODELS.get(agent)
@@ -355,6 +360,7 @@ def write_api(s: Settings, out: Path, rounds: list[dict], lb: dict, metrics: dic
                                     "outcome": x["outcome"], "won": x["won"], "pnl": x["pnl"]})
         _dump(api / "agents" / f"{a}.json", {**envelope(s, ts, page_url(f"agent/{a}/") or f"{base}/leaderboard/"), "data": {
             "agent": a, "name": AGENT_NAMES.get(a, a), "model": model, "model_id": model_id, "reasoning": effort,
+            "played_on": _played_on(ordered, a),
             "forecast": {k: fcrows[a].get(k) for k in keep_fc} if a in fcrows else None,
             "betting_season": {"season": lb.get("season"), **{k: season[a].get(k) for k in keep_bet}} if a in season else None,
             "betting_all_time": {k: alltime[a].get(k) for k in keep_bet} if a in alltime else None,
