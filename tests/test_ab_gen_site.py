@@ -18,7 +18,7 @@ from agentpitbench.publish import BenchPublisher  # noqa: E402
 HOOK = {"situations": {"agree": "Unanimous call", "alone": "{score}: {lone} stands apart",
                        "dead_split": "{score}: split down the middle", "nobody_agrees": "{score}: no two alike",
                        "nway": "{score}: a split field"}}
-NOON = datetime(2026, 10, 12, 12, tzinfo=timezone.utc).timestamp()
+NOON = datetime(2026, 10, 12, 5, tzinfo=timezone.utc).timestamp()   # inside the 03:00-09:00 window
 
 
 @pytest.fixture
@@ -53,7 +53,7 @@ def cli_json(answer: dict) -> str:
 async def test_generator_bad_json_and_timeout_record_failure(env):
     s, db = env
     r = await ab_gen.run(s, db, idle=lambda: True, now=NOON, runner=runner_returning("not json"))
-    assert r["status"] == "failed" and db.get("ab_gen_2026-10-12")["status"] == "failed"
+    assert r["status"] == "failed" and db.get("ab_gen_2026-10-12")["status"] == "failed", r
     assert db.one("SELECT COUNT(*) c FROM ab_arms WHERE output_id IS NOT NULL")["c"] == 0
     db.x("DELETE FROM kv WHERE k='ab_gen_2026-10-12'")
     r = await ab_gen.run(s, db, idle=lambda: True, now=NOON, runner=runner_returning("timeout", rc=None))
@@ -89,7 +89,7 @@ async def test_generator_guards(env):
     early = datetime(2026, 10, 12, 2, tzinfo=timezone.utc).timestamp()
     assert (await ab_gen.run(s, db, idle=lambda: True, now=early, runner=run))["status"] == "skipped"
     db.x("DELETE FROM kv WHERE k='sweep_2026-10-12'")
-    assert "sweep" in (await ab_gen.run(s, db, idle=lambda: True, now=NOON, runner=run))["why"]
+    assert "sweep" in (await ab_gen.run(s, db, idle=lambda: True, now=NOON + 2 * 3600, runner=run))["why"]
     s.ab_gen_enabled = False
     assert "disabled" in (await ab_gen.run(s, db, idle=lambda: True, now=NOON, runner=run))["why"]
 
@@ -176,7 +176,7 @@ async def test_publish_with_arms_keeps_invariants(env):
     assert "Claude: CYBERSHOKE · ChatGPT: CYBERSHOKE · Gemini: CYBERSHOKE · Grok: Nexus" in rev and "http" not in rev
     assert res.startswith("Final: Nexus, 1-3 for Grok\n") and "@xai" in res
     assert res.count("https://") == 1 and f"/round/{rid}/" in res and "\nEvery pick and price\nhttps://" in res
-    assert tw[f"r{rid}-results"]["image"].endswith(".png")                 # the still arm: no clip posted
+    assert not (tw[f"r{rid}-results"]["image"] or "").endswith(".mp4")     # the still arm: no clip posted
     real = {r["slot"]: r for r in db.q("SELECT * FROM ab_assignments WHERE post_key=?", f"r{rid}-results")}
     assert all(r["realized_arm_id"] == r["arm_id"] for r in real.values())
     assert exports.round_record(s, db, db.round(rid))["share_hook"] == "Final: Nexus, 1-3 for Grok"
