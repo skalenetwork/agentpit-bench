@@ -154,6 +154,25 @@ class Settings:
     opai_pick_threshold: float = 0.80
     anomaly_posts_per_hour: int = 20
     selection_scoring: str = "keyword"  # from methodology.json (keyword / model); never set in bench.toml
+    # §9 cadence policy: the daily 07:00 UTC decision. Off = config values only. On: shadow until a week of
+    # 24 h X snapshots exists, then a recommendation in the digest; applied (one knob a day, within
+    # policy.BOUNDS) only with cadence_apply. Also needs "cadence" in opai_tasks.
+    cadence_enabled: bool = False
+    cadence_apply: bool = False
+    # §5.3 selection review: Sunday 19:00 UTC, drafts at most one methodology proposal into var/proposals/
+    # (never applied; `method approve` is the only path). Also needs "proposal" in opai_tasks.
+    selection_review_enabled: bool = False
+    # §11 nightly ops agent (`agentpitbench ops nightly`, run by the agentpitbench-ops.timer): PRs only
+    ops_agent_enabled: bool = False
+    opai_ops_timeout_s: int = 1200
+    ops_repo: str = ""                  # local repo the agent's checkout is cloned from; "" = this package's repo
+    ops_github_repo: str = "skalenetwork/agentpit-bench"
+    ops_max_diff_lines: int = 400
+
+    def policy(self, db, key: str):
+        """A cadence knob (docs/ai-automation-spec.md §9): the applied kv policy, else this config's value."""
+        from . import policy
+        return policy.get(self, db, key)
 
     @property
     def db_path(self) -> Path:

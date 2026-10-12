@@ -97,10 +97,11 @@ def rounds_paused(s: config.Settings, db: DB) -> bool:
 
 
 async def ops_tick(s: config.Settings, db: DB) -> None:
-    """Every 5 min: anomaly detectors (pause + draft + alert), market-title translations, summary catch-up."""
-    from . import anomaly, market_i18n, summaries
+    """Every 5 min: anomaly detectors (pause + draft + alert), market-title translations, summary catch-up,
+    and the flag-gated daily cadence decision (§9)."""
+    from . import anomaly, market_i18n, policy, summaries
     await asyncio.to_thread(anomaly.tick, s, db)
-    for fn in (market_i18n.atick, summaries.atick):
+    for fn in (market_i18n.atick, summaries.atick, policy.due):
         try:
             await fn(s, db)
         except Exception:
