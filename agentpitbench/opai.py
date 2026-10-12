@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 # task -> active prompt version (prompts/<task>.v<N>.md). `rate` is methodology: its version comes from
 # methodology.json (selection.rater.prompt_version), never from here.
 PROMPTS = {"rate": 1, "picks": 1, "summary": 1, "report": 1, "incident": 1, "cadence": 1, "i18n": 1,
-           "proposal": 1, "translate": 1}
+           "proposal": 1, "translate": 1, "ab": 1}
 SYSTEM_PROMPT = "system.v1.md"
 LIGHT_TASKS = {"picks"}
 CHILD_PATH = "/usr/local/bin:/usr/bin:/bin"
@@ -124,6 +124,9 @@ SCHEMAS: dict[str, dict | Callable[[dict], dict]] = {
     "i18n": _obj({"translations": {"type": "object", "additionalProperties": _STR}}),
     "proposal": {"type": "object"},
     "translate": _translate_schema,
+    # A/B challenger templates (ab-testing-spec.md §6): {slot: [{"situations": {...}} | {"text": "..."}]};
+    # ab.validate checks each candidate
+    "ab": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "object"}}},
 }
 
 
@@ -217,11 +220,14 @@ def calls_today(db: DB, task: str | None = None, day: str | None = None) -> int:
 def available(s: Settings, db: DB, task: str, now: float | None = None) -> tuple[bool, str]:
     """(ok, reason) without calling. Contestants come first: opai shares the Claude contestant's quota."""
     now = time.time() if now is None else now
-    if not s.opai_enabled:
+    if task == "ab":  # the A/B generator keeps its own switch (ab_gen_enabled), shares everything else
+        if not getattr(s, "ab_gen_enabled", False):
+            return False, "disabled"
+    elif not s.opai_enabled:
         return False, "disabled"
-    if task not in s.opai_tasks and task != "ab":
+    elif task not in s.opai_tasks:
         return False, "task disabled"
-    if task not in PROMPTS and task != "ab":
+    if task not in PROMPTS:
         return False, "unknown task"
     if not _claude_bin():
         return False, "claude missing"
@@ -287,6 +293,8 @@ def model_for(s: Settings, task: str) -> str:
             return methodology.load()["selection"]["rater"]["model"]
         except Exception:
             return s.opai_model
+    if task == "ab":
+        return getattr(s, "ab_gen_model", s.opai_model)
     return s.opai_model_light if task in LIGHT_TASKS else s.opai_model
 
 
@@ -344,9 +352,9 @@ def call(s: Settings, db: DB, task: str, payload: dict, *, subject: str,
         call_id = db.x("INSERT INTO ai_calls(task,subject,day,started_at,model_alias,prompt_name,prompt_version,"
                        "prompt_sha,input_sha,status) VALUES(?,?,?,?,?,?,?,?,?,'running')",
                        task, subject, utc_day(start), start, alias, task, version, sha(ptext), sha(stdin))
-        status, detail, data, model = _run(s, db, task, schema, stdin, alias, config_dir,
-                                           timeout or (s.opai_translate_timeout_s if task == "translate"
-                                                       else s.opai_timeout_s))
+        timeout = timeout or {"translate": s.opai_translate_timeout_s,
+                              "ab": getattr(s, "ab_gen_timeout_s", s.opai_timeout_s)}.get(task, s.opai_timeout_s)
+        status, detail, data, model = _run(s, db, task, schema, stdin, alias, config_dir, timeout)
         if status == "ok":
             err = check(data, schema) or (validate(data) if validate else None)
             if err:
@@ -365,7 +373,8 @@ def call(s: Settings, db: DB, task: str, payload: dict, *, subject: str,
 
 
 def _forced_available(s: Settings, db: DB, task: str) -> tuple[bool, str]:
-    s2 = dataclasses.replace(s, opai_enabled=True, opai_tasks=[*s.opai_tasks, task])
+    s2 = dataclasses.replace(s, opai_enabled=True, opai_tasks=[*s.opai_tasks, task],
+                             **({"ab_gen_enabled": True} if hasattr(s, "ab_gen_enabled") else {}))
     return available(s2, db, task)
 
 

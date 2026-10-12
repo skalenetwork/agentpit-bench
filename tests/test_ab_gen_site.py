@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from test_publish import AGENTS, PICKS, make_round  # noqa: E402
 
 from agentpitbench import ab, ab_gen, ab_report, cf, exports, orchestrator, site  # noqa: E402
-from agentpitbench import ab_opai as opai  # noqa: E402
+from agentpitbench import opai  # noqa: E402
 from agentpitbench.config import Settings  # noqa: E402
 from agentpitbench.db import DB  # noqa: E402
 from agentpitbench.publish import BenchPublisher  # noqa: E402
@@ -36,80 +36,85 @@ def env(tmp_path, monkeypatch):
     return s, db
 
 
-def runner_returning(stdout: str, rc: int = 0, calls: list | None = None):
-    async def run(cmd, stdin, cwd, timeout):
-        if calls is not None:
-            calls.append((cmd, stdin))
-        return rc, stdout
-    return run
-
-
-def cli_json(answer: dict) -> str:
-    return json.dumps({"type": "result", "is_error": False, "result": "```json\n" + json.dumps(answer) + "\n```",
-                       "modelUsage": {"claude-sonnet-x": {}}})
+@pytest.fixture
+def gen(env, fake_claude, monkeypatch):
+    """The generator runs through the shared opai runner; a fake claude answers (no network)."""
+    monkeypatch.setattr(opai, "sweep_window", lambda s, now: (0.0, 0.0))
+    return env + (fake_claude,)
 
 
 # 5. generator
 
-async def test_generator_bad_json_and_timeout_record_failure(env):
-    s, db = env
-    r = await ab_gen.run(s, db, idle=lambda: True, now=NOON, runner=runner_returning("not json"))
+async def test_generator_bad_json_and_timeout_record_failure(gen):
+    s, db, fake = gen
+    fake.mode = "badjson"
+    r = await ab_gen.run(s, db, idle=lambda: True, now=NOON)
     assert r["status"] == "failed" and db.get("ab_gen_2026-10-12")["status"] == "failed", r
     assert db.one("SELECT COUNT(*) c FROM ab_arms WHERE output_id IS NOT NULL")["c"] == 0
     db.x("DELETE FROM kv WHERE k='ab_gen_2026-10-12'")
-    r = await ab_gen.run(s, db, idle=lambda: True, now=NOON, runner=runner_returning("timeout", rc=None))
+    fake.mode = "timeout"
+    s.ab_gen_timeout_s = 1
+    r = await ab_gen.run(s, db, idle=lambda: True, now=NOON)
     assert r["status"] == "failed"
+    assert [x["status"] for x in db.q("SELECT status FROM ai_calls ORDER BY call_id")] == ["invalid", "timeout"]
 
 
-async def test_generator_valid_output_live_queued_and_tagged(env):
-    s, db = env
-    calls = []
+async def test_generator_valid_output_live_queued_and_tagged(gen):
+    s, db, fake = gen
     answer = {"reveal.hook": [HOOK, {"situations": {"agree": "All in"}}],
               "reveal.cta": [{"text": "Your call"}, {"text": "Pick a side"}, {"text": "Who has it"},
                              {"text": "Claude says hi"}],
               "press.head": [{"text": "From the losing bench:"}]}
-    r = await ab_gen.run(s, db, idle=lambda: True, now=NOON, runner=runner_returning(cli_json(answer), calls=calls))
+    fake.respond(answer)
+    r = await ab_gen.run(s, db, idle=lambda: True, now=NOON)
     assert r["status"] == "ok" and r["accepted"] == 5 and r["rejected"] == 2
-    cmd, prompt = calls[0]
-    assert cmd[:2] == ["claude", "-p"] and "--tools" in cmd and cmd[cmd.index("--tools") + 1] == ""
-    assert "reveal.hook" in prompt and "{lone}" in prompt and "Picks" not in prompt.split("Slots")[0][:0]
-    rows = db.q("SELECT * FROM operator_ai_outputs")
-    assert len(rows) == 7 and {r["model"] for r in rows} == {"claude-sonnet-x"}
-    assert {r["prompt_version"] for r in rows} == {ab_gen.AB_PROMPT_VERSION}
+    c = fake.calls[0]
+    cmd, prompt = c["argv"], c["stdin"]
+    assert cmd[0] == "-p" and cmd[cmd.index("--tools") + 1] == "" and "--safe-mode" in cmd
+    assert c["env"]["CLAUDE_CONFIG_DIR"].endswith("opai-claude")       # opai's own login, not the contestant's
+    assert "reveal.hook" in prompt and "{lone}" in prompt and "copy variants" in prompt
+    rows = db.q("SELECT * FROM operator_ai_outputs WHERE purpose LIKE 'ab:%'")
+    assert len(rows) == 7 and {r["model"] for r in rows} == {"claude-sonnet-fake"}
+    assert {r["prompt_version"] for r in rows} == {ab_gen.AB_PROMPT_VERSION} == {"ab.v1"}
+    assert {r["call_id"] for r in rows} == {db.one("SELECT call_id FROM ai_calls")["call_id"]}
     assert sum(1 for r in rows if not r["accepted"]) == 2 and all(r["reject_reason"] for r in rows if not r["accepted"])
     st = [a["status"] for a in ab.arms(db, "reveal.cta", None) if not a["is_control"]]
     assert st == ["live", "live", "queued"]                     # ab_max_arms = 3: control + 2
-    again = await ab_gen.run(s, db, idle=lambda: True, now=NOON + 60, runner=runner_returning(cli_json(answer)))
+    again = await ab_gen.run(s, db, idle=lambda: True, now=NOON + 60)
     assert again["status"] == "skipped"                          # once per day
 
 
-async def test_generator_guards(env):
-    s, db = env
-    run = runner_returning(cli_json({}))
-    assert (await ab_gen.run(s, db, idle=lambda: False, now=NOON, runner=run))["why"] == "a round is running"
+async def test_generator_guards(gen):
+    s, db, fake = gen
+    fake.respond({})
+    assert (await ab_gen.run(s, db, idle=lambda: False, now=NOON))["why"] == "a round is running"
     early = datetime(2026, 10, 12, 2, tzinfo=timezone.utc).timestamp()
-    assert (await ab_gen.run(s, db, idle=lambda: True, now=early, runner=run))["status"] == "skipped"
+    assert (await ab_gen.run(s, db, idle=lambda: True, now=early))["status"] == "skipped"
     db.x("DELETE FROM kv WHERE k='sweep_2026-10-12'")
-    assert "sweep" in (await ab_gen.run(s, db, idle=lambda: True, now=NOON + 2 * 3600, runner=run))["why"]
+    assert "sweep" in (await ab_gen.run(s, db, idle=lambda: True, now=NOON + 2 * 3600))["why"]
     s.ab_gen_enabled = False
-    assert "disabled" in (await ab_gen.run(s, db, idle=lambda: True, now=NOON, runner=run))["why"]
+    assert "disabled" in (await ab_gen.run(s, db, idle=lambda: True, now=NOON))["why"]
+    assert not fake.calls
 
 
-async def test_generator_dry_inserts_nothing_and_budget(env):
-    s, db = env
-    answer = {"reveal.cta": [{"text": "Your call"}]}
-    r = await ab_gen.run(s, db, idle=lambda: True, now=NOON, dry=True, runner=runner_returning(cli_json(answer)))
-    assert r["candidates"][0]["errors"] == [] and not db.q("SELECT 1 FROM operator_ai_outputs")
+async def test_generator_dry_inserts_nothing_and_budget(gen):
+    s, db, fake = gen
+    fake.respond({"reveal.cta": [{"text": "Your call"}]})
+    r = await ab_gen.run(s, db, idle=lambda: True, now=NOON, dry=True)
+    assert r["candidates"][0]["errors"] == [] and not db.q("SELECT 1 FROM operator_ai_outputs WHERE purpose LIKE 'ab:%'")
+    assert db.one("SELECT public FROM operator_ai_outputs WHERE purpose='ab'")["public"] == 0
     assert len(ab.arms(db, "reveal.cta")) == 1
-    await ab_gen.run(s, db, idle=lambda: True, now=NOON, dry=True, runner=runner_returning(cli_json(answer)))
-    r = await ab_gen.run(s, db, idle=lambda: True, now=NOON, dry=True, runner=runner_returning(cli_json(answer)))
-    assert r["status"] == "failed"                               # 2 calls/day spent
+    await ab_gen.run(s, db, idle=lambda: True, now=NOON, dry=True)
+    r = await ab_gen.run(s, db, idle=lambda: True, now=NOON, dry=True)
+    assert r["status"] == "failed" and len(fake.calls) == 2      # ab = 2 calls/day in opai_task_budget
 
 
-def test_opai_parse():
-    assert opai.parse(cli_json({"a": 1}), "sonnet") == ({"a": 1}, "claude-sonnet-x")
-    assert opai.parse(json.dumps({"is_error": True, "result": "quota"}), "sonnet")[0] is None
-    assert opai.parse("garbage", "sonnet") == (None, "sonnet")
+async def test_generator_waits_for_the_contestant_breaker(gen):
+    s, db, fake = gen
+    rid = db.create_round({"id": 99, "question": "q", "outcomes_list": ["Yes", "No"]})
+    db.finish_run(db.create_run(rid, "claude"), "infra", None, None)
+    r = await ab_gen.run(s, db, idle=lambda: True, now=NOON)
+    assert r["status"] == "failed" and not fake.calls
 
 
 # 7. publish with arms

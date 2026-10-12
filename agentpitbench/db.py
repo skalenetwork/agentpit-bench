@@ -147,19 +147,8 @@ CREATE TABLE IF NOT EXISTS sweep_runs (      -- per agent per day: ok / infra / 
     transcript_path TEXT,
     PRIMARY KEY (sweep_date, agent)
 );
--- operator AI (docs/ai-automation-spec.md §3). operator_ai_outputs is shared with the A/B build
--- (ab-testing-spec.md §7, verbatim); this build adds call_id / subject / public in MIGRATIONS.
-CREATE TABLE IF NOT EXISTS operator_ai_outputs (   -- every public operator-AI output, tagged (operator decision)
-    output_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    purpose TEXT NOT NULL,            -- 'ab:<slot>' (ai-automation can reuse this table)
-    model TEXT NOT NULL,              -- as reported by the CLI's json output, else the requested id
-    prompt_version TEXT NOT NULL,
-    created_at REAL NOT NULL,
-    content TEXT NOT NULL,            -- the candidate JSON
-    accepted INTEGER NOT NULL,
-    reject_reason TEXT,
-    run_raw_path TEXT                 -- full CLI output under var/ab_gen/
-);
+-- operator AI (docs/ai-automation-spec.md §3). operator_ai_outputs has one CREATE (below, with the A/B tables);
+-- MIGRATIONS add call_id / subject / public to databases created before those columns existed.
 CREATE TABLE IF NOT EXISTS ai_calls (            -- every opai call attempt that spawned a process
     call_id INTEGER PRIMARY KEY AUTOINCREMENT,
     task TEXT NOT NULL, subject TEXT,
