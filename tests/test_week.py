@@ -57,11 +57,9 @@ def data_for(rounds=None, films=None, human=None, teaser_rounds=None, twist=True
 
 # ---------- the week ----------
 
-def test_week_window_and_film_days():
+def test_week_window():
     lo, hi = week.week_bounds(WEEK)
     assert lo == MON and hi - lo == 7 * 86400 and week.iso_week(SUN18) == WEEK
-    days = week.film_days(WEEK)
-    assert days[0] == "2026-10-11" and days[-1] == "2026-10-17" and len(days) == 7  # Sunday before .. Saturday
 
 
 def test_week_rounds_and_pnl_race():
@@ -89,13 +87,28 @@ def test_forecast_race_cumulative_by_sweep_day(env):
     assert week.forecast_race(db, AG, MON + 30 * 86400, MON + 37 * 86400) is None
 
 
-def test_top_films_rank_by_published_score_and_fill_quiet_days():
+def test_top_films_are_the_weeks_most_dramatic_rounds():
     rs = rounds_week()
-    films = [{"date": "2026-10-16", "round_id": 2, "score": {"total": 40}, "title": "Two"}]
-    top = week.top_films(films, rs, week.film_days(WEEK))
-    # round 1 resolved on the 13th: the 14th's film day, no film record -> filled by the drama score (75)
-    assert [(f["round_id"], f["film"] is not None) for f in top] == [(1, False), (2, True)]
-    assert top[0]["date"] == "2026-10-14" and top[0]["score"] == 75
+    films = {2: {"round_id": 2, "dir": "/x", "files": {"square": "a.mp4"}}}
+    top = week.top_films(rs, MON, SUN18, films.get)
+    # round 1 (lone wolf + upset, 75) first; the exhibition round 4 is discounted; last week's round 3 is out
+    assert [f["round_id"] for f in top][:2] == [1, 2] and 3 not in [f["round_id"] for f in top]
+    assert top[0]["film"] is None and top[1]["film"]["files"] == {"square": "a.mp4"}
+    assert top[0]["date"] == "2026-10-13" and top[0]["score"] == 75
+    assert len(week.top_films(rs, MON, SUN18, films.get, n=1)) == 1
+
+
+def test_film_record_prefers_the_round_film(env):
+    s, _ = env
+    from agentpitbench import motd
+    d = motd.round_film_dir(s, 7)
+    d.mkdir(parents=True)
+    (d / "film.json").write_text(json.dumps({"round_id": 7, "files": {"square": "f.mp4"}, "scenes": []}))
+    rec = week.film_record(s, 7)
+    assert rec["dir"] == str(d) and rec["files"] == {"square": "f.mp4"} and week.film_record(s, 8) is None
+    files = {"square": Path("s.mp4"), "tall": Path("t.mp4")}
+    assert week._pick_file(files, "wide") == Path("s.mp4") and week._pick_file(files, "square") == Path("s.mp4")
+    assert week._pick_file({"tall": Path("t.mp4")}, "wide") == Path("t.mp4") and week._pick_file({}, "wide") is None
 
 
 def test_best_human_handles_filtered_and_ties():
@@ -222,6 +235,9 @@ def test_writer_runs_once_a_week_only_when_idle(env, fake_claude):
     # a re-render reuses the accepted script; a second call in the same week is never made
     sc, meta = week.write(s, db, d)
     assert meta.get("reused") and len(fake_claude.calls) == 1
+    d2 = data_for(human={"handle": "zed", "wins": 2, "picks": 3})   # other data: never the old script
+    sc, meta = week.write(s, db, d2)
+    assert not meta.get("reused") and meta["scripted"] is False and len(fake_claude.calls) == 1
     db.x("DELETE FROM operator_ai_outputs")
     sc, meta = week.write(s, db, d)
     assert meta["scripted"] is False and "weekly" in meta["why_templated"] and len(fake_claude.calls) == 1
@@ -254,7 +270,7 @@ def test_partial_budget_table_keeps_code_defaults(tmp_path):
     p.write_text('[opai_task_budget]\nrate = 5\n')
     s = config.load(p)
     assert s.opai_task_budget["rate"] == 5 and s.opai_task_budget["weekly_episode"] == 1
-    assert s.opai_task_budget["motd_script"] == 3
+    assert s.opai_task_budget["motd_script"] == Settings().opai_task_budget["motd_script"]
 
 
 # ---------- scenes, re-cuts, credits ----------

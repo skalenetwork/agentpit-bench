@@ -11,6 +11,8 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
+import shutil
 import re
 import time
 from datetime import datetime, timedelta, timezone
@@ -396,7 +398,71 @@ def fit_length(scenes: list[dict], lo: float = MIN_S, hi: float = MAX_S) -> list
 # ---------- rendering, posting, the daily hook ----------
 
 def film_dir(s: Settings, day: str) -> Path:
+    """The day's film (YouTube Shorts' one film a day, the /films/ list): cards/motd/<date>/."""
     return s.cards_dir / "motd" / day
+
+
+def round_film_dir(s: Settings, round_id: int) -> Path:
+    """Every round's own film (v0.6: the square replaces the results clip): cards/motd/rounds/<id>/."""
+    return s.cards_dir / "motd" / "rounds" / str(round_id)
+
+
+def _resolved_day(rnd: dict) -> str:
+    ts = rnd.get("resolved_at") or time.time()
+    return datetime.fromtimestamp(ts, timezone.utc).strftime("%Y-%m-%d")
+
+
+def _running(db) -> bool:
+    return db.one("SELECT 1 FROM rounds WHERE state='running' LIMIT 1") is not None
+
+
+async def round_film(s: Settings, db, cards, round_id: int, formats: tuple[str, ...] = ("square",),
+                     sleep=asyncio.sleep) -> dict | None:
+    """The round's film at resolution (square first, for the results post). The writer needs an idle window: if
+    a round is running, wait up to motd_writer_wait_s for it to finish, then write (or fall back to the templated
+    film as before). Returns film.json or None (not eligible, render failed)."""
+    if s.motd_scripted:
+        waited = 0.0
+        while _running(db) and waited < s.motd_writer_wait_s:
+            await sleep(20)
+            waited += 20
+    row = db.round(round_id)
+    day = _resolved_day({"resolved_at": row["resolved_at"]} if row is not None else {})
+    return await make_film(s, db, cards, day, round_id=round_id, out_dir=round_film_dir(s, round_id),
+                           formats=formats)
+
+
+def round_film_record(s: Settings, round_id: int) -> dict | None:
+    f = round_film_dir(s, round_id) / "film.json"
+    try:
+        return json.loads(f.read_text()) if f.exists() else None
+    except (OSError, ValueError):
+        return None
+
+
+async def backfill(s: Settings, db, cards, limit: int = 1) -> list[int]:
+    """Off-peak (no round running): render the 9:16 (YouTube) and 16:9 (site) versions of round films that only
+    have the square yet. Same script and cached audio. Newest first, `limit` films per call."""
+    done = []
+    root = s.cards_dir / "motd" / "rounds"
+    if not root.exists():
+        return done
+    for d in sorted(root.iterdir(), key=lambda p: -int(p.name) if p.name.isdigit() else 0):
+        if len(done) >= limit or _running(db):
+            break
+        rec = round_film_record(s, int(d.name)) if d.name.isdigit() else None
+        if not rec:
+            continue
+        missing = tuple(f for f in ("tall", "wide") if f not in (rec.get("files") or {}))
+        if not missing:
+            continue
+        try:
+            if await make_film(s, db, cards, rec["date"], round_id=rec["round_id"], out_dir=d, formats=missing):
+                done.append(rec["round_id"])
+        except Exception:
+            log.exception("Match of the Day: backfill of round %s failed", rec.get("round_id"))
+            done.append(rec["round_id"])  # don't spin on a broken film within one call
+    return done
 
 
 def _round_with_flags(s: Settings, db, rnd: dict) -> dict:
@@ -651,53 +717,96 @@ async def warm(s: Settings, db, cards, day: str) -> str | None:
 
 
 async def daily(s: Settings, db, cards, poster, now: float | None = None) -> dict | None:
-    """Scheduler hook (hourly): at or after motd_hour_utc, once per UTC date. Off unless motd_enabled. A failed
-    render is not retried (the next day's film picks from its own window)."""
+    """Scheduler hook (hourly). v0.6: every round's film goes out in its results post, so there is no daily X
+    film. Before motd_hour_utc: off-peak backfill of 9:16 / 16:9 versions. At or after it, once per UTC date: the
+    previous day's most dramatic round (the same selection as before) becomes the day's film for YouTube Shorts
+    and /films/: its round film (rendered now if missing) is linked into cards/motd/<date>/. `poster` is unused
+    (kept for the scheduler's call shape)."""
     if not s.motd_enabled:
         return None
     t = datetime.fromtimestamp(now if now is not None else time.time(), timezone.utc)
     day = t.strftime("%Y-%m-%d")
-    if t.hour < s.motd_hour_utc:
+    if s.motd_per_round:
         try:
-            await warm(s, db, cards, day)
+            await backfill(s, db, cards)
         except Exception:
-            log.exception("Match of the Day %s: script warm-up failed (the 17:00 job writes or falls back)", day)
-        return None
-    if db.get(f"motd_{day}"):
+            log.exception("Match of the Day: backfill failed")
+    if t.hour < s.motd_hour_utc or db.get(f"motd_{day}"):
         return None
     db.put(f"motd_{day}", "started")
     try:
-        rec = await make_film(s, db, cards, day, formats=("square",))  # the X film first: post it, then the rest
+        rec = await day_film(s, db, cards, day)
     except Exception:
-        log.exception("Match of the Day %s: render failed; no film today", day)
+        log.exception("Match of the Day %s: day film failed", day)
         db.put(f"motd_{day}", "failed")
         return None
-    if not rec:
-        db.put(f"motd_{day}", "quiet")
-        return None
-    try:
-        await post(s, db, poster, rec, film_dir(s, day))
-    except Exception:
-        log.exception("Match of the Day %s: post failed", day)
-        db.put(f"motd_{day}", "post-failed")
-        return rec
-    db.put(f"motd_{day}", "done")
-    try:  # 9:16 for YouTube Shorts, 16:9 for the site: same script (reused), same cached audio, film.json merged
-        rec = await make_film(s, db, cards, day, round_id=rec["round_id"], formats=("tall", "wide")) or rec
-    except Exception:
-        log.exception("Match of the Day %s: 9:16 / 16:9 render failed (the X post is out)", day)
+    db.put(f"motd_{day}", "done" if rec else "quiet")
     return rec
 
 
+async def day_film(s: Settings, db, cards, day: str) -> dict | None:
+    """The day's film: pick() the round, make sure its film has the 9:16 and 16:9 versions, and publish it under
+    cards/motd/<date>/ (hard links or copies; film.json with date = the day, which keys the YouTube upload)."""
+    from . import exports
+    data = exports.export(s, db)
+    rounds = [_round_with_flags(s, db, r) for r in data["rounds"]]
+    chosen = pick(rounds, day, s.motd_min_score, s.motd_exhibition_factor)
+    if not chosen:
+        return None
+    rid = chosen["round"]["round_id"]
+    src = round_film_dir(s, rid)
+    rec = round_film_record(s, rid)
+    missing = tuple(f for f in FORMATS if f not in ((rec or {}).get("files") or {}))
+    if missing:
+        rec = await make_film(s, db, cards, (rec or {}).get("date") or day, round_id=rid, out_dir=src,
+                             formats=missing) or rec
+    if not rec:
+        return None
+    out = film_dir(s, day)
+    out.mkdir(parents=True, exist_ok=True)
+    for name in list((rec.get("files") or {}).values()) + ["poster.png"]:
+        f = src / name
+        if f.exists():
+            dst = out / name
+            dst.unlink(missing_ok=True)
+            try:
+                os.link(f, dst)
+            except OSError:
+                shutil.copyfile(f, dst)
+    day_rec = {**rec, "date": day, "round_date": rec.get("date"), "score": chosen["score"],
+               "candidates": chosen["candidates"]}
+    (out / "film.json").write_text(json.dumps(day_rec, indent=1))
+    return day_rec
+
+
 def films(s: Settings) -> list[dict]:
-    """Every film.json under cards/motd/, newest first (the site's /films/ page and round embeds)."""
+    """Every film for the site's /films/ page and round embeds, newest first: the day films (cards/motd/<date>/)
+    and every round's own film once its 16:9 version exists (cards/motd/rounds/<id>/). One entry per round."""
     root = s.cards_dir / "motd"
-    out = []
-    for f in sorted(root.glob("*/film.json"), reverse=True) if root.exists() else []:
+    out, seen = [], set()
+    if not root.exists():
+        return out
+    for f in sorted(root.glob("rounds/*/film.json"), key=lambda p: -int(p.parent.name) if p.parent.name.isdigit()
+                    else 0):
         try:
             rec = json.loads(f.read_text())
         except (OSError, ValueError):
             continue
+        if "wide" not in (rec.get("files") or {}):
+            continue
+        rec["dir"] = f"cards/motd/rounds/{f.parent.name}/"
+        seen.add(rec.get("round_id"))
+        out.append(rec)
+    for f in sorted(root.glob("*/film.json"), reverse=True):
+        if f.parent.name == "rounds":
+            continue
+        try:
+            rec = json.loads(f.read_text())
+        except (OSError, ValueError):
+            continue
+        if rec.get("round_id") in seen:
+            continue
         rec["dir"] = f"cards/motd/{f.parent.name}/"
         out.append(rec)
+    out.sort(key=lambda r: (r.get("date") or "", r.get("round_id") or 0), reverse=True)
     return out

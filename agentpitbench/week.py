@@ -71,15 +71,6 @@ def week_bounds(week: str) -> tuple[float, float]:
     return lo.timestamp(), (lo + timedelta(days=7)).timestamp()
 
 
-def film_days(week: str) -> list[str]:
-    """The film dates of an episode: the Sunday before the week through its Saturday. Each film covers the rounds
-    resolved the day before, so the week's Sunday film (posted an hour before the episode) belongs to the next
-    episode: seven films an episode, none twice, none skipped."""
-    lo, _ = week_bounds(week)
-    d0 = datetime.fromtimestamp(lo, timezone.utc) - timedelta(days=1)
-    return [(d0 + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(7)]
-
-
 def week_rounds(rounds: list[dict], lo: float, hi: float) -> list[dict]:
     """As the Sunday race and awards card: resolved, not exhibition, resolved inside the window, oldest first."""
     return sorted((r for r in rounds if r.get("state") == "resolved" and not r.get("exhibition")
@@ -147,30 +138,24 @@ def forecast_race(db, agents: list[str], lo: float, hi: float) -> dict | None:
 
 # ---------- top films, best human, teaser, twist ----------
 
-def top_films(films: list[dict], rounds: list[dict], days: list[str], n: int = TOP_FILMS, min_score: float = 20,
+def top_films(rounds: list[dict], lo: float, hi: float, film_of=lambda rid: None, n: int = TOP_FILMS,
               exhibition_factor: float = 0.5) -> list[dict]:
-    """The week's best films by their published drama score. A day without a film record (a failed render, the
-    films switched off) is filled by the same drama score over that day's rounds, at or above motd_min_score."""
-    from .motd import pick
-    by_round = {r["round_id"]: r for r in rounds}
+    """The week's top films: its n most dramatic resolved rounds (motd.score, the published drama score; exhibition
+    rounds discounted as for the films; ties: the later round). Every round has its own film (motd v0.6); film_of(id)
+    returns its record (with `dir`), or None, and then the episode renders the templated film itself."""
+    from .motd import eligible, score
+    cands = []
+    for r in rounds:
+        if eligible(r) and r.get("resolved_at") is not None and lo <= r["resolved_at"] < hi:
+            sc = score(r, rounds, exhibition_factor)
+            cands.append((sc, r))
+    cands.sort(key=lambda x: (-x[0]["total"], -(x[1]["resolved_at"] or 0)))
     out = []
-    for day in days:
-        rec = next((f for f in films if f.get("date") == day), None)  # films() is newest first
-        if rec and rec.get("round_id") in by_round:
-            out.append({"date": day, "round_id": rec["round_id"], "score": (rec.get("score") or {}).get("total", 0),
-                        "film": rec, "round": by_round[rec["round_id"]]})
-            continue
-        ch = pick(rounds, day, min_score, exhibition_factor)
-        if ch:
-            out.append({"date": day, "round_id": ch["round"]["round_id"], "score": ch["score"]["total"],
-                        "film": None, "round": ch["round"], "score_detail": ch["score"]})
-    out.sort(key=lambda f: (-f["score"], f["date"]), reverse=False)
-    seen, top = set(), []
-    for f in out:
-        if f["round_id"] not in seen:
-            seen.add(f["round_id"])
-            top.append(f)
-    return top[:n]
+    for sc, r in cands[:n]:
+        day = datetime.fromtimestamp(r["resolved_at"], timezone.utc).strftime("%Y-%m-%d")
+        out.append({"date": day, "round_id": r["round_id"], "score": sc["total"], "score_detail": sc,
+                    "film": film_of(r["round_id"]), "round": r})
+    return out
 
 
 _HANDLE = re.compile(r"^[A-Za-z0-9_]{1,15}$")
@@ -830,7 +815,16 @@ def join(pieces: list[Path], out: Path) -> Path | None:
 
 # ---------- gathering ----------
 
-def gather(s: Settings, db, data: dict, week: str, now: float, ctx_for=None, days: list[str] | None = None) -> dict:
+def film_record(s: Settings, round_id: int) -> dict | None:
+    """A round's film: its own (cards/motd/rounds/<id>/, motd v0.6), else a day film of it (cards/motd/<date>/)."""
+    from . import motd
+    rec = motd.round_film_record(s, round_id)
+    if rec and rec.get("files"):
+        return {**rec, "dir": str(motd.round_film_dir(s, round_id))}
+    return next((f for f in motd.films(s) if f.get("round_id") == round_id), None)
+
+
+def gather(s: Settings, db, data: dict, week: str, now: float, ctx_for=None) -> dict:
     """Everything the episode says, from the export (rounds, leaderboard) and the database."""
     from . import motd
     from .engage import weekly_awards
@@ -838,9 +832,7 @@ def gather(s: Settings, db, data: dict, week: str, now: float, ctx_for=None, day
     cut = min(hi, now)
     rounds_all = [motd._round_with_flags(s, db, r) for r in data["rounds"]]
     wr = week_rounds(rounds_all, lo, cut)
-    days = days or [d for d in film_days(week) if d <= datetime.fromtimestamp(cut, timezone.utc).strftime("%Y-%m-%d")]
-    films = [f for f in motd.films(s) if f.get("date") in days]
-    top = top_films(films, rounds_all, days, TOP_FILMS, s.motd_min_score, s.motd_exhibition_factor)
+    top = top_films(rounds_all, lo, cut, lambda rid: film_record(s, rid), TOP_FILMS, s.motd_exhibition_factor)
     ids = [r["round_id"] for r in wr]
     picks = [dict(x) for x in db.q(f"SELECT username, won, round_id FROM humans WHERE round_id IN "
                                    f"({','.join('?' * len(ids))})", *ids)] if ids else []
@@ -893,8 +885,16 @@ def write(s: Settings, db, data: dict) -> tuple[dict, dict]:
 
 
 def _reuse(db, subject: str, pl: dict):
-    for r in db.q("SELECT output_id, model, content FROM operator_ai_outputs WHERE purpose=? AND subject=? AND "
-                  "accepted=1 ORDER BY output_id DESC LIMIT 2", TASK, subject):
+    """The accepted script for this week when it was written from exactly this input (same prompt and data: the
+    ai_calls input hash) and still passes the validator: a re-render never re-bills the writer, and a script written
+    for other films or other numbers is never reused."""
+    from . import opai
+    want = opai.sha(f"{opai.prompt_text(TASK).strip()}\n\n{opai.data_block(pl)}\n")
+    for r in db.q("SELECT o.output_id, o.model, o.content, c.input_sha FROM operator_ai_outputs o LEFT JOIN ai_calls c "
+                  "ON c.call_id=o.call_id WHERE o.purpose=? AND o.subject=? AND o.accepted=1 "
+                  "ORDER BY o.output_id DESC LIMIT 2", TASK, subject):
+        if r["input_sha"] != want:
+            continue
         try:
             d = json.loads(r["content"])
         except ValueError:
@@ -911,37 +911,40 @@ def episode_dir(s: Settings, week: str) -> Path:
 
 
 async def _film_source(s: Settings, db, cards, f: dict, work: Path,
-                       scale: float = 1.0) -> tuple[Path | None, Path | None, list[dict]]:
-    """(wide mp4, square mp4 or None, scenes) of a top film. A film without a rendered file (a fill-in day) is
-    rendered here as the templated film (no writer, no narrator), wide only."""
+                       scale: float = 1.0) -> tuple[dict[str, Path], list[dict]]:
+    """({format: mp4}, scenes) of a top film: its rendered files (square, tall, wide: whichever exist). A round
+    without a film record is rendered here as the templated film (no writer, no narrator), 16:9 only."""
     from . import motd
     rec = f.get("film")
     if rec:
-        d = s.data_dir / rec["dir"] if not Path(rec["dir"]).is_absolute() else Path(rec["dir"])
-        files = rec.get("files") or {}
-        wide = d / files["wide"] if files.get("wide") else None
-        sq = d / files["square"] if files.get("square") else None
-        if wide and wide.is_file():
-            return wide, (sq if sq and sq.is_file() else None), rec.get("scenes") or []
+        d = Path(rec["dir"]) if Path(rec["dir"]).is_absolute() else s.data_dir / rec["dir"]
+        files = {k: d / v for k, v in (rec.get("files") or {}).items() if (d / v).is_file()}
+        if files:
+            return files, rec.get("scenes") or []
     s2 = dataclasses.replace(s, motd_scripted=False, motd_narrator=False)
-    out = work / f"film-{f['date']}"
+    out = work / f"film-{f['round_id']}"
     rec = await motd.make_film(s2, db, cards, f["date"], round_id=f["round_id"], out_dir=out, formats=("wide",),
                                scale=scale)
     if not rec:
-        return None, None, []
+        return {}, []
     f["film_rendered"] = True
-    return out / rec["files"]["wide"], None, rec["scenes"]
+    return {"wide": out / rec["files"]["wide"]}, rec["scenes"]
+
+
+def _pick_file(files: dict[str, Path], fmt: str) -> Path | None:
+    """The film file for an episode format: the same shape first, then the closest (letterboxed by piece())."""
+    order = {"wide": ("wide", "square", "tall"), "square": ("square", "wide", "tall")}[fmt]
+    return next((files[k] for k in order if k in files), None)
 
 
 async def make_episode(s: Settings, db, cards, week: str, out_dir: Path | None = None, writer: bool = True,
                        voice_lines: int | None = None, now: float | None = None, scale: float = 1.0,
-                       formats: tuple[str, ...] = ("wide", "square"), trailer: bool = True,
-                       days: list[str] | None = None) -> dict | None:
+                       formats: tuple[str, ...] = ("wide", "square"), trailer: bool = True) -> dict | None:
     """Gather, script, narrate, render and assemble the episode. Returns episode.json's record or None (no rounds)."""
     from . import exports, media
     now = time.time() if now is None else now
     exp = exports.export(s, db)
-    data = gather(s, db, exp, week, now, days=days)
+    data = gather(s, db, exp, week, now)
     if not data["rounds"] and not data["films"]:
         log.info("Week in the Pit %s: no resolved rounds and no films; no episode", week)
         return None
@@ -970,8 +973,8 @@ async def make_episode(s: Settings, db, cards, week: str, out_dir: Path | None =
         try:
             sources.append(await _film_source(s, db, cards, f, work, scale))
         except Exception:
-            log.exception("Week in the Pit %s: film %s unavailable", week, f["date"])
-            sources.append((None, None, []))
+            log.exception("Week in the Pit %s: round %s's film unavailable", week, f["round_id"])
+            sources.append(({}, []))
     fps = s.week_episode_fps
     files: dict[str, str] = {}
     pieces_by_fmt: dict[str, dict] = {}
@@ -1003,10 +1006,10 @@ async def make_episode(s: Settings, db, cards, week: str, out_dir: Path | None =
                 if si == 0:
                     named["head"] = p
             else:
-                wide, sq, scenes = sources[seg["film"]]
-                if wide is None:
+                files_, scenes = sources[seg["film"]]
+                src = _pick_file(files_, fmt)
+                if src is None:
                     continue
-                src = sq if (fmt == "square" and sq) else wide
                 spans = recut_spans(scenes) if scenes else [(0.0, RECUT_S)]
                 for j, (a, b) in enumerate(spans):
                     p = await asyncio.to_thread(piece, src, work / f"{fmt}-p{si:02d}-{j}.mp4", w, h, fps, a, b)
@@ -1068,11 +1071,12 @@ async def _trailer(s, cards, data, segs, sources, work: Path, out: Path, week: s
             p = await asyncio.to_thread(piece, src or silent, work / "tr-0.mp4", w, h, fps)
             if p:
                 pieces.append(p)
-    for i, (wide, sq, scenes) in enumerate(sources):
-        if wide is None:
+    for i, (files_, scenes) in enumerate(sources):
+        src = _pick_file(files_, "square")
+        if src is None:
             continue
         a, b = trailer_span(scenes) if scenes else (0.0, TRAILER_FILM_S)
-        p = await asyncio.to_thread(piece, sq or wide, work / f"tr-f{i}.mp4", w, h, fps, a, b)
+        p = await asyncio.to_thread(piece, src, work / f"tr-f{i}.mp4", w, h, fps, a, b)
         if p:
             pieces.append(p)
     end = [end_card(data, cards.host)]

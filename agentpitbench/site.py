@@ -31,7 +31,7 @@ from jinja2 import Environment, PackageLoader, pass_context, select_autoescape
 from markupsafe import Markup
 
 from . import og
-from .cards import cents, is_dark, fmt_time, is_upset, payout_x, ranked, results_headline, signed, split_headline
+from .cards import cents, is_dark, fmt_time, is_upset, payout_x, ranked, results_headline, signed, split_headline, model_eras
 from . import challenge, discover, methodology
 from .emblem import emblem_svg
 from .config import AGENT_COLORS, AGENT_NAMES, AGENT_SLUGS, Settings, AGENT_MODELS
@@ -403,6 +403,30 @@ def vs_description(p: dict, _, as_of: float) -> str:
              y=f"{p['b_brier']:.3f}", w=p["a_closer"], l=p["b_closer"], date=discover.day(as_of))
 
 
+def home_poster(s: Settings, film: dict) -> str | None:
+    """A small JPEG of the film's poster for the front page (the film's own poster is a full-size PNG; the home
+    page stays light): cards/motd/<date>/poster-home.jpg, made once. None if the film has no poster."""
+    if not film.get("poster"):
+        return None
+    src = s.cards_dir / film["dir"].removeprefix("cards/") / film["poster"]
+    dst = src.with_name("poster-home.jpg")
+    try:
+        if not dst.exists() or dst.stat().st_mtime < src.stat().st_mtime:
+            from PIL import Image
+            im = Image.open(src).convert("RGB")
+            im.thumbnail((960, 960))
+            im.save(dst, "JPEG", quality=72, optimize=True, progressive=True)
+        return film["dir"] + dst.name
+    except Exception:
+        log.exception("home poster for %s skipped", film.get("date"))
+        return film["dir"] + film["poster"]
+
+
+def home_pairs(vsp: list[dict], n: int = 4) -> list[dict]:
+    """The front page's head-to-head strip: AI-vs-AI pairs first (most shared markets first), then vs the Crowd."""
+    return sorted(vsp, key=lambda p: (p["b"] == CROWD, -p["n"]))[:n]
+
+
 def vs_rounds(rounds: list[dict], a: str, b: str) -> dict:
     """Betting rounds where a and b (an agent or the Crowd's favourite) took opposite sides: W-L and the latest 10."""
     out, aw, bw = [], 0, 0
@@ -770,17 +794,33 @@ BRANDED = {"methodology": _("Methodology"), "independence": _("Independence & co
            "hall-of-shame": _("Hall of shame"), "reports": _("Weekly reports"), "contrarian": _("Contrarian calls"),
            "experiments": _("Experiments"), "challenge": _("Beat the AIs")}
 
+# Extra top-nav links, after Films and Head to head: (path under the language root, English label passed
+# through _()). The slot for sections that land later, e.g. ("challenge/", "Beat the AIs"); the label must be a
+# message id with translations (i18n.message_ids reads this list) before it goes in.
+NAV_EXTRA: list[tuple[str, str]] = [("challenge/", "Beat the AIs")]
+
 REASONING = {"max": "max reasoning", "xhigh": "extra-high reasoning", "high": "high reasoning"}
 
 
-def model_line(agent: str, _) -> str:
-    """'Fable 5.1 · max reasoning' from config.AGENT_MODELS, so a model swap is one edit there."""
+def model_line(agent: str, _, eras: dict | None = None) -> str:
+    """'Fable 5.1 · max reasoning' from config.AGENT_MODELS, so a model swap is one edit there. With `eras`
+    (cards.model_eras) a record that spans several models says so: '… (since 12 Oct; earlier rounds on GPT-6 Luna)'."""
     if agent not in AGENT_MODELS:
         return ""
     _id, name, effort = AGENT_MODELS[agent]
     label = {"max": _("max reasoning"), "xhigh": _("extra-high reasoning"),
              "high": _("high reasoning")}.get(effort, effort)
-    return f"{name} · {label}"
+    line = f"{name} · {label}"
+    if eras and eras.get("earlier"):
+        others = ", ".join(eras["earlier"])
+        if eras.get("since"):
+            when = datetime.fromtimestamp(eras["since"], timezone.utc)
+            day = when.strftime("%-d %b") if _.lang == "en" else when.strftime("%Y-%m-%d")
+            note = _("(since {date}; earlier rounds on {models})", date=day, models=others)
+        else:
+            note = _("(not played yet; rounds so far on {models})", models=others)
+        line += f" {note}"
+    return line
 
 
 def ci_bar(rows: list[dict], crowd: dict | None, width: int = 640) -> str:
@@ -932,6 +972,9 @@ def _build(s: Settings) -> Path:
     # later voids stays featured; a sealed round's picks never reach the page or data/challenge.json
     ch_days = challenge.days(all_rounds)
     page_ids = {r["round_id"] for r in rounds}
+    eras = {a: model_eras(rounds, a) for a in s.agents}  # the models each record was played on
+    if films:
+        films[0]["home_poster"] = home_poster(s, films[0])
     film_of = {}
     for f in films:  # newest first: a round filmed twice shows its latest film
         film_of.setdefault(f["round_id"], f)
@@ -952,11 +995,12 @@ def _build(s: Settings) -> Path:
                   "is_upset": is_upset, "ranked": ranked, "category": category,
                   "_": _, "_h": _.html, "lang": lang, "rtl": _.rtl, "langs": LANGS, "lang_codes": CODES,
                   "lang_name": NAMES[lang], "mascot_sprite": sprite(s.agents), "mi": mascot_use,
-                  "commentary": commentary, "model_line": lambda a, _=_: model_line(a, _),
+                  "commentary": commentary, "model_line": lambda a, _=_: model_line(a, _, eras.get(a)),
                   "models": AGENT_MODELS, "reasoning": REASONING, "exclusions": EXCLUSION_REASONS,
                   "fc": lb.get("forecast") or {}, "sig": lb.get("significance") or {},
                   "tq": tq, "mq": mq}
         common["vs_links"] = vs_links
+        common.update(nav_extra=NAV_EXTRA, has_experiments=exp_ab is not None)
         prefix = _.prefix()
         suffixes = round_suffixes(rounds, _)
         blurb = _("{vs}, each on its lab's top model at maximum reasoning, bet 100 tokens on live prediction markets. Every bet, rationale and result is public.", vs=vs)
@@ -1015,6 +1059,8 @@ def _build(s: Settings) -> Path:
                          state_sig=discover.iso(as_of), every=300000)
 
         page("index.html", "index.html", live=live, past=past[:30], upset=upset, description=None,
+             film=films[0] if films else None, h2h_strip=home_pairs(vsp),
+             today=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
              share_text=_("Four frontier AIs bet on real prediction markets. Live scoreboard:"),
              jsonld=discover.dataset_ld(s, lb, f"{base}/"),
              title=_("AgentpitBench: {vs} on real prediction markets", vs=vs))
@@ -1092,6 +1138,11 @@ def _build(s: Settings) -> Path:
              title=branded(_("Beat the AIs")),
              description=_("One market a day. Lock in your pick before you see how the AIs bet, then compare once it resolves."),
              share_text=_("Can you beat the AIs? Today's AgentpitBench challenge:"))
+        if vsp:
+            page("vs/index.html", "vs_index.html", pairs=vsp, as_of_day=discover.day(as_of),
+                 title=branded(_("Head to head")),
+                 description=_("Who forecasts better, pair by pair: each side's Brier score on the same markets (lower is better), with a 95% confidence interval on the difference."),
+                 jsonld=crumbs(None, (_("Leaderboard"), "leaderboard/"), (_("Head to head"), "vs/")))
         page("films/index.html", "films.html", films=films, episodes=episodes, title=branded("Match of the Day"),
              description=_("Match of the Day: a short film of the most dramatic AgentpitBench round each day."))
         page("splits/index.html", "splits.html", splits=splits, h2h=h2h, title=branded(_("Split decisions")),
@@ -1256,7 +1307,7 @@ def _previews(s: Settings, lb: dict, rounds: list[dict], cards: dict, reports: l
     if html:
         res["standings_card"], res["standings"] = pv.card("standings", html)
     for a in s.agents:
-        html = safe(og.agent_html, s, lb, a)
+        html = safe(og.agent_html, s, lb, a, model_eras(rounds, a))
         if html:
             res["agent_cards"][a], res["agents"][a] = pv.card(f"agents/{a}", html)
     for lang in CODES:

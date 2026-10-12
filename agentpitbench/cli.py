@@ -343,7 +343,7 @@ async def motd_render(s: config.Settings, day: str | None, round_id: int | None,
 
 
 async def week_render(s: config.Settings, wk: str | None, out: str | None, writer: bool,
-                      voice_lines: int | None, now: float | None = None, days: list[str] | None = None) -> None:
+                      voice_lines: int | None, now: float | None = None) -> None:
     """Render a Week in the Pit episode for review (docs/week-in-the-pit-spec.md). Never posts or uploads."""
     from . import week
     from .cards import CardRenderer
@@ -352,7 +352,7 @@ async def week_render(s: config.Settings, wk: str | None, out: str | None, write
     cards = CardRenderer(s)
     try:
         rec = await week.make_episode(s, db, cards, wk, out_dir=out, writer=writer, voice_lines=voice_lines,
-                                      now=now, days=days)
+                                      now=now)
     finally:
         await cards.close()
     print(json.dumps(rec, indent=1, ensure_ascii=False) if rec else f"no episode for {wk} (no rounds or films)")
@@ -662,8 +662,6 @@ def main(argv: list[str] | None = None) -> None:
     wk.add_argument("--no-writer", action="store_true", help="templated host lines (no opai call)")
     wk.add_argument("--voice-lines", type=int, default=None,
                     help="narrate at most this many uncached host lines (sample renders); default: all in budget")
-    wk.add_argument("--film-days", help="comma-separated film dates to pick the top films from (default: the "
-                                        "episode's own: the Sunday before the week through its Saturday)")
     wk.add_argument("--now", help="render as of this UTC time (ISO), e.g. a past week's Sunday evening")
     xc = sub.add_parser("x-check", help="refresh the X OAuth 2.0 token, show scopes and account (never tweets)")
     xc.add_argument("--upload", action="store_true", help="also upload a tiny test image (not attached to a tweet)")
@@ -746,8 +744,7 @@ def main(argv: list[str] | None = None) -> None:
         asyncio.run(motd_render(s, a.date, a.round, a.out))
     elif a.cmd == "week":
         asyncio.run(week_render(s, a.week, a.out, not a.no_writer, a.voice_lines,
-                                datetime.fromisoformat(a.now).replace(tzinfo=timezone.utc).timestamp() if a.now else None,
-                                a.film_days.split(",") if a.film_days else None))
+                                datetime.fromisoformat(a.now).replace(tzinfo=timezone.utc).timestamp() if a.now else None))
     elif a.cmd == "x-login":
         x_login(s, a.url, a.redirect_uri)
     elif a.cmd == "x-check":

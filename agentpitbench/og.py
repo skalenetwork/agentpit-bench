@@ -334,7 +334,7 @@ def standings_html(s: Settings, lb: dict) -> str | None:
         markets=fc.get("markets_resolved") or 0)
 
 
-def agent_html(s: Settings, lb: dict, agent: str) -> str | None:
+def agent_html(s: Settings, lb: dict, agent: str, eras: dict | None = None) -> str | None:
     """Mascot, name, model and reasoning setting, forecast accuracy with its CI, W-L, profit, current streak."""
     fc = next((a for a in (lb.get("forecast") or {}).get("agents") or [] if a["agent"] == agent), None)
     row = next((b for b in lb.get("agents") or [] if b["agent"] == agent), None)
@@ -345,7 +345,8 @@ def agent_html(s: Settings, lb: dict, agent: str) -> str | None:
     effort = {"max": "max reasoning", "xhigh": "extra-high reasoning", "high": "high reasoning"}
     return env.get_template("agent.html").render(
         **ctx, agent=agent, name=AGENT_NAMES.get(agent, agent), color=AGENT_COLORS.get(agent, "#888"),
-        model=f"{model[1]} · {effort.get(model[2], model[2])}" if model else "", fc=fc, row=row,
+        model=(f"{model[1]} · {effort.get(model[2], model[2])}" if model else "")
+        + (f" (earlier rounds on {', '.join(eras['earlier'])})" if eras and eras.get("earlier") else ""), fc=fc, row=row,
         n_agents=len((lb.get("forecast") or {}).get("agents") or []))
 
 

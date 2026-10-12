@@ -267,6 +267,31 @@ def played_model(agent: str | None, reported: str | None) -> tuple[str, str | No
     return name, None
 
 
+def model_eras(rounds: list[dict], agent: str) -> dict:
+    """Which models an agent's record was played on, from each run's model_reported (exported round entries).
+    {"current": config display name, "since": first started_at on it or None (not played yet),
+     "earlier": [other display names, most rounds first]}. Exhibition rounds and unrecorded models are skipped."""
+    cfg = AGENT_MODELS.get(agent)
+    current = cfg[1] if cfg else None
+    seen: dict[str, list] = {}  # display name -> [rounds, first started_at]
+    for r in rounds:
+        if r.get("exhibition"):
+            continue
+        for e in r.get("entries") or []:
+            if e.get("agent") != agent:
+                continue
+            pm = played_model(agent, e.get("model_reported"))
+            if pm is None:
+                continue
+            ts = r.get("started_at") or 0
+            x = seen.setdefault(pm[0], [0, ts])
+            x[0] += 1
+            x[1] = min(x[1], ts)
+    earlier = [n for n, _ in sorted(seen.items(), key=lambda kv: -kv[1][0]) if n != current]
+    since = seen[current][1] if current in seen else None
+    return {"current": current, "since": since if earlier else None, "earlier": earlier}
+
+
 def model_line(agent: str | None, reported: str | None = None, short: bool = True) -> str:
     """'Fable 5.1 · max' for one agent (its name is already big on the card); the shared line otherwise. With
     `reported` (the run's model_reported) the line names the model that round was actually played on."""

@@ -23,7 +23,7 @@ the awards post of the same hour. Exhibition rounds may still appear as films (b
 | 1 | Cold open (~8 s) | The week's biggest true twist: the highest-surprise twist among the week's film.json records, else the top `twists.detect` result over the week's rounds | Twist card: the twist's agents, the code-written fact |
 | 2 | Title (~4 s) | Week label, episode title (writer, no numbers) | Title card |
 | 3 | Standings race (~35 s) | P&L race: cumulative P&L per agent and the Crowd round by round over the week (`media.race_contexts` maths). Forecast race: cumulative mean Brier per agent and the Crowd by sweep date over the week's resolved sweep markets (`forecasts` x `sweep_markets`) | Animated bars that grow and reorder; two scenes |
-| 4 | Top 3 films (~45 s each) | The episode's films: film dates from the Sunday before the week through its Saturday (each film covers the previous day's rounds, so the Sunday film aired an hour before belongs to the next episode: seven films an episode, none twice), ranked by their published drama score; a day without a film record is filled by the same drama score over that day's rounds (at or above `motd_min_score`) | An intro card by the host, then a ~40 s re-cut of the film |
+| 4 | Top 3 films (~45 s each) | The week's three most dramatic resolved rounds by the published drama score (`motd.score`; exhibition rounds discounted as for the films). Since motd v0.6 every round has its own film (cards/motd/rounds/<id>/); a round without one is rendered here as the templated film | An intro card by the host, then a ~40 s re-cut of the film |
 | 5 | Awards (~30 s) | `engage.weekly_awards` (MVP, Most Overconfident, Buzzer-Beater, Contrarian): the data of the weekly awards card | One card per award |
 | 6 | Best human (~10 s) | The X reply picker with the most correct picks in the week's rounds (ties: accuracy, then fewer picks, then name). Handle only if it is a valid X handle that passes the quote safety filter (as the film shout-out). None qualifies: skipped | Handle in big type, wins / picks |
 | 7 | Next week (~15 s) | Up to 3 rounds `awaiting_resolution` (picks revealed, never a running round), soonest close first, with each AI's pick | Market cards |
@@ -34,8 +34,8 @@ A film is re-cut from its rendered MP4: film.json `scenes[].dur` gives each scen
 keep cold_open, market, result, twist, coda (falls back to the first scenes until ~40 s); templated films keep hook,
 setup, reveal, close. ffmpeg trims and concatenates those spans (re-encoded), so the film's own narration, music and
 sting come along at zero ElevenLabs cost. A scripted film keeps its own concept voice; the host has its own voice.
-16:9 uses the film's `wide` file. 1:1 uses the film's `square` file when the film has one, else the wide file
-letterboxed into 1080x1080 (the wide layout puts data in side columns, so no centre crop). A top-3 slot without a
+16:9 uses the film's `wide` file, 1:1 its `square` file (every v0.6 round film has the square; the 16:9 is
+backfilled off-peak); a missing shape uses the closest one, letterboxed or pillarboxed, never centre-cropped. A top-3 slot without a
 rendered film (a quiet day, a failed render, or the sample) renders the templated film's scenes for that round in
 the episode's own run (no writer, no narrator).
 
@@ -91,8 +91,7 @@ procedural CC0 `broadcast` bed (`music.concept_bed`), else the committed theme; 
 window) then render (both formats and the trailer) into `cards/week/<week>/`; from the post hour, post. Idempotent
 per week (`week_<week>` kv: started / rendered / done / failed / quiet). `posting_paused` and `dry_run` behave as for
 every post (outbox). Any failure is logged and leaves the week without an episode; nothing else waits on it.
-CLI: `agentpitbench week [--week YYYY-Www] [--out DIR] [--no-writer] [--voice-lines N] [--film-days D1,D2..]
-[--now ISO]` renders without posting or uploading.
+CLI: `agentpitbench week [--week YYYY-Www] [--out DIR] [--no-writer] [--voice-lines N] [--now ISO]` renders without posting or uploading.
 
 ## Tests
 Pure parts: week window and filters, P&L and forecast race steps, top-film ranking and fill-in, best human
@@ -106,7 +105,8 @@ One real writer call (fable, 48 s): a good script, falsely rejected by the first
 backs X; Gemini stands alone on Y" (fixed: clause split and exception words; regression test). With templated
 lines and two narrated host lines (21 credits reported for 159 characters) the 16:9 ran 174 s; the scripted draft
 re-rendered captions-only ran 194 s. No film records existed locally, so the three films were templated fill-ins
-(shorter re-cuts, no narration). A real week with narrated scripted films and a fully voiced host should land near
+(shorter re-cuts, no narration); that sample picked films per film day, before motd v0.6 gave every round a film
+and the selection became the week's three most dramatic rounds. A real week with narrated scripted films and a fully voiced host should land near
 five minutes; re-check on the first episode.
 
 ## Open questions
