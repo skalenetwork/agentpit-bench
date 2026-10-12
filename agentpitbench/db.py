@@ -339,6 +339,8 @@ MIGRATIONS = [  # (table, column, definition): added when missing, so old databa
     ("tweets", "deleted", "INTEGER NOT NULL DEFAULT 0"),  # X returned Not Found: never read again
     ("tweets", "reply_to", "TEXT"),                      # A/B: our own replies are not engagement
     ("tweets", "quote_of", "TEXT"),                      # A/B: our own quotes are not engagement
+    # the methodology version in force when the round was created (NULL: created before this column existed)
+    ("rounds", "methodology_version", "TEXT"),
 ]
 
 
@@ -424,7 +426,7 @@ class DB:
             "(SELECT MAX(r2.finished_at) FROM runs r2 WHERE r2.agent = r.agent AND r2.finished_at IS NOT NULL)")["t"]
 
     # rounds
-    def create_round(self, market: dict) -> int:
+    def create_round(self, market: dict, methodology_version: str | None = None) -> int:
         """A market queued with mark_exhibition() becomes an exhibition round, outside every standings table.
         High-Stakes Friday rounds are exhibitions for the statistics too (a 500-token round would swing them),
         while still being a full show on X."""
@@ -433,10 +435,10 @@ class DB:
         nw = market.get("nw") or {}
         return self.x(
             "INSERT INTO rounds(market_id,condition_id,slug,question,outcomes,snapshot_json,started_at,end_date,"
-            "exhibition,exclusion,nw_score,nw_source) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+            "exhibition,exclusion,nw_score,nw_source,methodology_version) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
             str(market["id"]), market.get("conditionId"), market.get("slug"), market["question"],
             json.dumps(market["outcomes_list"]), json.dumps(market), time.time(), market.get("endDate"),
-            int(exclusion is not None), exclusion, nw.get("score"), nw.get("source"),
+            int(exclusion is not None), exclusion, nw.get("score"), nw.get("source"), methodology_version,
         )
 
     def mark_preseason(self, season_start_ts: float) -> None:

@@ -622,7 +622,7 @@ class Round:
             await self._safe(void(self.round_id))
 
     async def run(self) -> int:
-        self.round_id = self.db.create_round(self.market)
+        self.round_id = self.db.create_round(self.market, self.s.methodology_version)
         versions = await asyncio.gather(*(cli_version(CLIS[a]) for a in self.agents))
         for a, v in zip(self.agents, versions):
             self.run_ids[a] = self.db.create_run(self.round_id, a, cli_version=v)

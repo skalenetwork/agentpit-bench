@@ -304,7 +304,7 @@ def _dump(path: Path, obj) -> None:
 
 
 def write_api(s: Settings, out: Path, rounds: list[dict], lb: dict, metrics: dict, sealed: list[dict],
-              exp: Path, open_ok: set[str], pages: set[str], changelog: list[tuple[str, str]],
+              exp: Path, open_ok: set[str], pages: set[str], changelog: list[tuple[str, str, dict]],
               exclusions: dict[str, str]) -> dict:
     """/api/v1/: static JSON, one file per resource. `rounds` is the unfiltered list (void rounds included and
     flagged); `pages` the site-relative English pages that exist, for source links. Returns facts.json."""
@@ -389,7 +389,7 @@ def write_api(s: Settings, out: Path, rounds: list[dict], lb: dict, metrics: dic
         "summary": method_lines(s), "exclusions": {k: en(v) for k, v in exclusions.items()},
         "contestants": [{"agent": a, "name": AGENT_NAMES.get(a, a), "model": _model(a)[0], "model_id": _model(a)[1],
                          "reasoning": _model(a)[2]} for a in s.agents],
-        "changelog": [{"date": d, "change": en(m)} for d, m in changelog],
+        "changelog": [{"date": d, "change": en(m, **kw)} for d, m, kw in changelog],
         "pages": {"methodology": f"{base}/methodology/", "independence": f"{base}/independence/",
                   "incidents": f"{base}/incidents/", "facts": f"{base}/facts/"}}})
     _dump(api / "openapi.json", openapi(s))
@@ -634,9 +634,9 @@ def dataset_ld(s: Settings, lb: dict, page_url: str) -> dict:
         "citation": citation(s, ts, f"{base}/facts/")}]}
 
 
-def techarticle_ld(s: Settings, lb: dict, page_url: str, changelog: list[tuple[str, str]]) -> dict:
+def techarticle_ld(s: Settings, lb: dict, page_url: str, changelog: list[tuple[str, str, dict]]) -> dict:
     org = organization(s)
-    modified = max((d for d, _m in changelog), default=day(as_of_ts(lb)))
+    modified = max((d for d, *_ in changelog), default=day(as_of_ts(lb)))
     return {"@context": "https://schema.org", "@graph": [org, {
         "@type": "TechArticle", "headline": f"AgentpitBench methodology v{s.methodology_version}", "url": page_url,
         "version": s.methodology_version, "dateModified": modified, "inLanguage": "en",

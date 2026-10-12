@@ -43,6 +43,9 @@ def add_parsers(sub) -> None:
     ap.add_argument("--major", action="store_true")
     rj = msub.add_parser("reject")
     rj.add_argument("id")
+    rv = msub.add_parser("revert", help="undo a generated change (e.g. an automatic selection change) as a new "
+                                        "version")
+    rv.add_argument("version")
 
     a = sub.add_parser("alerts", help="recent operator alerts (log + var/alerts/), or acknowledge one")
     a.add_argument("--all", action="store_true", help="include acknowledged alerts")
@@ -170,6 +173,15 @@ def _method(s: Settings, db: DB, a) -> None:
         elif a.method_cmd == "reject":
             m.reject(s, a.id)
             print("rejected")
+        elif a.method_cmd == "revert":
+            new = m.revert(s, a.version)
+            e = new["changelog"][-1]
+            print(f"methodology.json is now v{new['version']} ({e['change']['key']} back to {e['change']['new']}); "
+                  f"evidence: {m.change_url(s, new['version'])}\n"
+                  f"  git add agentpitbench/methodology.json\n"
+                  f"  git commit -m 'Methodology v{new['version']}: revert v{a.version}'\n"
+                  "Then deploy, or restart the service if this is the live checkout: until the service reloads the "
+                  "lock, the methodology-drift detector holds new rounds (by design).")
     except m.MethodologyError as e:
         sys.exit(f"refused: {e}")
 
