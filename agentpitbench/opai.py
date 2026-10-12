@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 # task -> active prompt version (prompts/<task>.v<N>.md). `rate` is methodology: its version comes from
 # methodology.json (selection.rater.prompt_version), never from here.
 PROMPTS = {"rate": 1, "picks": 1, "summary": 1, "report": 1, "incident": 1, "cadence": 1, "i18n": 1,
-           "proposal": 1, "translate": 1, "ab": 1}
+           "proposal": 1, "translate": 1, "ab": 1, "ops": 1}   # ops: the nightly agent (ops.py), not a call()
 SYSTEM_PROMPT = "system.v1.md"
 LIGHT_TASKS = {"picks"}
 CHILD_PATH = "/usr/local/bin:/usr/bin:/bin"
