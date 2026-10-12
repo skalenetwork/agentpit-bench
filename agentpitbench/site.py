@@ -524,19 +524,29 @@ def vs_description(p: dict, _, as_of: float) -> str:
 def home_poster(s: Settings, film: dict) -> str | None:
     """A small JPEG of the film's poster for the front page (the film's own poster is a full-size PNG; the home
     page stays light): cards/motd/<date>/poster-home.jpg, made once. None if the film has no poster."""
+    return _jpeg_poster(s, film, "poster-home.jpg", 960, 72)
+
+
+def web_poster(s: Settings, film: dict) -> str | None:
+    """The poster the video players on /films/ and round pages show: the PNG (1-2 MB, fetched even with
+    preload="none") as a full-size JPEG of about a sixth of the weight, poster-web.jpg beside it, made once."""
+    return _jpeg_poster(s, film, "poster-web.jpg", 1920, 85)
+
+
+def _jpeg_poster(s: Settings, film: dict, name: str, box: int, quality: int) -> str | None:
     if not film.get("poster"):
         return None
     src = s.cards_dir / film["dir"].removeprefix("cards/") / film["poster"]
-    dst = src.with_name("poster-home.jpg")
+    dst = src.with_name(name)
     try:
         if not dst.exists() or dst.stat().st_mtime < src.stat().st_mtime:
             from PIL import Image
             im = Image.open(src).convert("RGB")
-            im.thumbnail((960, 960))
-            im.save(dst, "JPEG", quality=72, optimize=True, progressive=True)
+            im.thumbnail((box, box))
+            im.save(dst, "JPEG", quality=quality, optimize=True, progressive=True)
         return film["dir"] + dst.name
     except Exception:
-        log.exception("home poster for %s skipped", film.get("date"))
+        log.exception("%s for %s skipped", name, film.get("date") or film.get("week"))
         return film["dir"] + film["poster"]
 
 
@@ -1141,6 +1151,8 @@ def _build(s: Settings) -> Path:
     eras = {a: model_eras(rounds, a) for a in s.agents}  # the models each record was played on
     if films:
         films[0]["home_poster"] = home_poster(s, films[0])
+    for f in films + episodes:
+        f["poster_web"] = web_poster(s, f)
     film_of = {}
     for f in films:  # newest first: a round filmed twice shows its latest film
         film_of.setdefault(f["round_id"], f)

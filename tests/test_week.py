@@ -455,7 +455,8 @@ async def test_render_smoke(env, monkeypatch):
     assert not (out / "work").exists() and json.loads((out / "episode.json").read_text())["week"] == WEEK
     from agentpitbench import site
     built = site.build(s)
-    assert f'id="week-{WEEK}"' in (built / "films" / "index.html").read_text()
+    films_page = (built / "films" / "index.html").read_text()
+    assert f'id="week-{WEEK}"' in films_page and f'poster="../cards/week/{WEEK}/poster-web.jpg"' in films_page
 
 
 async def test_race_rows_never_cross_or_meet_the_caption():

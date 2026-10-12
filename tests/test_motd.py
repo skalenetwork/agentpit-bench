@@ -480,3 +480,8 @@ async def test_render_both_formats_smoke(env):
     assert f"cards/motd/{DAY}/{rec['files']['wide']}" in page and "Why this round" in page
     assert (built / "films" / "index.html").read_text().count("<video") == 1
     assert (built / "cards" / "motd" / DAY / rec["files"]["tall"]).exists()
+    # the players show a JPEG of the PNG poster (the PNG is fetched even with preload="none")
+    assert film["poster"] and f'poster="../../cards/motd/{DAY}/poster-web.jpg"' in page
+    assert f'poster="../cards/motd/{DAY}/poster-web.jpg"' in (built / "films" / "index.html").read_text()
+    web = built / "cards" / "motd" / DAY / "poster-web.jpg"
+    assert web.exists() and web.stat().st_size < (out / film["poster"]).stat().st_size
