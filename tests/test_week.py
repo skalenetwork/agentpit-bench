@@ -456,3 +456,45 @@ async def test_render_smoke(env, monkeypatch):
     from agentpitbench import site
     built = site.build(s)
     assert f'id="week-{WEEK}"' in (built / "films" / "index.html").read_text()
+
+
+async def test_race_rows_never_cross_or_meet_the_caption():
+    """W41's forecast race drew CLAUDE over CHATGPT while rows re-sorted: rows now hold the final order and only the
+    bars move, and the race never runs under the caption (a long, three-line one in wide)."""
+    from agentpitbench import cards as C
+    d = data_for(human={"handle": "zed", "wins": 2, "picks": 3})
+    segs = week.build_scenes(week.templated(d), d, {"significance": {"multi_label": "x"}, "agents": []}, "site.org")
+    sc = next(x for x in segs[0]["scenes"] if x["kind"] == "w_race_fc")
+    keys = sc["race"]["keys"]
+    sc["race"]["steps"] = [dict(zip(keys, v)) for v in ([0.10, 0.30, None, 0.20, 0.25][:len(keys)],
+                                                       [0.30, 0.10, 0.20, 0.25, 0.15][:len(keys)],
+                                                       [0.20, 0.15, 0.30, 0.10, 0.22][:len(keys)])]
+    sc["labels"] = ["d1", "d2", "d3"]
+    sc["caption"] = "Flip the board: lower is better here, and Claude tops it at 0.190. ChatGPT 0.203, Grok 0.209, " \
+                    "Gemini 0.241, the Crowd 0.231 across 56 markets."
+    cr = C.CardRenderer(week.Settings())
+    try:
+        br = await cr._ensure()
+        for fmt in ("wide", "square"):
+            w, h = week.FORMATS[fmt]
+            page = await br.new_page(viewport={"width": w, "height": h})
+            strip = cr._strip(sc["url_path"], None)
+            await page.set_content(C.env.get_template("week.html").render(
+                sc=sc, fmt=fmt, w=w, h=h, idx=0, count=1, colors=C.AGENT_COLORS, names=C.AGENT_NAMES, **strip,
+                sig_line=sc["sig"], model=strip["model_line"]))
+            await page.add_script_tag(content=C.MOTD_JS)
+            await page.evaluate("window.__extraInit(); window.__motdDur(%s)" % sc["dur"])
+            seen = set()
+            for t in [x * 0.5 for x in range(int(sc["dur"] * 2) + 1)]:
+                await page.evaluate("t => window.__motd(t)", t)
+                tops = await page.evaluate("[...document.querySelectorAll('.rrow')].map(r => [r.dataset.key, r.style.top])")
+                seen.add(tuple(tuple(x) for x in tops))
+                gap = await page.evaluate("""() => document.querySelector('.sub:last-of-type').getBoundingClientRect().top
+                    - document.getElementById('race').getBoundingClientRect().bottom""")
+                assert gap >= 0, (fmt, t, gap)
+            assert len(seen) == 1   # one row order for the whole scene
+            final = sorted(keys, key=lambda k: sc["race"]["steps"][-1][k])
+            assert [k for k, _ in sorted(next(iter(seen)), key=lambda x: float(x[1][:-2]))] == final
+            await page.close()
+    finally:
+        await cr.close()

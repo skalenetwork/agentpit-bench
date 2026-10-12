@@ -41,7 +41,8 @@ body.wide .fact{font-size:50px}
 body.square .fact{font-size:40px;padding:12px 16px}
 .twlabel{font-family:var(--disp);text-transform:uppercase;color:var(--bg1);background:var(--acc);padding:4px 24px;align-self:center;font-size:76px;line-height:1.05}
 /* race */
-.race{position:relative;width:100%}
+.race{position:relative;width:100%;flex-shrink:0}  /* never squeezed: a shrunk race ran under the caption */
+body.wide .main:has(.race){gap:16px}
 .rrow{position:absolute;left:0;right:0;display:flex;align-items:center}
 .rlab{display:flex;align-items:center;gap:10px;font-family:Oswald,sans-serif;text-transform:uppercase;white-space:nowrap}
 body.wide .rlab{width:330px;font-size:44px}
@@ -114,16 +115,17 @@ body.square .foot{height:140px;padding:0 24px}
   <div class="mid" data-in="0" data-fx="fade">{{ sc.heading }}</div>
   <div class="small" data-in="0.1" data-fx="fade">{{ sc.sub }}</div>
   <div class="step" id="step">{{ sc.labels[-1] if sc.labels else '' }}</div>
-  <div class="race" id="race" style="height:{{ sc.race['keys']|length * (78 if not sq else 66) }}px">
+  {%- set rh = 74 if not sq else 66 %}
+  <div class="race" id="race" style="height:{{ (sc.race['keys']|length - 1) * rh + 62 }}px">
   {% for k in sc.race['keys'] %}{% set c = sc.race.colors[k] %}
-    <div class="rrow" data-key="{{ k }}" style="top:{{ loop.index0 * (78 if not sq else 66) }}px">
+    <div class="rrow" data-key="{{ k }}" style="top:{{ loop.index0 * rh }}px">
       <div class="rlab">{{ mascot(k, 52 if not sq else 44) }}<span style="color:{{ '#8a93a8' if k == 'crowd' else c|edge }}">{{ sc.race.names[k] }}</span></div>
       <div class="track"><div class="zero"></div>
         <div class="fill" style="{% if k == 'crowd' %}border:4px dashed #8a93a8;background:transparent{% else %}background:{{ c }};{{ c|box_ring }}{% endif %}"></div>
         <div class="val"></div></div>
     </div>{% endfor %}
   </div>
-  <script id="racedata" type="application/json">{{ {'race': sc.race, 'labels': sc.labels, 'row': 78 if not sq else 66}|tojson }}</script>
+  <script id="racedata" type="application/json">{{ {'race': sc.race, 'labels': sc.labels, 'row': rh}|tojson }}</script>
   <div class="sub" data-in="0.6" data-fx="fade">{{ sc.caption }}</div>
 {% elif sc.kind == 'w_film' %}
   <div class="label" data-in="0" data-fx="fade">Film of the week · {{ sc.rank }} of {{ sc.of }}</div>
@@ -205,7 +207,9 @@ window.__extraInit = function () {
     });
     const r = {}; order.forEach((k, j) => { r[k] = j; }); return r;
   };
-  const ranks = steps.map((_, i) => rankAt(i));
+  // rows keep one order for the whole scene, the final standings: only the bars and values move, so no two
+  // labels or values ever cross (a re-sorting race drew "CLAUDE"/"CHATGPT" on top of each other mid-swap)
+  const order = n ? rankAt(n - 1) : {};
   const fmtv = v => v === null || v === undefined ? '—' : brier ? v.toFixed(3) :
     (v >= 0 ? '+' : '−') + Math.round(Math.abs(v)).toLocaleString('en-US');
   const ease = x => x <= 0 ? 0 : x >= 1 ? 1 : x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
@@ -217,16 +221,17 @@ window.__extraInit = function () {
     document.querySelectorAll('.rrow').forEach(row => {
       const k = row.dataset.key, a = steps[i][k], b = steps[j][k];
       const v = (a === null || a === undefined) ? b : (b === null || b === undefined) ? a : a + (b - a) * f;
-      const y = (ranks[i][k] + (ranks[j][k] - ranks[i][k]) * f) * R.row;
-      row.style.top = y + 'px';
+      row.style.top = ((order[k] ?? 0) * R.row) + 'px';
       const fill = row.querySelector('.fill'), val = row.querySelector('.val'), z = row.querySelector('.zero');
       z.style.left = zero + '%';
       if (v === null || v === undefined) { fill.style.width = '0'; val.textContent = 'no forecasts'; val.style.left = (zero + 1) + '%'; return; }
       const w = Math.abs(v) / span * 76, left = brier || v >= 0 ? zero : zero - w;
       fill.style.left = left + '%'; fill.style.width = w + '%';
-      val.style.left = (brier || v >= 0 ? left + w + 1 : left >= 14 ? left - 14 : zero + 1) + '%';
       val.style.color = brier ? '#e6eaf5' : (v >= 0 ? '#22c55e' : '#ff5c7a');
       val.textContent = fmtv(v);
+      // a loss's value sits just left of its bar; with no room there, right of the zero line
+      const need = val.offsetWidth / (row.querySelector('.track').clientWidth || 1) * 100 + 1;
+      val.style.left = (brier || v >= 0 ? left + w + 1 : left >= need ? left - need : zero + 1) + '%';
     });
     const labs = R.labels || [];
     const s = document.getElementById('step');
