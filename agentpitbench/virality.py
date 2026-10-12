@@ -160,6 +160,23 @@ def human_picks(replies: list[dict], outcomes: list[str], end_date: str | None, 
     return list(picks.values())
 
 
+def unmatched(replies: list[dict], outcomes: list[str], end_date: str | None, exclude_ids: set[str],
+              matched_user_ids: set[str]) -> list[dict]:
+    """In-window replies from users with no exact pick: the input to the model's second pass
+    (docs/ai-automation-spec.md §6). A user with any exact match is never sent to the model."""
+    close = _ts(end_date)
+    out = []
+    for r in sorted(replies, key=lambda r: (_ts(r.get("created_at")) or 0, r["id"])):
+        uid = r.get("author_id")
+        if uid in exclude_ids or uid in matched_user_ids:
+            continue
+        t = _ts(r.get("created_at"))
+        if close is not None and t is not None and t >= close:
+            continue
+        out.append(r)
+    return out
+
+
 # ---------- tail / fade ----------
 
 def tail_fade(market_link: str, outcomes: list[str], outcome: str | None) -> tuple[str | None, str | None]:

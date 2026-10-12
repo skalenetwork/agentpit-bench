@@ -110,6 +110,26 @@ class Settings:
     youtube_unit_costs: dict = field(default_factory=lambda: {
         "videos.insert": 1, "videos.list": 1, "channels.list": 1, "commentThreads.insert": 50,
         "videos.update": 50, "videoCategories.list": 1, "reports.query": 0})
+    # operator AI ("opai", docs/ai-automation-spec.md): never a contestant, never on a round's critical path
+    opai_enabled: bool = False          # master switch; false = every task uses its rule-based fallback
+    opai_tasks: list[str] = field(default_factory=lambda: ["rate", "picks", "summary", "incident", "i18n",
+                                                           "translate"])
+    opai_config_dir: str = "~/.config/agentpitbench/opai-claude"   # CLAUDE_CONFIG_DIR of opai's own login
+    opai_model: str = "sonnet"
+    opai_model_light: str = "haiku"     # picks
+    opai_ops_model: str = "opus"
+    opai_timeout_s: int = 120
+    opai_translate_timeout_s: int = 300  # one translate call covers every site language
+    opai_calls_per_day: int = 60
+    opai_task_budget: dict = field(default_factory=lambda: {
+        "rate": 24, "picks": 12, "summary": 12, "incident": 4, "cadence": 1, "report": 2, "i18n": 20,
+        "proposal": 1, "ab": 2, "translate": 10})
+    opai_backoff_s: int = 21600
+    opai_sweep_guard_min: int = 30
+    opai_rate_batch: int = 40
+    opai_pick_threshold: float = 0.80
+    anomaly_posts_per_hour: int = 20
+    selection_scoring: str = "keyword"  # from methodology.json (keyword / model); never set in bench.toml
 
     @property
     def db_path(self) -> Path:
@@ -177,4 +197,6 @@ def load(path: str | Path = "bench.toml") -> Settings:
     s = Settings(**data)
     if os.environ.get("BENCH_DRY_RUN") in ("0", "false"):
         s.dry_run = False
+    from . import methodology  # the lock's protected params win over bench.toml (docs/ai-automation-spec.md §4)
+    methodology.apply(s, data)
     return s

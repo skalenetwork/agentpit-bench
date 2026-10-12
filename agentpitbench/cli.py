@@ -79,6 +79,26 @@ def youtube_task(s: config.Settings, db: DB, client=None):
         await asyncio.to_thread(ytstats.pull_due, s, db, c)
     return cycle
 
+def rounds_paused(s: config.Settings, db: DB) -> bool:
+    """New rounds (batch, High-Stakes, summons, manual) are held while an anomaly or the operator paused them.
+    In-flight rounds finish; the forecast sweep is never paused."""
+    from .opai import paused
+    if paused(s, db, "rounds"):
+        log.warning("new rounds paused (%s); see `agentpitbench ops status`", (db.get("pause") or {}).get("reason"))
+        return True
+    return False
+
+
+async def ops_tick(s: config.Settings, db: DB) -> None:
+    """Every 5 min: anomaly detectors (pause + draft + alert), market-title translations, summary catch-up."""
+    from . import anomaly, market_i18n, summaries
+    await asyncio.to_thread(anomaly.tick, s, db)
+    for fn in (market_i18n.atick, summaries.atick):
+        try:
+            await fn(s, db)
+        except Exception:
+            log.exception("%s failed", fn.__module__)
+
 
 async def run_forever(s: config.Settings) -> None:
     db = DB(s.db_path)
@@ -91,15 +111,13 @@ async def run_forever(s: config.Settings) -> None:
     async def start_batch():
         await watcher.poll()  # scan first: at startup the batch used to run before the first scan finished
         free = s.max_concurrent_rounds - len(running)
-        if free <= 0:
+        if free <= 0 or rounds_paused(s, db):
             return
         if s.sandbox and not await sandbox_ok():  # never start rounds that would all 'crash' at launch
             log.error("batch skipped: the agent sandbox self-check failed; no rounds started, nothing posted")
             return
         # an agent whose most recent run hit a quota/infra failure (a later good run clears it)
-        last_infra = db.one(
-            "SELECT MAX(r.finished_at) t FROM runs r WHERE r.exit_reason='infra' AND r.finished_at = "
-            "(SELECT MAX(r2.finished_at) FROM runs r2 WHERE r2.agent = r.agent AND r2.finished_at IS NOT NULL)")["t"]
+        last_infra = db.last_infra_failure()
         if last_infra and time.time() - last_infra < s.infra_cooldown_s:  # e.g. a subscription quota hit:
             log.warning("batch skipped: an agent hit an infrastructure/quota failure %.1f h ago; "
                         "pausing new rounds for %.0f h", (time.time() - last_infra) / 3600, s.infra_cooldown_s / 3600)
@@ -137,11 +155,11 @@ async def run_forever(s: config.Settings) -> None:
         if engage is None:
             return
         engage.api = api
-        if len(running) < s.max_concurrent_rounds:
+        if len(running) < s.max_concurrent_rounds and not rounds_paused(s, db):
             m = await engage.high_stakes_market(watcher)
             if m:
                 launch(m)
-        if len(running) < s.max_concurrent_rounds:
+        if len(running) < s.max_concurrent_rounds and not rounds_paused(s, db):
             picked = await engage.pick_summon(watcher)
             if picked:
                 row, m = picked
@@ -208,6 +226,7 @@ async def run_forever(s: config.Settings) -> None:
         asyncio.create_task(_every(1800, daily_sweep, "sweep")),
         asyncio.create_task(_every(3600, match_of_the_day, "match of the day")),
         asyncio.create_task(_every(s.resolution_check_s, score_forecasts, "forecast scoring")),
+        asyncio.create_task(_every(300, lambda: ops_tick(s, db), "anomalies")),  # also runs once at startup
     ]
     x_metrics = metrics_task(s, db, pub)
     if x_metrics is not None:
@@ -227,6 +246,8 @@ async def run_forever(s: config.Settings) -> None:
 
 async def one_round(s: config.Settings, market_id: str, agents: list[str] | None) -> None:
     db = DB(s.db_path)
+    if rounds_paused(s, db):
+        sys.exit("new rounds are paused (agentpitbench ops status)")
     api = Agentpit(s.api_url)
     pub = make_publisher(s, db)
     m = await api.market(market_id)
@@ -584,12 +605,16 @@ def main(argv: list[str] | None = None) -> None:
     yu.add_argument("--date", required=True)
     ys = ytsub.add_parser("stats", help="X beside YouTube per film, subscribers, quota")
     ys.add_argument("--days", type=float, default=7)
+    from . import opscli  # operator AI, methodology lock, ops/alerts/incidents (docs/ai-automation-spec.md §14)
+    opscli.add_parsers(sub)
     a = p.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     s = config.load(a.config)
     if a.live:
         s.dry_run = False
-    if a.cmd == "run":
+    if a.cmd in opscli.COMMANDS:
+        opscli.dispatch(s, a)
+    elif a.cmd == "run":
         asyncio.run(run_forever(s))
     elif a.cmd == "round":
         asyncio.run(one_round(s, a.market_id, a.agents.split(",") if a.agents else None))

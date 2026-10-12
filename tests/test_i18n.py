@@ -12,16 +12,8 @@ from agentpitbench.config import Settings
 from agentpitbench.db import DB
 
 PKG = Path(__file__).resolve().parent.parent / "agentpitbench"
-CALL = re.compile(r'''\b_h?\(\s*"((?:[^"\\]|\\.)*)"''')
-
-
-def message_ids() -> set[str]:
-    ids = set()
-    for f in [*(PKG / "templates/site").glob("*.html"), PKG / "site.py", PKG / "cards.py", PKG / "discover.py"]:
-        ids |= {m.encode().decode("unicode_escape").encode("latin-1").decode("utf-8")
-                for m in CALL.findall(f.read_text())}
-    ids |= {name for name, _ in site.CATEGORIES} | {"Other"}
-    return ids
+CALL = re.compile(i18n._CALL)
+message_ids = i18n.message_ids  # moved into i18n.py (also reads methodology.json and incidents.json)
 
 
 def fields(s: str) -> set[str]:

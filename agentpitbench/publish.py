@@ -174,6 +174,8 @@ class BenchPublisher:
         except Exception:
             log.exception("model-change check failed")
         self.site.request()
+        from . import summaries  # two-line agent summaries, off the round's path (docs/ai-automation-spec.md §7)
+        summaries.schedule(self.s, self.db, round_id)
 
     async def _reveal(self, round_id: int, rnd: dict) -> None:
         """The round's opener on X, once every pick is in: the decision cards as up to four images, the split

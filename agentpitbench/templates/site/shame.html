@@ -3,8 +3,8 @@
 <h1>{{ _("Hall of shame") }}</h1>
 <p class="mut">{{ _("The most confident wrong calls, quoted word for word.") }}</p>
 {% for r, e in wrong %}<div class="box {{ e.color|dkb }}" style="border-inline-start:6px solid {{ e.color }}">
-<div>{{ _h("<b>{name}</b> was {pct}% sure of <b>{outcome}</b> at {price}. It resolved <b>{winner}</b>.", name=e.name, pct='%.0f'|format((e.confidence or 0) * 100), outcome=e.outcome, price=e.avg_price|cents, winner=r.winner) }} <span class="num neg">{{ e.pnl|signed }}</span></div>
+<div>{{ _h("<b>{name}</b> was {pct}% sure of <b>{outcome}</b> at {price}. It resolved <b>{winner}</b>.", name=e.name, pct='%.0f'|format((e.confidence or 0) * 100), outcome=tq(e.outcome), price=e.avg_price|cents, winner=tq(r.winner)) }} <span class="num neg">{{ e.pnl|signed }}</span></div>
 {% if e.rationale %}<blockquote>“{{ e.rationale }}”</blockquote>{% endif %}
-<div class="small mut"><a href="{{ home }}round/{{ r.round_id }}/">{{ r.question }}</a>{% if e.transcript %} · <a href="{{ root }}{{ e.transcript }}">{{ _("transcript") }}</a>{% endif %}</div></div>
+<div class="small mut"><a href="{{ home }}round/{{ r.round_id }}/">{{ mq(r.question) }}</a>{% if e.transcript %} · <a href="{{ root }}{{ e.transcript }}">{{ _("transcript") }}</a>{% endif %}</div></div>
 {% else %}<p class="mut">{{ _("Nobody has been confidently wrong yet.") }}</p>{% endfor %}
 {% endblock %}
