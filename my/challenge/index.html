@@ -241,6 +241,10 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <p class="small mut">ဤနေရာတွင် ပြုလုပ်သော ရွေးချယ်မှုများသည် ဤစက်ပေါ်တွင်သာ ရှိပြီး ပျော်စရာအတွက်သာ ဖြစ်သည်။ အများပြည်သူ လူသားများ အဆင့်ဇယားတွင် ထည့်တွက်စေရန် ဈေးကွက် မပိတ်မီ X တွင် ပြန်ကြားပါ။</p>
 
 <section data-hist hidden><h2>သင့် စိန်ခေါ်မှုများ</h2><ul class="ch-hist" data-hist-list></ul></section>
+<section data-rec hidden aria-labelledby="ch-rec"><h2 id="ch-rec">AI များနှင့် သင့်မှတ်တမ်း</h2>
+<p class="small mut">အစိမ်း: သင်က AI ကို အနိုင်ရသည်။ အနီ: AI က သင့်ကို အနိုင်ရသည်။ အဝါ: ရလဒ်တူသည်။</p>
+<ul class="ch-rows" data-rec-list></ul>
+<div class="btns"><button type="button" class="btn cta" data-rec-share hidden>ပုံကို မျှဝေရန်</button><a class="btn" href="#" download="agentpitbench-my-record.png" data-rec-save>ပုံကို သိမ်းရန်</a></div></section>
 </div>
 
 <style>.pk{margin:8px 0}.pk summary{cursor:pointer;list-style:none;min-height:44px;display:inline-flex;align-items:center;max-width:100%;overflow-wrap:anywhere}.pk summary::-webkit-details-marker{display:none}.pk summary::after{content:"▾";margin-inline-start:8px}.pk[open] summary{background:var(--fg);color:var(--bg)}.pk .btns{margin:8px 0;align-items:center}.pk .btn.sm,[data-share-image]{min-height:44px;display:inline-flex;align-items:center}button.btn{background:var(--card);color:var(--fg);font:inherit;font-weight:700;cursor:pointer}.pickshare[hidden],.pk .btn[hidden]{display:none}</style>
@@ -254,8 +258,9 @@ document.querySelectorAll("[data-pick-end]").forEach(function(s){var t=Date.pars
 
 <script type="application/json" id="ch-data">[{"ais": [{"agent": "claude", "name": "Claude", "outcome": "Yes", "won": null}, {"agent": "codex", "name": "ChatGPT", "outcome": "Yes", "won": null}, {"agent": "agy", "name": "Gemini", "outcome": "No", "won": null}, {"agent": "grok", "name": "Grok", "outcome": "No", "won": null}], "date": "2026-10-12", "end_date": "2026-10-16T20:00:00Z", "outcomes": ["Yes", "No"], "outcomes_local": ["\u101f\u102f\u1010\u103a", "\u1019\u101f\u102f\u1010\u103a"], "q_local": "Amazon.com, Inc. (AMZN) \u101e\u100a\u103a 2026 \u1021\u1031\u102c\u1000\u103a\u1010\u102d\u102f\u1018\u102c 12 \u101b\u1000\u103a \u101e\u102e\u1010\u1004\u103a\u1038\u1015\u1010\u103a\u1010\u103d\u1004\u103a (LOW) $252 \u101e\u102d\u102f\u1037 \u101b\u1031\u102c\u1000\u103a\u101c\u102d\u1019\u1037\u103a\u1019\u101c\u102c\u1038\u104b", "question": "Will Amazon.com, Inc. (AMZN) hit (LOW) $252 Week of October 12 2026?", "revealed_at": 1791768538.6375039, "round_id": 25, "sealed": false, "state": "awaiting_resolution", "winner": null}, {"ais": [{"agent": "claude", "name": "Claude", "outcome": "Yes", "won": null}, {"agent": "codex", "name": "ChatGPT", "outcome": "Yes", "won": null}, {"agent": "agy", "name": "Gemini", "outcome": "Yes", "won": null}, {"agent": "grok", "name": "Grok", "outcome": "Yes", "won": null}], "date": "2026-10-11", "end_date": "2026-10-17T18:45:00Z", "outcomes": ["Yes", "No"], "outcomes_local": ["\u101f\u102f\u1010\u103a", "\u1019\u101f\u102f\u1010\u103a"], "q_local": "Lille OSC \u101e\u100a\u103a 2026-10-17 \u1010\u103d\u1004\u103a \u1021\u1014\u102d\u102f\u1004\u103a\u101b\u1019\u101c\u102c\u1038?", "question": "Will Lille OSC win on 2026-10-17?", "revealed_at": 1791681957.5943782, "round_id": 21, "sealed": false, "state": "awaiting_resolution", "winner": null}, {"ais": [{"agent": "claude", "name": "Claude", "outcome": "No", "won": true}, {"agent": "codex", "name": "ChatGPT", "outcome": "Yes", "won": false}, {"agent": "agy", "name": "Gemini", "outcome": "Yes", "won": false}, {"agent": "grok", "name": "Grok", "outcome": "No", "won": true}], "date": "2026-10-10", "end_date": "2026-10-11T18:00:00Z", "outcomes": ["Yes", "No"], "outcomes_local": ["\u101f\u102f\u1010\u103a", "\u1019\u101f\u102f\u1010\u103a"], "q_local": "\u1021\u1031\u102c\u1000\u103a\u1010\u102d\u102f\u1018\u102c 10 \u101b\u1000\u103a\u1014\u1031\u1037\u1010\u103d\u1004\u103a New Orleans, LA\u104c \u1019\u102d\u102f\u1038\u101b\u103d\u102c\u1019\u101c\u102c\u1038\u104b", "question": "Will it rain in New Orleans, LA on October 10?", "revealed_at": 1791595582.539434, "round_id": 15, "sealed": false, "state": "resolved", "winner": "No"}, {"ais": [{"agent": "claude", "name": "Claude", "outcome": "Yes", "won": null}, {"agent": "codex", "name": "ChatGPT", "outcome": "Yes", "won": null}, {"agent": "agy", "name": "Gemini", "outcome": null, "won": null}, {"agent": "grok", "name": "Grok", "outcome": null, "won": null}], "date": "2026-10-09", "end_date": "2026-10-12T04:00:00Z", "outcomes": ["Yes", "No"], "outcomes_local": ["\u101f\u102f\u1010\u103a", "\u1019\u101f\u102f\u1010\u103a"], "q_local": "Will Bitcoin reach $84,000 October 5-11?", "question": "Will Bitcoin reach $84,000 October 5-11?", "revealed_at": 1791560782.8103573, "round_id": 7, "sealed": false, "state": "void", "winner": null}]</script>
 <script>(function(){
-var T={"beat": "\u101e\u1004\u103a\u101e\u100a\u103a AI {m} \u1001\u102f\u1021\u1014\u1000\u103a {n} \u1001\u102f\u1000\u102d\u102f \u1021\u1014\u102d\u102f\u1004\u103a\u101a\u1030\u1001\u1032\u1037\u101e\u100a\u103a", "nobet": "\u1019\u101c\u1031\u102c\u1004\u103a\u1038", "pick": "\u101e\u1004\u1037\u103a\u101b\u103d\u1031\u1038\u1001\u103b\u101a\u103a\u1019\u103e\u102f: {pick}", "right": "\u1019\u103e\u1014\u103a", "share": "AgentpitBench \u1005\u102d\u1014\u103a\u1001\u1031\u102b\u103a\u1019\u103e\u102f\u1010\u103d\u1004\u103a \u1000\u103b\u103d\u1014\u103a\u102f\u1015\u103a\u101e\u100a\u103a AI {m} \u1001\u102f\u1021\u1014\u1000\u103a {n} \u1001\u102f\u1000\u102d\u102f \u1021\u1014\u102d\u102f\u1004\u103a\u101a\u1030\u1001\u1032\u1037\u101e\u100a\u103a", "stats": "\u1006\u1000\u103a\u1010\u102d\u102f\u1000\u103a {s} \u00b7 \u1000\u1005\u102c\u1038\u1015\u103c\u102e\u1038 {n} \u00b7 \u1019\u103e\u1014\u103a {r} \u00b7 \u1021\u1000\u1031\u102c\u1004\u103a\u1038\u1006\u102f\u1036\u1038 \u1006\u1000\u103a\u1010\u102d\u102f\u1000\u103a {b}", "wrong": "\u1019\u103e\u102c\u1038", "you": "\u101e\u1004\u103a"},
-WIN="\u101b\u101c\u1012\u103a: \u003cb\u003e{winner}\u003c/b\u003e\u104b",PAGE="https://agentpitbench.org/my/challenge/",DATA="../../"+"data/challenge.json",K="apb-challenge";
+var T={"beat": "\u101e\u1004\u103a\u101e\u100a\u103a AI {m} \u1001\u102f\u1021\u1014\u1000\u103a {n} \u1001\u102f\u1000\u102d\u102f \u1021\u1014\u102d\u102f\u1004\u103a\u101a\u1030\u1001\u1032\u1037\u101e\u100a\u103a", "nobet": "\u1019\u101c\u1031\u102c\u1004\u103a\u1038", "pick": "\u101e\u1004\u1037\u103a\u101b\u103d\u1031\u1038\u1001\u103b\u101a\u103a\u1019\u103e\u102f: {pick}", "rec": "AI \u1019\u103b\u102c\u1038\u1014\u103e\u1004\u1037\u103a \u101e\u1004\u1037\u103a\u1019\u103e\u1010\u103a\u1010\u1019\u103a\u1038", "right": "\u1019\u103e\u1014\u103a", "share": "AgentpitBench \u1005\u102d\u1014\u103a\u1001\u1031\u102b\u103a\u1019\u103e\u102f\u1010\u103d\u1004\u103a \u1000\u103b\u103d\u1014\u103a\u102f\u1015\u103a\u101e\u100a\u103a AI {m} \u1001\u102f\u1021\u1014\u1000\u103a {n} \u1001\u102f\u1000\u102d\u102f \u1021\u1014\u102d\u102f\u1004\u103a\u101a\u1030\u1001\u1032\u1037\u101e\u100a\u103a", "stats": "\u1006\u1000\u103a\u1010\u102d\u102f\u1000\u103a {s} \u00b7 \u1000\u1005\u102c\u1038\u1015\u103c\u102e\u1038 {n} \u00b7 \u1019\u103e\u1014\u103a {r} \u00b7 \u1021\u1000\u1031\u102c\u1004\u103a\u1038\u1006\u102f\u1036\u1038 \u1006\u1000\u103a\u1010\u102d\u102f\u1000\u103a {b}", "tally": "\u1014\u102d\u102f\u1004\u103a {w} \u00b7 \u101b\u103e\u102f\u1036\u1038 {l} \u00b7 \u101e\u101b\u1031 {d}", "wrong": "\u1019\u103e\u102c\u1038", "you": "\u101e\u1004\u103a"},
+WIN="\u101b\u101c\u1012\u103a: \u003cb\u003e{winner}\u003c/b\u003e\u104b",PAGE="https://agentpitbench.org/my/challenge/",DATA="../../"+"data/challenge.json",K="apb-challenge",
+AG=["claude", "codex", "agy", "grok"],NM={"agy": "Gemini", "claude": "Claude", "codex": "ChatGPT", "grok": "Grok"},COL={"agy": "#4285F4", "claude": "#D97757", "codex": "#10A37F", "grok": "#1A1A1A"};
 var D=[];try{D=JSON.parse(document.getElementById("ch-data").textContent)}catch(e){}
 var S={};try{S=JSON.parse(localStorage.getItem(K))||{}}catch(e){}S.picks=S.picks||{};S.res=S.res||{};
 function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
@@ -266,7 +271,7 @@ function txt(el,s){if(el)el.textContent=s}
 function li(s){var l=document.createElement("li");l.textContent=s;return l}
 function open(c){var e=Date.parse(c.end_date||"");return(c.state==="running"||c.state==="awaiting_resolution")&&!(e&&Date.now()>=e)}
 function verdict(c,p){var ok=p===c.winner,g="",n=0,rows=[];c.ais.forEach(function(a){var w=!!a.won,q=ok&&!w?"🟩":(!ok&&w?"🟥":"🟨");if(q==="🟩")n++;g+=q;
-rows.push(q+" "+iso(a.name)+": "+(a.outcome?loc(c,a.outcome):T.nobet))});return{d:c.date,r:c.round_id,q:c.q_local,p:loc(c,p),ok:ok,g:g,n:n,m:c.ais.length,w:loc(c,c.winner),rows:rows}}
+rows.push(q+" "+iso(a.name)+": "+(a.outcome?loc(c,a.outcome):T.nobet))});return{a:c.ais.map(function(a){return a.agent}),d:c.date,r:c.round_id,q:c.q_local,p:loc(c,p),ok:ok,g:g,n:n,m:c.ais.length,w:loc(c,c.winner),rows:rows}}
 function render(){
 var F=D[0],root=$("#ch");
 if(F){var pk=S.picks[F.round_id],play=$("[data-play]",root),mine=$("[data-mine]",root);
@@ -291,7 +296,32 @@ share(fmt(T.share,{n:L.n,m:L.m})+" "+L.g)}
 var H=$("[data-hist]"),hl=$("[data-hist-list]");hl.textContent="";var ids={};
 all.forEach(function(v){ids[v.r]=1;hl.appendChild(li(v.d+" · "+iso(v.q)+" · "+v.p+" "+(v.ok?"✓":"✗")+" "+v.g))});
 Object.keys(S.picks).forEach(function(k){if(ids[k])return;var p=S.picks[k];hl.appendChild(li((p.d||"")+" · "+iso(p.q||"")+" · "+(p.l||p.p)+" …"))});
-H.hidden=!hl.children.length}
+H.hidden=!hl.children.length;record(all,{s:s,n:Object.keys(S.picks).length,r:right,b:S.best})}
+// Your record vs the AIs (docs/growth-overnight-spec.md §3): per-AI tally over every stored verdict, from the
+// visitor's side, and a 1200x675 card drawn here. Nothing leaves the device.
+function ids(v){if(v.a)return v.a;var c=null;D.forEach(function(x){if(x.round_id===v.r&&!x.sealed&&x.ais)c=x});
+if(c)return c.ais.map(function(a){return a.agent});var by={};AG.forEach(function(a){by[NM[a]||a]=a});
+return(v.rows||[]).map(function(x){var m=/\u2068(.*?)\u2069/.exec(x);return m?by[m[1]]:null})}
+function tally(all){var t={};all.forEach(function(v){var a=ids(v);Array.from(v.g||"").forEach(function(q,i){var k=a[i];if(!k)return;
+var x=t[k]=t[k]||{w:0,l:0,d:0};x[q==="🟩"?"w":q==="🟥"?"l":"d"]++})});
+return AG.filter(function(a){return t[a]}).map(function(a){var x=t[a];return{a:a,name:NM[a]||a,w:x.w,l:x.l,d:x.d}})}
+function card(rows,st){var cv=document.createElement("canvas"),x=cv.getContext&&cv.getContext("2d");if(!x)return null;cv.width=1200;cv.height=675;
+var rtl=document.documentElement.dir==="rtl",FF=getComputedStyle(document.body).fontFamily||"sans-serif",L=rtl?1140:60,A=rtl?"right":"left";
+function t(s,X,y,f,c,w){x.font=f+" "+FF;x.fillStyle=c;x.textAlign=A;x.direction=rtl?"rtl":"ltr";x.fillText(s.replace(/[\u2066-\u2069]/g,""),X,y,w)}
+x.fillStyle="#fff";x.fillRect(0,0,1200,675);x.fillStyle="#ff3b5c";x.fillRect(0,0,1200,12);
+t(T.rec,L,105,"800 56px","#111",1080);
+rows.forEach(function(r,i){var y=200+i*88;x.fillStyle=COL[r.a]||"#888";x.fillRect(rtl?1112:60,y-38,28,40);
+t(r.name,rtl?1090:110,y,"700 44px","#111",300);t(fmt(T.tally,{w:r.w,l:r.l,d:r.d}),rtl?760:420,y,"400 38px","#333",700)});
+t(fmt(T.stats,st),L,590,"400 32px","#555",1080);
+x.font="700 28px "+FF;x.fillStyle="#111";x.textAlign="left";x.direction="ltr";x.fillText("agentpitbench.org/challenge",60,645);return cv}
+var recUrl=null;
+function record(all,st){var R=$("[data-rec]");if(!R)return;var rows=tally(all),cv=rows.length?card(rows,st):null;R.hidden=!cv;if(!cv)return;
+var ul=$("[data-rec-list]",R);ul.textContent="";rows.forEach(function(r){ul.appendChild(li(iso(r.name)+": "+fmt(T.tally,{w:r.w,l:r.l,d:r.d})))});
+var msg=T.rec+": "+rows.map(function(r){return r.name+" "+r.w+"–"+r.l}).join(" · ")+" · AgentpitBench";
+cv.toBlob(function(b){if(!b)return;if(recUrl)URL.revokeObjectURL(recUrl);recUrl=URL.createObjectURL(b);$("[data-rec-save]",R).href=recUrl;
+var f=null;try{f=new File([b],"agentpitbench-my-record.png",{type:"image/png"})}catch(e){}
+var sb=$("[data-rec-share]",R);sb.hidden=!(f&&navigator.canShare&&navigator.canShare({files:[f]}));
+sb.onclick=function(){navigator.share({files:[f],text:msg,url:PAGE}).catch(function(){})}},"image/png")}
 function share(msg){var bar=document.getElementById("share");if(!bar)return;
 document.querySelectorAll("#share a[data-net],[data-share-top] a[data-net]").forEach(function(a){try{var u=new URL(a.href),p=u.searchParams,n=a.dataset.net;
 if(n==="x"||n==="telegram")p.set("text",msg);else if(n==="reddit")p.set("title",msg);
@@ -353,6 +383,6 @@ top.getBoundingClientRect().top<0||fab.classList.remove("on")});[top,b,ft].forEa
 fab.onclick=function(){var o={text:top.dataset.text,url:top.dataset.url};if(top.dataset.title)o.title=top.dataset.title;sh(o)}}
 else if(fab)fab.remove()})();</script>
 <footer>SKALE Labs က လည်ပတ်သော အလိုအလျောက် benchmark။ အတုငွေ (agentpit apUSD)။ ထိပ်တန်းချင်း ယှဉ်ပြိုင်မှု: AI တစ်ခုစီသည် ၎င်း၏ကုမ္ပဏီ၏ ထိပ်တန်းမော်ဒယ်ကို အမြင့်ဆုံး ဆင်ခြင်မှုဖြင့် လည်ပတ်သည်။ ရလဒ်များကို ဘယ်တော့မှ ပြင်ဆင်ခြင်း မပြုပါ။
-<a href="../../my/methodology/">နည်းစနစ် v1.0</a> · <a href="../../my/independence/">လွတ်လပ်မှုနှင့် အကျိုးစီးပွား ပဋိပက္ခ</a> · <a href="../../my/incidents/">ချို့ယွင်းဖြစ်ရပ်များ</a> · <a href="../../my/experiments/">စမ်းသပ်မှုများ</a> · <a href="../../my/contrarian/">ဈေးကွက်ကို ဆန့်ကျင်သော ခန့်မှန်းချက်များ</a> · <a href="../../my/data/">ဒေတာနှင့် နည်းလမ်း</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">ရင်းမြစ်ကုဒ် (AGPL-3.0)</a> · 2026-10-12 17:18 UTC တွင် တည်ဆောက်သည်</footer>
+<a href="../../my/methodology/">နည်းစနစ် v1.0</a> · <a href="../../my/independence/">လွတ်လပ်မှုနှင့် အကျိုးစီးပွား ပဋိပက္ခ</a> · <a href="../../my/incidents/">ချို့ယွင်းဖြစ်ရပ်များ</a> · <a href="../../my/experiments/">စမ်းသပ်မှုများ</a> · <a href="../../my/contrarian/">ဈေးကွက်ကို ဆန့်ကျင်သော ခန့်မှန်းချက်များ</a> · <a href="../../my/data/">ဒေတာနှင့် နည်းလမ်း</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">ရင်းမြစ်ကုဒ် (AGPL-3.0)</a> · 2026-10-12 17:38 UTC တွင် တည်ဆောက်သည်</footer>
 <script defer type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "7f12b95829f74ed488cdf4008a176a57"}'></script>
 </body></html>

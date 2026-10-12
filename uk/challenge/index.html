@@ -241,6 +241,10 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <p class="small mut">Вибір, зроблений тут, залишається на цьому пристрої й лише для розваги. Щоб він зараховувався до публічної таблиці людей, відповідайте в X до закриття ринку.</p>
 
 <section data-hist hidden><h2>Ваші виклики</h2><ul class="ch-hist" data-hist-list></ul></section>
+<section data-rec hidden aria-labelledby="ch-rec"><h2 id="ch-rec">Ваш рахунок проти ШІ</h2>
+<p class="small mut">Зелений: ви обіграли цей ШІ. Червоний: він обіграв вас. Жовтий: однаковий результат.</p>
+<ul class="ch-rows" data-rec-list></ul>
+<div class="btns"><button type="button" class="btn cta" data-rec-share hidden>Поділитися зображенням</button><a class="btn" href="#" download="agentpitbench-my-record.png" data-rec-save>Зберегти зображення</a></div></section>
 </div>
 
 <style>.pk{margin:8px 0}.pk summary{cursor:pointer;list-style:none;min-height:44px;display:inline-flex;align-items:center;max-width:100%;overflow-wrap:anywhere}.pk summary::-webkit-details-marker{display:none}.pk summary::after{content:"▾";margin-inline-start:8px}.pk[open] summary{background:var(--fg);color:var(--bg)}.pk .btns{margin:8px 0;align-items:center}.pk .btn.sm,[data-share-image]{min-height:44px;display:inline-flex;align-items:center}button.btn{background:var(--card);color:var(--fg);font:inherit;font-weight:700;cursor:pointer}.pickshare[hidden],.pk .btn[hidden]{display:none}</style>
@@ -254,8 +258,9 @@ document.querySelectorAll("[data-pick-end]").forEach(function(s){var t=Date.pars
 
 <script type="application/json" id="ch-data">[{"ais": [{"agent": "claude", "name": "Claude", "outcome": "Yes", "won": null}, {"agent": "codex", "name": "ChatGPT", "outcome": "Yes", "won": null}, {"agent": "agy", "name": "Gemini", "outcome": "No", "won": null}, {"agent": "grok", "name": "Grok", "outcome": "No", "won": null}], "date": "2026-10-12", "end_date": "2026-10-16T20:00:00Z", "outcomes": ["Yes", "No"], "outcomes_local": ["\u0422\u0430\u043a", "\u041d\u0456"], "q_local": "\u0427\u0438 \u0434\u043e\u0441\u044f\u0433\u043d\u0435 Amazon.com, Inc. (AMZN) \u0440\u0456\u0432\u043d\u044f (LOW) $252 \u043d\u0430 \u0442\u0438\u0436\u043d\u0456 12 \u0436\u043e\u0432\u0442\u043d\u044f 2026 \u0440\u043e\u043a\u0443?", "question": "Will Amazon.com, Inc. (AMZN) hit (LOW) $252 Week of October 12 2026?", "revealed_at": 1791768538.6375039, "round_id": 25, "sealed": false, "state": "awaiting_resolution", "winner": null}, {"ais": [{"agent": "claude", "name": "Claude", "outcome": "Yes", "won": null}, {"agent": "codex", "name": "ChatGPT", "outcome": "Yes", "won": null}, {"agent": "agy", "name": "Gemini", "outcome": "Yes", "won": null}, {"agent": "grok", "name": "Grok", "outcome": "Yes", "won": null}], "date": "2026-10-11", "end_date": "2026-10-17T18:45:00Z", "outcomes": ["Yes", "No"], "outcomes_local": ["\u0422\u0430\u043a", "\u041d\u0456"], "q_local": "\u0427\u0438 \u043f\u0435\u0440\u0435\u043c\u043e\u0436\u0435 Lille OSC 2026-10-17?", "question": "Will Lille OSC win on 2026-10-17?", "revealed_at": 1791681957.5943782, "round_id": 21, "sealed": false, "state": "awaiting_resolution", "winner": null}, {"ais": [{"agent": "claude", "name": "Claude", "outcome": "No", "won": true}, {"agent": "codex", "name": "ChatGPT", "outcome": "Yes", "won": false}, {"agent": "agy", "name": "Gemini", "outcome": "Yes", "won": false}, {"agent": "grok", "name": "Grok", "outcome": "No", "won": true}], "date": "2026-10-10", "end_date": "2026-10-11T18:00:00Z", "outcomes": ["Yes", "No"], "outcomes_local": ["\u0422\u0430\u043a", "\u041d\u0456"], "q_local": "\u0427\u0438 \u0431\u0443\u0434\u0435 \u0434\u043e\u0449 \u0443 New Orleans, LA 10 \u0436\u043e\u0432\u0442\u043d\u044f?", "question": "Will it rain in New Orleans, LA on October 10?", "revealed_at": 1791595582.539434, "round_id": 15, "sealed": false, "state": "resolved", "winner": "No"}, {"ais": [{"agent": "claude", "name": "Claude", "outcome": "Yes", "won": null}, {"agent": "codex", "name": "ChatGPT", "outcome": "Yes", "won": null}, {"agent": "agy", "name": "Gemini", "outcome": null, "won": null}, {"agent": "grok", "name": "Grok", "outcome": null, "won": null}], "date": "2026-10-09", "end_date": "2026-10-12T04:00:00Z", "outcomes": ["Yes", "No"], "outcomes_local": ["\u0422\u0430\u043a", "\u041d\u0456"], "q_local": "Will Bitcoin reach $84,000 October 5-11?", "question": "Will Bitcoin reach $84,000 October 5-11?", "revealed_at": 1791560782.8103573, "round_id": 7, "sealed": false, "state": "void", "winner": null}]</script>
 <script>(function(){
-var T={"beat": "\u0412\u0438 \u043e\u0431\u0456\u0433\u0440\u0430\u043b\u0438 {n} \u0437 {m} \u0428\u0406", "nobet": "\u0431\u0435\u0437 \u0441\u0442\u0430\u0432\u043a\u0438", "pick": "\u0412\u0430\u0448 \u0432\u0438\u0431\u0456\u0440: {pick}", "right": "\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e", "share": "\u042f \u043e\u0431\u0456\u0433\u0440\u0430\u0432 {n} \u0437 {m} \u0428\u0406 \u0443 \u0432\u0438\u043a\u043b\u0438\u043a\u0443 AgentpitBench", "stats": "\u0421\u0435\u0440\u0456\u044f {s} \u00b7 \u0437\u0456\u0433\u0440\u0430\u043d\u043e {n} \u00b7 \u0432\u0433\u0430\u0434\u0430\u043d\u043e {r} \u00b7 \u043d\u0430\u0439\u043a\u0440\u0430\u0449\u0430 \u0441\u0435\u0440\u0456\u044f {b}", "wrong": "\u0425\u0438\u0431\u043d\u043e", "you": "\u0412\u0438"},
-WIN="\u0420\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442: \u003cb\u003e{winner}\u003c/b\u003e.",PAGE="https://agentpitbench.org/uk/challenge/",DATA="../../"+"data/challenge.json",K="apb-challenge";
+var T={"beat": "\u0412\u0438 \u043e\u0431\u0456\u0433\u0440\u0430\u043b\u0438 {n} \u0437 {m} \u0428\u0406", "nobet": "\u0431\u0435\u0437 \u0441\u0442\u0430\u0432\u043a\u0438", "pick": "\u0412\u0430\u0448 \u0432\u0438\u0431\u0456\u0440: {pick}", "rec": "\u0412\u0430\u0448 \u0440\u0430\u0445\u0443\u043d\u043e\u043a \u043f\u0440\u043e\u0442\u0438 \u0428\u0406", "right": "\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u043e", "share": "\u042f \u043e\u0431\u0456\u0433\u0440\u0430\u0432 {n} \u0437 {m} \u0428\u0406 \u0443 \u0432\u0438\u043a\u043b\u0438\u043a\u0443 AgentpitBench", "stats": "\u0421\u0435\u0440\u0456\u044f {s} \u00b7 \u0437\u0456\u0433\u0440\u0430\u043d\u043e {n} \u00b7 \u0432\u0433\u0430\u0434\u0430\u043d\u043e {r} \u00b7 \u043d\u0430\u0439\u043a\u0440\u0430\u0449\u0430 \u0441\u0435\u0440\u0456\u044f {b}", "tally": "\u043f\u0435\u0440\u0435\u043c\u043e\u0433 {w} \u00b7 \u043f\u043e\u0440\u0430\u0437\u043e\u043a {l} \u00b7 \u043d\u0456\u0447\u0438\u0457\u0445 {d}", "wrong": "\u0425\u0438\u0431\u043d\u043e", "you": "\u0412\u0438"},
+WIN="\u0420\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442: \u003cb\u003e{winner}\u003c/b\u003e.",PAGE="https://agentpitbench.org/uk/challenge/",DATA="../../"+"data/challenge.json",K="apb-challenge",
+AG=["claude", "codex", "agy", "grok"],NM={"agy": "Gemini", "claude": "Claude", "codex": "ChatGPT", "grok": "Grok"},COL={"agy": "#4285F4", "claude": "#D97757", "codex": "#10A37F", "grok": "#1A1A1A"};
 var D=[];try{D=JSON.parse(document.getElementById("ch-data").textContent)}catch(e){}
 var S={};try{S=JSON.parse(localStorage.getItem(K))||{}}catch(e){}S.picks=S.picks||{};S.res=S.res||{};
 function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
@@ -266,7 +271,7 @@ function txt(el,s){if(el)el.textContent=s}
 function li(s){var l=document.createElement("li");l.textContent=s;return l}
 function open(c){var e=Date.parse(c.end_date||"");return(c.state==="running"||c.state==="awaiting_resolution")&&!(e&&Date.now()>=e)}
 function verdict(c,p){var ok=p===c.winner,g="",n=0,rows=[];c.ais.forEach(function(a){var w=!!a.won,q=ok&&!w?"🟩":(!ok&&w?"🟥":"🟨");if(q==="🟩")n++;g+=q;
-rows.push(q+" "+iso(a.name)+": "+(a.outcome?loc(c,a.outcome):T.nobet))});return{d:c.date,r:c.round_id,q:c.q_local,p:loc(c,p),ok:ok,g:g,n:n,m:c.ais.length,w:loc(c,c.winner),rows:rows}}
+rows.push(q+" "+iso(a.name)+": "+(a.outcome?loc(c,a.outcome):T.nobet))});return{a:c.ais.map(function(a){return a.agent}),d:c.date,r:c.round_id,q:c.q_local,p:loc(c,p),ok:ok,g:g,n:n,m:c.ais.length,w:loc(c,c.winner),rows:rows}}
 function render(){
 var F=D[0],root=$("#ch");
 if(F){var pk=S.picks[F.round_id],play=$("[data-play]",root),mine=$("[data-mine]",root);
@@ -291,7 +296,32 @@ share(fmt(T.share,{n:L.n,m:L.m})+" "+L.g)}
 var H=$("[data-hist]"),hl=$("[data-hist-list]");hl.textContent="";var ids={};
 all.forEach(function(v){ids[v.r]=1;hl.appendChild(li(v.d+" · "+iso(v.q)+" · "+v.p+" "+(v.ok?"✓":"✗")+" "+v.g))});
 Object.keys(S.picks).forEach(function(k){if(ids[k])return;var p=S.picks[k];hl.appendChild(li((p.d||"")+" · "+iso(p.q||"")+" · "+(p.l||p.p)+" …"))});
-H.hidden=!hl.children.length}
+H.hidden=!hl.children.length;record(all,{s:s,n:Object.keys(S.picks).length,r:right,b:S.best})}
+// Your record vs the AIs (docs/growth-overnight-spec.md §3): per-AI tally over every stored verdict, from the
+// visitor's side, and a 1200x675 card drawn here. Nothing leaves the device.
+function ids(v){if(v.a)return v.a;var c=null;D.forEach(function(x){if(x.round_id===v.r&&!x.sealed&&x.ais)c=x});
+if(c)return c.ais.map(function(a){return a.agent});var by={};AG.forEach(function(a){by[NM[a]||a]=a});
+return(v.rows||[]).map(function(x){var m=/\u2068(.*?)\u2069/.exec(x);return m?by[m[1]]:null})}
+function tally(all){var t={};all.forEach(function(v){var a=ids(v);Array.from(v.g||"").forEach(function(q,i){var k=a[i];if(!k)return;
+var x=t[k]=t[k]||{w:0,l:0,d:0};x[q==="🟩"?"w":q==="🟥"?"l":"d"]++})});
+return AG.filter(function(a){return t[a]}).map(function(a){var x=t[a];return{a:a,name:NM[a]||a,w:x.w,l:x.l,d:x.d}})}
+function card(rows,st){var cv=document.createElement("canvas"),x=cv.getContext&&cv.getContext("2d");if(!x)return null;cv.width=1200;cv.height=675;
+var rtl=document.documentElement.dir==="rtl",FF=getComputedStyle(document.body).fontFamily||"sans-serif",L=rtl?1140:60,A=rtl?"right":"left";
+function t(s,X,y,f,c,w){x.font=f+" "+FF;x.fillStyle=c;x.textAlign=A;x.direction=rtl?"rtl":"ltr";x.fillText(s.replace(/[\u2066-\u2069]/g,""),X,y,w)}
+x.fillStyle="#fff";x.fillRect(0,0,1200,675);x.fillStyle="#ff3b5c";x.fillRect(0,0,1200,12);
+t(T.rec,L,105,"800 56px","#111",1080);
+rows.forEach(function(r,i){var y=200+i*88;x.fillStyle=COL[r.a]||"#888";x.fillRect(rtl?1112:60,y-38,28,40);
+t(r.name,rtl?1090:110,y,"700 44px","#111",300);t(fmt(T.tally,{w:r.w,l:r.l,d:r.d}),rtl?760:420,y,"400 38px","#333",700)});
+t(fmt(T.stats,st),L,590,"400 32px","#555",1080);
+x.font="700 28px "+FF;x.fillStyle="#111";x.textAlign="left";x.direction="ltr";x.fillText("agentpitbench.org/challenge",60,645);return cv}
+var recUrl=null;
+function record(all,st){var R=$("[data-rec]");if(!R)return;var rows=tally(all),cv=rows.length?card(rows,st):null;R.hidden=!cv;if(!cv)return;
+var ul=$("[data-rec-list]",R);ul.textContent="";rows.forEach(function(r){ul.appendChild(li(iso(r.name)+": "+fmt(T.tally,{w:r.w,l:r.l,d:r.d})))});
+var msg=T.rec+": "+rows.map(function(r){return r.name+" "+r.w+"–"+r.l}).join(" · ")+" · AgentpitBench";
+cv.toBlob(function(b){if(!b)return;if(recUrl)URL.revokeObjectURL(recUrl);recUrl=URL.createObjectURL(b);$("[data-rec-save]",R).href=recUrl;
+var f=null;try{f=new File([b],"agentpitbench-my-record.png",{type:"image/png"})}catch(e){}
+var sb=$("[data-rec-share]",R);sb.hidden=!(f&&navigator.canShare&&navigator.canShare({files:[f]}));
+sb.onclick=function(){navigator.share({files:[f],text:msg,url:PAGE}).catch(function(){})}},"image/png")}
 function share(msg){var bar=document.getElementById("share");if(!bar)return;
 document.querySelectorAll("#share a[data-net],[data-share-top] a[data-net]").forEach(function(a){try{var u=new URL(a.href),p=u.searchParams,n=a.dataset.net;
 if(n==="x"||n==="telegram")p.set("text",msg);else if(n==="reddit")p.set("title",msg);
@@ -353,6 +383,6 @@ top.getBoundingClientRect().top<0||fab.classList.remove("on")});[top,b,ft].forEa
 fab.onclick=function(){var o={text:top.dataset.text,url:top.dataset.url};if(top.dataset.title)o.title=top.dataset.title;sh(o)}}
 else if(fab)fab.remove()})();</script>
 <footer>Автоматизований бенчмарк під керуванням SKALE Labs. Ігрові гроші (agentpit apUSD). Флагман проти флагмана: кожен ШІ працює на найкращій моделі своєї лабораторії з максимальним рівнем міркувань. Результати ніколи не редагуються.
-<a href="../../uk/methodology/">Методика v1.0</a> · <a href="../../uk/independence/">Незалежність і конфлікти інтересів</a> · <a href="../../uk/incidents/">Інциденти</a> · <a href="../../uk/experiments/">Експерименти</a> · <a href="../../uk/contrarian/">Ставки проти ринку</a> · <a href="../../uk/data/">Дані й методика</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">Вихідний код (AGPL-3.0)</a> · Зібрано 2026-10-12 17:18 UTC</footer>
+<a href="../../uk/methodology/">Методика v1.0</a> · <a href="../../uk/independence/">Незалежність і конфлікти інтересів</a> · <a href="../../uk/incidents/">Інциденти</a> · <a href="../../uk/experiments/">Експерименти</a> · <a href="../../uk/contrarian/">Ставки проти ринку</a> · <a href="../../uk/data/">Дані й методика</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">Вихідний код (AGPL-3.0)</a> · Зібрано 2026-10-12 17:38 UTC</footer>
 <script defer type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "7f12b95829f74ed488cdf4008a176a57"}'></script>
 </body></html>
