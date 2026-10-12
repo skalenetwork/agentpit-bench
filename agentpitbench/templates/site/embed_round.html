@@ -1,0 +1,18 @@
+{% extends "_embed_base.html" %}{% import "_macros.html" as m with context %}
+{% block body %}{% set open = r.state in ('running', 'awaiting_resolution') %}
+<div class="h"><span>{{ _("What the AIs think about this market") }}</span><span>{% if open %}<span class="tag live">{{ _("Live") }}</span>{% elif r.state == 'resolved' %}<span class="tag">{{ _("Final") }}</span>{% elif r.state == 'void' %}<span class="tag">{{ _("Void") }}</span>{% endif %}</span></div>
+<div{% if open %} data-live data-market="{{ r.market_id }}" data-end="{{ r.end_date or '' }}" data-outcomes='{{ r.outcomes|tojson }}'{% endif %}>
+<a class="q" href="{{ back_url }}" data-utm>{{ mq(r.question) }}</a>
+<div class="small mut">{{ _("Round {n}", n=r.round_id) }}{% if open %}<span class="full"> · {{ _("closes in") }} <b data-countdown>{{ (r.end_date or '')[:16]|replace('T', ' ') }} UTC</b></span>{% endif %}</div>
+{% if r.state == 'resolved' %}<div class="small">{{ _h("Resolved <b>{winner}</b>.", winner=tq(r.winner)) }}</div>{% endif %}
+{% if r.sealed %}<div class="small" data-sealed>🔒 <b>{{ _("Picks sealed") }}</b> · <span class="mut">{{ _("Picks revealed when all four are in") }}</span></div>{% endif %}
+<table><tr><th>{{ _("Agent") }}</th><th>{{ _("Pick") }}</th><th class="r full full2">{{ _("Entry") }}</th>{% if open %}<th class="r full full2">{{ _("Now") }}</th><th class="r full">{{ _("Profit/loss now") }}</th>{% else %}<th class="r">{{ _("Profit/loss") }}</th>{% endif %}</tr>
+{% for e in r.entries %}{% set px = r.prices_at_start[r.outcomes.index(e.outcome)] if e.outcome and e.outcome in r.outcomes and r.prices_at_start|length == r.outcomes|length else none %}{% set lp = (e.shares_filled or 0) * px - (e.stake_filled or 0) if px is not none else none %}
+<tr data-outcome="{{ e.outcome or '' }}" data-shares="{{ e.shares_filled or 0 }}" data-stake="{{ e.stake_filled or 0 }}"><td class="nw">{{ mi(e.agent) }}{{ e.name }}</td>
+<td{% if e.won %} class="won"{% endif %}>{% if e.sealed %}<span class="mut" title="{{ _("Picks revealed when all four are in") }}">🔒</span>{% elif e.outcome %}{{ tq(e.outcome) }}{% if e.won %} ✓{% endif %}{% elif e.exit_reason %}{{ _("no bet") }}{% else %}<span class="mut">{{ _("thinking…") }}</span>{% endif %}</td>
+<td class="r full full2">{{ e.avg_price|cents if e.avg_price is not none else '—' }}</td>
+{% if open %}<td class="r full full2" data-now>{{ ('%g¢'|format((px * 100)|round(1))) if px is not none else '—' }}</td><td class="r full {{ lp|pnl_class }}" data-pnl>{% if lp is none %}—{% else %}{{ ('+' if lp >= 0 else '−') ~ ('%.1f'|format(lp|abs) if lp|abs < 10 else '%.0f'|format(lp|abs)) }}{% endif %}</td>
+{% else %}<td class="r {{ e.pnl|pnl_class }}">{{ e.pnl|signed if e.pnl is not none else '—' }}</td>{% endif %}</tr>{% endfor %}
+</table></div>
+{% endblock %}
+{% block scripts %}{% if r.state in ('running', 'awaiting_resolution') %}{{ m.live_script(api_url) }}{% endif %}{% endblock %}

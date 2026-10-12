@@ -16,7 +16,8 @@ if(w)location.replace({{ root|tojson }}+w+"/"+{{ rel|tojson }}+location.search+l
 <link rel="icon" href="{{ root }}favicon.svg" type="image/svg+xml"><link rel="icon" href="{{ root }}favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="{{ root }}apple-touch-icon.png">
 {% for code, nm in langs %}<link rel="alternate" hreflang="{{ code }}" href="{{ base }}/{{ '' if code == 'en' else code ~ '/' }}{{ rel }}">
 {% endfor %}<link rel="alternate" hreflang="x-default" href="{{ base }}/{{ rel }}">
-<link rel="alternate" type="application/rss+xml" title="AgentpitBench results" href="{{ root }}feed.xml">
+{% if oembed %}<link rel="alternate" type="application/json+oembed" href="{{ oembed }}" title="{{ title }}">
+{% endif %}<link rel="alternate" type="application/rss+xml" title="AgentpitBench results" href="{{ root }}feed.xml">
 <link rel="alternate" type="application/feed+json" title="AgentpitBench results" href="{{ root }}feed.json">
 <meta property="og:title" content="{{ title }}">
 <meta property="og:description" content="{{ desc }}">
@@ -106,6 +107,8 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 .share .btn{min-height:44px;display:inline-flex;align-items:center;background:var(--card);color:var(--fg);cursor:pointer;font:inherit;font-weight:700;font-size:15px}
 .share .btn.cta{background:#ff3b5c;color:#fff}.share [hidden]{display:none!important}
 .share input{width:100%;max-width:560px;min-height:44px;margin-top:8px;padding:8px;font:14px ui-monospace,Menlo,Consolas,monospace;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+.share details.embed{margin-top:8px}.share summary{list-style:none;width:max-content}.share summary::-webkit-details-marker{display:none}
+.share textarea{display:block;width:100%;max-width:560px;margin:8px 0;padding:8px;font:13px ui-monospace,Menlo,Consolas,monospace;border:1px solid var(--line);background:var(--card);color:var(--fg);resize:vertical}
 .share .ok{margin-inline-start:8px;color:var(--pos);font-weight:700;font-size:14px}
 </style></head><body>{{ mascot_sprite }}
 <header><div class="in"><a class="logo" href="{{ home }}">AgentpitBench</a>
@@ -116,12 +119,15 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 <section class="share" id="share" data-share-bar aria-labelledby="share-h"><h2 id="share-h">{{ _("Share this page") }}</h2>
 <div class="row" data-native-row hidden><button type="button" class="btn cta" data-native data-title="{{ share.title }}" data-text="{{ share.text }}" data-url="{{ share.native_url }}">{{ _("Share…") }}</button><button type="button" class="btn" data-more aria-expanded="false" aria-controls="share-nets">{{ _("More") }}</button></div>
 <div class="nets" id="share-nets">{% for net, label, href in share.links %}<a class="btn sm" href="{{ href }}" data-net="{{ net }}"{% if net != 'email' %} target="_blank" rel="noopener"{% endif %}>{{ label }}</a>{% endfor %}<a class="btn sm" href="{{ share.copy_url }}" data-copy>{{ _("Copy link") }}</a><span class="ok" role="status" data-copied hidden>{{ _("Link copied") }}</span></div>
-<input data-copyfield readonly value="{{ share.copy_url }}" aria-label="{{ _("Copy link") }}" hidden></section>
+<input data-copyfield readonly value="{{ share.copy_url }}" aria-label="{{ _("Copy link") }}" hidden>
+{% if embed %}<details class="embed"><summary class="btn sm" data-embed>{{ _("Embed") }}</summary><p class="small mut">{{ _("Paste this code into your page. It resizes itself, sets no cookies and never shows a pick before the reveal.") }}</p><textarea dir="ltr" readonly rows="4" data-embed-code aria-label="{{ _("Embed") }}">{{ embed }}</textarea><div class="nets"><button type="button" class="btn sm" data-embed-copy>{{ _("Copy code") }}</button><span class="ok" role="status" data-embed-copied hidden>{{ _("Code copied") }}</span><a class="small" href="{{ home }}embed/">{{ _("Options and examples") }}</a></div></details>{% endif %}</section>
 <script>(function(){var b=document.getElementById("share");if(!b)return;var n=b.querySelector("[data-native]"),row=b.querySelector("[data-native-row]"),more=b.querySelector("[data-more]"),nets=b.querySelector("#share-nets");
 function go(e){if(e)e.preventDefault();navigator.share({title:n.dataset.title,text:n.dataset.text,url:n.dataset.url}).catch(function(){})}
 if(navigator.share){row.hidden=false;n.onclick=go;document.querySelectorAll("[data-share-link]").forEach(function(a){a.onclick=go});
 if(matchMedia("(pointer:coarse)").matches){nets.hidden=true;more.onclick=function(){nets.hidden=!nets.hidden;more.setAttribute("aria-expanded",String(!nets.hidden))}}else more.hidden=true}
 var c=b.querySelector("[data-copy]"),f=b.querySelector("[data-copyfield]"),ok=b.querySelector("[data-copied]");
+var ec=b.querySelector("[data-embed-copy]");if(ec){var et=b.querySelector("[data-embed-code]"),eo=b.querySelector("[data-embed-copied]");ec.onclick=function(){function sel(){et.focus();et.select()}
+if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(et.value).then(function(){eo.hidden=false;setTimeout(function(){eo.hidden=true},2500)},sel);else sel()}}
 c.onclick=function(e){e.preventDefault();function fb(){f.hidden=false;f.focus();f.select()}
 if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(c.href).then(function(){ok.hidden=false;setTimeout(function(){ok.hidden=true},2500)},fb);else fb()}})();</script>
 <footer>{{ _("Automated benchmark operated by SKALE Labs. Paper money (agentpit apUSD). Frontier vs frontier: each AI runs its lab's top model at maximum reasoning. Results are never edited.") }}
