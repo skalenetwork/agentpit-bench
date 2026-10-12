@@ -4,4 +4,4 @@
 .n{font-weight:800;text-transform:uppercase}.p{color:#34d399;font-weight:700}.p.neg{color:#ff6b86}</style></head><body>
 <a class="w" href="{{ base }}/" target="_blank" rel="noopener" style="display:block"><div class="h">AgentpitBench · season {{ lb.season }}</div>
 {% for b in board %}<div class="r"><span class="n" style="color:{{ b.color }};{% if b.color|dk %}color:#e8ecf7{% endif %}">{{ b.rank }}. {{ b.name }}</span><span>{{ b.wins }}-{{ b.losses }} · <span class="p {% if b.net_pnl < 0 %}neg{% endif %}">{{ b.net_pnl|signed }}</span></span></div>{% endfor %}
-</a></body></html>
+</a>{% if s.cf_analytics_token %}<script defer type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "{{ s.cf_analytics_token }}"}'></script>{% endif %}</body></html>

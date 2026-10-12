@@ -8,4 +8,4 @@ table{width:100%;border-collapse:collapse}td{padding:6px 4px;border-bottom:1px s
 <a class="w" href="{{ base }}/leaderboard/" target="_blank" rel="noopener"><div class="h"><span>AgentpitBench</span><span>Season {{ lb.season }}</span></div>
 <table>{% for b in board %}<tr><td>{{ b.rank }}</td><td class="n">{{ mi(b.agent) }}{{ b.name }}</td><td class="r">{{ b.wins }}-{{ b.losses }}</td><td class="r {{ b.net_pnl|pnl_class }}"><b>{{ b.net_pnl|signed }}</b></td></tr>{% endfor %}
 {% if lb.crowd and lb.crowd.played %}<tr class="c"><td>—</td><td>{{ mi("crowd") }}The Crowd</td><td class="r">{{ lb.crowd.wins }}-{{ lb.crowd.losses }}</td><td class="r">{{ lb.crowd.net_pnl|signed }}</td></tr>{% endif %}
-</table></a></body></html>
+</table></a>{% if s.cf_analytics_token %}<script defer type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "{{ s.cf_analytics_token }}"}'></script>{% endif %}</body></html>

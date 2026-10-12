@@ -51,6 +51,7 @@ class Settings:
     sandbox: bool = True             # run agents inside bubblewrap (bwrap); never disable in production
     # independent-standard layer
     methodology_version: str = "1.0"
+    cf_analytics_token: str = "7f12b95829f74ed488cdf4008a176a57"  # Cloudflare Web Analytics (public by design)
     season_start: str = "2026-10-09T00:00:00Z"   # rounds started before this are pre-season exhibitions
     sweep_markets: int = 30             # daily forecast sweep: markets per agent per day
     sweep_timeout_s: int = 900          # one batched sweep run per agent

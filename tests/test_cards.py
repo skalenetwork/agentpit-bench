@@ -162,3 +162,23 @@ def test_running_round_is_sealed_in_exports_and_site(env):
     db.set_round(rid, state="awaiting_resolution")                                     # all in: revealed
     r = next(x for x in exports.export(s, db)["rounds"] if x["round_id"] == rid)
     assert r["sealed"] is False and any(e["outcome"] for e in r["entries"])
+
+
+def test_cloudflare_beacon_on_every_site_page_only_when_set(env):
+    s, db = env
+    make_round(db, PICKS)
+    from agentpitbench import exports
+    exports.export(s, db)
+    out = site.build(s)
+    pages = [out / "index.html", out / "pt" / "index.html", out / "press" / "index.html",
+             out / "embed" / "index.html", out / "widget" / "index.html"]
+    for p in pages:
+        if p.exists():
+            html = p.read_text()
+            assert "static.cloudflareinsights.com/beacon.min.js" in html, p
+            assert s.cf_analytics_token in html
+    assert all(p.exists() for p in pages[:3])
+    s.cf_analytics_token = ""
+    out = site.build(s)
+    assert "cloudflareinsights" not in (out / "index.html").read_text()
+    assert not any("cloudflareinsights" in p.read_text() for p in (s.cards_dir.rglob("*.html") if s.cards_dir.exists() else []))
