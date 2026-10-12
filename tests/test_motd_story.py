@@ -1,6 +1,8 @@
 """Match of the Day v0.5: twist detectors, the script validator, the opai shim's guards and the fallback."""
 import json
 
+from types import SimpleNamespace
+
 import pytest
 
 from agentpitbench import motd_story as ms
@@ -172,11 +174,44 @@ def test_validator_accepts_a_good_script():
     ({"s3": "Founded 1903, they won 52 titles."}, "years"),
     ({"s3": "Founded 2099 in a far future."}, "years"),
     ({"s10": "Gemini was surprised."}, "must name Grok or Claude"),
+    ({"s8": "Grok read {grok_links} links."}, "log"),
 ])
 def test_validator_rejects(change, why):
     pl, _ = base_payload()
     reason = ms.validate(bad(**change), pl)
     assert reason and why.split()[0].lower() in reason.lower(), reason
+
+
+@pytest.mark.parametrize("subject", ["BEŞIKTAŞ 1903", "GROK 4.7", "THE SMARTEST", "A" * 41])
+def test_background_subject_is_checked(subject):
+    pl, _ = base_payload()
+    assert "background_subject" in ms.validate({**GOOD, "background_subject": subject}, pl)
+
+
+def test_spoken_numbers_and_no_voice_without_a_key(monkeypatch, tmp_path):
+    from agentpitbench import sound
+    assert sound.speakable("Yes at 79¢, 74% sure, −100 after 1m 33s; 42s; +27") == \
+        "Yes at 79 cents, 74 percent sure, minus 100 after 1 minute 33 seconds; 42 seconds; plus 27"
+    monkeypatch.delenv("ELEVENLABS_API_KEY", raising=False)
+    scenes = [{"kind": "s_market", "dur": 4.0, "caption": "Will it?"}]
+    assert sound.voice_scenes(SimpleNamespace(data_dir=tmp_path), scenes, "noir") == {}
+    assert scenes == [{"kind": "s_market", "dur": 4.0, "caption": "Will it?"}]
+
+
+def test_voiced_scenes_stretch_to_their_lines_and_respect_60s(monkeypatch, tmp_path):
+    from agentpitbench import media, sound
+    monkeypatch.setenv("ELEVENLABS_API_KEY", "k")
+    clip = tmp_path / "c.mp3"
+    clip.write_bytes(b"x")
+    monkeypatch.setattr(sound, "narrate_line", lambda s, text, concept: (clip, 5, {"voice_id": "v"}))
+    monkeypatch.setattr(media, "duration", lambda p: 3.0)
+    scenes = [{"kind": "s_market", "dur": 2.0, "caption": "a"}, {"kind": "s_twist", "dur": 6.0, "caption": "b"}]
+    rec = sound.voice_scenes(SimpleNamespace(data_dir=tmp_path), scenes, "noir")
+    assert rec["credits"] == 10 and scenes[0]["dur"] == round(sound.LEAD_S + 3.0 + sound.TAIL_S, 3)
+    assert scenes[1]["dur"] == 6.0
+    many = [{"kind": "s_character", "dur": 4.0, "caption": "x"} for _ in range(20)]  # 20 x 3.75 s > 60 s
+    assert sound.voice_scenes(SimpleNamespace(data_dir=tmp_path), many, "noir") == {}  # captions only
+    assert all(x["dur"] == 4.0 and "voice" not in x for x in many)
 
 
 def test_validator_structure_and_length():
@@ -298,6 +333,32 @@ def test_writer_unavailable_inside_the_sweep_window(tmp_path, monkeypatch, fake_
     noon = 1791806400.0
     assert opai.available(s, db, ms.TASK, now=noon) == (True, "ok")
     assert opai.model_for(s, ms.TASK) == "fable"
+
+
+async def test_warm_up_stores_the_script_so_17h_reuses_it_while_a_round_runs(tmp_path, monkeypatch, fake_claude):
+    from agentpitbench import exports, motd
+    s, db, r, lb = story_setup(tmp_path, monkeypatch)
+    s.motd_enabled = True
+    monkeypatch.setattr(exports, "export", lambda s_, db_: {"rounds": [r], "leaderboard": lb})
+    monkeypatch.setattr(motd, "_round_with_flags", lambda s_, db_, x: x)
+    monkeypatch.setattr(motd, "pick", lambda rounds, day, *a: {"round": r, "score": {}, "candidates": []})
+    fake_claude.respond(GOOD)
+    assert await motd.warm(s, db, None, "2026-10-12") == "scripted"
+    assert await motd.warm(s, db, None, "2026-10-12") == "scripted" and len(fake_claude.calls) == 1  # once a day
+    # 17:00: a round is running, yet the stored script is reused (no writer call)
+    db.x("INSERT INTO rounds(round_id,market_id,question,outcomes,snapshot_json,started_at,state) "
+         "VALUES(30,'m30','q','[]','{}',0,'running')")
+    story = motd.scripted(s, db, r, [r], lb, "agentpitbench.org")
+    assert story and story["concept_type"] == "western" and len(fake_claude.calls) == 1
+
+
+async def test_warm_up_waits_while_a_round_runs(tmp_path, monkeypatch, fake_claude):
+    from agentpitbench import motd
+    s, db, r, lb = story_setup(tmp_path, monkeypatch)
+    db.x("INSERT INTO rounds(round_id,market_id,question,outcomes,snapshot_json,started_at,state) "
+         "VALUES(30,'m30','q','[]','{}',0,'running')")
+    assert await motd.warm(s, db, None, "2026-10-12") is None and fake_claude.calls == []
+    assert db.get("motd_warm_2026-10-12") is None
 
 
 def test_film_json_and_the_youtube_reader_agree(tmp_path, monkeypatch, fake_claude):

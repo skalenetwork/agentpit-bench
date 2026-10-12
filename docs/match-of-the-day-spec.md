@@ -115,7 +115,9 @@ sweep window. Model: `opai_model_motd_script` = "fable"; timeout `opai_motd_time
 guards, Match of the Day **never calls the writer while any round has `state='running'`** (sealed picks; the Claude
 contestant shares the quota) and calls `opai.sealed_guard` for the filmed round. The film only uses the writer when
 `opai_enabled` is on and `motd_script` is in `opai_tasks` (default list includes it); otherwise it is the templated
-film. Every answer, accepted or rejected, is tagged in `operator_ai_outputs` (model, `motd_script.v1`, timestamp,
+film. **Warm-up:** before `motd_hour_utc`, the hourly hook writes and stores the day's script in the first hour
+with no round running and opai available (at most 2 writer attempts a day, kv `motd_warm_<date>`), so the 17:00 render
+reuses it even if a round is running then. Every answer, accepted or rejected, is tagged in `operator_ai_outputs` (model, `motd_script.v1`, timestamp,
 `call_id`, `subject='round:N'`, `public=0`; set to 1 when the film is posted is later work); the accepted row also
 carries the chosen `_twist`. A re-render of the same round reuses its newest accepted script with the same twist if
 it still passes the validator (no new call). Typical call: 1.5–3 minutes.
@@ -306,7 +308,9 @@ for review without posting.
   picks; the model shown is the round's `model_reported` (GPT-6 Luna stays Luna after the switch to Astra); the opai
   shim refuses while a round is running and inside the sweep window, stores every answer, and a rejected draft is
   followed by a retry; the render smoke test with the writer unavailable produces the templated film. Tests never
-  spawn `claude` or call ElevenLabs (conftest).
+  call ElevenLabs (conftest unsets the key) and never spawn the real `claude` (opai_enabled is off by default; writer
+  tests use the fake_claude fixture). Also: the warm-up stores the script and the 17:00 job reuses it while a round
+  runs; `motd post --film` posts once per date; spoken numbers; voiced scenes stretch and the 60 s cap drops the voice.
 
 ## Assumptions to re-check
 - X autoplays video muted in the feed (true as of 2026-10; the captions-only design depends on it only for reach;

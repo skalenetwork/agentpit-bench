@@ -553,7 +553,8 @@ async def make_film(s: Settings, db, cards, day: str, round_id: int | None = Non
            "poster": poster.name if poster.exists() else None,
            "music": (audio.get("score") or {}).get("engine") if track else (MUSIC.name if s.motd_music else None),
            "narrated": bool(audio.get("narrator")), "audio": audio or None,
-           "scenes": [{k: x[k] for k in ("kind", "dur", "agent", "caption", "fact") if x.get(k) is not None}
+           "scenes": [{**{k: x[k] for k in ("kind", "dur", "agent", "caption", "fact") if x.get(k) is not None},
+                       **({"voice": x["voice"]["path"]} if x.get("voice") else {})}
                       for x in scenes], "made_at": time.time()}
     (out / "film.json").write_text(json.dumps(rec, indent=1))
     return rec
@@ -608,6 +609,36 @@ async def post(s: Settings, db, poster, rec: dict, out: Path) -> str | None:
     return tid
 
 
+WARM_TRIES = 2
+
+
+async def warm(s: Settings, db, cards, day: str) -> str | None:
+    """Before motd_hour_utc: write and store today's script early, in an hour when no round is running, so the
+    17:00 render reuses it (motd_story.reuse) even if a round is running then. At most WARM_TRIES writer attempts
+    a day; hours with a running round don't count. Returns the kv state."""
+    key = f"motd_warm_{day}"
+    st = db.get(key) or {}
+    if not s.motd_scripted or st.get("state") in ("scripted", "quiet") or st.get("tries", 0) >= WARM_TRIES:
+        return st.get("state")
+    if db.one("SELECT 1 FROM rounds WHERE state='running' LIMIT 1") is not None:
+        return None  # try again next hour
+    from . import exports, opai
+    if not opai.available(s, db, "motd_script")[0]:  # disabled, sweep window, backoff, budget: not a try
+        return None
+    data = exports.export(s, db)
+    rounds = [_round_with_flags(s, db, r) for r in data["rounds"]]
+    chosen = pick(rounds, day, s.motd_min_score, s.motd_exhibition_factor)
+    if not chosen:
+        db.put(key, {"state": "quiet"})
+        return "quiet"
+    story = await asyncio.to_thread(scripted, s, db, chosen["round"], rounds, data["leaderboard"],
+                                    getattr(cards, "host", "agentpitbench.org"))
+    state = "scripted" if story else "failed"
+    db.put(key, {"state": state, "tries": st.get("tries", 0) + 1, "round_id": chosen["round"]["round_id"]})
+    log.info("Match of the Day %s: warm-up %s (round %s)", day, state, chosen["round"]["round_id"])
+    return state
+
+
 async def daily(s: Settings, db, cards, poster, now: float | None = None) -> dict | None:
     """Scheduler hook (hourly): at or after motd_hour_utc, once per UTC date. Off unless motd_enabled. A failed
     render is not retried (the next day's film picks from its own window)."""
@@ -615,7 +646,13 @@ async def daily(s: Settings, db, cards, poster, now: float | None = None) -> dic
         return None
     t = datetime.fromtimestamp(now if now is not None else time.time(), timezone.utc)
     day = t.strftime("%Y-%m-%d")
-    if t.hour < s.motd_hour_utc or db.get(f"motd_{day}"):
+    if t.hour < s.motd_hour_utc:
+        try:
+            await warm(s, db, cards, day)
+        except Exception:
+            log.exception("Match of the Day %s: script warm-up failed (the 17:00 job writes or falls back)", day)
+        return None
+    if db.get(f"motd_{day}"):
         return None
     db.put(f"motd_{day}", "started")
     try:
