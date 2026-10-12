@@ -106,7 +106,7 @@ def test_strip_drops_model_detail_only_when_too_long(env):
     assert cr._strip("round/25")["model_line"] == "frontier models · max"
     long_path = "reports/2026-W41/state-of-the-ais/"
     assert cr._strip(long_path)["model_line"] is None               # multi-agent card, line too long: dropped
-    assert cr._strip(long_path, "codex")["model_line"] == "GPT-6-Luna · max"   # single agent keeps it
+    assert cr._strip(long_path, "codex")["model_line"] == "GPT-6 Astra · max"   # single agent keeps it
 
 
 def test_emblem_favicon_and_badge(env):

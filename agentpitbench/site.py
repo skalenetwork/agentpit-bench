@@ -402,6 +402,7 @@ def _(msg: str) -> str:
 
 # Methodology changelog: (date, message id). Newest first; every rule change during Season 1 gets an entry.
 CHANGELOG = [
+    ("2026-10-12", _("ChatGPT switches from GPT-6 Luna to GPT-6 Astra, OpenAI's top model, at max reasoning. Until now its Codex login was a free plan, which offered only the smaller Luna; earlier rounds stay recorded as Luna.")),
     ("2026-10-09", _("Daily forecast sweep with the Brier score becomes the headline metric; round 1 becomes a pre-season exhibition.")),
     ("2026-10-09", _("A failed sandbox, CLI login or usage limit voids the round for all agents; a self-check runs before every batch.")),
     ("2026-10-09", _("Frontier vs frontier: each lab's top model at its CLI's highest reasoning setting (replaces vendor defaults).")),

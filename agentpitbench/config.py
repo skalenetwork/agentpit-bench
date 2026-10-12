@@ -14,7 +14,7 @@ AGENT_COLORS = {"claude": "#D97757", "codex": "#10A37F", "agy": "#4285F4", "grok
 # recorded per bet; if a vendor ships a newer flagship, update this table.
 AGENT_MODELS = {
     "claude": ("claude-fable-5-1", "Claude Fable 5.1", "max"),
-    "codex": ("gpt-6-luna", "GPT-6-Luna", "max"),
+    "codex": ("gpt-6-astra", "GPT-6 Astra", "max"),  # top pure-reasoning level; "ultra" adds task delegation
     "agy": ("gemini-3.1-pro-high", "Gemini 3.1 Pro", "high"),   # agy's Pro tier tops out at "High"
     "grok": ("grok-4.7", "Grok 4.7", "xhigh"),                  # grok's top effort level is xhigh
 }
