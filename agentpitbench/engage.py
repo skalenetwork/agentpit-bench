@@ -311,6 +311,8 @@ class Engage:
             self.db.put("contrarian_featured", sorted(featured | {f"{c['agent']}:{c['market_id']}" for c in calls}))
         report = next((r for r in data.get("reports", []) if r["week"] == week), None)
         if report:
+            from . import report_prose  # page prose only, off the posting path; the thread stays templated
+            report_prose.schedule(self.s, self.db, {k: v for k, v in report.items() if k != "prose"})
             posts = report_thread(report, f"{self.s.site_url.rstrip('/')}/reports/{week}/")
             tid = None
             for i, text in enumerate(posts, 1):

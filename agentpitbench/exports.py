@@ -298,6 +298,8 @@ def weekly_reports(s: Settings, db: DB, rounds: list[dict], lb: dict) -> list[di
                     "crowd_brier": round(sum(w["crowd"]) / len(w["crowd"]), 4) if w["crowd"] else None,
                     "betting": sorted(w["betting"].values(), key=lambda b: -b["profit"]),
                     "contrarian": {"total": len(calls), "right": sum(1 for c in calls if c["right"])} if calls else None})
+    from .report_prose import attach  # model prose, numbers filled in by code (docs/ai-automation-spec.md §8)
+    attach(db, out)
     return out
 
 
