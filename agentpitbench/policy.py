@@ -42,8 +42,8 @@ DEFAULTS = {"post_replay": True, "post_milestones": True, "post_awards": True, "
 OPTIONAL_KINDS = ("replay", "milestone", "awards", "contrarian", "press")
 NEVER = ("reveal", "results")
 
-MIN_DAYS = 7          # a week of 24 h snapshots before the policy decides anything
-MIN_SNAPSHOTS = 20
+MIN_DAYS = 2            # operator 2026-10-12: no long shadow period; act once two days of 24 h data exist
+MIN_SNAPSHOTS = 10
 HOUR_UTC = 7
 KV = "cadence_policy"
 LAST = "cadence_last"
