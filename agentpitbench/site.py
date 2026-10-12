@@ -29,6 +29,7 @@ from jinja2 import Environment, PackageLoader, pass_context, select_autoescape
 
 from . import og
 from .cards import cents, is_dark, fmt_time, is_upset, payout_x, ranked, results_headline, signed, split_headline
+from . import discover
 from .emblem import emblem_svg
 from .config import AGENT_COLORS, AGENT_NAMES, Settings, AGENT_MODELS
 from .i18n import CODES, LANGS, NAMES, Translator
@@ -493,12 +494,16 @@ def build(s: Settings) -> Path:
 def _build(s: Settings) -> Path:
     exp = s.export_dir
     rounds = json.loads((exp / "rounds.json").read_text()) if (exp / "rounds.json").exists() else []
+    all_rounds = list(rounds)  # the API keeps void rounds, flagged; only the pages hide them
     if s.site_hide_void:  # temporary while operations stabilise: void rounds get no page, row or feed item
         rounds = [r for r in rounds if r.get("state") != "void"]
     reports = json.loads((exp / "reports.json").read_text()) if (exp / "reports.json").exists() else []
     lb = json.loads((exp / "leaderboard.json").read_text()) if (exp / "leaderboard.json").exists() else {
         "agents": [], "series": {}, "season": "", "updated_at": time.time()}
     board = lb["agents"]
+    metrics = json.loads((exp / "metrics.json").read_text()) if (exp / "metrics.json").exists() else {}
+    sitemap: dict[str, float] = {}  # English page rel path -> lastmod
+    as_of = discover.as_of_ts(lb)
     out = s.site_dir.with_name(s.site_dir.name + ".new")
     shutil.rmtree(out, ignore_errors=True)
     out.mkdir(parents=True)
@@ -561,6 +566,9 @@ def _build(s: Settings) -> Path:
             if og_rel is None and kind in BRANDED:
                 og_rel = previews["pages"].get((kind, lang))
             ctx["og_image"] = previews["pv"].url(og_rel)
+            lastmod = ctx.pop("lastmod", None)
+            if lang == "en":
+                sitemap[rel] = lastmod or as_of
             html = env.get_template(tpl).render(**common, root=root, home=root + prefix, rel=rel, **ctx)
             f = out / prefix / path
             f.parent.mkdir(parents=True, exist_ok=True)
@@ -569,16 +577,23 @@ def _build(s: Settings) -> Path:
         site_name = " · AgentpitBench"
         page("index.html", "index.html", live=live, past=past[:30], upset=upset, description=None,
              share_text=_("Four frontier AIs bet on real prediction markets. Live scoreboard:"),
+             jsonld=discover.dataset_ld(s, lb, f"{base}/"),
              title=_("AgentpitBench: {vs} bet on prediction markets", vs=vs))
         page("leaderboard/index.html", "leaderboard.html", ci_chart=ci_bar((lb.get("forecast") or {}).get("agents", []),
                                                                           (lb.get("forecast") or {}).get("crowd")),
              chart=pnl_chart(lb.get("series", {}), crowd=(lb.get("crowd") or {}).get("series"), _=_),
              best=best, worst=worst, h2h=h2h, weekly=weekly, seasons=seasons, title=_("Leaderboard") + site_name,
-             share_text=leaderboard_share(lb, _), og=previews["standings"])
+             share_text=leaderboard_share(lb, _), og=previews["standings"],
+             jsonld=discover.dataset_ld(s, lb, f"{base}/leaderboard/"))
+        page("facts/index.html", "facts.html", sections=discover.fact_sections(s, lb, metrics, _),
+             bibtex=discover.bibtex(s, as_of), as_of=discover.stamp(as_of),
+             jsonld=discover.dataset_ld(s, lb, f"{base}/facts/"), title=_("Facts") + site_name)
         for r in rounds:
             card = cards[r["round_id"]]
             page(f"round/{r['round_id']}/index.html", "round.html", r=r, card=card,
                  og=previews["rounds"].get(r["round_id"]), share_text=round_share(r, _, vs),
+                 lastmod=r["resolved_at"] or r["started_at"],
+                 jsonld=discover.round_ld(s, r, f"{base}/round/{r['round_id']}/"),
                  title=_("Round {n}", n=r["round_id"]) + f": {r['question']}")
         for a in s.agents:
             row = next((b for b in board if b["agent"] == a), None)
@@ -596,7 +611,8 @@ def _build(s: Settings) -> Path:
              title=_("Press kit") + site_name)
         page("methodology/index.html", "methodology.html", prompt=prompt, sweep_prompt=sweep_prompt_example(s),
              changelog=CHANGELOG, sealed=lb.get("sealed") or [], title=_("Methodology v{v}", v=s.methodology_version) + site_name,
-             share_text=_("How AgentpitBench tests frontier AIs on real markets (methodology v{v}).", v=s.methodology_version))
+             share_text=_("How AgentpitBench tests frontier AIs on real markets (methodology v{v}).", v=s.methodology_version),
+             jsonld=discover.techarticle_ld(s, lb, f"{base}/methodology/", CHANGELOG))
         page("independence/index.html", "independence.html", title=_("Independence & conflicts") + site_name,
              share_text=_("How AgentpitBench tests frontier AIs on real markets (methodology v{v}).", v=s.methodology_version))
         page("incidents/index.html", "incidents.html", incidents=INCIDENTS, title=_("Incidents") + site_name,
@@ -651,8 +667,10 @@ def _build(s: Settings) -> Path:
         for day in (s.transcripts_dir / "sweep").iterdir():
             if day.is_dir() and day.name in open_ok:
                 shutil.copytree(day, out / "transcripts" / "sweep" / day.name, dirs_exist_ok=True)
-    if s.cards_dir.exists():
-        shutil.copytree(s.cards_dir, out / "cards")
+    if s.cards_dir.exists():  # never a running round's cards: picks stay secret until every agent is done
+        running = {str(r["round_id"]) for r in all_rounds if discover.seal(r)}
+        shutil.copytree(s.cards_dir, out / "cards",
+                        ignore=lambda d, names: [n for n in names if Path(d) == s.cards_dir and n in running])
     for r in rounds:
         for e in r["entries"]:
             if e["transcript"]:
@@ -661,6 +679,14 @@ def _build(s: Settings) -> Path:
                     dst = out / e["transcript"]
                     dst.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(src, dst)
+    # for AI assistants and agents (docs/ai-referral-spec.md): crawl access, sitemap, llms.txt, facts, API
+    (out / "robots.txt").write_text(discover.robots(s))
+    for name, xml in discover.sitemaps(s, sitemap).items():
+        (out / name).write_text(xml)
+    discover.write_api(s, out, all_rounds, lb, metrics, lb.get("sealed") or [], exp, open_ok, set(sitemap),
+                       CHANGELOG, EXCLUSION_REASONS)
+    (out / "llms.txt").write_text(discover.llms_txt(s, lb, metrics))
+    (out / "llms-full.txt").write_text(discover.llms_full_txt(s, lb, metrics, (out / "methodology/index.html").read_text()))
     check_pages(out)  # a page without a preview or the share bar fails the build; the live site stays as it was
     old = s.site_dir.with_name(s.site_dir.name + ".old")
     shutil.rmtree(old, ignore_errors=True)

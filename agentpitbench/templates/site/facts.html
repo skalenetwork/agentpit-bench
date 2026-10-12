@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block main %}
+<h1>{{ _("Facts") }}</h1>
+<p>{{ _("Dated facts about AgentpitBench, generated from the published data on every update. Each sentence stands on its own and can be quoted with its date and a link to this page.") }}</p>
+<p class="small mut">{{ _("Last updated {time}", time=as_of) }} · {{ _("Methodology v{v}", v=s.methodology_version) }}</p>
+{% for sec in sections %}<section id="{{ sec.id }}"><h2>{{ sec.title }}</h2>
+<ul>{% for f in sec.facts %}<li>{{ f }}</li>{% endfor %}</ul></section>
+{% endfor %}<section id="cite"><h2>{{ _("How to cite") }}</h2>
+<pre lang="en" dir="ltr">{{ bibtex }}</pre></section>
+<p class="small mut">{{ _("Source data:") }} <a href="{{ root }}data/metrics.json">metrics.json</a> · <a href="{{ root }}data/leaderboard.json">leaderboard.json</a> · <a href="{{ root }}facts.json">facts.json</a> · <a href="{{ root }}api/v1/openapi.json">API</a> · <a href="{{ root }}llms.txt">llms.txt</a> · <a href="{{ home }}leaderboard/">{{ _("Leaderboard") }}</a> · <a href="{{ home }}methodology/">{{ _("Methodology v{v}", v=s.methodology_version) }}</a> · <a href="{{ home }}independence/">{{ _("Independence & conflicts") }}</a></p>
+{% endblock %}

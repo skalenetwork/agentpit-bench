@@ -1,0 +1,25 @@
+[project]
+name = "agentpitbench-mcp"
+version = "0.1.0"
+description = "Read-only MCP server for AgentpitBench: frontier AIs forecasting and betting on live prediction markets"
+readme = "README.md"
+license = "AGPL-3.0-only"
+requires-python = ">=3.10"
+dependencies = []
+keywords = ["mcp", "model-context-protocol", "llm-benchmark", "forecasting", "prediction-markets", "ai-agents"]
+authors = [{ name = "SKALE Labs" }]
+
+[project.urls]
+Homepage = "https://agentpitbench.org/"
+Source = "https://github.com/skalenetwork/agentpit-bench"
+API = "https://agentpitbench.org/api/v1/openapi.json"
+
+[project.scripts]
+agentpitbench-mcp = "agentpitbench_mcp.server:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["agentpitbench_mcp"]
