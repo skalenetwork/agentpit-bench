@@ -1,6 +1,6 @@
 # Automated A/B testing: spec
 
-Status: v2, reviewed with the advisor · 2026-10-12 · build today, after `x-analytics-spec.md` (its reward layer is a prerequisite).
+Status: v3, reviewed with the advisor (three passes) · 2026-10-12 · build today, after `x-analytics-spec.md` (its reward layer is a prerequisite).
 Operator decisions in this spec are fixed; they are encoded, not argued.
 
 ## Goal
