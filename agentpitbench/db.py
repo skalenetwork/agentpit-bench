@@ -350,7 +350,9 @@ class DB:
         self.x(f"INSERT INTO bets({cols}) VALUES({','.join('?' * (len(b) + 1))})", run_id, *b.values())
 
     def settle_bet(self, run_id: int, payout: float, pnl: float) -> None:
-        self.x("UPDATE bets SET payout=?, pnl=? WHERE run_id=? AND pnl IS NULL", payout, pnl, run_id)
+        cur = self.conn.execute("UPDATE bets SET payout=?, pnl=? WHERE run_id=? AND pnl IS NULL", (payout, pnl, run_id))
+        if cur.rowcount:  # the value recorded at settlement; the result-edit detector compares against it
+            self.put(f"settled_{run_id}", {"payout": payout, "pnl": pnl})
 
     def set_bet_tweet(self, run_id: int, tweet_id: str) -> None:
         self.x("UPDATE bets SET tweet_id=? WHERE run_id=? AND tweet_id IS NULL", tweet_id, run_id)

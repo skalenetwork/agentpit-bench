@@ -58,6 +58,30 @@ def metrics_task(s: config.Settings, db: DB, pub):
     return x_metrics
 
 
+def rounds_paused(s: config.Settings, db: DB) -> bool:
+    """New rounds (batch, High-Stakes, summons, manual) are held while an anomaly or the operator paused them.
+    In-flight rounds finish; the forecast sweep is never paused."""
+    from .opai import paused
+    if paused(s, db, "rounds"):
+        log.warning("new rounds paused (%s); see `agentpitbench ops status`", (db.get("pause") or {}).get("reason"))
+        return True
+    return False
+
+
+async def ops_tick(s: config.Settings, db: DB) -> None:
+    """Every 5 min: anomaly detectors (pause + draft + alert), market-title translations, summary catch-up."""
+    from . import anomaly
+    await asyncio.to_thread(anomaly.tick, s, db)
+    for name in ("market_i18n", "summaries"):
+        try:
+            mod = __import__(f"agentpitbench.{name}", fromlist=["tick"])
+            fn = getattr(mod, "atick", None)
+            if fn:
+                await fn(s, db)
+        except Exception:
+            log.exception("%s tick failed", name)
+
+
 async def run_forever(s: config.Settings) -> None:
     db = DB(s.db_path)
     api = Agentpit(s.api_url)
@@ -69,7 +93,7 @@ async def run_forever(s: config.Settings) -> None:
     async def start_batch():
         await watcher.poll()  # scan first: at startup the batch used to run before the first scan finished
         free = s.max_concurrent_rounds - len(running)
-        if free <= 0:
+        if free <= 0 or rounds_paused(s, db):
             return
         if s.sandbox and not await sandbox_ok():  # never start rounds that would all 'crash' at launch
             log.error("batch skipped: the agent sandbox self-check failed; no rounds started, nothing posted")
@@ -113,11 +137,11 @@ async def run_forever(s: config.Settings) -> None:
         if engage is None:
             return
         engage.api = api
-        if len(running) < s.max_concurrent_rounds:
+        if len(running) < s.max_concurrent_rounds and not rounds_paused(s, db):
             m = await engage.high_stakes_market(watcher)
             if m:
                 launch(m)
-        if len(running) < s.max_concurrent_rounds:
+        if len(running) < s.max_concurrent_rounds and not rounds_paused(s, db):
             picked = await engage.pick_summon(watcher)
             if picked:
                 row, m = picked
@@ -184,6 +208,7 @@ async def run_forever(s: config.Settings) -> None:
         asyncio.create_task(_every(1800, daily_sweep, "sweep")),
         asyncio.create_task(_every(3600, match_of_the_day, "match of the day")),
         asyncio.create_task(_every(s.resolution_check_s, score_forecasts, "forecast scoring")),
+        asyncio.create_task(_every(300, lambda: ops_tick(s, db), "anomalies")),  # also runs once at startup
     ]
     x_metrics = metrics_task(s, db, pub)
     if x_metrics is not None:
@@ -200,6 +225,8 @@ async def run_forever(s: config.Settings) -> None:
 
 async def one_round(s: config.Settings, market_id: str, agents: list[str] | None) -> None:
     db = DB(s.db_path)
+    if rounds_paused(s, db):
+        sys.exit("new rounds are paused (agentpitbench ops status)")
     api = Agentpit(s.api_url)
     pub = make_publisher(s, db)
     m = await api.market(market_id)

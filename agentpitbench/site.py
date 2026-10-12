@@ -477,6 +477,27 @@ def sweep_prompt_example(s: Settings) -> str:
 _build_lock = threading.Lock()  # builds run in worker threads; two at once would share the .new folder
 
 
+def _db_extras(s: Settings) -> dict:
+    """Read-only DB extras for the pages: published incidents (newest first) and market-title translations.
+    The build never calls a model: a missing translation shows the English source."""
+    out = {"incidents": [], "mt": {}}
+    if not s.db_path.exists():
+        return out
+    from .db import DB as _DB
+    db = _DB(s.db_path)
+    try:
+        from .anomaly import published_incidents
+        out["incidents"] = published_incidents(db)
+    except Exception:
+        log.exception("published incidents unavailable")
+    try:
+        from .market_i18n import table as mt_table
+        out["mt"] = mt_table(db)
+    except Exception:
+        log.exception("market translations unavailable")
+    return out
+
+
 def build(s: Settings) -> Path:
     """Render the whole site into s.site_dir from the exports. Atomic: builds aside, then swaps."""
     with _build_lock:
@@ -525,6 +546,7 @@ def _build(s: Settings) -> Path:
                    "bets": sum(1 for r in rounds for e in r["entries"] if e["outcome"])}
     latest_cards = [c for c in (card_for(s, r) for r in past) if c][:6]
     previews = _previews(s, lb, rounds, cards, reports)
+    extra = _db_extras(s)
     from .motd import films as _films  # Match of the Day: cards/motd/<date>/film.json
     films = _films(s)
     film_of = {}
@@ -613,7 +635,7 @@ def _build(s: Settings) -> Path:
              jsonld=discover.techarticle_ld(s, lb, f"{base}/methodology/", CHANGELOG))
         page("independence/index.html", "independence.html", title=_("Independence & conflicts") + site_name,
              share_text=_("How AgentpitBench tests frontier AIs on real markets (methodology v{v}).", v=s.methodology_version))
-        page("incidents/index.html", "incidents.html", incidents=INCIDENTS, title=_("Incidents") + site_name,
+        page("incidents/index.html", "incidents.html", incidents=extra["incidents"] + INCIDENTS, title=_("Incidents") + site_name,
              share_text=_("AgentpitBench publishes its own incidents. Here's the log."))
         page("contrarian/index.html", "contrarian.html", calls=lb.get("contrarian") or [],
              title=_("Contrarian calls") + site_name, share_text=contrarian_share(lb.get("contrarian") or [], _),
@@ -821,7 +843,9 @@ class SiteDeployer:
         try:
             await asyncio.to_thread(build, self.s)
             self.builds += 1
-            await asyncio.to_thread(deploy, self.s)
+            if await asyncio.to_thread(deploy, self.s):
+                from .db import DB as _DB  # the deploy-stale detector reads this
+                _DB(self.s.db_path).put("site_deployed_at", time.time())
             self._failures = 0
         except Exception:
             self._failures += 1

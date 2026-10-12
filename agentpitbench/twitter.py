@@ -290,6 +290,10 @@ class Poster:
         row = self.db.one("SELECT tweet_id FROM tweets WHERE post_key=?", post_key)
         if row and row["tweet_id"]:
             return row["tweet_id"]
+        from .opai import paused
+        if paused(self.s, self.db, "posting"):  # anomaly/operator pause or posting_paused: record nothing
+            log.warning("[paused] %s: %s", post_key, text.replace("\n", " ")[:80])
+            return None
         if tweet_len(text) > MAX_LEN:
             log.warning("tweet %s is %d chars; clipping", post_key, tweet_len(text))
             text = clip(text, MAX_LEN)
