@@ -108,13 +108,17 @@ film. Posting is never blocked.
 temporary cwd, a minimal environment, never in a contestant sandbox. Prompt: `agentpitbench/prompts/motd_script.v1.md`
 plus the input JSON (market, outcomes, start prices, each agent's pick, price, confidence, time, rationale, card
 quote, post-match statement and last transcript lines, the twist with its setup hint, allowed concepts, slots and
-budgets). `agentpitbench/opai.py` is a **shim** with the ai-automation spec's signature
-(`call(s, db, task, payload, *, subject) -> Result | None`, `available`, `sealed_guard`); the automation build
-replaces it. `available()` refuses while any round has `state='running'` (sealed picks; the Claude contestant shares
-the quota) and inside the forecast sweep window (closes early once `kv['sweep_<day>']` is set). Every answer,
-accepted or rejected, is stored in `operator_ai_outputs` (A/B spec table, created here if missing) with model,
-prompt version, timestamp, `subject='round:N'`, `public=0`, `call_id` NULL (no `ai_calls` table yet); the accepted
-row also carries the chosen `_twist`. Typical call: 1.5–3 minutes.
+budgets). It runs through the operator AI runner (`opai.call(task="motd_script", validate=...)`,
+ai-automation spec §2): its own login (`opai_config_dir`), an `ai_calls` row per spawn, the daily budget
+(`opai_task_budget.motd_script` = 3: one film, one retry, one spare), quota backoff, the contestant breaker and the
+sweep window. Model: `opai_model_motd_script` = "fable"; timeout `opai_motd_timeout_s` = 360. On top of opai's own
+guards, Match of the Day **never calls the writer while any round has `state='running'`** (sealed picks; the Claude
+contestant shares the quota) and calls `opai.sealed_guard` for the filmed round. The film only uses the writer when
+`opai_enabled` is on and `motd_script` is in `opai_tasks` (default list includes it); otherwise it is the templated
+film. Every answer, accepted or rejected, is tagged in `operator_ai_outputs` (model, `motd_script.v1`, timestamp,
+`call_id`, `subject='round:N'`, `public=0`; set to 1 when the film is posted is later work); the accepted row also
+carries the chosen `_twist`. A re-render of the same round reuses its newest accepted script with the same twist if
+it still passes the validator (no new call). Typical call: 1.5–3 minutes.
 
 ### Narrator, score, sting (`agentpitbench/sound.py`)
 - **Narrator:** ElevenLabs text-to-speech, model `eleven_v4`, one stock voice per concept, hard-coded (the key can't
@@ -283,7 +287,7 @@ scenes 3–5, the credibility strip, the EXHIBITION badge.
 ## Configuration
 `motd_enabled` (false until the first film is reviewed; gates the whole daily job: selection, render and post),
 `motd_hour_utc` = 17, `motd_min_score` = 20, `motd_fps` = 15, `motd_exhibition_factor` = 0.5, `motd_music` = true
-(false renders silent films). v0.5: `motd_scripted` = true (the writer; false = templated film), `opai_model_motd_script` = "fable", `opai_timeout_s` = 300, `opai_config_dir` (empty = the CLI's default login), `motd_narrator` = true (ElevenLabs when `ELEVENLABS_API_KEY` is in secrets.env). CLI: `agentpitbench motd [--date YYYY-MM-DD] [--round N] [--out DIR]` renders a film
+(false renders silent films). v0.5: `motd_scripted` = true (the writer; false = templated film), `opai_model_motd_script` = "fable", `opai_motd_timeout_s` = 360, `opai_task_budget.motd_script` = 3, and the opai master switch `opai_enabled`, `motd_narrator` = true (ElevenLabs when `ELEVENLABS_API_KEY` is in secrets.env). CLI: `agentpitbench motd [--date YYYY-MM-DD] [--round N] [--out DIR]` renders a film
 for review without posting.
 
 ## Tests
