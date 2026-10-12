@@ -191,6 +191,48 @@ async def test_tracker_resolves_settles_once_and_publishes(s, db):
     assert await Tracker(s, db, api, pub).check() == []
 
 
+async def test_tracker_retries_failed_redeem(s, db, monkeypatch):
+    """A 400 right after resolution is retried later (kv redeem_pending); 409 means already redeemed."""
+    import httpx
+    rid = make_round(db, 1, {"claude": ("Yes", 0.5, 0.8), "codex": ("No", 0.5, 0.6)})
+    s.dry_run = False
+    monkeypatch.setenv("AGENTPIT_KEY_CLAUDE", "k")
+    answers = [400, 400, 200]
+    calls = []
+
+    class Client:
+        def __init__(self, url, key):
+            pass
+
+        async def redeem(self, market_id):
+            calls.append(market_id)
+            code = answers.pop(0)
+            if code >= 300:
+                req = httpx.Request("POST", "https://x/redeem_position")
+                raise httpx.HTTPStatusError("bad", request=req, response=httpx.Response(code, text="not settled", request=req))
+            return {}
+
+        async def close(self):
+            pass
+
+    monkeypatch.setattr(Tracker, "client_cls", Client)
+    api = FakeAPI([gamma(1, winner="Yes", closed=True, active=False, resolvedAt=1000.0)])
+    t = Tracker(s, db, api, NullPublisher())
+    assert await t.check() == [rid]
+    assert calls == ["1"] and db.get("redeem_pending")[f"{rid}:claude"]["tries"] == 1  # only the winner redeems
+    await t.retry_redeems()
+    assert calls == ["1"]  # not due yet
+    p = db.get("redeem_pending"); p[f"{rid}:claude"]["at"] = 0; db.put("redeem_pending", p)
+    await t.retry_redeems()
+    assert len(calls) == 2 and db.get("redeem_pending")[f"{rid}:claude"]["tries"] == 2
+    p = db.get("redeem_pending"); p[f"{rid}:claude"]["at"] = 0; db.put("redeem_pending", p)
+    await t.check()  # due retries run from the tracker loop
+    assert len(calls) == 3 and db.get("redeem_pending") == {}
+    answers[:] = [409]
+    await t._redeem_one(rid, "1", "claude", 0)
+    assert db.get("redeem_pending") == {}
+
+
 async def test_tracker_voids_long_closed_market(s, db):
     rid = make_round(db, 1, {"claude": ("Yes", 0.5, 0.8)})
     db.set_round(rid, end_date=iso(datetime.now(timezone.utc) - timedelta(days=s.void_after_days + 1)))

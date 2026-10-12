@@ -24,6 +24,8 @@ def score(entries: list[dict], winner: str) -> list[tuple[int, float, float]]:
 
 
 class Tracker:
+    client_cls = Agentpit  # one client per agent key (tests swap it)
+
     def __init__(self, s: Settings, db: DB, api: Agentpit, publisher):
         self.s, self.db, self.api, self.pub = s, db, api, publisher
         self._tasks: set = set()  # background results posts (per-round films), kept referenced
@@ -43,6 +45,10 @@ class Tracker:
     async def check(self) -> list[int]:
         done = []
         self.catch_up()
+        try:
+            await self.retry_redeems()
+        except Exception:
+            log.exception("redeem retries failed")
         for r in self.db.q("SELECT * FROM rounds WHERE state='awaiting_resolution'"):
             try:
                 m = await self.api.market(r["market_id"])
@@ -118,17 +124,53 @@ class Tracker:
             return False
         return datetime.now(timezone.utc) > end + timedelta(days=self.s.void_after_days)
 
+    # agentpit can answer 400 right after resolution (settlement not finished): try again later, then give up
+    REDEEM_RETRY_S = (600, 3600, 6 * 3600)
+
     async def _redeem(self, r) -> None:
         if self.s.dry_run:
             return
         for e in self.db.round_entries(r["round_id"]):
-            key = self.s.agentpit_key(e["agent"])
-            if not (key and e["outcome"] and (e["payout"] or 0) > 0):
-                continue
-            c = Agentpit(self.s.api_url, key)
-            try:
-                await c.redeem(r["market_id"])
-            except Exception as ex:  # e.g. 400 for a market with no on-chain condition id
-                log.warning("redeem for %s in round %s failed: %s", e["agent"], r["round_id"], ex)
-            finally:
-                await c.close()
+            if e["outcome"] and (e["payout"] or 0) > 0:
+                await self._redeem_one(r["round_id"], r["market_id"], e["agent"], 0)
+
+    async def _redeem_one(self, round_id: int, market_id, agent: str, tries: int) -> None:
+        key = self.s.agentpit_key(agent)
+        if not key:
+            return
+        c = self.client_cls(self.s.api_url, key)
+        pending = self.db.get("redeem_pending") or {}
+        k = f"{round_id}:{agent}"
+        try:
+            await c.redeem(market_id)
+            pending.pop(k, None)
+            if tries:
+                log.info("redeem for %s in round %s succeeded on retry %d", agent, round_id, tries)
+        except Exception as ex:
+            resp = getattr(ex, "response", None)
+            body = (getattr(resp, "text", "") or "")[:300]
+            if getattr(resp, "status_code", None) == 409:  # already redeemed
+                pending.pop(k, None)
+                log.info("redeem for %s in round %s: already redeemed", agent, round_id)
+            elif tries < len(self.REDEEM_RETRY_S):
+                pending[k] = {"market_id": str(market_id), "tries": tries + 1,
+                              "at": time.time() + self.REDEEM_RETRY_S[tries]}
+                log.warning("redeem for %s in round %s failed (try %d, retrying later): %s %s", agent, round_id,
+                            tries + 1, ex, body)
+            else:
+                pending.pop(k, None)
+                log.warning("redeem for %s in round %s failed for good after %d tries: %s %s", agent, round_id,
+                            tries + 1, ex, body)
+        finally:
+            await c.close()
+        self.db.put("redeem_pending", pending)
+
+    async def retry_redeems(self) -> None:
+        """Redeems that failed earlier and are due again (kv redeem_pending, survives restarts)."""
+        if self.s.dry_run:
+            return
+        now = time.time()
+        for k, v in list((self.db.get("redeem_pending") or {}).items()):
+            if v["at"] <= now:
+                round_id, agent = k.split(":", 1)
+                await self._redeem_one(int(round_id), v["market_id"], agent, v["tries"])
