@@ -358,7 +358,7 @@ def _check_line(slot: str, t: str, allowed: set[str], required: set[str]) -> lis
     return errs
 
 
-WORST = {"score": "2–1–1", "lone": "ChatGPT", "n": "4", "winner": "W" * 60, "loser_pick": "L" * 60, "record": "3-1",
+WORST = {"score": "2–1–1", "lone": "ChatGPT", "n": "4", "winner": "M" * 60,  # not "W": "WWWW." would read as a www. link to the link check "loser_pick": "L" * 60, "record": "3-1",
          "winners": "Claude & ChatGPT & Gemini", "losers": "Claude & ChatGPT & Gemini"}
 
 
