@@ -219,6 +219,9 @@ def test_no_output_contains_a_running_rounds_pick(built):
         hist = json.loads((out / f"api/v1/agents/{a}.json").read_text())["data"]["rounds"]
         assert all(h["outcome"] is None for h in hist if h["round_id"] == rid)
     assert (out / "cards/1/decision-claude.png").exists() and not (out / f"cards/{rid}").exists()
+    for page in (f"round/{rid}/index.html", "index.html"):  # the live panel: sealed rows, no outcome
+        html = (out / page).read_text()
+        assert 'data-outcome="Nexus"' not in html and 'data-outcome=""' in html and "🔒" in html, page
     exp = next(r for r in json.loads((s.export_dir / "rounds.json").read_text()) if r["round_id"] == rid)
     assert all(e["outcome"] is None and e["confidence"] is None for e in exp["entries"])
 
