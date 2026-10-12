@@ -197,6 +197,34 @@ CREATE TABLE IF NOT EXISTS cf_clicks (       -- /go/ redirect page views per UTC
 CREATE TABLE IF NOT EXISTS account_metrics (
     day TEXT PRIMARY KEY, followers INTEGER, following INTEGER, tweets INTEGER, listed INTEGER, taken_at REAL
 );
+-- YouTube Shorts (docs/youtube-shorts-spec.md §7)
+CREATE TABLE IF NOT EXISTS yt_videos (
+    post_key TEXT PRIMARY KEY,          -- motd-<date>: the same key as the X post
+    video_id TEXT,                      -- NULL until the upload completes
+    round_id INTEGER, file TEXT, title TEXT,
+    privacy_requested TEXT,             -- youtube_privacy at upload
+    privacy TEXT,                       -- last status.privacyStatus seen
+    upload_status TEXT,                 -- last status.uploadStatus seen
+    state TEXT NOT NULL,                -- uploading | uploaded | failed | outbox | paused | hidden | rejected
+    upload_session TEXT,                -- resumable session URI while uploading
+    uploaded_at REAL, published_at REAL,-- published_at = first seen public
+    comment_id TEXT, error TEXT
+);
+CREATE TABLE IF NOT EXISTS yt_metrics (
+    video_id TEXT NOT NULL, taken_at REAL NOT NULL, age_s REAL NOT NULL,
+    source TEXT NOT NULL,                   -- 'data' (videos.list) | 'analytics'
+    bucket TEXT,                            -- data: 1h|24h|72h|7d; analytics: 7d|28d; NULL = series row
+    views INTEGER, likes INTEGER, comments INTEGER,
+    engaged_views INTEGER, minutes_watched REAL, avg_view_s REAL, avg_view_pct REAL,
+    shares INTEGER, subs_gained INTEGER,
+    retention_json TEXT,
+    data_through TEXT,
+    raw_json TEXT,
+    PRIMARY KEY (video_id, taken_at, source)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS yt_metrics_bucket ON yt_metrics(video_id, source, bucket) WHERE bucket IS NOT NULL;
+CREATE TABLE IF NOT EXISTS yt_channel_metrics (day TEXT PRIMARY KEY, subscribers INTEGER, views INTEGER, videos INTEGER, taken_at REAL);
+CREATE TABLE IF NOT EXISTS yt_quota (day_pt TEXT NOT NULL, bucket TEXT NOT NULL, units INTEGER NOT NULL, PRIMARY KEY (day_pt, bucket));
 """
 
 MIGRATIONS = [  # (table, column, definition): added when missing, so old databases keep working

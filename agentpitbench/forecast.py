@@ -369,6 +369,41 @@ def metrics(db: DB, agents: list[str], b: int = 2000, seed: int = 20261009) -> d
             "metric": "Brier score, ½·Σ(p−y)², lower is better; 95% bootstrap CI; paired vs the Crowd (market price at sweep time)"}
 
 
+CROWD = "crowd"
+
+
+def pair_metrics(db: DB, agents: list[str], b: int = 2000, seed: int = 20261010) -> list[dict]:
+    """Head-to-head forecast comparisons (docs/seo-spec.md §3): every agent pair and every agent against the Crowd,
+    on the resolved markets both forecast. Per pair: n, each side's mean Brier, how often each was closer, and the
+    paired mean difference (a − b; negative = a better) with its bootstrap 95% CI and an exact sign test."""
+    rng = random.Random(seed)
+    resolved = {r["market_id"]: r for r in db.q("SELECT * FROM sweep_markets WHERE state='resolved'")}
+    scores: dict[str, dict[str, float]] = {
+        CROWD: {mid: brier(crowd_probs(json.loads(r["outcomes"]), json.loads(r["prices"])), r["winner"])
+                for mid, r in resolved.items()}}
+    for a in agents:
+        scores[a] = {f["market_id"]: f["brier"] for f in
+                     db.q("SELECT market_id, brier FROM forecasts WHERE agent=? AND brier IS NOT NULL", a)
+                     if f["market_id"] in resolved}
+    pairs = [(a, x) for i, a in enumerate(agents) for x in agents[i + 1:]] + [(a, CROWD) for a in agents]
+    out = []
+    for a, x in pairs:
+        shared = sorted(set(scores[a]) & set(scores[x]))
+        diffs = [scores[a][m] - scores[x][m] for m in shared]
+        row = {"a": a, "b": x, "n": len(shared), "a_brier": None, "b_brier": None, "a_closer": 0, "b_closer": 0,
+               "mean_diff": None, "ci": None, "sign_test_p": None, "verdict": "inconclusive"}
+        if shared:
+            lo, hi = _bootstrap_ci(diffs, rng, b)
+            row.update(a_brier=round(sum(scores[a][m] for m in shared) / len(shared), 4),
+                       b_brier=round(sum(scores[x][m] for m in shared) / len(shared), 4),
+                       a_closer=sum(1 for d in diffs if d < 0), b_closer=sum(1 for d in diffs if d > 0),
+                       mean_diff=round(sum(diffs) / len(diffs), 4), ci=[round(lo, 4), round(hi, 4)],
+                       sign_test_p=_sign_test(diffs),
+                       verdict="a better" if hi < 0 else ("b better" if lo > 0 else "inconclusive"))
+        out.append(row)
+    return out
+
+
 def sweeps(db: DB) -> list[dict]:
     """Per-day sweep log for the site: who ran, status, how many forecasts, transcript path."""
     out: dict[str, dict] = {}

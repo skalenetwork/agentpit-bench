@@ -665,6 +665,12 @@ def digest(s: Settings, db: DB, now: float | None = None) -> dict:
         "skipped_for_budget": len(db.get(f"x_metrics_skipped_{yday}", [])),
         "visibility_drop": visibility_drop(db, now), "health": health(db, now),
     }
+    if s.youtube_enabled:   # docs/youtube-shorts-spec.md §8: the YouTube block
+        try:
+            from . import ytstats
+            out["youtube"] = ytstats.digest_block(s, db, now)
+        except Exception:
+            log.exception("YouTube digest block failed")
     s.export_dir.mkdir(parents=True, exist_ok=True)
     (s.export_dir / "x-daily.json").write_text(json.dumps(out, indent=1))
     log.info("x-daily %s: %d posts, %d impressions, %d interactions, %d link clicks, followers %s (%s), "

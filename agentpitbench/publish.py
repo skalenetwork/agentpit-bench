@@ -133,8 +133,20 @@ class BenchPublisher:
                 self.db.x("DELETE FROM tweet_metrics WHERE tweet_id=?", row["tweet_id"])  # x analytics rows
         self.db.x("UPDATE bets SET tweet_id=NULL WHERE run_id IN (SELECT run_id FROM runs WHERE round_id=?)", round_id)
         self.db.set_round(round_id, thread_tweet_id=None)
+        await self._hide_youtube(round_id)
         exports.export(self.s, self.db)
         self.site.request()
+
+    async def _hide_youtube(self, round_id: int) -> None:
+        """A filmed round voided after the fact: its Short goes private (docs/youtube-shorts-spec.md §8)."""
+        try:
+            if not self.db.one("SELECT 1 FROM yt_videos WHERE round_id=? AND video_id IS NOT NULL", round_id):
+                return
+            from . import youtube, ytstats
+            await asyncio.to_thread(ytstats.hide_round, self.s, self.db,
+                                    youtube.client_from_settings(self.s, self.db), round_id)
+        except Exception:
+            log.exception("hiding round %s's YouTube film failed", round_id)
 
     async def on_bets_done(self, round_id: int) -> None:
         # decision tweets still in flight go first, so the split card follows every pick in the thread

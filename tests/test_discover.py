@@ -157,8 +157,8 @@ def test_json_ld(built):
     meth = ld("methodology/index.html")
     art = next(n for n in meth["@graph"] if n["@type"] == "TechArticle")
     assert art["version"] == s.methodology_version and art["dateModified"]
-    assert types(ld("round/1/index.html")) == {"Organization", "Event", "ItemList"}
-    assert types(ld(f"round/{ids['running']}/index.html")) == {"Organization", "Event"}  # no picks while running
+    assert types(ld("round/1/index.html")) == {"Organization", "Event", "ItemList", "BreadcrumbList"}
+    assert types(ld(f"round/{ids['running']}/index.html")) == {"Organization", "Event", "BreadcrumbList"}  # no picks while running
 
 
 def test_api(built):
