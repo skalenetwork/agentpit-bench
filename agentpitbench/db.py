@@ -306,12 +306,13 @@ class DB:
         while still being a full show on X."""
         summoned = self.one("SELECT 1 FROM exhibition_markets WHERE market_id=?", str(market["id"])) is not None
         exclusion = "summon" if summoned else ("high-stakes" if market.get("high_stakes") else None)
+        nw = market.get("nw") or {}
         return self.x(
             "INSERT INTO rounds(market_id,condition_id,slug,question,outcomes,snapshot_json,started_at,end_date,"
-            "exhibition,exclusion) VALUES(?,?,?,?,?,?,?,?,?,?)",
+            "exhibition,exclusion,nw_score,nw_source) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
             str(market["id"]), market.get("conditionId"), market.get("slug"), market["question"],
             json.dumps(market["outcomes_list"]), json.dumps(market), time.time(), market.get("endDate"),
-            int(exclusion is not None), exclusion,
+            int(exclusion is not None), exclusion, nw.get("score"), nw.get("source"),
         )
 
     def mark_preseason(self, season_start_ts: float) -> None:

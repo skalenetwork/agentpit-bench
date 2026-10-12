@@ -2,6 +2,7 @@
 {% block main %}
 <div class="small mut">{{ _("Round {n}", n=r.round_id) }} · {{ _("started {date}", date=r.started_at|date) }} · {{ _("closes {date}", date=(r.end_date or '')[:10]) }}{% if r.split %} · <span class="tag">{{ _("Split") }}</span>{% endif %}{% if is_upset(r) %} · <span class="tag upset">{{ _("Upset") }}</span>{% endif %}{% if r.high_stakes %} · <span class="tag hs">{{ _("High Stakes") }}</span>{% endif %}{% if r.exhibition and r.exclusion != 'infra' %} · <span class="tag ex">{{ _("Exhibition") }}</span>{% endif %}</div>
 <h1>{{ mq(r.question) }}</h1>
+{% if r.newsworthiness and r.newsworthiness.model_score is not none %}<p class="small mut">{{ _(cat) }} · <a href="{{ root }}data/newsworthiness.json">{{ _("Newsworthiness {score}/100", score=r.newsworthiness.model_score) }}</a></p>{% endif %}
 {% if r.exclusion %}<p class="small mut">{{ _("Not counted in the statistics: {reason}.", reason=_(exclusions.get(r.exclusion, r.exclusion))) }} <a href="{{ home }}methodology/">{{ _("Methodology v{v}", v=s.methodology_version) }}</a></p>{% endif %}
 {% if r.state == 'resolved' %}<p><span class="tag">{{ _("Final") }}</span> {{ _h("Resolved <b>{winner}</b>.", winner=tq(r.winner)) }} {{ _("{right} of {n} AIs picked the winner.", right=r.entries|selectattr('won')|list|length, n=r.entries|length) }}</p>
 {% elif r.state == 'void' and r.exclusion == 'infra' %}<p><span class="tag">{{ _("Void") }}</span> {{ _("Voided: an infrastructure failure stopped the agents. Nothing from this round counts.") }} <a href="{{ home }}incidents/">{{ _("Incidents") }}</a></p>

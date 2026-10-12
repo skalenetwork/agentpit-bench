@@ -436,7 +436,7 @@ class Engage:
             m = await self.api.market(mid)
             if m and basic_eligible(self.s, m):
                 cands.append(m)
-        for m in sorted(cands, key=priority, reverse=True):
+        for m in sorted(cands, key=lambda m: priority(m, self.db, self.s), reverse=True):
             if await watcher._books_ok(m):
                 self.db.x("UPDATE seen_markets SET started=1 WHERE market_id=?", str(m["id"]))
                 self.db.put(f"high_stakes_{week}", str(m["id"]))
