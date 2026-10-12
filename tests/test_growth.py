@@ -24,10 +24,11 @@ def test_streak_runs_and_rules():
     rs = [rnd(1, {"claude": True}), rnd(2, {"claude": True}), rnd(3, {"claude": False}), rnd(4, {"claude": True}),
           rnd(5, {"claude": True}), rnd(6, {"claude": True})]
     assert site.streak(rs, "claude") == {"agent": "claude", "cur": 3, "longest": 3}
-    # a loss run counts rounds bet and lost; a no-bet breaks both runs
+    # a loss run counts every round not won; a no-bet counts as a loss (the scoreboard's rule)
     rs2 = rs + [rnd(7, {"claude": False}), rnd(8, {"claude": False})]
     assert site.streak(rs2, "claude")["cur"] == -2
-    assert site.streak(rs2 + [rnd(9, {"claude": None})], "claude")["cur"] == 0
+    assert site.streak(rs2 + [rnd(9, {"claude": None})], "claude")["cur"] == -3
+    assert site.streak(rs + [rnd(7, {"claude": None})], "claude")["cur"] == -1
     assert site.streak(rs + [rnd(7, {"claude": None}), rnd(8, {"claude": True})], "claude")["cur"] == 1
     # unresolved rounds (a running round's sealed pick, a round awaiting resolution) are ignored
     assert site.streak(rs + [rnd(9, {"claude": False}, state="running"),

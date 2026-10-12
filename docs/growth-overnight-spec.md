@@ -1,6 +1,6 @@
 # Growth, overnight batch: category pages, streaks, your record card (spec)
 
-Status: v0.2 · 2026-10-12 · reviewed with the advisor (one pass)
+Status: v0.3 · 2026-10-12 · reviewed with the advisor; v0.3 aligns the streak's no-bet rule with the scoreboard
 
 Three small growth features, all built from data the exports already carry. The ai-referral spec's hard rules apply
 to all of them: no manipulation, truthful and dated with n, same facts everywhere, no invented numbers.
@@ -61,8 +61,9 @@ to all of them: no manipulation, truthful and dated with n, same facts everywher
 ## 2. Streaks: "Who's on fire"
 
 - `site.streaks(rounds, agents)`: per AI over resolved counted rounds ordered by `resolved_at`, the same loop and
-  rule as `agent_stats` (whose longest win streak is on /agent/<id>/; one rule, so the numbers agree): a round the
-  AI did not win breaks a win run; a loss run counts rounds where it bet and lost (a no-bet round breaks both).
+  rule as `agent_stats` (whose longest win streak is on /agent/<id>/) and the scoreboard's streak in
+  `db.leaderboard` (one rule, so the numbers agree): a round the AI did not win breaks a win run; a loss run counts
+  every round it did not win, a no-bet included ("A no-bet counts as a loss", as on the betting table).
   Only resolved rounds, so nothing sealed. `agent_stats` takes its longest streak from `streaks`.
 - Shown as a compact block on the **leaderboard** (after Betting record) and on the **home page** (after Head to
   head): each AI with its mascot, "🔥 {n}" for a current win run of ≥ 2, "🧊 {n}" for a loss run of ≥ 2, else
@@ -120,7 +121,7 @@ All strings live in templates or `site.py`, where the extractor and the coverage
 - Leader threshold: no leader below 10 rounds; none on a tie; named at ≥ 10 with a strict lead.
 - Category pages: built for named categories with data in every language, none for "Other" or empty categories;
   distinct titles/descriptions; `dir="rtl"` for RTL languages; < 100 KB; agent page links them.
-- Streaks: current win/loss run, unresolved rounds ignored, no-bet breaks; equals `agent_stats` longest; hidden when no run ≥ 2.
+- Streaks: current win/loss run, unresolved rounds ignored, a no-bet counts as a loss; equals `agent_stats` longest; hidden when no run ≥ 2.
 - `llms.txt` links /best-at/.
 - Challenge: the record section and the card script are present in every language, < 100 KB; no AI pick in the
   page for a sealed round (the existing leak test still passes).
