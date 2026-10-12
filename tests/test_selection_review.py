@@ -1,4 +1,5 @@
-"""Weekly selection review (docs/ai-automation-spec.md §5.3): drafts proposals, never applies them."""
+"""Weekly selection review (docs/ai-automation-spec.md §5.3): with selection_auto_apply off it drafts proposals
+and never applies them (auto-apply: tests/test_selection_auto.py)."""
 import json
 from datetime import datetime, timezone
 

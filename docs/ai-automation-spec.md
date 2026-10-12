@@ -21,8 +21,10 @@ Queue position: cards → A/B → **automation** → Match of the Day.
 
 1. An **operator AI** ("opai") runs on the operator's Claude Code subscription. It never blocks a round or a
    post: every call has a rule-based fallback that is today's behaviour.
-2. It never touches methodology without an approval step: draft, operator approval, version bump, all
-   enforced in code.
+2. It never touches methodology without an approval step (draft, operator approval, version bump, all
+   enforced in code), with one exception decided by the operator on 2026-10-12: market-selection tuning by
+   the weekly selection review is applied automatically, within published bounds, at most once per 7 days,
+   every change versioned, logged in the public changelog and reversible (§5.3).
 3. It never sees a sealed pick or a private forecast, enforced by a guard at the point where prompts are
    built.
 4. Every public opai output is tagged in the DB with model, prompt name and version, and timestamp.
@@ -45,6 +47,7 @@ Queue position: cards → A/B → **automation** → Match of the Day.
 | AI may change posting cadence/selection | §9 cadence policy (bounded, auto-applied, not methodology) |
 | AI may change market-selection scoring; selection changes are methodology and go in the public changelog | §5 rater, §4 methodology lock |
 | Methodology never changes automatically: draft + approval + version bump, in code | §4 |
+| **Reversed 2026-10-12 for market selection only:** the weekly selection review auto-applies its proposal (bounded, one change per 7 days, versioned, generated changelog line, evidence published, info alert, `method revert`) | §4 "Automatic market-selection changes", §5.3 |
 | Nightly ops agent opens PRs only; read-only creds, no X token | §11 |
 | All opai on the Claude Code subscription (quota risk accepted); on quota or failure, rule-based fallback | §2, §3 |
 | Weekly report: model-written prose, numbers inserted by code, no AI footer | §8 |
@@ -379,6 +382,58 @@ public git history time-stamps every change.
 4. Prints the `git add/commit` commands. The change takes effect when the operator commits and deploys the
    live worktree. Approval never restarts the service.
 
+### Automatic market-selection changes (operator decision 2026-10-12)
+
+With `selection_auto_apply = true` (code default false; on in `bench.toml`) the weekly review (§5.3) applies
+its own proposal through `methodology.auto_apply`. `approve`, `auto_apply` and `revert` all end in one writer,
+`methodology._commit`: bounds re-checked, hashed inputs must match, version bump, changelog entry with the new
+`params_sha`, atomic write (temp file + rename), then the running `Settings` are refreshed in-process
+(`methodology.apply`), so the drift detector sees lock, settings and version agree.
+
+`auto_apply` re-checks everything rather than trusting the caller:
+
+- the flag is on; the proposal is an open `opai` proposal; no `--rehash`; exactly one change;
+- the key is one of `methodology.AUTO_KEYS` (`max_favourite_price`, `max_category_share`, `daily_round_cap`,
+  `max_days_to_close`, `selection.scoring`; never the rater prompt version) and inside `PROPOSAL_BOUNDS`;
+- **rate limit:** at most one auto-applied change per 7 calendar days, read from the lock's own changelog
+  (entries with `approved_by: "selection-review"`). Calendar days, so a review that ticks a few minutes
+  earlier than last Sunday's isn't refused. A refused proposal is marked `rejected` with the reason, so it
+  never blocks next week's review.
+
+**Public record.** The changelog line is generated from the change, never the model's text. One translated
+template per change type (both are `_()` ids in `site.py`, translated in every site language):
+
+- `Market selection: {param} {old} → {new} (automatic weekly review; evidence: {link})`
+- `Market selection: {param} {old} → {new} (operator revert of v{v}; evidence: {link})`
+
+The entry stores the template as `text`, the values in `values` and `change: {key, old, new}`;
+`methodology.changelog()` returns `(date, id, values)` and the page renders `_(id, **values)`. The evidence
+(proposal id, the model's rationale, evidence and suggested changelog text, the rule, old and new value) is
+written to `var/methodology-changes/<version>.json` before the lock, and every site build publishes it at
+`/methodology/changes/<version>.json`, the `{link}`.
+
+**Attribution.** A change takes effect for rounds created after the version bump. `rounds.methodology_version`
+(new column, set by `create_round` from the running settings) records the version per round and is exported
+in `rounds.json` (null for rounds created before the column).
+
+**Alert.** Every auto-apply sends an info alert (`selection-auto-apply`) with the `git add/commit` lines and
+the revert command; a refusal sends one too.
+
+**Revert.** `agentpitbench method revert <version>` (TTY + typed `revert v<version>`) applies the inverse of
+a generated change as a new version with the revert template and its own evidence file. It refuses when the
+key has changed again since. Run in the live checkout, the service keeps its old settings until restarted,
+so the drift detector pauses new rounds meanwhile (by design); after the restart the operator runs
+`ops resume --rounds`. Nothing stops a later weekly review from proposing the reverted value again (the rate
+limit counts automatic changes only).
+
+**Deploys.** The service writes `methodology.json` in the live checkout. A deploy that resets the checkout
+without the committed lock would undo the change silently, so `verify(s)` also reports drift when
+`var/methodology-changes/` holds a version newer than the lock ("deployed without committing
+methodology.json?"), which pauses new rounds until the lock is restored and the operator runs `ops resume`.
+The live checkout is a detached HEAD, so the alert says to copy the lock from it into the main checkout,
+commit there, then ship. Until then the main checkout's `test_repo_lock_verifies` fails too (it reads the same
+`var/`), so the ship script refuses to deploy a lock that would undo the change.
+
 ### Enforcement tests
 
 - AST walk: no module except `methodology.py` and `cli.py` contains the string `methodology.json` in write
@@ -455,7 +510,13 @@ return (score, _num(m, "volume"), _num(m, "liquidity"), int(m["id"]))
   - last 28 days of rounds (category, `nw_score`, favourite price at start, split or unanimous, void);
   - the `xstats.by_category` table (x-analytics §5).
 - **Output:** at most one proposal within `PROPOSAL_BOUNDS`, or `{"none": "reason"}`. It's written to
-  `var/proposals/` and listed in the next digest. Nothing changes until approved.
+  `var/proposals/` and listed in the next digest.
+- **Apply:** with `selection_auto_apply` off, nothing changes until `method approve`. With it on (operator
+  decision 2026-10-12, on in `bench.toml`), the proposal goes straight to `methodology.auto_apply` (§4
+  "Automatic market-selection changes"): bounded, one change per 7 days, version bump, generated changelog
+  line in every site language, evidence at `/methodology/changes/<version>.json`, info alert, and
+  `method revert <version>` to undo. The model's `changelog_text` and `rationale` (both link-filtered) only
+  appear in that evidence file.
 
 ### 5.4 Publishing
 
@@ -785,6 +846,8 @@ return (score, _num(m, "volume"), _num(m, "liquidity"), int(m["id"]))
 | `opai_rate_batch` | 40 | markets per rating call |
 | `opai_pick_threshold` | 0.80 | model picks counted at or above |
 | `selection_scoring` | from `methodology.json` | `keyword` / `model` (read-only in Settings) |
+| `selection_review_enabled` | `false` | the Sunday selection review (§5.3); also needs `proposal` in `opai_tasks` |
+| `selection_auto_apply` | `false` (`true` in `bench.toml`) | the review applies its proposal itself (§4 "Automatic market-selection changes") |
 | `anomaly_posts_per_hour` | 20 | `double-post` threshold (report posts excluded) |
 | `alert_to` | `""` | also `ALERT_TO` in secrets; empty = file + log only |
 
@@ -799,7 +862,7 @@ agentpitbench news shadow [--days 7]           # keyword vs model agreement repo
 agentpitbench news rate [--limit 40]           # rate unrated eligible markets now
 agentpitbench humans reparse <round_id>        # rerun the model pass (only adds picks; never removes exact ones)
 agentpitbench summaries write <round_id>       # (re)write one round's summaries
-agentpitbench method verify|list|show <id>|propose (--set k=v | --rehash) --text "..."|approve <id> [--major]|reject <id>
+agentpitbench method verify|list|show <id>|propose (--set k=v | --rehash) --text "..."|approve <id> [--major]|reject <id>|revert <version>
 agentpitbench incidents list|show <id>|publish <id> [--edit]|discard <id>
 agentpitbench ops status|pause|resume|anomalies|snapshot|nightly
 agentpitbench i18n fill [--check] [--lang de]

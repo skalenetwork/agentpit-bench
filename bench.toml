@@ -61,6 +61,9 @@ youtube_synthetic_media = true
 cadence_enabled = true
 cadence_apply = true        # operator: apply automatically (one knob a day, hard bounds in code)
 selection_review_enabled = true
+# Operator decision 2026-10-12 (later): the weekly selection review applies its proposal itself (bounded,
+# versioned, logged; revert with `agentpitbench method revert <version>`)
+selection_auto_apply = true
 opai_tasks = ["rate", "picks", "summary", "incident", "i18n", "translate", "motd_script", "weekly_episode",
               "cadence", "proposal", "ab"]
 ab_gen_enabled = true      # operator 2026-10-12: Claude-written variants on (code validator + live control arm)
