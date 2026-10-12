@@ -146,12 +146,13 @@ class Settings:
     opai_model_light: str = "haiku"     # picks
     opai_ops_model: str = "opus"
     opai_timeout_s: int = 120
-    opai_translate_timeout_s: int = 300  # one translate call covers every site language
+    opai_translate_timeout_s: int = 300  # a translate call (13 languages) or a batched i18n call (10)
     opai_calls_per_day: int = 60
-    # i18n: fill makes one call per non-English site language (39), so a new id fits in one day
+    # i18n: fill batches 10 languages per call, so a new id in all 39 is 4 calls (two fills a day);
+    # translate: 3 calls per round (13 languages each), about 5 rounds a day
     opai_task_budget: dict = field(default_factory=lambda: {
-        "rate": 24, "picks": 12, "summary": 12, "incident": 4, "cadence": 1, "report": 2, "i18n": 40,
-        "proposal": 1, "ab": 2, "translate": 10, "motd_script": 3})  # motd: one film a day, one retry, one spare
+        "rate": 24, "picks": 12, "summary": 12, "incident": 4, "cadence": 1, "report": 2, "i18n": 8,
+        "proposal": 1, "ab": 2, "translate": 15, "motd_script": 3})  # motd: one film a day, one retry, one spare
     opai_backoff_s: int = 21600
     opai_sweep_guard_min: int = 30
     opai_rate_batch: int = 40
@@ -220,6 +221,8 @@ def load(path: str | Path = "bench.toml") -> Settings:
         data["data_dir"] = Path(data["data_dir"])
     if "x_read_prices" in data:  # a partial [x_read_prices] table overrides only the prices it names
         data["x_read_prices"] = {**Settings().x_read_prices, **data["x_read_prices"]}
+    if "opai_task_budget" in data:  # a partial [opai_task_budget] table overrides only the tasks it names
+        data["opai_task_budget"] = {**Settings().opai_task_budget, **data["opai_task_budget"]}
     if "youtube_unit_costs" in data:
         data["youtube_unit_costs"] = {**Settings().youtube_unit_costs, **data["youtube_unit_costs"]}
     s = Settings(**data)

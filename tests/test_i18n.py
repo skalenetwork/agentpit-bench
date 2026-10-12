@@ -89,12 +89,12 @@ def test_preview_without_font_keeps_default(tmp_path, monkeypatch):
         rendered.extend(j.out.name for j in jobs)
     monkeypatch.setattr(og.Previews, "_render", fake_render)
     pv = og.Previews(Settings(data_dir=tmp_path / "var"))
-    old = pv.s.cards_dir / "pages" / "methodology-my-og.png"
+    old = pv.s.cards_dir / "pages" / "methodology-my-og.jpg"
     old.parent.mkdir(parents=True)
     old.write_bytes(b"stale")
     my = pv.page("methodology", "နည်းစနစ်", "my", False)
     pv.page("methodology", "Méthodologie", "fr", False)
     pv.run()
-    assert rendered == ["methodology-fr-og.png"]
+    assert rendered == ["methodology-fr-og.jpg"]
     assert pv.url(my) == pv.default_url and not old.exists()
     assert og.missing_glyphs(["Méthodologie · 95%"]) == set() and og.missing_glyphs(["နည်း"]) == {"န", "ည", "်", "း"}

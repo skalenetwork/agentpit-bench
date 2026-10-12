@@ -56,7 +56,7 @@ def test_every_page_previews_and_shares(env):
             assert "Share on X" not in html
     # the default preview is copied at build; every page without its own image points at it
     assert (out / og.DEFAULT).exists()
-    assert _meta((out / "index.html").read_text(), "og:image").startswith(f"{s.site_url}/og-default.png?v=")
+    assert _meta((out / "index.html").read_text(), "og:image").startswith(f"{s.site_url}/og-default.jpg?v=")
     # translated, right to left, localised preview
     fr = (out / "fr/leaderboard/index.html").read_text()
     assert "Partager cette page" in fr and _meta(fr, "og:locale") == "fr_FR"
@@ -132,9 +132,41 @@ def test_letterbox_keeps_the_whole_card():
     buf = io.BytesIO()
     card.save(buf, "PNG")
     out = Image.open(io.BytesIO(og.letterbox_bytes(buf.getvalue())))
-    assert out.size == (1200, 630)
-    assert out.getpixel((10, 315)) == og.BG and out.getpixel((1190, 315)) == og.BG  # side bars
-    assert out.getpixel((45, 2)) == (255, 0, 0) and out.getpixel((1155, 627)) == (255, 0, 0)  # never cropped
+    assert out.size == (1200, 630) and out.format == "JPEG"
+
+    def near(px, want):  # JPEG: within a few levels
+        return all(abs(a - b) <= 6 for a, b in zip(px, want))
+    assert near(out.getpixel((10, 315)), og.BG) and near(out.getpixel((1190, 315)), og.BG)  # side bars
+    assert near(out.getpixel((45, 2)), (255, 0, 0)) and near(out.getpixel((1155, 627)), (255, 0, 0))  # never cropped
+
+
+def test_cards_are_palette_png_and_previews_small(tmp_path):
+    """A busy card (gradient glow plus text-like noise) shrinks to a palette PNG; its preview is a JPEG under
+    80 KB. Stale PNG previews from before are removed when the JPEG is asked for."""
+    from PIL import ImageDraw
+    from agentpitbench import cards
+    from agentpitbench.config import Settings
+    im = Image.new("RGB", (1200, 675), og.BG)
+    d = ImageDraw.Draw(im)
+    for r in range(400, 0, -4):  # radial glow
+        d.ellipse((-r, -r, r, r), fill=(11 + (400 - r) // 20, 16 + (400 - r) // 12, 32 + (400 - r) // 16))
+    for y in range(200, 600, 40):
+        d.text((100, y), "GEMINI BEATS THE CROWD  +113  -100  Ducks at 47c " * 2, fill=(240, 240, 255))
+    p = tmp_path / "results.png"
+    im.save(p)
+    before = p.stat().st_size
+    cards.shrink_png(p)
+    assert Image.open(p).mode == "P" and p.stat().st_size < before
+    assert len(og.letterbox_bytes(p.read_bytes())) < 80_000
+    pv = og.Previews(Settings(data_dir=tmp_path / "var"))
+    (pv.s.cards_dir / "1").mkdir(parents=True)
+    p.replace(pv.s.cards_dir / "1" / "results.png")
+    stale = pv.s.cards_dir / "1" / "results-og.png"
+    stale.write_bytes(b"old")
+    rel = pv.letterbox("cards/1/results.png")
+    pv.run()
+    assert rel == "cards/1/results-og.jpg" and not stale.exists()
+    assert Image.open(pv.s.cards_dir / "1" / "results-og.jpg").format == "JPEG"
 
 
 async def test_previews_render_once_per_input(env, monkeypatch):
@@ -147,21 +179,21 @@ async def test_previews_render_once_per_input(env, monkeypatch):
     cards = s.cards_dir
     for p in ("standings.png", "agents/claude.png"):
         assert Image.open(cards / p).size == (1200, 675), p
-    for p in ("standings-og.png", "agents/claude-og.png", "pages/methodology-en-og.png", "pages/methodology-ar-og.png",
-              "1/results-og.png"):
+    for p in ("standings-og.jpg", "agents/claude-og.jpg", "pages/methodology-en-og.jpg", "pages/methodology-ar-og.jpg",
+              "1/results-og.jpg"):
         assert Image.open(cards / p).size == (1200, 630), p
     lb = (out / "leaderboard/index.html").read_text()
     img = _meta(lb, "og:image")
-    assert re.fullmatch(rf"{s.site_url}/cards/standings-og\.png\?v=[0-9a-f]{{12}}", img)
-    assert (out / "cards/standings-og.png").exists()
-    assert "pages/methodology-ar-og.png" in _meta((out / "ar/methodology/index.html").read_text(), "og:image")
-    assert "1/results-og.png" in _meta((out / "round/1/index.html").read_text(), "og:image")
+    assert re.fullmatch(rf"{s.site_url}/cards/standings-og\.jpg\?v=[0-9a-f]{{12}}", img)
+    assert (out / "cards/standings-og.jpg").exists()
+    assert "pages/methodology-ar-og.jpg" in _meta((out / "ar/methodology/index.html").read_text(), "og:image")
+    assert "1/results-og.jpg" in _meta((out / "round/1/index.html").read_text(), "og:image")
     # unchanged input: nothing is rendered again
-    mtime = (cards / "standings-og.png").stat().st_mtime_ns
+    mtime = (cards / "standings-og.jpg").stat().st_mtime_ns
     calls = []
     monkeypatch.setattr(og.Previews, "_render", lambda self, jobs: calls.append(jobs))
     site.build(s)
-    assert not calls and (cards / "standings-og.png").stat().st_mtime_ns == mtime
+    assert not calls and (cards / "standings-og.jpg").stat().st_mtime_ns == mtime
     assert _meta((s.site_dir / "leaderboard/index.html").read_text(), "og:image") == img
 
 
