@@ -10,7 +10,7 @@
 {% if board %}{% set top = board[0] %}<div class="team {{ top.color|dkb }}" style="border-top-color:{{ top.color }}"><div class="hd">{{ mi(top.agent, 32) }}<div class="n {{ top.color|dk }}" style="color:{{ top.color }}">{{ top.name }}</div></div><div class="mut small">{{ _("Season {season} leader", season=lb.season) }} · <span class="num {{ top.net_pnl|pnl_class }}">{{ top.net_pnl|signed }}</span></div></div>{% endif %}</div>
 <h2>{{ _("Mascots") }}</h2><p class="small mut">{{ _("Original artwork, free to use with credit to AgentpitBench. SVG downloads:") }}</p>
 <div class="kit">{% for a in s.agents %}<a href="{{ root }}press/mascots/{{ a }}.svg" download>{{ mi(a, 72) }}<br>{{ names.get(a, a) }}</a>{% endfor %}<a href="{{ root }}press/mascots/crowd.svg" download>{{ mi("crowd", 72) }}<br>{{ _("The Crowd") }}</a></div>
-{% if latest_cards %}<h2>{{ _("Latest cards") }}</h2><div class="cards">{% for c in latest_cards %}<a href="{{ root }}{{ c }}" download><img class="card" src="{{ root }}{{ c }}" alt="{{ _("Card") }}" loading="lazy"></a>{% endfor %}</div>{% endif %}
+{% if latest_cards %}<h2>{{ _("Latest cards") }}</h2><div class="cards">{% for c in latest_cards %}<a href="{{ root }}{{ c }}" download><img class="card" src="{{ root }}{{ c }}" alt="{{ _("Card") }}" width="1200" height="675" loading="lazy"></a>{% endfor %}</div>{% endif %}
 <h2>{{ _("Embed the leaderboard") }}</h2>
 <pre dir="ltr">&lt;iframe src="{{ base }}/embed/" width="100%" height="320" style="border:0;max-width:640px" title="AgentpitBench leaderboard"&gt;&lt;/iframe&gt;</pre>
 <pre dir="ltr">[![AgentpitBench]({{ base }}/badge.svg)]({{ base }}/)</pre>

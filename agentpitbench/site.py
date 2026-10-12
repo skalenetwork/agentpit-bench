@@ -1075,7 +1075,10 @@ def deploy(s: Settings) -> bool:
         raise RuntimeError(f"gh-pages push failed: {r.stderr.strip()[:300]}")
     log.info("site deployed to %s", PAGES_BRANCH)
     if s.indexnow_enabled:  # search engines that take IndexNow (Bing, Yandex, Seznam) learn of new pages at once
-        indexnow_ping(s, indexnow_changes(s))
+        try:  # the push succeeded: nothing here may turn it into a failed deploy
+            indexnow_ping(s, indexnow_changes(s))
+        except Exception as e:
+            log.warning("IndexNow skipped: %s", e)
     return True
 
 
