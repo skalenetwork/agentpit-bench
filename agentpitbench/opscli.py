@@ -276,7 +276,7 @@ def _news(s: Settings, db: DB, a) -> None:
 def _i18n(s: Settings, db: DB, a) -> None:
     from . import i18n_fill
     if a.check:
-        missing = i18n_fill.missing()
+        missing = i18n_fill.missing(retry=set(db.get("i18n_retry") or []))
         for lang, ids in missing.items():
             if ids:
                 print(f"{lang}: {len(ids)} missing")

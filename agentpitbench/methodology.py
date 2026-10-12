@@ -242,10 +242,8 @@ def _fill_or_placeholder(ids: list[str]) -> dict:
     """Translations for new changelog lines: i18n.fill through opai when available; otherwise the English text
     goes into every table (so the page and tests stay complete) and the ids are queued for retry."""
     try:
-        from . import i18n
-        fill = getattr(i18n, "fill", None)
-        if fill:
-            return fill(ids=ids)
+        from .i18n_fill import fill
+        return fill(ids=ids)
     except Exception:
         log.exception("i18n fill failed; writing English placeholders")
     return write_english(ids)
