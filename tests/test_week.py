@@ -491,7 +491,7 @@ async def test_race_rows_never_cross_or_meet_the_caption():
                 tops = await page.evaluate("[...document.querySelectorAll('.rrow')].map(r => [r.dataset.key, r.style.top])")
                 seen.add(tuple(tuple(x) for x in tops))
                 gap = await page.evaluate("""() => document.querySelector('.sub:last-of-type').getBoundingClientRect().top
-                    - document.getElementById('race').getBoundingClientRect().bottom""")
+                    - Math.max(...[...document.querySelectorAll('.rrow')].map(r => r.getBoundingClientRect().bottom))""")
                 assert gap >= 0, (fmt, t, gap)
             assert len(seen) == 1   # one row order for the whole scene
             final = sorted(keys, key=lambda k: sc["race"]["steps"][-1][k])
