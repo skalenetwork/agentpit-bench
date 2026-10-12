@@ -6,7 +6,8 @@ rounds.json = list (newest first) of:
    entries: [{agent, name, color, outcome|null, avg_price, shares_filled, stake_filled, confidence,
               rationale, quote|null, statement|null (post-match line, losers only), decided_s, exit_reason, model_reported, cli_version, payout, pnl,
               won (bool|null), tweet_id, transcript (site-relative path or null), tail_url, fade_url,
-              wallet|null, wallet_url|null, txs: [{hash, url}]}]}
+              wallet|null, wallet_url|null, txs: [{hash, url}],
+              summary: [line1, line2] (only once the round left running, when written)}]}
   stake, high_stakes (bool)                                  -- High-Stakes Friday rounds carry a bigger stake
   crowd: {outcome|null, price, won (bool|null), pnl|null}   -- The Crowd's notional pick, see crowd_pick
   exhibition (bool), exclusion                               -- outside every neutral table and statistic, and why:
@@ -89,6 +90,12 @@ def round_record(s: Settings, db: DB, r) -> dict:
         entries[-1].update(wallet=wallet, wallet_url=f"{s.explorer_url}/address/{wallet}" if wallet else None,
                            txs=[{"hash": h, "url": f"{s.explorer_url}/tx/{h}"} for h in hashes])
     sealed = r["state"] == "running"
+    if not sealed:  # two-line agent summaries (docs/ai-automation-spec.md §7), written only after the round ran
+        summ = {x["agent"]: [x["line1"], x["line2"]] for x in
+                db.q("SELECT agent, line1, line2 FROM round_summaries WHERE round_id=?", r["round_id"])}
+        for e in entries:
+            if e["agent"] in summ:
+                e["summary"] = summ[e["agent"]]
     if sealed:  # picks stay secret until every agent is done: agents can search the web mid-round
         for e in entries:
             e.update(outcome=None, avg_price=None, shares_filled=None, stake_filled=None, confidence=None,

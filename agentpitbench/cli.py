@@ -70,16 +70,13 @@ def rounds_paused(s: config.Settings, db: DB) -> bool:
 
 async def ops_tick(s: config.Settings, db: DB) -> None:
     """Every 5 min: anomaly detectors (pause + draft + alert), market-title translations, summary catch-up."""
-    from . import anomaly
+    from . import anomaly, market_i18n, summaries
     await asyncio.to_thread(anomaly.tick, s, db)
-    for name in ("market_i18n", "summaries"):
+    for fn in (market_i18n.atick, summaries.atick):
         try:
-            mod = __import__(f"agentpitbench.{name}", fromlist=["tick"])
-            fn = getattr(mod, "atick", None)
-            if fn:
-                await fn(s, db)
+            await fn(s, db)
         except Exception:
-            log.exception("%s tick failed", name)
+            log.exception("%s failed", fn.__module__)
 
 
 async def run_forever(s: config.Settings) -> None:
