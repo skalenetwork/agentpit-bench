@@ -21,16 +21,19 @@ import time
 from datetime import datetime, timezone
 from email.utils import formatdate
 from pathlib import Path
+from dataclasses import dataclass
 from urllib.parse import urlparse, quote, urlencode
 from xml.sax.saxutils import escape
 
 from jinja2 import Environment, PackageLoader, pass_context, select_autoescape
 
+from . import og
 from .cards import cents, is_dark, fmt_time, is_upset, payout_x, ranked, results_headline, signed, split_headline
 from .emblem import emblem_svg
 from .config import AGENT_COLORS, AGENT_NAMES, Settings, AGENT_MODELS
 from .i18n import CODES, LANGS, NAMES, Translator
 from .mascots import sprite, svg_file, use as mascot_use
+from .twitter import clip, results_hook
 from .virality import CATEGORIES, category, commentary  # noqa: F401  (CATEGORIES: category names the site translates)
 
 log = logging.getLogger(__name__)
@@ -64,7 +67,8 @@ def _newest(folder: Path, pattern: str, exts: set[str] | None = None) -> str | N
     """Site-relative path of the newest matching file under cards/, or None."""
     if not folder.exists():
         return None
-    files = [p for p in folder.glob(pattern) if p.is_file() and (exts is None or p.suffix in exts)]
+    files = [p for p in folder.glob(pattern) if p.is_file() and (exts is None or p.suffix in exts)
+             and not p.stem.endswith("-og")]  # link previews live next to their cards
     if not files:
         return None
     best = max(files, key=lambda p: (p.stat().st_mtime, p.name))
@@ -77,8 +81,152 @@ def tweet_url(tweet_id: str | None) -> str | None:
     return f"https://x.com/AgentpitBench/status/{tweet_id}"
 
 
-def share_url(text: str, url: str) -> str:
-    return "https://x.com/intent/tweet?" + urlencode({"text": text, "url": url})
+# ---------- sharing ----------
+
+# Open Graph locale of each site language (Facebook's list; Arabic is ar_AR there)
+OG_LOCALES = {"en": "en_US", "zh": "zh_CN", "hi": "hi_IN", "es": "es_ES", "ar": "ar_AR", "fr": "fr_FR", "bn": "bn_IN",
+              "pt": "pt_BR", "ru": "ru_RU", "ur": "ur_PK", "id": "id_ID", "de": "de_DE", "ja": "ja_JP", "mr": "mr_IN",
+              "te": "te_IN", "tr": "tr_TR", "ta": "ta_IN", "vi": "vi_VN", "ko": "ko_KR", "ha": "ha_NG"}
+
+
+@dataclass
+class ShareText:
+    """One share string per page, cut per network. flex is the part clipped first (a long question or outcome
+    label), so the picks in tail survive; head and tail are only clipped when there is no other way."""
+    head: str
+    flex: str = ""
+    tail: str = ""
+
+    @property
+    def full(self) -> str:
+        return " ".join((self.head + self.flex + self.tail).split())
+
+    def fit(self, n: int) -> str:
+        if len(self.full) <= n:
+            return self.full
+        room = n - len(" ".join((self.head + self.tail).split()))
+        if self.flex and room >= 12:
+            return " ".join((self.head + clip(self.flex, room) + self.tail).split())
+        return clip(self.full, n)
+
+
+def flex_text(_, msg: str, flex: str, value: str, **kw) -> ShareText:
+    """A translated share string whose {flex} placeholder is the part to clip first."""
+    # msg arrives already translated (the call site wraps the literal in _() so the extractor sees it); this second
+    # call only formats it, isolating the values in right-to-left pages
+    head, _sep, tail = _(msg, **{flex: "\x00"}, **kw).partition("\x00")
+    return ShareText(head, value, tail)
+
+
+def utm(url: str, source: str, page_type: str, medium: str = "share") -> str:
+    """Attribution on every shared link. utm_content carries a share- prefix: results tweets already use
+    utm_content for their A/B headline variants."""
+    return url + ("&" if "?" in url else "?") + urlencode(
+        {"utm_source": source, "utm_medium": medium, "utm_campaign": "site", "utm_content": f"share-{page_type}"})
+
+
+def share_bar(text: "ShareText | str", title: str, url: str, page_type: str, _) -> dict:
+    """The share bar's links, built here so they work with JavaScript off. Lengths per network: X 280 with the
+    link counted as 23, Bluesky 300 including the link, Telegram and WhatsApp ~200 before the link, Reddit
+    titles 300."""
+    t = text if isinstance(text, ShareText) else ShareText(text)
+
+    def q(params: dict) -> str:
+        return urlencode(params, quote_via=quote)
+
+    def u(net: str) -> str:
+        return utm(url, net, page_type)
+    bsky = u("bluesky")
+    links = [
+        ("x", "X", "https://x.com/intent/tweet?" + q({"text": t.fit(280 - 24), "url": u("x")})),
+        ("linkedin", "LinkedIn", "https://www.linkedin.com/sharing/share-offsite/?" + q({"url": u("linkedin")})),
+        ("facebook", "Facebook", "https://www.facebook.com/sharer/sharer.php?" + q({"u": u("facebook")})),
+        ("reddit", "Reddit", "https://www.reddit.com/submit?" + q({"url": u("reddit"), "title": t.fit(300)})),
+        ("whatsapp", "WhatsApp", "https://wa.me/?" + q({"text": f"{t.fit(200)} {u('whatsapp')}"})),
+        ("telegram", "Telegram", "https://t.me/share/url?" + q({"url": u("telegram"), "text": t.fit(200)})),
+        ("bluesky", "Bluesky", "https://bsky.app/intent/compose?" + q({"text": f"{t.fit(300 - len(bsky) - 1)} {bsky}"})),
+        ("email", _("Email"), "mailto:?" + q({"subject": title, "body": f"{t.full}\n\n{u('email')}"})),
+    ]
+    return {"links": links, "copy_url": utm(url, "copy", page_type), "native_url": utm(url, "native", page_type),
+            "text": t.fit(200), "title": title}
+
+
+def page_type(path: str) -> str:
+    """utm_content of a page: its first folder (round, agent, ...), 'home' for the front page."""
+    first = path.split("/", 1)[0]
+    return "home" if first == "index.html" else first
+
+
+def round_share(r: dict, _, vs: str) -> ShareText:
+    """Resolved: the results tweet's own hook, so the two never drift. Open: the question and every pick
+    (or, while the picks are sealed, that the AIs are still betting)."""
+    if r["state"] in ("resolved", "void"):
+        return ShareText(results_hook(r))
+    if r.get("sealed") or not any(e.get("outcome") for e in r["entries"]):
+        return flex_text(_, _("{question}: {vs} are placing their bets. Who's right?"), "question", r["question"], vs=vs)
+    picks = ", ".join(f"{e['name']} {e['outcome'] or _('no bet')}" for e in r["entries"])
+    return flex_text(_, _("{question}: {picks}. Who's right?"), "question", r["question"], picks=picks)
+
+
+def leaderboard_share(lb: dict, _) -> str:
+    fc = lb.get("forecast") or {}
+    scored = [a for a in fc.get("agents") or [] if a.get("brier") is not None]
+    if scored and fc.get("markets_resolved"):
+        lead = min(scored, key=lambda a: a["brier"])
+        return _("Which AI forecasts best? {leader} leads on accuracy after {n} markets.", leader=lead["name"],
+                 n=fc["markets_resolved"])
+    return _("Which AI is smartest with money?")
+
+
+def agent_share(lb: dict, agent: str, name: str, row: dict | None, _) -> str:
+    fc = next((a for a in (lb.get("forecast") or {}).get("agents") or [] if a["agent"] == agent), None)
+    w, l, p = (row or {}).get("wins", 0), (row or {}).get("losses", 0), signed((row or {}).get("net_pnl", 0))
+    if fc and fc.get("brier") is not None:
+        return _("{name} on AgentpitBench: {wins}-{losses}, {profit} tokens, forecast accuracy {score}.",
+                 name=name, wins=w, losses=l, profit=p, score=f"{fc['brier']:.3f}")
+    return _("{name} on AgentpitBench: {wins}-{losses}, {profit} tokens.", name=name, wins=w, losses=l, profit=p)
+
+
+def report_headline(rep: dict, _) -> str | None:
+    """A weekly report's headline, from its numbers: the best forecaster, else the best bettor."""
+    fc = [a for a in rep.get("forecast") or [] if a.get("brier") is not None]
+    if fc:
+        a = min(fc, key=lambda x: x["brier"])
+        return _("State of the AIs, {week}: {name} forecast best (Brier {score}).", week=rep["week"], name=a["name"],
+                 score=f"{a['brier']:.3f}")
+    if rep.get("rounds") and rep.get("betting"):
+        b = max(rep["betting"], key=lambda x: x["profit"])
+        return _("State of the AIs, {week}: {name} led the betting, {wins}-{losses}, {profit} tokens.",
+                 week=rep["week"], name=b["name"], wins=b["wins"], losses=b["losses"], profit=signed(b["profit"]))
+    return None
+
+
+def contrarian_share(calls: list[dict], _) -> str | None:
+    done = [c for c in calls if c.get("right") is not None]
+    if not done:
+        return None
+    return _("When the AIs bet against the market: {right} of {total} contrarian calls right so far.",
+             right=sum(1 for c in done if c["right"]), total=len(done))
+
+
+SHARE_BAR = 'data-share-bar'  # every public page carries it (checked at build)
+OG_REQUIRED = ('property="og:title"', 'property="og:description"', 'property="og:image"', SHARE_BAR)
+NO_SHARE = ("widget/", "embed/")  # embedded elsewhere: no bar, no preview
+
+
+def check_pages(out: Path) -> None:
+    """Acceptance check: every public page has a title, description and image preview, and the share bar."""
+    bad = []
+    for f in out.rglob("*.html"):
+        rel = f.relative_to(out).as_posix()
+        if rel.startswith(("cards/", "data/", "transcripts/")) or any(f"{x}" in rel for x in NO_SHARE):
+            continue
+        html = f.read_text()
+        missing = [m for m in OG_REQUIRED if m not in html]
+        if missing:
+            bad.append(f"{rel}: {', '.join(missing)}")
+    if bad:
+        raise RuntimeError(f"{len(bad)} page(s) lack link previews or the share bar: " + "; ".join(bad[:10]))
 
 
 # ---------- derived stats ----------
@@ -277,6 +425,11 @@ EXCLUSION_REASONS = {
     "infra": _("voided by an infrastructure failure"),
 }
 
+# Branded link-preview cards: page key -> title (message id), rendered per language
+BRANDED = {"methodology": _("Methodology"), "independence": _("Independence & conflicts"), "incidents": _("Incidents"),
+           "press": _("Press kit"), "data": _("Data & method"), "splits": _("Split decisions"),
+           "hall-of-shame": _("Hall of shame"), "reports": _("Weekly reports"), "contrarian": _("Contrarian calls")}
+
 REASONING = {"max": "max reasoning", "xhigh": "extra-high reasoning", "high": "high reasoning"}
 
 
@@ -367,11 +520,13 @@ def _build(s: Settings) -> Path:
     built = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     weekly = {"race": _newest(s.cards_dir / "race", "race-*.*", {".mp4", ".gif", ".png"}),
               "awards": _newest(s.cards_dir / "awards", "*.png")}
-    seasons = sorted(((p.stem, f"cards/seasons/{p.name}") for p in (s.cards_dir / "seasons").glob("*.png")),
+    seasons = sorted(((p.stem, f"cards/seasons/{p.name}") for p in (s.cards_dir / "seasons").glob("*.png")
+                      if not p.stem.endswith("-og")),
                      reverse=True) if (s.cards_dir / "seasons").exists() else []
     press_stats = {"rounds": sum(1 for r in rounds if r["state"] == "resolved"),
                    "bets": sum(1 for r in rounds for e in r["entries"] if e["outcome"])}
     latest_cards = [c for c in (card_for(s, r) for r in past) if c][:6]
+    previews = _previews(s, lb, rounds, cards, reports)
 
     for lang in CODES:
         _ = Translator(lang)
@@ -379,7 +534,8 @@ def _build(s: Settings) -> Path:
                   else (names[0] if names else ""))
         common = {"vs": vs, "roster": roster, "s": s, "board": board, "lb": lb, "colors": AGENT_COLORS,
                   "names": AGENT_NAMES, "base": base, "api_url": s.api_url, "built": built,
-                  "share_url": share_url, "tweet_url": tweet_url,
+                  "tweet_url": tweet_url, "og_locale": OG_LOCALES.get(lang, lang),
+                  "og_locale_alts": [OG_LOCALES.get(c, c) for c in CODES if c != lang],
                   "headline": lambda r, _=_: results_headline(r, _),
                   "split_headline": lambda r, _=_: split_headline(r, _),
                   "is_upset": is_upset, "ranked": ranked, "category": category,
@@ -395,43 +551,63 @@ def _build(s: Settings) -> Path:
             root = "../" * depth                     # site root: shared assets, data, feeds
             rel = path.removesuffix("index.html")    # this page, relative to a language root
             ctx.setdefault("canonical", f"{base}/{prefix}{rel}")
-            ctx.setdefault("og_image", f"{base}/og.png" if (s.cards_dir / "og.png").exists() else None)
+            kind = page_type(path)
+            text = ctx.pop("share_text", None) or ctx["title"]
+            if "description" not in ctx:  # the share text describes the page; plain titles keep the site blurb
+                ctx["description"] = None if text is ctx["title"] else (text.full if isinstance(text, ShareText) else text)
+            ctx["share"] = share_bar(text, ctx["title"], ctx["canonical"], kind, _)
+            og_rel = ctx.pop("og", None)
+            if og_rel is None and kind in BRANDED:
+                og_rel = previews["pages"].get((kind, lang))
+            ctx["og_image"] = previews["pv"].url(og_rel)
             html = env.get_template(tpl).render(**common, root=root, home=root + prefix, rel=rel, **ctx)
             f = out / prefix / path
             f.parent.mkdir(parents=True, exist_ok=True)
             f.write_text(html)
 
         site_name = " · AgentpitBench"
-        page("index.html", "index.html", live=live, past=past[:30], upset=upset,
+        page("index.html", "index.html", live=live, past=past[:30], upset=upset, description=None,
+             share_text=_("Four frontier AIs bet on real prediction markets. Live scoreboard:"),
              title=_("AgentpitBench: {vs} bet on prediction markets", vs=vs))
         page("leaderboard/index.html", "leaderboard.html", ci_chart=ci_bar((lb.get("forecast") or {}).get("agents", []),
                                                                           (lb.get("forecast") or {}).get("crowd")),
              chart=pnl_chart(lb.get("series", {}), crowd=(lb.get("crowd") or {}).get("series"), _=_),
-             best=best, worst=worst, h2h=h2h, weekly=weekly, seasons=seasons, title=_("Leaderboard") + site_name)
+             best=best, worst=worst, h2h=h2h, weekly=weekly, seasons=seasons, title=_("Leaderboard") + site_name,
+             share_text=leaderboard_share(lb, _), og=previews["standings"])
         for r in rounds:
             card = cards[r["round_id"]]
             page(f"round/{r['round_id']}/index.html", "round.html", r=r, card=card,
-                 og_image=f"{base}/{card}" if card else None,
+                 og=previews["rounds"].get(r["round_id"]), share_text=round_share(r, _, vs),
                  title=_("Round {n}", n=r["round_id"]) + f": {r['question']}")
         for a in s.agents:
+            row = next((b for b in board if b["agent"] == a), None)
             page(f"agent/{a}/index.html", "agent.html", agent=a, name=AGENT_NAMES.get(a, a),
-                 row=next((b for b in board if b["agent"] == a), None), st=stats[a],
+                 row=row, st=stats[a], og=previews["agents"].get(a),
+                 share_text=agent_share(lb, a, AGENT_NAMES.get(a, a), row, _),
                  cats=(lb.get("by_category") or {}).get(a, []),
                  title=AGENT_NAMES.get(a, a) + site_name)
-        page("splits/index.html", "splits.html", splits=splits, h2h=h2h, title=_("Split decisions") + site_name)
-        page("hall-of-shame/index.html", "shame.html", wrong=wrong, title=_("Hall of shame") + site_name)
+        page("splits/index.html", "splits.html", splits=splits, h2h=h2h, title=_("Split decisions") + site_name,
+             share_text=_("When {roster} disagree, who's right?", roster=roster))
+        page("hall-of-shame/index.html", "shame.html", wrong=wrong, title=_("Hall of shame") + site_name,
+             share_text=_("The AI hall of shame: most confident wrong calls on AgentpitBench."))
         page("data/index.html", "data.html", prompt=prompt, title=_("Data & method") + site_name)
         page("press/index.html", "press.html", stats=press_stats, latest_cards=latest_cards,
              title=_("Press kit") + site_name)
         page("methodology/index.html", "methodology.html", prompt=prompt, sweep_prompt=sweep_prompt_example(s),
-             changelog=CHANGELOG, sealed=lb.get("sealed") or [], title=_("Methodology v{v}", v=s.methodology_version) + site_name)
-        page("independence/index.html", "independence.html", title=_("Independence & conflicts") + site_name)
-        page("incidents/index.html", "incidents.html", incidents=INCIDENTS, title=_("Incidents") + site_name)
+             changelog=CHANGELOG, sealed=lb.get("sealed") or [], title=_("Methodology v{v}", v=s.methodology_version) + site_name,
+             share_text=_("How AgentpitBench tests frontier AIs on real markets (methodology v{v}).", v=s.methodology_version))
+        page("independence/index.html", "independence.html", title=_("Independence & conflicts") + site_name,
+             share_text=_("How AgentpitBench tests frontier AIs on real markets (methodology v{v}).", v=s.methodology_version))
+        page("incidents/index.html", "incidents.html", incidents=INCIDENTS, title=_("Incidents") + site_name,
+             share_text=_("AgentpitBench publishes its own incidents. Here's the log."))
         page("contrarian/index.html", "contrarian.html", calls=lb.get("contrarian") or [],
-             title=_("Contrarian calls") + site_name)
-        page("reports/index.html", "reports.html", reports=reports, title=_("Weekly reports") + site_name)
+             title=_("Contrarian calls") + site_name, share_text=contrarian_share(lb.get("contrarian") or [], _),
+             og=previews["contrarian"])
+        page("reports/index.html", "reports.html", reports=reports, title=_("Weekly reports") + site_name,
+             share_text=report_headline(reports[0], _) if reports else None)
         for rep in reports:
-            page(f"reports/{rep['week']}/index.html", "report.html", rep=rep,
+            page(f"reports/{rep['week']}/index.html", "report.html", rep=rep, share_text=report_headline(rep, _),
+                 og=previews["weeks"].get(rep["week"]),
                  chart=ci_bar([dict(a, ci=[a["brier"], a["brier"]]) for a in rep["forecast"]],
                               {"brier": rep["crowd_brier"]} if rep.get("crowd_brier") is not None else None),
                  title=_("State of the AIs") + f" · {rep['week']}" + site_name)
@@ -451,7 +627,7 @@ def _build(s: Settings) -> Path:
     (out / "feed.xml").write_text(rss)
     (out / "feed.json").write_text(jf)
     (out / ".nojekyll").write_text("")
-    for f in ("favicon.svg", "favicon-32.png", "apple-touch-icon.png"):  # the emblem, as the site icon
+    for f in ("favicon.svg", "favicon-32.png", "apple-touch-icon.png", og.DEFAULT):  # the emblem; the fallback preview
         shutil.copyfile(Path(__file__).resolve().parent / "static" / f, out / f)
     host = urlparse(s.site_url).hostname or ""
     if host and not host.endswith(".github.io"):  # custom domain: GitHub Pages drops it without this file
@@ -484,6 +660,7 @@ def _build(s: Settings) -> Path:
                     dst = out / e["transcript"]
                     dst.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(src, dst)
+    check_pages(out)  # a page without a preview or the share bar fails the build; the live site stays as it was
     old = s.site_dir.with_name(s.site_dir.name + ".old")
     shutil.rmtree(old, ignore_errors=True)
     if s.site_dir.exists():
@@ -491,6 +668,41 @@ def _build(s: Settings) -> Path:
     out.rename(s.site_dir)
     shutil.rmtree(old, ignore_errors=True)
     return s.site_dir
+
+
+def _previews(s: Settings, lb: dict, rounds: list[dict], cards: dict, reports: list[dict]) -> dict:
+    """Queue every link preview the build needs, render the changed ones, return site-relative paths."""
+    pv = og.Previews(s)
+    res: dict = {"pv": pv, "rounds": {}, "agents": {}, "pages": {}, "weeks": {}, "standings": None, "contrarian": None}
+
+    def safe(fn, *a):
+        try:
+            return fn(*a)
+        except Exception:
+            log.exception("link preview %s skipped", a[:1])
+            return None
+    for rid, card in cards.items():
+        if card:
+            res["rounds"][rid] = safe(pv.letterbox, card)
+    html = safe(og.standings_html, s, lb)
+    if html:
+        res["standings"] = pv.card("standings", html)[1]
+    for a in s.agents:
+        html = safe(og.agent_html, s, lb, a)
+        if html:
+            res["agents"][a] = pv.card(f"agents/{a}", html)[1]
+    for lang in CODES:
+        tr = Translator(lang)
+        for key, msg in BRANDED.items():
+            res["pages"][(key, lang)] = safe(pv.page, key, tr(msg), lang, tr.rtl)
+    contra = _newest(s.cards_dir / "contrarian", "*.png")
+    if contra:
+        res["contrarian"] = safe(pv.letterbox, contra)
+    for rep in reports:
+        if (s.cards_dir / "awards" / f"{rep['week']}.png").exists():
+            res["weeks"][rep["week"]] = safe(pv.letterbox, f"cards/awards/{rep['week']}.png")
+    pv.run()
+    return res
 
 
 # ---------- deploy ----------

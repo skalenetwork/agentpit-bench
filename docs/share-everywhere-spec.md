@@ -1,6 +1,6 @@
 # Share everywhere: spec
 
-Status: v3, reviewed with the advisor (two passes) · 2026-10-12 · build after the card redesign lands (both touch `templates/site/base.html`)
+Status: v3, reviewed with the advisor (two passes) · 2026-10-12 · **part A built** (sections 1, 4, 5, 6 and the build check); part B (section 2 Share image, section 3 Share your pick) still to come. `max_reply_reads` stays at 100 (operator).
 
 ## Problem (audit of commit 4fb964a)
 
@@ -102,11 +102,11 @@ On X, LinkedIn, Reddit and WhatsApp an uploaded image travels further than a lin
 
 ## Measurement
 
-**Void until the operator picks an analytics tool (see the open decision below).** The site has no analytics today, so the UTM parameters are recorded nowhere yet.
+**Analytics: Cloudflare Web Analytics** (decided 2026-10-12; the beacon is already on every page via `cf_analytics_token`). Sharing is judged by **referrer domains** (x.com / t.co, linkedin.com, facebook.com, reddit.com, wa.me / whatsapp, t.me, bsky.app, mail clients) per page path. Cloudflare Web Analytics most likely drops query strings, so the UTM parameters are **kept on every share link but not reported**: they cost nothing, stay in any URL a person pastes on, and are there if the tool changes.
 
 - **Baseline:** today, 8 of 14 page types have no share action and every share is X-only, so non-X share referrals are zero.
-- **Target, two weeks after launch:** every page type shows at least one non-X referral source, and at least 20% of share referrals come from outside X.
-- Weekly: shares by network and page type, from UTM referrals in the existing analytics. No new tracker.
+- **Target, two weeks after launch:** every page type shows at least one non-X referrer domain, and at least 20% of social referrals come from outside X.
+- Weekly: referrals by referrer domain and page path in Cloudflare Web Analytics. No new tracker.
 
 ## Acceptance
 
@@ -115,14 +115,11 @@ On X, LinkedIn, Reddit and WhatsApp an uploaded image travels further than a lin
 - Share image works on Android Chrome and iOS Safari (native file share), and downloads on desktop.
 - Share your pick posts as a reply to the opener and the pick is collected by `collect_humans`.
 - Pages < 100 KB; no horizontal scroll at 390 px; Arabic and Urdu laid out correctly.
-- The chosen analytics tool is confirmed to record the query string; otherwise `utm_content` can't be reported.
+- Measurement uses referrer domains in Cloudflare Web Analytics; `utm_content` is not expected to be reportable there (see Measurement).
 
-## Open decision for the operator
+## Decision: analytics (closed 2026-10-12)
 
-Measuring sharing needs cookieless, aggregate analytics. Options:
-- **Cloudflare Web Analytics** (recommended): the domain is already on Cloudflare, it uses a small JS beacon, needs no proxy mode and sets no cookies.
-- GoatCounter or Plausible: also cookieless.
-Until one is chosen, the Measurement section can't be evaluated.
+The operator chose **Cloudflare Web Analytics**: cookieless, aggregate, a small JS beacon (already on every page), no proxy mode. Sharing is measured by referrer domains only. Because Cloudflare Web Analytics likely drops query strings, the UTM parameters (section 6) are kept on share links but are not part of the reporting.
 
 ## Sequencing
 

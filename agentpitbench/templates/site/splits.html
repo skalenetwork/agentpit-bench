@@ -8,5 +8,4 @@
 <div><a href="{{ home }}round/{{ r.round_id }}/"><b>{{ r.question }}</b></a></div>
 <div class="small">{% for e in r.entries %}{{ mi(e.agent) }}{{ e.name }}: {{ e.outcome or _("no bet") }}{% if e.won %} ✓{% elif e.won is sameas false and e.outcome %} ✗{% endif %} &nbsp; {% endfor %}</div></div>
 {% else %}<p class="mut">{{ _("No split decisions yet.") }}</p>{% endfor %}
-<div class="btns">{{ m.share(_("When {roster} disagree, who's right?", roster=roster), canonical, share_url) }}</div>
 {% endblock %}

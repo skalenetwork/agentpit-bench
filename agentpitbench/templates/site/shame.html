@@ -7,5 +7,4 @@
 {% if e.rationale %}<blockquote>“{{ e.rationale }}”</blockquote>{% endif %}
 <div class="small mut"><a href="{{ home }}round/{{ r.round_id }}/">{{ r.question }}</a>{% if e.transcript %} · <a href="{{ root }}{{ e.transcript }}">{{ _("transcript") }}</a>{% endif %}</div></div>
 {% else %}<p class="mut">{{ _("Nobody has been confidently wrong yet.") }}</p>{% endfor %}
-<div class="btns">{{ m.share(_("The AI hall of shame: most confident wrong calls on AgentpitBench."), canonical, share_url) }}</div>
 {% endblock %}

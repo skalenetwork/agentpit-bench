@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block style %}
+:root{--accent:#E8FF3A;--accent-soft:#2a3410}
+.hdr,.row{display:grid;grid-template-columns:52px 64px 230px 1fr 150px 170px;align-items:center;column-gap:14px}
+.hdr{margin-top:22px;font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:26px;color:#8f9abb;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.hdr .r,.row .r{text-align:right}
+.row{height:78px;border-bottom:2px solid #1d2748}
+.rk{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-weight:700;font-size:40px;color:#8f9abb}
+.nm{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-weight:700;font-size:44px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acc{white-space:nowrap}.acc b{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:44px;font-weight:700}
+.acc span{font-size:26px;color:#8f9abb;margin-left:12px}
+.v{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-weight:700;font-size:40px;white-space:nowrap}
+.row.crowd{border-bottom:0;border-top:3px dashed #8a93a8;color:#a9b1c6}
+.row.crowd .nm{color:#a9b1c6}
+.row.lead .rk{color:#E8FF3A}
+{% endblock %}
+{% block body %}
+<div class="top"><span class="tag" style="background:#E8FF3A">Standings</span><span class="meta">{% if season %}Season {{ season }} · {% endif %}{{ markets }} markets scored</span></div>
+<div class="hdr"><span>#</span><span></span><span>AI</span><span>Forecast accuracy · 95% CI</span><span class="r">Bets W-L</span><span class="r">Profit</span></div>
+{% for x in rows %}<div class="row{% if loop.first %} lead{% endif %}"><span class="rk">{{ x.rank }}</span><span>{{ mascot(x.agent, 58) }}</span>
+<span class="nm" style="color:{{ x.color|edge }}">{{ x.name }}</span>
+<span class="acc">{% if x.fc and x.fc.brier is not none %}<b>{{ '%.3f'|format(x.fc.brier) }}</b>{% if x.fc.ci %}<span>{{ '%.3f'|format(x.fc.ci[0]) }}–{{ '%.3f'|format(x.fc.ci[1]) }}</span>{% endif %}{% else %}<b class="dim">—</b>{% endif %}</span>
+<span class="v r">{% if x.bet %}{{ x.bet.wins }}-{{ x.bet.losses }}{% else %}—{% endif %}</span>
+<span class="v r {% if x.bet and x.bet.net_pnl > 0 %}pos{% elif x.bet and x.bet.net_pnl < 0 %}neg{% else %}zero{% endif %}">{% if x.bet %}{{ x.bet.net_pnl|signed }}{% else %}—{% endif %}</span></div>
+{% endfor %}
+{% if (crowd_fc and crowd_fc.brier is not none) or (crowd_bet and crowd_bet.played) %}<div class="row crowd"><span class="rk">—</span><span>{{ mascot('crowd', 58) }}</span><span class="nm">The Crowd</span>
+<span class="acc">{% if crowd_fc and crowd_fc.brier is not none %}<b>{{ '%.3f'|format(crowd_fc.brier) }}</b>{% if crowd_fc.ci %}<span>{{ '%.3f'|format(crowd_fc.ci[0]) }}–{{ '%.3f'|format(crowd_fc.ci[1]) }}</span>{% endif %}{% else %}<b>—</b>{% endif %}</span>
+<span class="v r">{% if crowd_bet and crowd_bet.played %}{{ crowd_bet.wins }}-{{ crowd_bet.losses }}{% else %}—{% endif %}</span>
+<span class="v r">{% if crowd_bet and crowd_bet.played %}{{ crowd_bet.net_pnl|signed }}{% else %}—{% endif %}</span></div>{% endif %}
+{% endblock %}

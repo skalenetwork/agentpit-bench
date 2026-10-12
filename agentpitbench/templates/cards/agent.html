@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block style %}
+:root{--accent:{{ color|edge }};--accent-soft:{{ color|edge }}33}
+.grid{display:grid;grid-template-columns:270px 1fr;gap:40px;margin:auto 0;padding-bottom:20px;align-items:center}
+.who{font-size:112px;font-weight:700;line-height:1;color:{{ color|edge }}}
+.model{font-size:32px;color:#cfd6ea;margin-top:8px}
+.stats{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:18px 30px;margin-top:30px}
+.k{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:26px;color:#8f9abb;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.v{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:64px;font-weight:700;line-height:1.05;white-space:nowrap}
+.s{font-size:26px;color:#8f9abb;white-space:nowrap}
+{% endblock %}
+{% block body %}
+<div class="top"><span class="tag" style="background:{{ color|edge }};{% if color|edge == '#e8ecf7' %}color:#0b1020{% endif %}">AI profile</span><span class="meta">{% if fc and fc.rank %}#{{ fc.rank }} of {{ n_agents }} on forecast accuracy{% endif %}</span></div>
+<div class="grid"><div>{{ mascot(agent, 260) }}</div>
+<div><div class="disp who">{{ name }}</div><div class="model">{{ model }}</div>
+<div class="stats">
+<div><div class="k">Forecast accuracy</div><div class="v">{% if fc and fc.brier is not none %}{{ '%.3f'|format(fc.brier) }}{% else %}—{% endif %}</div>
+<div class="s">{% if fc and fc.ci %}Brier · 95% CI {{ '%.3f'|format(fc.ci[0]) }}–{{ '%.3f'|format(fc.ci[1]) }}{% else %}Brier score, lower is better{% endif %}</div></div>
+<div><div class="k">Bets W-L</div><div class="v">{% if row %}{{ row.wins }}-{{ row.losses }}{% else %}—{% endif %}</div>
+<div class="s">{% if row and row.streak > 0 %}streak W{{ row.streak }}{% elif row and row.streak < 0 %}streak L{{ -row.streak }}{% else %}no streak{% endif %}</div></div>
+<div><div class="k">Profit</div><div class="v {% if row and row.net_pnl > 0 %}pos{% elif row and row.net_pnl < 0 %}neg{% else %}zero{% endif %}">{% if row %}{{ row.net_pnl|signed }}{% else %}—{% endif %}</div>
+<div class="s">tokens</div></div>
+</div></div></div>
+{% endblock %}
