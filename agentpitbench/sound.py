@@ -2,9 +2,13 @@
 
 Engines (pluggable, never blocking; every failure falls back and the film still renders):
 - narrator: ElevenLabs text-to-speech (`eleven_v4`, audio tags for delivery) when ELEVENLABS_API_KEY is set
-  (secrets.env, as every other key), else none (captions only). A local engine can be added behind `narrate`.
+  (secrets.env, as every other key); else, or when ElevenLabs fails, a local Piper voice per concept (no key, no
+  network, no cost: `motd_piper_bin` + `motd_piper_voices`); else none (captions only). One engine per film: a film
+  never mixes voices.
+- voice choice: the hard-coded stock voice per concept, unless `motd_voice_overrides` names another, or the key can
+  list voices (voices_read) and the hard-coded one is gone; then the best-matching listed voice by labels.
 - score: an ElevenLabs Music track from a small per-concept library (generated once per prompt, cached and reused),
-  else the procedural CC0 bed (static/motd/theme.m4a).
+  else the concept's procedural CC0 variation (music.PRESETS), else the committed theme (static/motd/theme.m4a).
 - sting and genre effect: ElevenLabs Sound Effects, cached per prompt, else silence.
 
 Everything is cached by a hash of (engine, model, voice, settings, text or prompt) under var/audio_cache/, so a
@@ -43,6 +47,32 @@ VOICES: dict[str, dict] = {
 }
 FALLBACK_VOICE = {"id": "JBFqnCBsd6RMkjVDRZzb", "name": "George", "tag": ""}
 VOICE_SETTINGS = {"stability": 0.5, "similarity_boost": 0.75}
+# What each concept wants from a stock voice, matched against the voice list's labels (gender, age, accent,
+# descriptive, use_case) when the hard-coded voice is unavailable.
+TRAITS: dict[str, set[str]] = {
+    "noir": {"male", "middle aged", "american", "deep", "gravelly", "narrative_story", "narration"},
+    "nature_doc": {"male", "old", "british", "warm", "narration", "documentary", "calm"},
+    "heist": {"male", "young", "american", "smooth", "confident", "conversational"},
+    "courtroom": {"male", "middle aged", "british", "authoritative", "formal", "news"},
+    "broadcast": {"male", "young", "american", "energetic", "excited", "sports", "social_media"},
+    "countdown": {"male", "middle aged", "intense", "tense", "characters_animation"},
+    "mockumentary": {"female", "young", "american", "deadpan", "casual", "conversational"},
+    "western": {"male", "old", "american", "gravelly", "raspy", "characters_animation"},
+    "mission_control": {"male", "middle aged", "american", "calm", "clear", "informative_educational"},
+}
+# Local Piper voices per concept (model file stem under motd_piper_voices, length_scale >1 = slower, noise_scale).
+PIPER: dict[str, tuple[str, float, float]] = {
+    "noir": ("en_US-ryan-high", 1.12, 0.6),
+    "nature_doc": ("en_GB-alan-medium", 1.15, 0.5),
+    "heist": ("en_US-ryan-high", 0.98, 0.667),
+    "courtroom": ("en_GB-alan-medium", 1.08, 0.5),
+    "broadcast": ("en_US-joe-medium", 0.9, 0.8),
+    "countdown": ("en_US-lessac-high", 0.95, 0.667),
+    "mockumentary": ("en_US-amy-medium", 1.0, 0.667),
+    "western": ("en_GB-northern_english_male-medium", 1.18, 0.6),
+    "mission_control": ("en_US-lessac-high", 1.02, 0.4),
+}
+PIPER_FALLBACK = ("en_US-lessac-high", 1.0, 0.667)
 
 # Score prompts per concept (instrumental). One library track per concept, generated the first time the concept
 # is used and reused after that: at most len(CONCEPTS) music generations ever, under a per-day credit guard.
@@ -125,7 +155,7 @@ def speakable(text: str) -> str:
 def narrate_line(s, text: str, concept: str, voice: dict | None = None) -> tuple[Path | None, int, dict]:
     """One line through the narrator. (mp3 path or None, credits, voice record). A concept voice that fails
     (e.g. retired from the stock library) falls back to FALLBACK_VOICE once."""
-    v = voice or VOICES.get(concept, FALLBACK_VOICE)
+    v = voice or concept_voice(s, concept)
     spoken = f"{v['tag']} {speakable(text)}".strip()
     rec = {"engine": "elevenlabs", "model": TTS_MODEL, "voice_id": v["id"], "voice": v["name"],
            "settings": VOICE_SETTINGS, "tag": v["tag"]}
@@ -140,6 +170,96 @@ def narrate_line(s, text: str, concept: str, voice: dict | None = None) -> tuple
         return None, 0, rec
     p.write_bytes(audio)
     return p, cost, rec
+
+
+def voice_catalog(s) -> list[dict] | None:
+    """The key's voice list (needs voices_read), cached for a day under the audio cache; None if unavailable."""
+    import time
+    p = cache_dir(s) / "voices.json"
+    if p.exists() and time.time() - p.stat().st_mtime < 86400:
+        try:
+            return json.loads(p.read_text()) or None
+        except ValueError:
+            pass
+    k = key()
+    if not k:
+        return None
+    try:
+        req = urllib.request.Request(f"{API}/v1/voices", headers={"xi-api-key": k})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            voices = json.loads(r.read()).get("voices") or []
+    except Exception as e:  # 401 without voices_read, network, ...
+        log.info("voice list unavailable (%s); hard-coded voices only", e)
+        p.write_text("[]")   # don't retry for a day
+        return None
+    slim = [{"id": v.get("voice_id"), "name": v.get("name"), "category": v.get("category"),
+             "labels": {k2: str(v2).lower() for k2, v2 in (v.get("labels") or {}).items()},
+             "description": (v.get("description") or "").lower()} for v in voices if v.get("voice_id")]
+    p.write_text(json.dumps(slim))
+    return slim or None
+
+
+def _match(v: dict, traits: set[str]) -> int:
+    words = set(" ".join([*v["labels"].values(), v["description"]]).replace(",", " ").split())
+    return sum(1 for tr in traits if tr in words or tr in v["labels"].values())
+
+
+def concept_voice(s, concept: str) -> dict:
+    """The narrator voice for a concept: an operator override (motd_voice_overrides: concept -> voice id), else the
+    hard-coded stock voice, unless the key's voice list shows it gone; then the listed voice whose labels match the
+    concept's traits best. Never blocks: without a list, the hard-coded voice is used."""
+    base = VOICES.get(concept, FALLBACK_VOICE)
+    over = (getattr(s, "motd_voice_overrides", None) or {}).get(concept)
+    if over:
+        return {**base, "id": over, "name": f"override:{over[:6]}"}
+    cat = voice_catalog(s)
+    if not cat or any(v["id"] == base["id"] for v in cat):
+        return base
+    best = max(cat, key=lambda v: (_match(v, TRAITS.get(concept, set())), v["category"] == "premade"))
+    log.warning("voice %s for %s is not on the key's list; using %s", base["name"], concept, best["name"])
+    return {**base, "id": best["id"], "name": best["name"]}
+
+
+def piper_paths(s) -> tuple[Path, Path]:
+    home = Path.home() / ".local" / "share" / "agentpitbench" / "piper"
+    return (Path(os.path.expanduser(getattr(s, "motd_piper_bin", "") or home / "venv" / "bin" / "piper")),
+            Path(os.path.expanduser(getattr(s, "motd_piper_voices", "") or home / "voices")))
+
+
+def local_available(s) -> bool:
+    if not getattr(s, "motd_local_voice", True):
+        return False
+    exe, voices = piper_paths(s)
+    return exe.exists() and any(voices.glob("*.onnx"))
+
+
+def narrate_line_local(s, text: str, concept: str) -> tuple[Path | None, int, dict]:
+    """One line through Piper (local, free). (wav path or None, 0 credits, voice record)."""
+    exe, voices = piper_paths(s)
+    model, length, noise = PIPER.get(concept, PIPER_FALLBACK)
+    if not (voices / f"{model}.onnx").exists():
+        model, length, noise = PIPER_FALLBACK
+        if not (voices / f"{model}.onnx").exists():
+            found = sorted(voices.glob("*.onnx"))
+            if not found:
+                return None, 0, {}
+            model = found[0].stem
+    rec = {"engine": "piper", "voice": model, "length_scale": length, "noise_scale": noise}
+    spoken = speakable(text)
+    p = cache_dir(s) / f"piper-{_hash(rec, spoken)}.wav"
+    if p.exists() and p.stat().st_size > 0:
+        return p, 0, rec
+    tmp = p.with_name(p.stem + ".part.wav")
+    try:
+        subprocess.run([str(exe), "-m", str(voices / f"{model}.onnx"), "-f", str(tmp),
+                        "--length-scale", str(length), "--noise-scale", str(noise), "--sentence-silence", "0.15"],
+                       input=spoken.encode(), check=True, timeout=120, capture_output=True)
+        tmp.replace(p)
+    except Exception as e:
+        log.warning("piper failed: %s", e)
+        tmp.unlink(missing_ok=True)
+        return None, 0, rec
+    return p, 0, rec
 
 
 MUSIC_EST_CREDITS = 800   # one 62 s track (the API reports no cost; measured by balance: ~700-800 credits)
@@ -250,25 +370,40 @@ def voice_scenes(s, scenes: list[dict], concept: str, max_s: float = 60.0) -> di
     If the voiced film would pass max_s, lines are sped up (atempo, at most 1.2x). Mutates scenes[*]['voice'] and
     ['dur']. Returns the audio record for film.json; {} when no narrator is available."""
     from .media import duration
-    if not key() or not getattr(s, "motd_narrator", True):
+    if not getattr(s, "motd_narrator", True):
         return {}
-    credits, rec, n_chars = 0, None, 0
+    engines = ([narrate_line] if key() else []) + ([narrate_line_local] if local_available(s) else [])
+    if not engines:
+        return {}
     orig = [x["dur"] for x in scenes]
-    for sc in scenes:
-        text = sc.get("caption") or ""
-        if sc["kind"] == "s_title":
-            text = sc.get("title") or text
-        if not text.strip():
-            continue
-        p, c, rec = narrate_line(s, text, concept)
-        credits += c
-        n_chars += len(speakable(text))
-        if p is None:
-            log.warning("narrator failed on a line; the film keeps captions only")
-            for x in scenes:
-                x.pop("voice", None)
-            return {}
-        sc["voice"] = {"path": str(p), "len": duration(p) or 0.0}
+
+    def run(engine) -> tuple[int, dict | None, int] | None:
+        credits, rec, n_chars = 0, None, 0
+        for sc in scenes:
+            text = sc.get("caption") or ""
+            if sc["kind"] == "s_title":
+                text = sc.get("title") or text
+            if not text.strip():
+                continue
+            p, c, rec = engine(s, text, concept)
+            credits += c
+            n_chars += len(speakable(text))
+            if p is None:
+                for x in scenes:
+                    x.pop("voice", None)
+                return None
+            sc["voice"] = {"path": str(p), "len": duration(p) or 0.0}
+        return credits, rec, n_chars
+
+    for engine in engines:  # one engine for the whole film: never a mix of voices
+        done = run(engine)
+        if done:
+            credits, rec, n_chars = done
+            break
+        log.warning("narrator %s failed on a line; trying the next engine", engine.__name__)
+    else:
+        log.warning("no narrator engine worked; the film keeps captions only")
+        return {}
     # floor of each scene: its voiced line (or a short visual beat when silent)
     def floor(x, tempo):
         return LEAD_S + x["voice"]["len"] / tempo + TAIL_S if x.get("voice") else min(x["dur"], 2.5)
@@ -307,6 +442,15 @@ def soundtrack(s, scenes: list[dict], concept: str, round_id: int, out: Path) ->
     exe = ffmpeg_exe()
     total = sum(x["dur"] for x in scenes)
     music, mc, mrec = score(s, concept, round_id) if key() else (None, 0, {})
+    if music is None:
+        try:
+            from .music import PRESET_VERSION, concept_bed
+            music = concept_bed(cache_dir(s), concept)
+            if music:
+                mrec = {"engine": "procedural", "concept": concept, "preset_version": PRESET_VERSION}
+        except Exception:
+            log.exception("procedural %s score failed; the committed theme is used", concept)
+            music = None
     if music is None:
         from .motd import MUSIC as BED
         music, mrec = BED, {"engine": "procedural", "file": "theme.m4a"}
