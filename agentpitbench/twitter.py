@@ -7,6 +7,7 @@ In dry-run, when posting is paused, or without credentials, tweets go to the out
 from __future__ import annotations
 
 import asyncio
+import contextvars
 import json
 import logging
 import os
@@ -55,13 +56,35 @@ def fit(head: str, tail: str, flex: str = "", flex_max: int = 120, quote: bool =
     """head + flex + tail, shrinking flex so the tweet stays within 280. quote wraps flex in quotes after clipping."""
     q = 2 if quote else 0
     budget = MAX_LEN - tweet_len(head + tail) - q
+    raw = flex
     flex = clip(flex, min(flex_max - q, budget)) if flex and budget > 8 else ""
+    _count_clip(len(" ".join((raw or "").split())) - len(flex))
     if flex and quote:
         flex = f"\"{flex}\""
     text = head + flex + tail
     if tweet_len(text) > MAX_LEN:  # head itself too long: clip it
+        _count_clip(tweet_len(text) - MAX_LEN + 1)
         text = clip(head, len(head) - (tweet_len(text) - MAX_LEN) - 1) + tail
     return text
+
+
+_clipped: contextvars.ContextVar[list | None] = contextvars.ContextVar("_clipped", default=None)
+
+
+def _count_clip(n: int) -> None:
+    box = _clipped.get()
+    if box is not None and n > 0:
+        box[0] += n
+
+
+def measure(fn) -> tuple[str, int]:
+    """(fn(), characters fit() clipped while building it): the A/B check that a variant never squeezes a fact."""
+    token = _clipped.set([0])
+    try:
+        text = fn()
+        return text, _clipped.get()[0]
+    finally:
+        _clipped.reset(token)
 
 
 def price_str(p: float | None) -> str:
