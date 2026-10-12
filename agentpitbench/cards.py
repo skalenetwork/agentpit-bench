@@ -78,7 +78,7 @@ MOTD_JS = r"""
     q('[data-in]').forEach(el => {
       const p = ease((t - parseFloat(el.dataset.in)) / 0.45), fx = el.dataset.fx || 'up';
       el.style.opacity = fx === 'slam' ? Math.min(1, p * 2) : p;
-      el.style.transform = p >= 1 ? '' : fx === 'slam' ? `scale(${1.6 - 0.6 * p})` :
+      el.style.transform = p >= 1 ? '' : fx === 'slam' ? `scale(${1.25 - 0.25 * p})` :
         fx === 'pop' ? `scale(${0.6 + 0.4 * p})` : fx === 'fade' ? '' : `translateY(${40 * (1 - p)}px)`;
     });
     q('[data-count]').forEach(el => {

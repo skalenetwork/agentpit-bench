@@ -140,7 +140,7 @@ body.tall .cols{flex-direction:column;gap:26px}
 <div class="main">
 {% if sc.kind == 'hook' %}
   <div class="mascots" data-in="0" data-fx="pop">{% for a in sc.mascots %}{{ mascot(a, 200 if fmt == 'tall' else 190) }}{% endfor %}</div>
-  <div class="hook" data-in="0.35" data-fx="slam">{{ sc.hook }}</div>
+  <div class="hook" data-in="0.35" data-fx="pop">{{ sc.hook }}</div>
   {% if sc.resolved %}<div class="motd" data-in="1.1" data-fx="fade">Resolved {{ sc.resolved }}</div>{% endif %}
 {% elif sc.kind == 'setup' %}
   <div class="label" data-in="0">The market</div>
