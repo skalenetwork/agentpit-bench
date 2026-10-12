@@ -31,7 +31,7 @@ from jinja2 import Environment, PackageLoader, pass_context, select_autoescape
 from markupsafe import Markup
 
 from . import og
-from .cards import cents, is_dark, fmt_time, is_upset, payout_x, ranked, results_headline, signed, split_headline
+from .cards import cents, is_dark, fmt_time, is_upset, payout_x, ranked, results_headline, signed, split_headline, model_eras
 from . import discover, methodology
 from .emblem import emblem_svg
 from .config import AGENT_COLORS, AGENT_NAMES, AGENT_SLUGS, Settings, AGENT_MODELS
@@ -749,14 +749,25 @@ BRANDED = {"methodology": _("Methodology"), "independence": _("Independence & co
 REASONING = {"max": "max reasoning", "xhigh": "extra-high reasoning", "high": "high reasoning"}
 
 
-def model_line(agent: str, _) -> str:
-    """'Fable 5.1 · max reasoning' from config.AGENT_MODELS, so a model swap is one edit there."""
+def model_line(agent: str, _, eras: dict | None = None) -> str:
+    """'Fable 5.1 · max reasoning' from config.AGENT_MODELS, so a model swap is one edit there. With `eras`
+    (cards.model_eras) a record that spans several models says so: '… (since 12 Oct; earlier rounds on GPT-6 Luna)'."""
     if agent not in AGENT_MODELS:
         return ""
     _id, name, effort = AGENT_MODELS[agent]
     label = {"max": _("max reasoning"), "xhigh": _("extra-high reasoning"),
              "high": _("high reasoning")}.get(effort, effort)
-    return f"{name} · {label}"
+    line = f"{name} · {label}"
+    if eras and eras.get("earlier"):
+        others = ", ".join(eras["earlier"])
+        if eras.get("since"):
+            when = datetime.fromtimestamp(eras["since"], timezone.utc)
+            day = when.strftime("%-d %b") if _.lang == "en" else when.strftime("%Y-%m-%d")
+            note = _("since {date}; earlier rounds on {models}", date=day, models=others)
+        else:
+            note = _("not played yet; rounds so far on {models}", models=others)
+        line += f" ({note})"
+    return line
 
 
 def ci_bar(rows: list[dict], crowd: dict | None, width: int = 640) -> str:
@@ -902,6 +913,7 @@ def _build(s: Settings) -> Path:
     from .motd import films as _films  # Match of the Day: cards/motd/<date>/film.json
     films = _films(s)
     cap_hit = _reply_caps(s, rounds)  # "first N picks counted"
+    eras = {a: model_eras(rounds, a) for a in s.agents}  # the models each record was played on
     film_of = {}
     for f in films:  # newest first: a round filmed twice shows its latest film
         film_of.setdefault(f["round_id"], f)
@@ -920,7 +932,7 @@ def _build(s: Settings) -> Path:
                   "is_upset": is_upset, "ranked": ranked, "category": category,
                   "_": _, "_h": _.html, "lang": lang, "rtl": _.rtl, "langs": LANGS, "lang_codes": CODES,
                   "lang_name": NAMES[lang], "mascot_sprite": sprite(s.agents), "mi": mascot_use,
-                  "commentary": commentary, "model_line": lambda a, _=_: model_line(a, _),
+                  "commentary": commentary, "model_line": lambda a, _=_: model_line(a, _, eras.get(a)),
                   "models": AGENT_MODELS, "reasoning": REASONING, "exclusions": EXCLUSION_REASONS,
                   "fc": lb.get("forecast") or {}, "sig": lb.get("significance") or {},
                   "tq": tq, "mq": mq}
@@ -1182,7 +1194,7 @@ def _previews(s: Settings, lb: dict, rounds: list[dict], cards: dict, reports: l
     if html:
         res["standings_card"], res["standings"] = pv.card("standings", html)
     for a in s.agents:
-        html = safe(og.agent_html, s, lb, a)
+        html = safe(og.agent_html, s, lb, a, model_eras(rounds, a))
         if html:
             res["agent_cards"][a], res["agents"][a] = pv.card(f"agents/{a}", html)
     for lang in CODES:
