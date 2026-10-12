@@ -45,7 +45,6 @@ numbers here are lower; both fit the cap.) Lookups batch 100 ids per request, so
 | `results.hook` | results | 2–3 | generated templates | `twitter.results_hook` (today's code) |
 | `results.cta` | results | 2–3 | generated | empty: no line before the round URL |
 | `results.media` | results | 2 | code list: `clip`, `still` | `clip` (falls back to `still` when animation fails, as today) |
-| `results.vendor_tags` | results | 2 | code list: `winners`, `none` | `winners` (today's rule). Stays **inside** the results-winners rule: never adds a vendor tag anywhere else |
 | `tags` | reveal + results (pooled) | 2–3 | code list: `""`, `" #AI"`, `" #PredictionMarkets"`, appended after `#AgentpitBench` | `""` |
 | `press.head` | press reply | 2–3 | generated | `"Post-match statements:"` |
 | `generic.cta` | milestone, race, awards, contrarian, report, champion, model, duel, replay, summon, movie (pooled) | 2–3 | generated | empty |
@@ -63,7 +62,8 @@ frees a seat.
   `http`, `www.` or a domain is rejected. Non-results posts never gain a link (X bills link posts ~13×).
 - The literal **"Reply with your pick: {outcomes}"** line on the reveal. `reveal.cta` only adds a lead-in before it; the
   outcome labels stay verbatim because `virality.parse_pick` matches them exactly.
-- The **vendor-tag rule** (results posts, winners only). `results.vendor_tags` can only switch them off.
+- The **vendor-tag rule**: results posts tag the winners' vendors, nothing else does. Tag tests run only as `tags`
+  (hashtags appended after `#AgentpitBench`); the vendor handles are never an arm.
 - `#AgentpitBench` on every post that carries it today.
 - Facts: names, picks, prices, scores, records, winners, the question. Only code fills them (section 3).
 - The picks line on the reveal (`Claude: X · ChatGPT: Y …`) and the season line on results.
@@ -94,6 +94,16 @@ def posterior(db, s, slot: str, now: float | None = None) -> list[dict]   # per 
   control. Rendering a variant fails whenever `twitter.fit` would have to **clip anything** (the variant, the picks line,
   the season line, the hook, the question) beyond what the control clips for the same round, so a variant can never
   squeeze a fact. The observation goes to `realized_arm_id`, the arm that actually posted.
+- **Several slots on one post: `ab.finish`.** A reveal carries three slots, a results post four, and variants that each
+  fit alone can overflow together. Every hook point builds its text through one function:
+  ```python
+  def finish(db, post_key: str, choices: list[Choice], render: Callable[[dict[str, str]], str]) -> str
+  ```
+  `render(variants)` builds the post text from a `{slot: text}` map, where an empty map means the control render.
+  `finish` renders the control and the full combination, then runs `check_rendered(kind, text, control_text)`. On a
+  failure it drops variants in a fixed order, `tags` → `*.cta` → `*.hook`, and re-renders until the check passes.
+  Each dropped slot gets `realized_arm_id = control`. Media slots don't affect text and are realized separately. This is
+  the only place `check_rendered` runs at post time, and the control text is what any full fallback posts.
 - **Realized media:** `_standalone` falls back from video to the still card on a failed upload. `realize` records the
   `still` arm, so the reward goes to what was posted.
 - **Day tone:** `day_tone` stores `kv['ab_tone_<YYYY-MM-DD>']` on first use. Exploration alternates by day until each
@@ -109,8 +119,8 @@ def posterior(db, s, slot: str, now: float | None = None) -> list[dict]   # per 
 | `cards.py`, `twitter.py` | new `cards.split_shape(rnd) -> (situation, facts)` and `twitter.results_shape(rnd) -> (situation, facts)`; `split_headline` and `results_hook` are rewritten on top of them, so the control output stays byte-identical |
 | `publish._reveal` | `choose` `reveal.hook` (situation and facts from `split_shape`), `reveal.cta`, `reveal.media`, `tags`; build media list from the media arm (`four_decisions`: as today; `split_card`: `cards/<round>/split.png`, else fall back to decisions + `realize` control) |
 | `twitter.reveal_text(rnd, headline, cta="", extra_tags="")` | `cta` line inserted directly before `"\nReply with your pick: …"`; `extra_tags` after `TAG` |
-| `publish.on_resolved` | `day_tone` replaces `headline_variant(round_id)`; `choose` `results.hook` (from `results_shape`), `results.cta`, `results.media`, `results.vendor_tags`, `tags`; `utm_content={tone}` exactly as today (nothing can read it; changing it would break byte-identical control output) |
-| `twitter.results_text(s, rnd, board, round_url, crowd=None, cast=None, hook=None, cta="", extra_tags="", vendor_tags=True)` | `hook=None` → `results_hook(rnd)` (control); `cta` line goes before the URL line |
+| `publish.on_resolved` | `day_tone` replaces `headline_variant(round_id)`; `choose` `results.hook` (from `results_shape`), `results.cta`, `results.media`, `tags`; text built through `ab.finish`; `utm_content={tone}` exactly as today (nothing can read it; changing it would break byte-identical control output) |
+| `twitter.results_text(s, rnd, board, round_url, crowd=None, cast=None, hook=None, cta="", extra_tags="")` | `hook=None` → `results_hook(rnd)` (control); `cta` line goes before the URL line |
 | `publish.press_conference` → `press.texts(..., head="Post-match statements:")` | head from `press.head` |
 | `engage.Engage._post` | every generic kind already posts through it: for `kind in ab.GENERIC_KINDS`, `choose('generic.cta', key)` and insert the line before a trailing `TAG` (posts without a trailing `TAG` get the control); clipping rule as above. MotD's `movie` post will use the same path |
 | `twitter.Poster.post` | no A/B logic (it stays the idempotency layer; avoids an `ab` ↔ `twitter` import cycle). Only writes the new `reply_to`, `quote_of` columns |
@@ -137,7 +147,8 @@ the record when a post is built. Sealed picks can't leak to it, and it can't inv
 
 ### Validator (`ab.validate(slot, template) -> list[str]`; also `ab.check_rendered(post_kind, text)`)
 
-Rejected if any rule fails. Both run at generation time; `check_rendered` runs again on every post before it's sent.
+Rejected if any rule fails. Both run at generation time; at post time `check_rendered(kind, text, control_text)` runs
+inside `ab.finish` (section 2), which needs the control render for the URL-set and clipping comparisons.
 
 1. **Placeholders:** only the slot's allowed names; required ones exactly once; `str.format` parses.
 2. **Facts locked:** no digits, `%`, `¢`, `$`, `×` in literal text; no outcome-like quoting. Numbers come only from placeholders.
@@ -170,6 +181,7 @@ That needs `tweets.reply_to`, `tweets.quote_of` (migration, written by `Poster.p
 `R = 5·replies + 3·quotes + 2·reposts + 2·bookmarks + 2·link_clicks + 1·likes`, then `y = log1p(R)`.
 
 `link_clicks` is X's `url_link_clicks`, the only click signal (only results posts carry a link). It's not a UTM.
+A `None` (no link, or a snapshot ≥ 29 days old) counts as 0.
 
 **Standardise** per `(post kind, bucket)`: `z = (y − μ)/σ` over all posts of that kind in the last `ab_baseline_days =
 30` (every arm). Pooled slots (`tags`, `generic.cta`) mix kinds through `z`. `σ` has a floor of 0.25; with < 10 posts of
@@ -203,7 +215,7 @@ At `daily_round_cap = 5`, steady state:
 - **Pooling:** only where the copy means the same on each kind (`tags`, `generic.cta`), through the kind-standardised `z`.
   Hooks aren't pooled: a reveal hook and a results hook do different jobs.
 - **Expect wide intervals.** ≥ 20 per arm is a floor for leaving exploration, not a significance claim. The page says so.
-- Five independent slots randomise on the same results post. Each slot's estimate averages over the others (no
+- Four independent slots randomise on the same results post. Each slot's estimate averages over the others (no
   interactions in v1).
 
 ## 6. Generator (operator AI)
@@ -253,7 +265,7 @@ CREATE TABLE IF NOT EXISTS ab_arms (
     arm_id INTEGER PRIMARY KEY AUTOINCREMENT,
     slot TEXT NOT NULL,
     is_control INTEGER NOT NULL DEFAULT 0,
-    code_key TEXT,                    -- media/tags/tone/vendor_tags value; NULL for text arms
+    code_key TEXT,                    -- media/tags/tone value; NULL for text arms
     template_json TEXT,               -- {"situations": {...}} or {"text": "..."}; NULL for code arms
     output_id INTEGER REFERENCES operator_ai_outputs(output_id),   -- NULL for control and code arms
     status TEXT NOT NULL DEFAULT 'live',   -- live / queued / retired
@@ -271,8 +283,9 @@ CREATE TABLE IF NOT EXISTS ab_assignments (
 );
 ```
 
-Migrations: `tweets.reply_to TEXT`, `tweets.quote_of TEXT`. Controls and code arms are seeded idempotently on DB open
-(`ab.seed(db)`). Rewards aren't stored: `posterior` computes them from `ab_assignments` ⨝ `tweets` ⨝
+Migrations: `tweets.reply_to TEXT`, `tweets.quote_of TEXT`. Controls and code arms are seeded idempotently by `ab.seed(db)`,
+called from `BenchPublisher.__init__` and from `cli.main` for the `ab` subcommands (`db.py` doesn't import `ab`, so
+there's no import cycle). Rewards aren't stored: `posterior` computes them from `ab_assignments` ⨝ `tweets` ⨝
 `xstats.reward_inputs` (hundreds of rows; no caching needed in v1).
 
 ## 8. Config (`Settings`, with defaults)
@@ -291,7 +304,8 @@ Read budget keys live in x-analytics.
 
 ## 9. CLI (`agentpitbench ab …` in `cli.main`)
 
-- `ab status [--slot S]`: per slot, its arms with id, status, n, n_eff, mean ± sd, p_best, and an example rendered text.
+- `ab status [--slot S]`: per slot, its arms with id, status, n, n_eff, mean ± sd, p_best, and an example text taken from `ab_assignments.rendered` of an already-posted post (never
+  rendered against a running round).
 - `ab retire <arm_id> [--note TEXT]`: sets `retired`, promotes the oldest `queued` arm of that slot to `live`. It
   refuses the control.
 - `ab propose [--dry]`: runs the generator now (same guards, including idle check); `--dry` prints candidates and
@@ -315,6 +329,10 @@ accepted/rejected counts with reasons); posts that fell back to control and why;
 
 - `site.build` → `page("experiments/", "experiments.html", ab=exports.experiments(db))`, footer link.
   `exports.experiments` writes `var/export/experiments.json` too.
+- It extends `base.html`, so it gets the share bar and `og:*` tags, and its preview uses the branded page card from
+  the share-everywhere spec, which keeps that spec's build check passing.
+- Example texts come only from `ab_assignments.rendered` of posts already on X (the sealed-rounds rule applied to the
+  page); an arm with no posted example shows its template with placeholders.
 - Content: a short intro ("We test the wording and presentation of our posts. Every fact, number, pick and result is
   filled in by code from the record; wording never changes them."). The never-vary list. Per slot: arms with an example
   rendered post, n, mean reward ± sd, p_best, status, live/retired dates. The reward formula and decay.
@@ -379,7 +397,7 @@ accepted/rejected counts with reasons); posts that fell back to control and why;
 5. `ab_gen.py`, prompt, `ab propose`, test 5; first `--dry` run reviewed by the operator (40 min).
 6. /experiments/ page, export, i18n strings (30 min + translations).
 7. `site.round_cta` render (English, per day) (15 min). Measurement waits for the open question below.
-8. Deploy (control-only arms plus the code-defined media/tags/vendor_tags/tone arms go live at once); set
+8. Deploy (control-only arms plus the code-defined media/tags/tone arms go live at once); set
    `ab_gen_enabled = true` after the operator reviews the first `--dry` batch.
 
 ## Assumptions to re-check
@@ -398,6 +416,9 @@ accepted/rejected counts with reasons); posts that fell back to control and why;
    API token with Analytics:Read, a check that the beacon fires before the redirect, and your agreement that an
    intermediate hop doesn't count as "varying the CTA destination". Until then `site.round_cta` renders and logs arms
    but has no reward (the bandit stays in exploration).
-2. **Separate login for the generator?** It shares the contestant Claude's subscription and login. The idle-window and
+2. **Vendor tags on/off.** v1 reads "tag tests only within the results-winners rule" as: winners on results posts
+   always get their vendor handle, and only hashtags are tested. If you meant that switching the winners' handles
+   off is a legitimate arm, it's a one-line code arm (`results.vendor_tags ∈ {winners, none}`) to add later.
+3. **Separate login for the generator?** It shares the contestant Claude's subscription and login. The idle-window and
    auth-lock rules prevent token clashes, but a separate Claude account for operator AI would isolate the quota
    completely.
