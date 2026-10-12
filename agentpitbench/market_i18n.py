@@ -1,8 +1,9 @@
 """Market questions and outcome labels, translated for the site (operator addition to the AI-automation spec,
 2026-10-12).
 
-Each string is translated once per site language through the operator AI (task "translate": one call per
-market covering every language in i18n.CODES, JSON out) and stored in `market_i18n`. The site build only reads
+Each string is translated once per site language through the operator AI (task "translate", JSON out: a
+market's texts in LANGS_PER_CALL languages per call, so 3 calls for the 39 site languages, each well inside
+the 300 s timeout) and stored in `market_i18n`. A failed batch leaves only its own languages English. The site build only reads
 the table and falls back to English; it never calls a model. A validator keeps the exact market wording
 auditable: numbers, $ amounts, percentages, tickers, years and proper nouns must survive verbatim (digits may be
 the language's own), placeholders stay, length stays sane. Anything that fails stays English.
@@ -24,6 +25,7 @@ from .db import DB
 log = logging.getLogger(__name__)
 
 MAX_TRIES = 2          # per round; after that its untranslated strings stay English
+LANGS_PER_CALL = 13    # 39 site languages -> 3 calls per market
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
           "November", "December"]
 MONTH_ABBR = {m[:3]: i + 1 for i, m in enumerate(MONTHS)} | {"Sept": 9}
@@ -200,14 +202,33 @@ def apply(db: DB, payload: dict, res: opai.Result) -> dict:
     return {"stored": ok, "rejected": rejected, "reasons": reasons}
 
 
+def lang_batches(langs: list[str], n: int = LANGS_PER_CALL) -> list[list[str]]:
+    return [langs[i:i + n] for i in range(0, len(langs), n)]
+
+
 async def translate_texts(s: Settings, db: DB, texts: list[str], subject: str) -> dict:
+    """One call per batch of LANGS_PER_CALL languages that still lack something; each batch is asked only for
+    the texts it lacks. Batches are independent: one that fails leaves the others' translations stored."""
     payload = payload_for(db, texts)
     if payload is None:
         return {"stored": 0, "rejected": 0, "reasons": [], "skipped": "complete"}
-    res = await opai.acall(s, db, "translate", payload, subject=subject)
-    if res is None:
-        return {"stored": 0, "rejected": 0, "reasons": [], "skipped": "opai unavailable or failed"}
-    return apply(db, payload, res)
+    out = {"stored": 0, "rejected": 0, "reasons": [], "calls": 0, "failed": 0}
+    for langs in lang_batches(payload["langs"]):
+        part = payload_for(db, texts, langs)
+        if part is None:
+            continue
+        out["calls"] += 1
+        res = await opai.acall(s, db, "translate", part, subject=subject)
+        if res is None:
+            out["failed"] += 1
+            continue
+        r = apply(db, part, res)
+        out["stored"] += r["stored"]
+        out["rejected"] += r["rejected"]
+        out["reasons"] += r["reasons"]
+    if out["calls"] and out["failed"] == out["calls"]:
+        out["skipped"] = "opai unavailable or failed"
+    return out
 
 
 def due(db: DB, limit: int = 50) -> list[int]:

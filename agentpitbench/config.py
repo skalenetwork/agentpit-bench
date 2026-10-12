@@ -142,12 +142,13 @@ class Settings:
     opai_model_light: str = "haiku"     # picks
     opai_ops_model: str = "opus"
     opai_timeout_s: int = 120
-    opai_translate_timeout_s: int = 300  # one translate call covers every site language
+    opai_translate_timeout_s: int = 300  # a translate call (13 languages) or a batched i18n call (10)
     opai_calls_per_day: int = 60
-    # i18n: fill makes one call per non-English site language (39), so a new id fits in one day
+    # i18n: fill batches 10 languages per call, so a new id in all 39 is 4 calls (two fills a day);
+    # translate: 3 calls per round (13 languages each), about 5 rounds a day
     opai_task_budget: dict = field(default_factory=lambda: {
-        "rate": 24, "picks": 12, "summary": 12, "incident": 4, "cadence": 1, "report": 2, "i18n": 40,
-        "proposal": 1, "ab": 2, "translate": 10})
+        "rate": 24, "picks": 12, "summary": 12, "incident": 4, "cadence": 1, "report": 2, "i18n": 8,
+        "proposal": 1, "ab": 2, "translate": 15})
     opai_backoff_s: int = 21600
     opai_sweep_guard_min: int = 30
     opai_rate_batch: int = 40
