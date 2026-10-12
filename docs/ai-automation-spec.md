@@ -156,7 +156,7 @@ def sealed_guard(db: DB, round_id: int) -> None                     # raises Sea
   | `incident` | 4 |
   | `cadence` | 1 |
   | `report` | 2 |
-  | `i18n` | 20 |
+  | `i18n` | 40 (one call per site language) |
   | `proposal` | 1 |
   | `ab` (A/B generator, once moved behind opai) | 2 |
 

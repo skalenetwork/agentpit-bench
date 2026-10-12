@@ -148,8 +148,9 @@ class Settings:
     opai_timeout_s: int = 120
     opai_translate_timeout_s: int = 300  # one translate call covers every site language
     opai_calls_per_day: int = 60
+    # i18n: fill makes one call per non-English site language (39), so a new id fits in one day
     opai_task_budget: dict = field(default_factory=lambda: {
-        "rate": 24, "picks": 12, "summary": 12, "incident": 4, "cadence": 1, "report": 2, "i18n": 20,
+        "rate": 24, "picks": 12, "summary": 12, "incident": 4, "cadence": 1, "report": 2, "i18n": 40,
         "proposal": 1, "ab": 2, "translate": 10, "motd_script": 3})  # motd: one film a day, one retry, one spare
     opai_backoff_s: int = 21600
     opai_sweep_guard_min: int = 30

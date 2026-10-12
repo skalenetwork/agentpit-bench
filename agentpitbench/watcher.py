@@ -36,10 +36,12 @@ def basic_eligible(s: Settings, m: dict, now: datetime | None = None) -> bool:
     return not any(k in text for k in s.excluded_keywords)
 
 
-def priority(m: dict) -> tuple:
+def priority(m: dict, db: DB | None = None, s: Settings | None = None) -> tuple:
     """Newsworthy first (politics, crypto, AI/tech, finals over esports and minor leagues); then volume,
-    liquidity and the newest id break ties. agentpit mirrors often report volume 0."""
-    return market_priority(m)
+    liquidity and the newest id break ties. agentpit mirrors often report volume 0. With the methodology's
+    selection.scoring = model, the published model rating orders markets (keyword rule as fallback and floor)."""
+    from .rating import priority as rated
+    return rated(m, db, s) if db is not None and s is not None else market_priority(m)
 
 
 class Watcher:
@@ -73,6 +75,8 @@ class Watcher:
             log.info("first start: recorded %d existing markets, starting no rounds for them", len(fresh))
         elif new_eligible:
             log.info("%d new eligible market(s)", len(new_eligible))
+        from . import rating  # newsworthiness rating, off the polling path (shadow mode until approved)
+        rating.schedule(self.s, self.db, new_eligible)
         return new_eligible
 
     def rounds_today(self) -> int:
@@ -97,7 +101,7 @@ class Watcher:
                 self.db.x("UPDATE seen_markets SET eligible=0 WHERE market_id=?", mid)
         chosen, held = [], []  # held: fillable, but its category is over the weekly cap
         recent = self.recent_categories()
-        for m in sorted(cands, key=priority, reverse=True):
+        for m in sorted(cands, key=lambda m: priority(m, self.db, self.s), reverse=True):
             if len(chosen) >= budget:
                 break
             if not await self._books_ok(m):
@@ -112,8 +116,10 @@ class Watcher:
         if not chosen and held:  # the cap only reorders: if nothing else can run, an over-cap market still does
             log.info("only over-cap categories eligible; starting %s anyway", held[0]["id"])
             chosen = held[:1]
+        from .rating import nw_of
         for m in chosen:
             self.db.x("UPDATE seen_markets SET started=1 WHERE market_id=?", str(m["id"]))
+            m["nw"] = nw_of(m, self.db, self.s)  # recorded on the round: the rating used when it was picked
         return chosen
 
     def recent_categories(self, days: float = 7) -> list[str]:

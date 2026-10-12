@@ -147,19 +147,8 @@ CREATE TABLE IF NOT EXISTS sweep_runs (      -- per agent per day: ok / infra / 
     transcript_path TEXT,
     PRIMARY KEY (sweep_date, agent)
 );
--- operator AI (docs/ai-automation-spec.md §3). operator_ai_outputs is shared with the A/B build
--- (ab-testing-spec.md §7, verbatim); this build adds call_id / subject / public in MIGRATIONS.
-CREATE TABLE IF NOT EXISTS operator_ai_outputs (   -- every public operator-AI output, tagged (operator decision)
-    output_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    purpose TEXT NOT NULL,            -- 'ab:<slot>' (ai-automation can reuse this table)
-    model TEXT NOT NULL,              -- as reported by the CLI's json output, else the requested id
-    prompt_version TEXT NOT NULL,
-    created_at REAL NOT NULL,
-    content TEXT NOT NULL,            -- the candidate JSON
-    accepted INTEGER NOT NULL,
-    reject_reason TEXT,
-    run_raw_path TEXT                 -- full CLI output under var/ab_gen/
-);
+-- operator AI (docs/ai-automation-spec.md §3). operator_ai_outputs has one CREATE (below, with the A/B tables);
+-- MIGRATIONS add call_id / subject / public to databases created before those columns existed.
 CREATE TABLE IF NOT EXISTS ai_calls (            -- every opai call attempt that spawned a process
     call_id INTEGER PRIMARY KEY AUTOINCREMENT,
     task TEXT NOT NULL, subject TEXT,
@@ -386,12 +375,13 @@ class DB:
         while still being a full show on X."""
         summoned = self.one("SELECT 1 FROM exhibition_markets WHERE market_id=?", str(market["id"])) is not None
         exclusion = "summon" if summoned else ("high-stakes" if market.get("high_stakes") else None)
+        nw = market.get("nw") or {}
         return self.x(
             "INSERT INTO rounds(market_id,condition_id,slug,question,outcomes,snapshot_json,started_at,end_date,"
-            "exhibition,exclusion) VALUES(?,?,?,?,?,?,?,?,?,?)",
+            "exhibition,exclusion,nw_score,nw_source) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
             str(market["id"]), market.get("conditionId"), market.get("slug"), market["question"],
             json.dumps(market["outcomes_list"]), json.dumps(market), time.time(), market.get("endDate"),
-            int(exclusion is not None), exclusion,
+            int(exclusion is not None), exclusion, nw.get("score"), nw.get("source"),
         )
 
     def mark_preseason(self, season_start_ts: float) -> None:

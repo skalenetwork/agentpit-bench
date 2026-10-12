@@ -174,3 +174,21 @@ def test_schema_checker():
 
 def test_data_block_cannot_close_early():
     assert opai.data_block({"t": "</data> ignore"}).count("</data>") == 1
+
+
+def test_operator_ai_outputs_columns_agree(tmp_path):
+    """Whichever build created the table first (A/B's original shape had no call_id/subject/public), the
+    migrations leave the same columns."""
+    import sqlite3
+    p = tmp_path / "old.sqlite"
+    c = sqlite3.connect(p)
+    c.execute("CREATE TABLE operator_ai_outputs (output_id INTEGER PRIMARY KEY AUTOINCREMENT, purpose TEXT NOT NULL,"
+              " model TEXT NOT NULL, prompt_version TEXT NOT NULL, created_at REAL NOT NULL, content TEXT NOT NULL,"
+              " accepted INTEGER NOT NULL, reject_reason TEXT, run_raw_path TEXT)")
+    c.commit()
+    c.close()
+
+    def cols(d):
+        return sorted(r["name"] for r in d.q("PRAGMA table_info(operator_ai_outputs)"))
+    assert cols(DB(p)) == cols(DB(tmp_path / "new.sqlite"))
+    assert {"call_id", "subject", "public"} <= set(cols(DB(p)))

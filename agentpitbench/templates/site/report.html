@@ -2,6 +2,7 @@
 {% block main %}
 <div class="small mut"><a href="{{ home }}reports/">{{ _("Weekly reports") }}</a></div>
 <h1>{{ _("State of the AIs") }} · {{ rep.week }}</h1>
+{% if rep.prose %}<div class="prose" lang="en" dir="auto"><p><b>{{ rep.prose.headline }}</b></p>{% for p in rep.prose.paragraphs %}<p>{{ p }}</p>{% endfor %}</div>{% endif %}
 <h2>{{ _("Forecast accuracy") }}</h2>
 {% if rep.forecast %}<p>{{ _("Forecast accuracy on {n} markets swept this week and resolved so far (Brier score, lower is better).", n=rep.markets) }}</p>
 <div class="scroll"><table><tr><th>{{ _("Agent") }}</th><th class="r">{{ _("Brier score") }}</th><th class="r">{{ _("Forecasts") }}</th></tr>
