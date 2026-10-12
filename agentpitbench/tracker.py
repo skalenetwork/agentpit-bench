@@ -1,6 +1,7 @@
 """Watches rounds awaiting resolution, scores them, redeems winnings."""
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from datetime import datetime, timedelta, timezone
@@ -25,6 +26,8 @@ def score(entries: list[dict], winner: str) -> list[tuple[int, float, float]]:
 class Tracker:
     def __init__(self, s: Settings, db: DB, api: Agentpit, publisher):
         self.s, self.db, self.api, self.pub = s, db, api, publisher
+        self._tasks: set = set()  # background results posts (per-round films), kept referenced
+        self._inflight: set[int] = set()
 
     def recover(self) -> None:
         """After a restart: runs cut off mid-round count as crashed no-bets; their rounds await resolution."""
@@ -39,6 +42,7 @@ class Tracker:
 
     async def check(self) -> list[int]:
         done = []
+        self.catch_up()
         for r in self.db.q("SELECT * FROM rounds WHERE state='awaiting_resolution'"):
             try:
                 m = await self.api.market(r["market_id"])
@@ -58,16 +62,48 @@ class Tracker:
                 done.append(r["round_id"])
             else:
                 continue
-            try:
-                await self.pub.on_resolved(r["round_id"])
-            except Exception:
-                log.exception("publishing results for round %s failed", r["round_id"])
-            if hasattr(self.pub, "press_conference") and r["round_id"] in done:
-                try:  # extra runs for the losers; never blocks or changes results
-                    await self.pub.press_conference(r["round_id"])
-                except Exception:
-                    log.exception("press conference for round %s failed", r["round_id"])
+            if self._films_per_round():
+                # the results post may wait up to motd_round_deadline_s for the round's film: publish in the
+                # background so other rounds keep resolving on time
+                self._spawn(r["round_id"], r["round_id"] in done)
+            else:
+                await self._publish(r["round_id"], r["round_id"] in done)
         return done
+
+    def _films_per_round(self) -> bool:
+        return bool(getattr(self.s, "motd_enabled", False) and getattr(self.s, "motd_per_round", False))
+
+    def _spawn(self, round_id: int, resolved: bool) -> None:
+        self._inflight.add(round_id)
+        t = asyncio.create_task(self._publish(round_id, resolved))
+        self._tasks.add(t)
+        t.add_done_callback(self._tasks.discard)
+
+    def catch_up(self) -> None:
+        """Results interrupted by a restart while waiting for the round's film: publish them again (the post is
+        idempotent per post_key, so one that went out is not repeated)."""
+        if not self._films_per_round():
+            return
+        for r in self.db.q("SELECT round_id, state FROM rounds WHERE state IN ('resolved','void') AND "
+                           "results_tweet_id IS NULL AND resolved_at > ?", time.time() - 6 * 3600):
+            if r["round_id"] not in self._inflight and self.db.get(f"publishing_{r['round_id']}"):
+                log.warning("round %s: results were interrupted; publishing again", r["round_id"])
+                self._spawn(r["round_id"], r["state"] == "resolved")
+
+    async def _publish(self, round_id: int, resolved: bool) -> None:
+        self.db.put(f"publishing_{round_id}", time.time())
+        try:
+            await self.pub.on_resolved(round_id)
+        except Exception:
+            log.exception("publishing results for round %s failed", round_id)
+        finally:
+            self.db.x("DELETE FROM kv WHERE k=?", f"publishing_{round_id}")
+            self._inflight.discard(round_id)
+        if hasattr(self.pub, "press_conference") and resolved:
+            try:  # extra runs for the losers; never blocks or changes results
+                await self.pub.press_conference(round_id)
+            except Exception:
+                log.exception("press conference for round %s failed", round_id)
 
     def resolve(self, round_id: int, winner: str, resolved_at: float) -> None:
         for run_id, payout, pnl in score(self.db.round_entries(round_id), winner):

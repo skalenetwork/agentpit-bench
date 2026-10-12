@@ -57,6 +57,9 @@ class Settings:
     motd_min_score: float = 20
     motd_fps: int = 15
     motd_exhibition_factor: float = 0.5
+    motd_per_round: bool = True       # v0.6: every resolved round's square film replaces the plain results clip
+    motd_round_deadline_s: int = 1500  # the results post waits at most this long for the film, then the plain clip
+    motd_writer_wait_s: int = 480      # at resolution, wait this long for running rounds to finish before writing
     motd_scripted: bool = True        # v0.5: the operator AI writes each film (opai task motd_script); false = templated
     opai_model_motd_script: str = "fable"   # claude CLI alias for the film writer (the strongest for creative writing)
     opai_motd_timeout_s: int = 360          # a script call takes 1.5-3 min
@@ -154,7 +157,7 @@ class Settings:
     # translate: 3 calls per round (13 languages each), about 5 rounds a day
     opai_task_budget: dict = field(default_factory=lambda: {
         "rate": 24, "picks": 12, "summary": 12, "incident": 4, "cadence": 1, "report": 2, "i18n": 8,
-        "proposal": 1, "ab": 2, "translate": 15, "motd_script": 3})  # motd: one film a day, one retry, one spare
+        "proposal": 1, "ab": 2, "translate": 15, "motd_script": 15})  # motd: a film per round (5/day), each with one retry
     opai_backoff_s: int = 21600
     opai_sweep_guard_min: int = 30
     opai_rate_batch: int = 40

@@ -31,6 +31,24 @@ database, verbatim or computed by code.
 | Staging by real picks (who stands on which side, who falls) | Optional stage hint for the cold open and misdirect |
 | The model each AI played on (from that round's `runs.model_reported`) | Nothing about models: it may not name one |
 
+### v0.6: a film for every round (operator, 2026-10-12)
+- **Every resolved round with ≥ 2 bettors gets its own film** (void rounds never; no true twist → the templated
+  film). At resolution the square is rendered into `cards/motd/rounds/<id>/` and **replaces the plain results clip
+  in the round's existing results post**: same post kind, same text template, A/B results arms unchanged, Bluesky
+  mirrors it. No extra posts.
+- **Deadline:** the results post waits at most `motd_round_deadline_s` (1,500 s) for the film; otherwise it goes
+  out with the plain clip as before, and that film is never posted on its own. The tracker publishes results in a
+  background task so other rounds keep resolving; a results post interrupted by a restart is published again
+  (kv `publishing_<id>`; the post is idempotent per key).
+- **Idle window for the writer:** at resolution, if a round is running, wait up to `motd_writer_wait_s` (480 s)
+  for it to finish, then write; still running → the templated film.
+- **Off-peak:** the hourly job renders the 9:16 and 16:9 versions of round films while no round is running
+  (one film per hour, newest first). /films/ lists every round film once its 16:9 exists.
+- **YouTube Shorts keeps one film a day:** at `motd_hour_utc` the previous day's most dramatic round (the same
+  drama score) becomes the day's film: its round film (formats rendered if missing) is linked into
+  `cards/motd/<date>/` with `date` = the day, which the uploader reads. There is no standalone daily X film.
+- Recency window for concepts and twist types: the last 8 films. Writer budget `motd_script` = 15 a day.
+
 ### Formats (operator, 2026-10-12)
 Three renders of the same scene list, script and soundtrack (ElevenLabs is called once per film): **square 1:1
 (1080×1080) is the X post** (an X post carries one video, and 9:16 shows as a narrow strip on desktop; the square
