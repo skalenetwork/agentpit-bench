@@ -17,7 +17,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from .cards import UPSET_PRICE, model_line, results_headline, headline_variant, ranked, start_price
-from .config import AGENT_MODELS, AGENT_NAMES, Settings
+from .config import AGENT_NAMES, Settings
 from .virality import grudge, reasoning_lines
 
 log = logging.getLogger(__name__)
@@ -203,12 +203,12 @@ def key_agent(rnd: dict, sc: dict) -> dict | None:
     return max(winners, key=conf) if winners else None
 
 
-def full_model_line(agent: str | None) -> str:
-    """'Grok 4.7 · xhigh': the film shows the full model name (the pick scene's name line is the brand)."""
-    if agent in AGENT_MODELS:
-        _, name, effort = AGENT_MODELS[agent]
-        return f"{name} · {effort}"
-    return model_line(None)
+def full_model_line(agent: str | None, entry: dict | None = None) -> str:
+    """'Grok 4.7 · xhigh': the full name of the model the agent PLAYED THIS ROUND ON (entry.model_reported), never
+    today's config: a round played on GPT-6 Luna says GPT-6 Luna. No agent: the shared line."""
+    if agent is None:
+        return model_line(None)
+    return model_line(agent, (entry or {}).get("model_reported") or "", short=False)
 
 
 def hook_line(rnd: dict, sc: dict) -> str:
@@ -307,7 +307,8 @@ def script(rnd: dict, sc: dict, lb: dict, transcript: list[str] | None = None, s
 
     def scene(kind: str, dur: float, agent: str | None = None, **kw) -> None:
         scenes.append({"kind": kind, "dur": dur, "agent": agent, "sig": _sig(lb, agent),
-                       "model_line": full_model_line(agent), **kw})
+                       "model_line": full_model_line(agent, next((e for e in entries if e["agent"] == agent), None)),
+                       **kw})
 
     resolved = (datetime.fromtimestamp(rnd["resolved_at"], timezone.utc).strftime("%Y-%m-%d")
                 if rnd.get("resolved_at") else None)
@@ -423,7 +424,7 @@ def scripted(s: Settings, db, rnd: dict, rounds: list[dict], lb: dict, site: str
     from . import opai
     from . import twists as tw
     ctx = story_context(s, rnd, rounds)
-    recent_concepts, recent_twists = ms.recent(db)
+    recent_concepts, recent_twists = ms.recent(db, subject=f"round:{rnd['round_id']}")
     twist = tw.choose(tw.detect(rnd, ctx), recent_twists)
     if twist is None:
         log.info("Match of the Day round %s: no true twist detected; templated film", rnd["round_id"])
@@ -495,6 +496,20 @@ async def make_film(s: Settings, db, cards, day: str, round_id: int | None = Non
             x["dur"] = round(x["dur"] * scale, 3)
     out = Path(out_dir) if out_dir else film_dir(s, day)
     out.mkdir(parents=True, exist_ok=True)
+    audio: dict = {}
+    track = None
+    if story and s.motd_music:
+        from . import sound
+        try:  # narrator first: voiced lines can stretch scenes, so the soundtrack is mixed after
+            audio = await asyncio.to_thread(sound.voice_scenes, s, scenes, story["concept_type"])
+            track, mix = await asyncio.to_thread(sound.soundtrack, s, scenes, story["concept_type"],
+                                                 rnd["round_id"], out / "soundtrack.m4a")
+            audio.update(mix)
+        except Exception:
+            log.exception("Match of the Day %s: soundtrack failed; the CC0 bed is used", day)
+            track = None
+        if audio:
+            log.info("Match of the Day %s: audio %s", day, {k: v for k, v in audio.items() if k != "narrator"})
     files = {}
     for fmt in formats:
         w, h = FORMATS[fmt]
@@ -503,7 +518,13 @@ async def make_film(s: Settings, db, cards, day: str, round_id: int | None = Non
             log.error("Match of the Day %s: %s render failed", day, fmt)
             return None
         final = out / f"motd-{day}-{fmt}.mp4"
-        if s.motd_music and MUSIC.exists():
+        if track:
+            from . import sound
+            ok = await asyncio.to_thread(sound.mux, silent, track, final)
+            silent.unlink(missing_ok=True)
+            if not ok:
+                return None
+        elif s.motd_music and MUSIC.exists():
             ok = await asyncio.to_thread(media.mux_audio, silent, MUSIC, final)
             silent.unlink(missing_ok=True)
             if not ok:
@@ -515,20 +536,44 @@ async def make_film(s: Settings, db, cards, day: str, round_id: int | None = Non
     if "wide" in files:
         await asyncio.to_thread(media.poster_frame, out / files["wide"], poster, sum(x["dur"] for x in scenes) - 1.0)
     rec = {"date": day, "round_id": rnd["round_id"], "question": rnd["question"], "winner": rnd["winner"],
-           "hook": hook_line(rnd, sc), "score": sc, "scripted": bool(story),
+           "hook": film_hook(story, rnd, sc), "post_hook": hook_line(rnd, sc),
+           "title_line": film_title(story, rnd), "score": sc, "scripted": bool(story),
            **({k: story[k] for k in ("concept_type", "twist_type", "twist", "title", "script", "model",
                                      "prompt_version", "output_id", "written_at")} if story else {}),
            "script_data": story["data"] if story else None, "candidates": chosen["candidates"],
            "duration_s": round(sum(x["dur"] for x in scenes), 2), "files": files,
-           "poster": poster.name if poster.exists() else None, "music": MUSIC.name if s.motd_music else None,
+           "poster": poster.name if poster.exists() else None,
+           "music": (audio.get("score") or {}).get("engine") if track else (MUSIC.name if s.motd_music else None),
+           "narrated": bool(audio.get("narrator")), "audio": audio or None,
            "scenes": [{k: x[k] for k in ("kind", "dur", "agent", "caption", "fact") if x.get(k) is not None}
                       for x in scenes], "made_at": time.time()}
     (out / "film.json").write_text(json.dumps(rec, indent=1))
     return rec
 
 
+HOOK_MAX = 70
+
+
+def film_hook(story: dict | None, rnd: dict, sc: dict) -> str:
+    """film.json `hook`: short (<= 70 chars) and no twist spoiler. Scripted: the cold open (validated, no result
+    or twist in it by construction of the story shape); templated: the market question."""
+    if story:
+        cold = next((x.get("caption") for x in story["scenes"] if x["kind"] == "s_cold_open"), None)
+        if cold and len(cold) <= HOOK_MAX:
+            return cold
+    q = rnd["question"]
+    return q if len(q) <= HOOK_MAX else q[:HOOK_MAX - 1].rstrip() + "…"
+
+
+def film_title(story: dict | None, rnd: dict) -> str:
+    """film.json `title_line`: '<film title> · Match of the Day'. The round number, never the result."""
+    t = (story or {}).get("title") or f"Round {rnd['round_id']}"
+    return f"{t} · Match of the Day"
+
+
 def post_text(rec: dict) -> str:
-    return rec["hook"] + " Match of the Day #AgentpitBench"
+    # the X text is always the code template (ai-automation spec: no opai-written X copy)
+    return rec.get("post_hook", rec["hook"]) + " Match of the Day #AgentpitBench"
 
 
 def link_text(s: Settings, rec: dict) -> str:

@@ -16,7 +16,7 @@ import re
 from datetime import datetime, timezone
 
 from . import twists as tw
-from .cards import results_headline, headline_variant, ranked, start_price
+from .cards import start_price
 from .config import AGENT_NAMES
 
 TASK = "motd_script"
@@ -83,8 +83,17 @@ DUR = {"cold_open": (2.0, 3.0), "title": (2.0, 2.5), "market": (4.0, 6.5), "back
        "coda": (4.5, 7.0)}
 MAX_CHARS = {"cold_open": 44, "title": 32, "market": 90, "background": 140, "character": 90, "misdirect": 80,
              "result": 80, "twist": 120, "coda": 70}
-BUDGET_CHARS = 650        # every caption together, slots filled: what a 45-60 s film can carry at CPS
+BUDGET_CHARS = 470        # every line together, slots filled: what a narrated 45-60 s film can carry
+NARR_CPS = 10.5           # narrator speed, characters a second (measured: ElevenLabs v4 stock voices, 9-11)
 
+
+# how the mascots act a scene out (the writer may choose for cold_open and misdirect; code stages the rest):
+# lineup = all four side by side; standoff = grouped by their actual pick, facing off; spotlight = one agent's card
+STAGES = ("lineup", "standoff", "spotlight")
+# the spotlight card's header per concept (a WANTED poster, a case file...)
+CARD_LABEL = {"noir": "Suspect", "nature_doc": "Specimen", "heist": "The crew", "courtroom": "Witness",
+              "broadcast": "Line-up", "countdown": "Asset", "mockumentary": "Interview", "western": "Wanted",
+              "mission_control": "Flight"}
 
 SCHEMA = {
     "type": "object",
@@ -97,6 +106,7 @@ SCHEMA = {
             "type": "object", "required": ["kind", "text"],
             "properties": {"kind": {"type": "string", "enum": list(KINDS)},
                            "agent": {"type": "string"},
+                           "stage": {"type": "string", "enum": list(STAGES)},
                            "text": {"type": "string"}}}},
     },
 }
@@ -146,6 +156,26 @@ def slots(rnd: dict, ctx: dict) -> dict[str, str]:
     dw = _date_words(rnd.get("end_date"))
     if dw:
         out["close_date"] = dw
+    for i, tok in enumerate(question_tokens(rnd["question"]), 1):
+        out[f"q{i}"] = tok
+    return out
+
+
+_MONTHS = r"(?:January|February|March|April|May|June|July|August|September|October|November|December)"
+_QTOK = re.compile(
+    rf"\d{{4}}-\d{{2}}-\d{{2}}|{_MONTHS}\s+\d{{1,2}}(?:\s*[-–]\s*\d{{1,2}})?(?:,\s*\d{{4}})?|"
+    r"[$€£]?\d[\d,]*(?:\.\d+)?(?:%|k|K|M|bn|\s?[AP]M)?")
+
+
+def question_tokens(q: str) -> list[str]:
+    """The question's own numbers and dates ($2,400, October 5-11, 2026-10-11 -> 11 October), as slots q1, q2...,
+    so the plain-words market line can state the threshold and dates without the writer typing a digit."""
+    out = []
+    for m in _QTOK.findall(q or ""):
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", m):
+            m = _date_words(m)
+        if m not in out:
+            out.append(m)
     return out
 
 
@@ -175,7 +205,8 @@ def payload(rnd: dict, ctx: dict, twist: dict, concepts: list[str], lines: dict[
         "closes": rnd.get("end_date"), "category_hint": ctx.get("category"),
         "start_prices": {o: tw.cents(start_price(rnd, o)) for o in rnd["outcomes"]},
         "agents": ents,
-        "twist": {"type": twist["type"], "fact": twist["fact"], "agents": twist["names"]},
+        "twist": {"type": twist["type"], "fact": twist["fact"], "agents": twist["names"],
+                  "set_it_up": twist.get("setup")},
         "allowed_concepts": {k: CONCEPTS[k]["label"] + ": " + CONCEPTS[k]["brief"] for k in concepts},
         "slots": sl, "caption_budget_chars": BUDGET_CHARS,
         "max_chars_per_scene": MAX_CHARS,
@@ -192,6 +223,8 @@ _PUTDOWN = re.compile(
     r"\b(stupid|dumb|idiot\w*|moron\w*|fool(s|ish)?|clueless|pathetic|embarrass\w*|humiliat\w*|clown\w*|trash|"
     r"garbage|loser|losers|choked?|incompetent|useless|brain-?dead|brainless|witless|dimwit\w*|dense|inept|"
     r"hopeless|laughable|joke of|dunce|halfwit\w*|nitwit\w*|imbecil\w*)\b", re.I)
+_MODEL = re.compile(r"\b(fable|luna|astra|opus|sonnet|haiku|gpt-?\d\w*|o\d-\w+|gemini\s*\d[\w.]*|grok\s*\d[\w.]*|"
+                    r"claude\s*\d[\w.]*|codex|antigravity|agy)\b", re.I)
 # playful rivalry between the AIs, never at the labs (operator, 2026-10-12): the makers are not characters
 _LABS = re.compile(r"\b(openai|anthropic|google|deepmind|xai|x\.ai|microsoft|meta|altman|musk|amodei|hassabis|"
                    r"pichai|nadella)\b", re.I)
@@ -244,6 +277,11 @@ def validate(data: dict, pl: dict) -> str | None:
     chars = [s.get("agent") for s in scenes if s.get("kind") == "character"]
     if sorted(chars) != sorted(names):
         return f"one character scene per agent, agent field exactly one of {names} (got {chars})"
+    for s in scenes:
+        if s.get("kind") == "misdirect" and s.get("agent") and s["agent"] not in names:
+            return f"misdirect agent must be one of {names} (got {s['agent']})"
+        if s.get("stage") == "spotlight" and s.get("kind") == "misdirect" and not s.get("agent"):
+            return "a spotlight misdirect needs an agent"
     if not kinds.index("market") < min(i for i, k in enumerate(kinds) if k == "character") < kinds.index("result"):
         return "order: market before the characters, characters before the result"
     pick = {a["name"]: a["pick"] for a in pl["agents"]}
@@ -283,6 +321,9 @@ def validate(data: dict, pl: dict) -> str | None:
         m = _LABS.search(bare)  # the background may need one (a market about a lab); captions about AIs may not
         if m and k != "background" and not _LABS.search(pl.get("market_question") or ""):
             return f"scene {i} ({k}): names a lab or its people ('{m.group(0)}'); the AIs are the characters"
+        m = _MODEL.search(bare)  # the card names the model each AI actually played on; the script never does
+        if m:
+            return f"scene {i} ({k}): names a model or version ('{m.group(0)}'); call the AIs by name only"
         m = _SIGNIF.search(bare)
         if m:
             return f"scene {i} ({k}): significance or superiority claim '{m.group(0)}'"
@@ -312,7 +353,8 @@ def validate(data: dict, pl: dict) -> str | None:
     chars = sum(len(fill(s.get("text") or "", sl)) for s in scenes)
     if chars > BUDGET_CHARS:
         return f"too long: {chars} caption characters in total, the budget is {BUDGET_CHARS}; cut words"
-    total = sum(durations(scenes, sl, {a["name"]: a.get("card_quote") for a in pl["agents"]}))
+    total = sum(max(d, 0.75 + len(fill(s["text"], sl)) / NARR_CPS) for s, d in
+                zip(scenes, durations(scenes, sl, {a["name"]: a.get("card_quote") for a in pl["agents"]})))
     if total > MAX_S:
         return f"too long: about {total:.0f} s at reading speed; cut words (the film must fit {MAX_S:.0f} s)"
     return None
@@ -330,47 +372,54 @@ def build_scenes(data: dict, rnd: dict, ctx: dict, twist: dict, lb: dict, site: 
     durs = durations(data["scenes"], sl, {e["name"]: e.get("quote") for e in rnd["entries"]})
     by_name = {e["name"]: e for e in rnd["entries"]}
     url = f"{site}/round/{rnd['round_id']}"
-    crowd = rnd.get("crowd") or {}
+    rnd.get("crowd") or {}
     out = []
-    n_chars = sum(1 for s in data["scenes"] if s["kind"] == "character")
-    ci = 0
+    src = ctx.get("sources") or {}
+
+    def actor(x: dict) -> dict:
+        mkt = start_price(rnd, x["outcome"]) if x.get("outcome") else None
+        return {"agent": x["agent"], "name": x["name"], "outcome": x.get("outcome"), "won": x.get("won"),
+                "entry": _cents(x.get("avg_price")), "entry_v": round((x.get("avg_price") or 0) * 100, 1),
+                "conf": _pct(x.get("confidence")), "conf_v": round((x.get("confidence") or 0) * 100),
+                "mkt": _pct1(mkt), "mkt_v": round((mkt or 0) * 100, 1), "decided": tw.secs(x.get("decided_s")),
+                "quote": (x.get("quote") or "").strip() or None, "links": src.get(x["agent"]) or None,
+                "pnl": x.get("pnl"), "pnl_s": _signed(x.get("pnl")) if x.get("outcome") else None,
+                "why": None if x.get("outcome") else (x.get("exit_reason") or "no bet")}
+
+    cast = [actor(x) for x in rnd["entries"]]
+    sides = []  # by the pick each agent actually made (no-bet agents stand aside)
+    for o in rnd["outcomes"]:
+        grp = [a for a in cast if a["outcome"] == o]
+        if grp:
+            sides.append({"outcome": o, "agents": grp, "price": _cents(start_price(rnd, o))})
+    twist_cast = [a for a in cast if a["agent"] in twist["agents"]][:3]
     for s, dur in zip(data["scenes"], durs):
         k = s["kind"]
-        e = by_name.get(s.get("agent") or "") if k == "character" else None
+        e = by_name.get(s.get("agent") or "") if k in ("character", "misdirect") else None
         agent = e["agent"] if e else None
         sc = {"kind": "s_" + k, "dur": dur, "agent": agent, "sig": _sig(lb, agent),
-              "model_line": full_model_line(agent), "caption": fill(s["text"], sl), "concept": concept, "theme": theme}
-        if k == "cold_open":
-            sc["mascots"] = [x["agent"] for x in rnd["entries"]]
-        elif k == "title":
+              "model_line": full_model_line(agent, e), "caption": fill(s["text"], sl), "concept": concept,
+              "theme": theme, "cast": cast, "sides": sides, "stage": s.get("stage") or "standoff",
+              "card_label": CARD_LABEL.get(concept, "Player")}
+        if k == "title":
             sc["title"] = data.get("title") or ""
             sc["genre"] = CONCEPTS[concept]["label"]
         elif k == "market":
             sc["question"] = rnd["question"]
-            sc["prices"] = [{"outcome": o, "price": _cents(start_price(rnd, o))} for o in rnd["outcomes"]]
+            sc["prices"] = [{"outcome": o, "price": _cents(start_price(rnd, o)),
+                             "value": round((start_price(rnd, o) or 0) * 100, 1)} for o in rnd["outcomes"]]
             sc["close"] = (rnd.get("end_date") or "")[:10]
         elif k == "background":
             sc["subject"] = (data.get("background_subject") or "").strip()[:40]
-        elif k == "character" and e:
-            ci += 1
-            mkt = start_price(rnd, e["outcome"]) if e.get("outcome") else None
-            sc.update(name=e["name"], outcome=e.get("outcome"), entry=_cents(e.get("avg_price")), mkt=_pct1(mkt),
-                      conf=_pct(e.get("confidence")), quote=(e.get("quote") or "").strip() or None,
-                      decided=e.get("decided_s"), n=ci, of=n_chars,
-                      why=None if e.get("outcome") else (e.get("exit_reason") or "no bet"))
+        elif k in ("character", "misdirect") and e and (k == "character" or s.get("stage") == "spotlight"):
+            sc["spot"] = actor(e)
+            # the research count is shown when the twist is about research, so the misdirect can plant it
+            sc["show_links"] = twist["type"] in ("most_sources_lost",)
         elif k == "result":
             sc["winner"] = rnd.get("winner")
-            sc["headline"] = results_headline(rnd, variant=variant or rnd.get("headline_variant")
-                                              or headline_variant(rnd["round_id"]))
-            sc["rows"] = [{"agent": x["agent"], "name": x["name"], "outcome": x.get("outcome"),
-                           "entry": _cents(x.get("avg_price")), "pnl": x.get("pnl"),
-                           "pnl_s": _signed(x.get("pnl")) if x.get("outcome") else "—", "won": bool(x.get("won"))}
-                          for x in ranked(rnd["entries"])]
-            sc["crowd"] = ({"outcome": crowd.get("outcome"), "price": _cents(crowd.get("price")),
-                            "pnl": _signed(crowd.get("pnl")), "won": crowd.get("won")} if crowd.get("outcome") else None)
         elif k == "twist":
             sc["fact"] = twist["fact"]
-            sc["twist_agents"] = twist["agents"]
+            sc["twist_cast"] = twist_cast
         elif k == "coda":
             sc["standings"] = standings(lb)
             sc["asof"] = (datetime.fromtimestamp(lb["updated_at"], timezone.utc).strftime("%Y-%m-%d")
@@ -414,10 +463,11 @@ def script_text(data: dict, sl: dict[str, str]) -> str:
     return "\n".join(lines)
 
 
-def recent(db, n: int = RECENT_FILMS) -> tuple[list[str], list[str]]:
-    """(concept types, twist types) of the last n accepted scripts."""
-    rows = db.q("SELECT content FROM operator_ai_outputs WHERE purpose=? AND accepted=1 ORDER BY output_id DESC "
-                "LIMIT ?", TASK, n)
+def recent(db, n: int = RECENT_FILMS, subject: str | None = None) -> tuple[list[str], list[str]]:
+    """(concept types, twist types) of the last n accepted scripts of OTHER rounds (a re-render of the same round
+    does not count its own earlier drafts)."""
+    rows = db.q("SELECT content FROM operator_ai_outputs WHERE purpose=? AND accepted=1 AND subject IS NOT ? "
+                "ORDER BY output_id DESC LIMIT ?", TASK, subject, n)
     concepts, twists_ = [], []
     for r in rows:
         try:

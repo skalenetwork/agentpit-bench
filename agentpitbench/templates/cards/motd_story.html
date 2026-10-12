@@ -1,7 +1,8 @@
 <!doctype html>
 {#- Match of the Day v0.5: one scene of a SCRIPTED film. body.tall (1080x1920) / body.wide (1920x1080).
-    sc.theme (motd_story.CONCEPTS) sets palette, fonts, transition, caption treatment and texture.
-    sc.caption is the writer's line with every round number filled by code from slots; data panels are code-built.
+    Layout: a STAGE (mascots acting the story out: lineup, standoff by pick, spotlight card, fall, push-in) and a
+    SUBTITLE (the writer's line, every round number filled by code from slots). sc.theme (motd_story.CONCEPTS) sets
+    palette, fonts, transition, caption treatment and texture. Every number on the stage is code-built from data.
     Legibility rule: nothing below 40px. -#}
 {%- set th = sc.theme %}
 {%- set fams = [th.font, th.cap, 'Inter:wght@400;600;800', 'Oswald:wght@500;700']|unique|list %}
@@ -14,37 +15,41 @@ html,body{width:{{ w }}px;height:{{ h }}px;overflow:hidden}
 :root{--bg1:{{ th.bg1 }};--bg2:{{ th.bg2 }};--ink:{{ th.ink }};--acc:{{ th.accent }};--panel:{{ th.panel }};
   --disp:"{{ th.font }}",Oswald,"DejaVu Sans Condensed",sans-serif;--cap:"{{ th.cap }}",Inter,"DejaVu Sans",sans-serif}
 body{background:var(--bg1);color:var(--ink);font-family:Inter,"DejaVu Sans",sans-serif;position:relative;font-size:44px}
-.bg{position:absolute;inset:0;background:radial-gradient(1300px 1000px at 15% 0%, var(--soft) 0%, transparent 65%),linear-gradient(165deg,var(--bg1) 0%,var(--bg2) 100%)}
-.tex{position:absolute;inset:0;pointer-events:none}
-.tex.grain{background:repeating-radial-gradient(circle at 30% 40%,rgba(255,255,255,.035) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.75) 100%)}
+.bg{position:absolute;inset:0;background:radial-gradient(1300px 1000px at 50% 30%, var(--soft) 0%, transparent 65%),linear-gradient(165deg,var(--bg1) 0%,var(--bg2) 100%)}
+.tex{position:absolute;inset:0;pointer-events:none;z-index:3}
+.tex.grain{background:repeating-radial-gradient(circle at 30% 40%,rgba(255,255,255,.04) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.8) 100%)}
 .tex.vignette{background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.6) 100%)}
 .tex.blueprint{background-image:linear-gradient(rgba(63,208,255,.10) 2px,transparent 2px),linear-gradient(90deg,rgba(63,208,255,.10) 2px,transparent 2px);background-size:90px 90px}
 .tex.grid{background-image:linear-gradient(rgba(92,242,160,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(92,242,160,.08) 1px,transparent 1px);background-size:60px 60px}
 .tex.stripes{background:repeating-linear-gradient(115deg,rgba(255,212,0,.06) 0 40px,transparent 40px 120px)}
 .tex.scan{background:repeating-linear-gradient(0deg,rgba(255,0,0,.06) 0 2px,transparent 2px 6px),radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.7) 100%)}
-.tex.sepia{background:radial-gradient(ellipse at 50% 120%,rgba(255,170,60,.35),transparent 60%),radial-gradient(ellipse at center,transparent 50%,rgba(40,15,0,.7) 100%)}
-.disp{font-family:var(--disp);text-transform:uppercase;letter-spacing:.5px}
+.tex.sepia{background:radial-gradient(ellipse at 50% 120%,rgba(255,170,60,.35),transparent 60%),radial-gradient(ellipse at center,transparent 45%,rgba(40,15,0,.75) 100%)}
+.ground{position:absolute;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--acc),transparent);opacity:.5}
 .dim{opacity:.68}
 .pos{color:#22c55e}.neg{color:#ff5c7a}.zero{opacity:.6}
-.prog{position:absolute;left:0;right:0;top:0;height:12px;display:flex;gap:6px;padding:0 6px}
+.prog{position:absolute;left:0;right:0;top:0;height:12px;display:flex;gap:6px;padding:0 6px;z-index:4}
 .prog i{flex:1;background:rgba(127,127,127,.25)}
 .prog i.on{background:var(--acc)}
-.top{position:absolute;left:0;right:0;top:30px;display:flex;justify-content:space-between;align-items:center;padding:0 56px;gap:20px}
-.tag{font-family:Oswald,sans-serif;font-weight:700;font-size:42px;letter-spacing:3px;text-transform:uppercase;background:var(--acc);color:var(--bg1);padding:2px 16px;white-space:nowrap}
-.meta{font-family:Oswald,sans-serif;font-size:42px;text-transform:uppercase;white-space:nowrap;opacity:.75}
-.main{position:absolute;left:0;right:0;display:flex;flex-direction:column;justify-content:safe center;padding:0 64px;overflow:hidden;gap:30px}
-body.tall .main{top:120px;bottom:290px}
-body.wide .main{top:110px;bottom:165px;padding:0 100px;gap:22px}
-/* caption: the writer's line */
-.cap{font-family:var(--cap);font-weight:700;line-height:1.22;color:var(--ink)}
-body.tall .cap{font-size:62px}
-body.wide .cap{font-size:54px}
-.cap.box{background:rgba(0,0,0,.45);border-left:12px solid var(--acc);padding:24px 30px}
-body.light .cap.box{background:rgba(255,255,255,.75)}
-.cap .q{color:var(--acc)}
-.label{font-family:Oswald,sans-serif;font-size:46px;letter-spacing:5px;color:var(--acc);text-transform:uppercase}
+.top{position:absolute;left:0;right:0;top:30px;display:flex;justify-content:space-between;align-items:center;padding:0 56px;gap:20px;z-index:4}
+.tag{font-family:Oswald,sans-serif;font-weight:700;font-size:40px;letter-spacing:3px;text-transform:uppercase;background:var(--acc);color:var(--bg1);padding:2px 16px;white-space:nowrap}
+.meta{font-family:Oswald,sans-serif;font-size:40px;text-transform:uppercase;white-space:nowrap;opacity:.75}
+/* the stage */
+.main{position:absolute;left:0;right:0;display:flex;flex-direction:column;justify-content:safe center;align-items:stretch;padding:0 60px;overflow:hidden;gap:28px;transform-origin:50% 45%}
+body.tall .main{top:110px;bottom:290px}
+body.wide .main{top:100px;bottom:160px;padding:0 100px;gap:20px}
+.label{font-family:Oswald,sans-serif;font-size:44px;letter-spacing:5px;color:var(--acc);text-transform:uppercase}
+.disp{font-family:var(--disp);text-transform:uppercase}
+/* subtitle: the writer's line */
+.sub{font-family:var(--cap);font-weight:700;line-height:1.22;color:var(--ink);text-align:center;text-wrap:balance;
+  background:rgba(0,0,0,.55);padding:20px 30px;border-radius:6px;align-self:center;max-width:100%}
+body.light .sub{background:rgba(255,255,255,.82)}
+body.tall .sub{font-size:58px}
+body.wide .sub{font-size:52px;max-width:1500px}
+.sub.big{background:none;padding:0}
+body.tall .sub.big{font-size:84px;line-height:1.12}
+body.wide .sub.big{font-size:76px}
 /* credibility strip */
-.foot{position:absolute;left:0;right:0;bottom:0;background:#060912;font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:40px;line-height:1.2;color:#9aa4c4;display:flex;align-items:center;gap:24px}
+.foot{position:absolute;left:0;right:0;bottom:0;background:#060912;font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:40px;line-height:1.2;color:#9aa4c4;display:flex;align-items:center;gap:24px;z-index:7}
 body.tall .foot{height:270px;padding:0 40px}
 body.wide .foot{height:150px;padding:0 50px}
 .foot .em{flex:0 0 84px;width:84px;height:84px;border-radius:50%;overflow:hidden}
@@ -55,157 +60,178 @@ body.wide .foot{height:150px;padding:0 50px}
 .foot .ex{display:inline-block;background:#8a93a8;color:#0b1020;font-weight:700;letter-spacing:2px;padding:0 12px;margin-right:12px}
 .foot .ex.gold{background:linear-gradient(90deg,#b8860b,#ffd34d,#b8860b);color:#1a1200}
 .foot .one{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* transitions and the twist flash */
 .trans{position:absolute;inset:0;background:var(--bg1);z-index:5;pointer-events:none}
 .flash{position:absolute;inset:0;background:#fff;z-index:6;pointer-events:none;opacity:0}
+/* mascots on stage */
+.troupe{display:flex;justify-content:center;align-items:flex-end;gap:34px}
+.actor{display:flex;flex-direction:column;align-items:center;gap:8px;transform-origin:50% 100%}
+.actor .nm{font-family:var(--disp);font-size:46px;text-transform:uppercase;line-height:1}
+.actor .pl{font-family:Oswald,sans-serif;font-size:58px;font-weight:700;line-height:1}
+.standoff{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.side{display:flex;flex-direction:column;align-items:center;gap:18px;flex:1}
+.side .o{font-family:var(--disp);font-size:96px;line-height:1;text-transform:uppercase;color:var(--acc)}
+.side .px{font-family:Oswald,sans-serif;font-size:46px;opacity:.8}
+.side .troupe{gap:16px}
+.vs{font-family:var(--disp);font-size:90px;color:var(--acc);opacity:.85}
 /* cold open */
 .cold{font-family:var(--disp);text-transform:uppercase;line-height:1.04;text-align:center;color:var(--ink)}
-body.tall .cold{font-size:118px}
-body.wide .cold{font-size:112px}
-.mascots{display:flex;gap:30px;justify-content:center}
+body.tall .cold{font-size:116px}
+body.wide .cold{font-size:104px}
 /* title card */
-.genre{font-family:Oswald,sans-serif;font-size:48px;letter-spacing:10px;text-transform:uppercase;color:var(--acc);text-align:center}
+.genre{font-family:Oswald,sans-serif;font-size:46px;letter-spacing:10px;text-transform:uppercase;color:var(--acc);text-align:center}
 .ttl{font-family:var(--disp);text-align:center;line-height:1.02;text-transform:uppercase}
 body.tall .ttl{font-size:150px}
 body.wide .ttl{font-size:140px}
 .rule{height:6px;background:var(--acc);width:40%;margin:0 auto}
-/* market */
-.prices{display:flex;gap:26px}
-body.tall .prices{flex-direction:column}
-.price{flex:1;background:var(--panel);padding:18px 30px;display:flex;justify-content:space-between;align-items:baseline;border-left:10px solid var(--acc)}
-.price .o{font-size:60px;font-weight:700}
-.price .v{font-family:Oswald,sans-serif;font-size:88px;font-weight:700}
-.rawq{font-size:42px;opacity:.75;line-height:1.2}
+/* market tickers */
+.tickers{display:flex;gap:26px;justify-content:center}
+.tick{flex:1;max-width:460px;background:var(--panel);border:4px solid var(--acc);padding:18px 26px;text-align:center}
+.tick .o{font-family:var(--disp);font-size:60px;text-transform:uppercase}
+.tick .v{font-family:Oswald,sans-serif;font-size:120px;font-weight:700;line-height:1;color:var(--acc)}
+.tick .l{font-size:40px;opacity:.7}
+.rawq{font-size:40px;opacity:.75;line-height:1.2;text-align:center}
 /* background: big type */
-.subject{font-family:var(--disp);text-transform:uppercase;line-height:.92;color:var(--acc);word-break:break-word}
+.subject{font-family:var(--disp);text-transform:uppercase;line-height:.92;color:var(--acc);word-break:break-word;text-align:center}
 body.tall .subject{font-size:170px}
-body.wide .subject{font-size:150px}
-.subject.long{font-size:110px !important}
-.note{font-size:40px;opacity:.6;font-style:italic}
-/* character */
-.who{display:flex;align-items:center;gap:30px}
-.name{font-family:var(--disp);font-size:120px;line-height:1;text-transform:uppercase}
-.model{font-family:Oswald,sans-serif;font-size:42px;opacity:.7;margin-top:6px}
-.chips{display:flex;flex-wrap:wrap;gap:16px 34px;align-items:baseline}
-.chip .v{font-family:Oswald,sans-serif;font-size:76px;font-weight:700}
-.chip .l{font-family:Oswald,sans-serif;font-size:42px;text-transform:uppercase;opacity:.7;margin-left:8px}
-.pickv{font-family:var(--disp);font-size:110px;line-height:1;text-transform:uppercase}
-.talk{background:#f4f6fb;color:#0b1020;font-weight:800;line-height:1.22;padding:20px 28px;border-radius:24px;position:relative}
-body.tall .talk{font-size:46px}
-body.wide .talk{font-size:42px}
-.charrow{display:flex;gap:50px}
-body.tall .charrow{flex-direction:column;gap:24px}
-body.wide .charrow .left{flex:0 0 640px}
-body.wide .charrow .right{flex:1;min-width:0;display:flex;flex-direction:column;gap:20px}
-body.tall .charrow .right{display:flex;flex-direction:column;gap:22px}
+body.wide .subject{font-size:160px}
+.subject.long{font-size:112px !important}
+.note{font-size:40px;opacity:.6;font-style:italic;text-align:center}
+/* spotlight card (WANTED poster, case file, crew dossier...) */
+.card{position:relative;align-self:center;background:var(--panel);border:6px solid var(--acc);padding:26px 34px 30px;display:flex;flex-direction:column;align-items:center;gap:14px;min-width:70%;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+body.wide .card{flex-direction:row;gap:40px;min-width:0;align-items:center}
+.card .hd{font-family:var(--disp);font-size:72px;letter-spacing:6px;color:var(--acc);line-height:1;text-transform:uppercase}
+.card .nm{font-family:var(--disp);font-size:104px;line-height:1;text-transform:uppercase}
+.card .md{font-family:Oswald,sans-serif;font-size:40px;opacity:.7}
+.card .stats{display:flex;gap:34px;align-items:baseline;flex-wrap:wrap;justify-content:center}
+.card .pk{font-family:var(--disp);font-size:100px;line-height:1;text-transform:uppercase}
+.card .st{display:flex;flex-direction:column;align-items:center}
+.card .st .v{font-family:Oswald,sans-serif;font-size:84px;font-weight:700;line-height:1}
+.card .st .l{font-family:Oswald,sans-serif;font-size:40px;text-transform:uppercase;opacity:.7}
+.meter{width:100%;height:22px;background:rgba(127,127,127,.25);position:relative}
+.meter i{position:absolute;left:0;top:0;bottom:0;background:var(--acc)}
+.meter b{position:absolute;top:-8px;bottom:-8px;width:6px;background:var(--ink);opacity:.8}
+.mlab{display:flex;justify-content:space-between;width:100%;font-family:Oswald,sans-serif;font-size:40px;opacity:.8}
+.bubble{background:#f4f6fb;color:#0b1020;font-weight:800;line-height:1.2;padding:18px 26px;border-radius:24px;position:relative;align-self:center}
+body.tall .bubble{font-size:46px;max-width:94%}
+body.wide .bubble{font-size:42px;max-width:1400px}
+.bubble:before{content:"";position:absolute;left:60px;top:-18px;border:18px solid transparent;border-top:0;border-bottom-color:#f4f6fb}
 /* result */
-.res{display:flex;align-items:baseline;justify-content:center;gap:30px}
-.result{font-family:var(--disp);font-size:150px;line-height:1;color:#22c55e;text-transform:uppercase}
+.result{font-family:var(--disp);font-size:150px;line-height:1;color:#22c55e;text-transform:uppercase;text-align:center}
 body.wide .result{font-size:120px}
-.rows{display:flex;flex-direction:column;gap:14px}
-body.wide .rows{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px}
-.row{display:grid;grid-template-columns:84px 1fr auto;align-items:center;background:var(--panel);padding:8px 24px 8px 14px;gap:18px}
-.row .m{grid-row:1 / span 2}
-.row .n{font-family:var(--disp);font-size:58px;line-height:1.05;text-transform:uppercase}
-.row .p{font-size:42px;opacity:.85;grid-column:2}
-.row .pnl{font-family:Oswald,sans-serif;font-size:74px;font-weight:700;text-align:right;grid-row:1 / span 2;grid-column:3}
-.row.l{opacity:.5}
-.row.w{box-shadow:inset 0 0 0 4px #22c55e}
+.resl{font-family:Oswald,sans-serif;font-size:44px;letter-spacing:8px;text-transform:uppercase;text-align:center;opacity:.8}
 /* twist */
-.twlabel{font-family:var(--disp);text-transform:uppercase;color:var(--bg1);background:var(--acc);display:inline-block;padding:6px 26px;align-self:flex-start}
-body.tall .twlabel{font-size:84px}
-body.wide .twlabel{font-size:76px}
-.fact{font-family:Oswald,sans-serif;font-weight:700;line-height:1.12;color:var(--ink);border:5px solid var(--acc);padding:22px 28px;background:rgba(0,0,0,.35)}
-body.light .fact{background:rgba(255,255,255,.7)}
-body.tall .fact{font-size:64px}
-body.wide .fact{font-size:56px}
-.twmasc{display:flex;gap:24px}
+.twlabel{font-family:var(--disp);text-transform:uppercase;color:var(--bg1);background:var(--acc);padding:6px 26px;align-self:center}
+body.tall .twlabel{font-size:92px}
+body.wide .twlabel{font-size:80px}
+.fact{font-family:Oswald,sans-serif;font-weight:700;line-height:1.12;color:var(--ink);border:5px solid var(--acc);padding:22px 28px;background:rgba(0,0,0,.45);text-align:center}
+body.light .fact{background:rgba(255,255,255,.8)}
+body.tall .fact{font-size:62px}
+body.wide .fact{font-size:54px}
 /* coda */
 .cols{display:flex;gap:56px}
-body.tall .cols{flex-direction:column;gap:20px}
+body.tall .cols{flex-direction:column;gap:18px}
 .col{flex:1}
-.col h3{font-family:Oswald,sans-serif;font-size:46px;letter-spacing:2px;text-transform:uppercase;color:var(--acc);font-weight:500}
-.st{display:flex;justify-content:space-between;align-items:baseline;font-size:46px;padding:3px 0;border-bottom:2px solid rgba(127,127,127,.3)}
-.st b{font-family:Oswald,sans-serif;text-transform:uppercase}
-.st .v{font-family:Oswald,sans-serif;font-weight:700}
-.bigurl{font-family:Oswald,sans-serif;font-size:64px;font-weight:700}
-.cta{font-size:42px;opacity:.85;line-height:1.25}
+.col h3{font-family:Oswald,sans-serif;font-size:44px;letter-spacing:2px;text-transform:uppercase;color:var(--acc);font-weight:500}
+.srow{display:flex;justify-content:space-between;align-items:baseline;font-size:46px;padding:3px 0;border-bottom:2px solid rgba(127,127,127,.3)}
+.srow b{font-family:Oswald,sans-serif;text-transform:uppercase}
+.srow .v{font-family:Oswald,sans-serif;font-weight:700}
+.bigurl{font-family:Oswald,sans-serif;font-size:62px;font-weight:700;text-align:center}
+.cta{font-size:42px;opacity:.85;line-height:1.25;text-align:center}
 </style></head>
 {%- set team = colors.get(sc.agent, th.accent) if sc.agent else th.accent %}
+{%- set big = 300 if fmt == 'tall' else 250 %}
+{%- macro actor(a, size, extra='') -%}
+<div class="actor" {{ extra|safe }}>{{ mascot(a.agent, size) }}<span class="nm" style="color:{{ colors.get(a.agent, '#888')|edge }}">{{ a.name }}</span></div>
+{%- endmacro %}
+{%- macro standoff(sides, size, t0=0.0, result=False) -%}
+<div class="standoff">{% for sd in sides %}
+  {% if not loop.first %}<div class="vs" data-in="{{ t0 + 0.5 }}" data-fx="pop">vs</div>{% endif %}
+  {% set si = loop.index0 %}<div class="side"><div class="o" data-in="{{ t0 + 0.3 }}" data-fx="slam">{{ sd.outcome }}</div>
+    <div class="troupe">{% for a in sd.agents %}<div class="actor" data-in="{{ t0 + 0.1 * loop.index0 }}" data-fx="{{ 'up' if sides|length == 1 else 'from-left' if si == 0 else 'from-right' }}" {% if result and not a.won %}data-fall="{{ t0 + 1.4 }}"{% endif %}>{{ mascot(a.agent, size) }}<span class="nm" style="color:{{ colors.get(a.agent, '#888')|edge }}">{{ a.name }}</span>{% if result and a.pnl_s %}<span class="pl {{ 'pos' if a.won else 'neg' }}" data-count data-in="{{ t0 + 0.9 }}" data-cd="1.1" data-to="{{ a.pnl or 0 }}" data-fmt="signed">{{ a.pnl_s }}</span>{% endif %}</div>{% endfor %}</div>
+    {% if sd.price and not result %}<div class="px" data-in="{{ t0 + 0.6 }}" data-fx="fade">at {{ sd.price }}</div>{% endif %}</div>
+{% endfor %}</div>
+{%- endmacro %}
 <body class="{{ fmt }}{{ ' light' if th.light }}" style="--soft:{{ (team|edge) ~ '40' if sc.agent else th.bg2 }}">
 <div class="bg"></div><div class="tex {{ th.texture }}"></div>
 <div class="prog">{% for k in range(count) %}<i class="{{ 'on' if k <= idx }}"></i>{% endfor %}</div>
 <div class="top"><span class="tag">Match of the Day</span><span class="meta">Round {{ sc.round_id }}</span></div>
 {%- set capfx = th.fx %}
-<div class="main">
+<div class="main" data-cam="{{ 'zoom' if sc.kind == 's_twist' else 'push' }}">
 {% if sc.kind == 's_cold_open' %}
-  <div class="mascots" data-in="0" data-fx="pop">{% for a in sc.mascots %}{{ mascot(a, 170 if fmt == 'tall' else 150) }}{% endfor %}</div>
-  <div class="cold" data-in="0.1" data-fx="{{ 'slam' if capfx in ['slam', 'up'] else capfx }}">{{ sc.caption }}</div>
+  {% if sc.stage == 'standoff' and sc.sides|length > 1 %}{{ standoff(sc.sides, 170 if fmt == 'tall' else 150) }}
+  {% else %}<div class="troupe">{% for a in sc.cast %}{{ actor(a, 190 if fmt == 'tall' else 160, 'data-in="' ~ (0.08 * loop.index0) ~ '" data-fx="pop"') }}{% endfor %}</div>{% endif %}
+  <div class="cold" data-in="0.25" data-fx="{{ 'slam' if capfx in ['slam', 'up'] else capfx }}">{{ sc.caption }}</div>
 {% elif sc.kind == 's_title' %}
   <div class="genre" data-in="0" data-fx="fade">{{ sc.genre }}</div>
   <div class="rule" data-in="0.2" data-fx="wipe"></div>
   <div class="ttl" data-in="0.3" data-fx="pop">{{ sc.title }}</div>
   <div class="rule" data-in="0.5" data-fx="wipe"></div>
-  {% if sc.caption and sc.caption != sc.title %}<div class="cap" style="text-align:center" data-in="0.8" data-fx="fade">{{ sc.caption }}</div>{% endif %}
+  {% if sc.caption and sc.caption != sc.title %}<div class="sub big" style="font-size:56px" data-in="0.8" data-fx="fade">{{ sc.caption }}</div>{% endif %}
 {% elif sc.kind == 's_market' %}
-  <div class="label" data-in="0">The market</div>
-  <div class="cap" data-in="0.15" data-fx="{{ capfx }}">{{ sc.caption }}</div>
-  <div class="prices">{% for p in sc.prices %}<div class="price" data-in="{{ 0.9 + 0.25 * loop.index0 }}"><span class="o">{{ p.outcome }}</span><span class="v">{{ p.price }}</span></div>{% endfor %}</div>
-  <div class="rawq" data-in="1.4" data-fx="fade">The question as listed: “{{ sc.question }}”{% if sc.close %} · closes {{ sc.close }}{% endif %} · starting prices</div>
+  <div class="label" style="text-align:center" data-in="0">The market</div>
+  <div class="sub big" data-in="0.15" data-fx="{{ capfx }}">{{ sc.caption }}</div>
+  <div class="tickers">{% for p in sc.prices %}<div class="tick" data-in="{{ 0.9 + 0.25 * loop.index0 }}" data-fx="pop"><div class="o">{{ p.outcome }}</div><div class="v" data-count data-in="{{ 1.0 + 0.25 * loop.index0 }}" data-cd="1.2" data-to="{{ p.value }}" data-fmt="cents">{{ p.price }}</div><div class="l">start price</div></div>{% endfor %}</div>
+  <div class="rawq" data-in="1.6" data-fx="fade">As listed: “{{ sc.question }}”{% if sc.close %} · closes {{ sc.close }}{% endif %}</div>
 {% elif sc.kind == 's_background' %}
-  <div class="label" data-in="0">Who is this?</div>
+  <div class="label" style="text-align:center" data-in="0">Who is this?</div>
   {% if sc.subject %}<div class="subject {{ 'long' if sc.subject|length > 11 }}" data-in="0.1" data-fx="wipe">{{ sc.subject }}</div>{% endif %}
-  <div class="cap" data-in="0.6" data-fx="{{ capfx }}">{{ sc.caption }}</div>
+  <div class="sub" data-in="0.6" data-fx="{{ capfx }}">{{ sc.caption }}</div>
   <div class="note" data-in="1.0" data-fx="fade">Background, not round data</div>
-{% elif sc.kind == 's_character' %}
-  {% set c = colors.get(sc.agent, '#888') %}
-  <div class="charrow">
-    <div class="left"><div class="who" data-in="0" data-fx="up">{{ mascot(sc.agent, 190 if fmt == 'tall' else 230) }}<div><div class="name" style="color:{{ c|edge }}">{{ sc.name }}</div><div class="model">{{ model }}</div></div></div></div>
-    <div class="right">
-    {% if sc.outcome %}
-      <div class="chips" data-in="0.3"><span class="pickv" style="color:{{ c|edge }}">{{ sc.outcome }}</span><span class="chip"><span class="v">{{ sc.entry }}</span><span class="l">entry</span></span><span class="chip"><span class="v">{{ sc.conf }}</span><span class="l">sure</span></span></div>
+{% elif sc.kind in ('s_character', 's_misdirect') and sc.spot %}
+  {% set a = sc.spot %}{% set c = colors.get(a.agent, '#888') %}
+  <div class="card" data-in="0" data-fx="{{ 'drop' }}">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+      <div class="hd">{{ sc.card_label }}</div>
+      <div data-in="0.15" data-fx="pop">{{ mascot(a.agent, 220 if fmt == 'tall' else 230) }}</div>
+      <div class="nm" style="color:{{ c|edge }}">{{ a.name }}</div><div class="md">{{ model }}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:16px;min-width:0">
+    {% if a.outcome %}
+      <div class="stats" data-in="0.45">
+        <span class="pk" style="color:{{ c|edge }}">{{ a.outcome }}</span>
+        <span class="st"><span class="v" data-count data-in="0.5" data-cd="1.0" data-to="{{ a.entry_v }}" data-fmt="cents">{{ a.entry }}</span><span class="l">paid</span></span>
+        {% if sc.show_links and a.links %}<span class="st"><span class="v" data-count data-in="0.5" data-cd="1.4" data-to="{{ a.links }}" data-fmt="int">{{ a.links }}</span><span class="l">web links</span></span>{% else %}<span class="st"><span class="v">{{ a.decided }}</span><span class="l">to decide</span></span>{% endif %}
+      </div>
+      <div style="width:100%" data-in="0.7" data-fx="fade"><div class="mlab"><span>sure: {{ a.conf }}</span><span>market: {{ a.mkt }}</span></div>
+        <div class="meter"><i data-meter="{{ a.conf_v }}" data-in="0.8"></i><b style="left:calc({{ a.mkt_v }}% - 3px)"></b></div></div>
     {% else %}
-      <div class="pickv" style="color:#ff3b5c" data-in="0.3" data-fx="slam">No bet · {{ sc.why }}</div>
+      <div class="pk" style="color:#ff3b5c" data-in="0.3" data-fx="slam">No bet</div><div class="md">{{ a.why }}</div>
     {% endif %}
-      <div class="cap box" data-in="0.6" data-fx="{{ capfx }}">{{ sc.caption }}</div>
-      {% if sc.quote %}<div class="talk" data-in="{{ 0.6 + [sc.caption|length / 28, 2.0]|min }}">“{{ sc.quote }}”</div>{% endif %}
     </div>
   </div>
-{% elif sc.kind == 's_misdirect' %}
-  <div class="cap" style="{{ 'font-size:84px' if fmt == 'tall' else 'font-size:72px' }};line-height:1.15" data-in="0.1" data-fx="{{ capfx }}">{{ sc.caption }}</div>
+  {% if a.quote and sc.kind == 's_character' %}<div class="bubble" data-in="{{ 1.0 }}" data-fx="pop">“{{ a.quote }}”</div>{% endif %}
+  <div class="sub" data-in="{{ 0.5 if sc.kind == 's_misdirect' else 1.6 }}" data-fx="{{ capfx }}">{{ sc.caption }}</div>
+{% elif sc.kind in ('s_misdirect', 's_character') %}
+  {% if sc.stage == 'standoff' and sc.sides|length > 1 %}{{ standoff(sc.sides, 170 if fmt == 'tall' else 150) }}
+  {% else %}<div class="troupe">{% for a in sc.cast %}{{ actor(a, 180 if fmt == 'tall' else 150, 'data-in="' ~ (0.1 * loop.index0) ~ '" data-fx="up"') }}{% endfor %}</div>{% endif %}
+  <div class="sub big" data-in="0.4" data-fx="{{ capfx }}">{{ sc.caption }}</div>
 {% elif sc.kind == 's_result' %}
-  <div class="res"><div class="label" data-in="0">Resolved</div><div class="result" data-in="0.15" data-fx="slam">{{ sc.winner }}</div></div>
-  <div class="cap" style="text-align:center" data-in="0.5" data-fx="{{ capfx }}">{{ sc.caption }}</div>
-  <div class="rows">{% for e in sc.rows %}{% set c = colors.get(e.agent, '#888') %}
-    <div class="row {{ 'w' if e.won else 'l' }}" style="border-left:10px solid {{ c|edge }}" data-in="{{ 1.2 + 0.2 * loop.index0 }}">
-      <div class="m">{{ mascot(e.agent, 80) }}</div>
-      <div class="n" style="color:{{ c|edge }}">{{ e.name }}</div>
-      <div class="p">{% if e.outcome %}{{ e.outcome }} at {{ e.entry }}{% else %}no bet{% endif %}</div>
-      <div class="pnl {% if e.pnl and e.pnl > 0 %}pos{% elif e.pnl and e.pnl < 0 %}neg{% else %}zero{% endif %}"{% if e.outcome and e.pnl is not none %} data-count data-in="{{ 1.3 + 0.2 * loop.index0 }}" data-cd="1.2" data-to="{{ e.pnl }}" data-fmt="signed"{% endif %}>{{ e.pnl_s }}</div>
-    </div>{% endfor %}</div>
-  {% if sc.crowd %}<div class="rawq" data-in="2.2" data-fx="fade">The Crowd (market favourite at the start): {{ sc.crowd.outcome }} at {{ sc.crowd.price }}, {{ sc.crowd.pnl }}</div>{% endif %}
+  <div class="resl" data-in="0" data-fx="fade">Resolved</div>
+  <div class="result" data-in="0.15" data-fx="slam">{{ sc.winner }}</div>
+  {{ standoff(sc.sides, 160 if fmt == 'tall' else 130, 0.3, True) }}
+  <div class="sub" data-in="0.6" data-fx="{{ capfx }}">{{ sc.caption }}</div>
 {% elif sc.kind == 's_twist' %}
-  <div class="twlabel" data-in="0.35" data-fx="slam">The twist</div>
-  {% if sc.twist_agents %}<div class="twmasc" data-in="0.55" data-fx="pop">{% for a in sc.twist_agents %}{{ mascot(a, 130) }}{% endfor %}</div>{% endif %}
-  <div class="cap" data-in="0.8" data-fx="{{ capfx }}">{{ sc.caption }}</div>
-  <div class="fact" data-in="{{ 1.0 + [sc.caption|length / 22, 3.0]|min }}" data-fx="slam">{{ sc.fact }}</div>
+  <div class="twlabel" data-in="0.3" data-fx="slam">The twist</div>
+  {% if sc.twist_cast %}<div class="troupe">{% for a in sc.twist_cast %}{{ actor(a, big if sc.twist_cast|length == 1 else 210, 'data-in="0.35" data-fx="pop"') }}{% endfor %}</div>{% endif %}
+  <div class="fact" data-in="0.9" data-fx="slam">{{ sc.fact }}</div>
+  <div class="sub" data-in="{{ 1.6 }}" data-fx="{{ capfx }}">{{ sc.caption }}</div>
 {% elif sc.kind == 's_coda' %}
   {% set stn = sc.standings %}
-  <div class="cap" data-in="0" data-fx="{{ capfx }}">{{ sc.caption }}</div>
+  <div class="sub big" style="font-size:66px" data-in="0" data-fx="{{ capfx }}">{{ sc.caption }}</div>
   <div class="label" data-in="0.8" data-fx="fade">Season {{ stn.season }} standings{% if sc.asof %} · {{ sc.asof }}{% endif %}</div>
   <div class="cols">
     {% if stn.forecast %}<div class="col" data-in="1.0"><h3>Forecast accuracy (Brier, lower is better)</h3>
-      {% for a in stn.forecast %}<div class="st"><b style="color:{{ colors.get(a.agent, '#888')|edge }}">{{ a.name }}</b><span class="v">{{ '%.3f'|format(a.brier) }} <span class="dim" style="font-weight:400">n={{ a.n }}</span></span></div>{% endfor %}
-      {% if stn.crowd_brier is not none %}<div class="st"><b class="dim">The Crowd</b><span class="v dim">{{ '%.3f'|format(stn.crowd_brier) }}</span></div>{% endif %}</div>{% endif %}
+      {% for a in stn.forecast %}<div class="srow"><b style="color:{{ colors.get(a.agent, '#888')|edge }}">{{ a.name }}</b><span class="v">{{ '%.3f'|format(a.brier) }} <span class="dim" style="font-weight:400">n={{ a.n }}</span></span></div>{% endfor %}
+      {% if stn.crowd_brier is not none %}<div class="srow"><b class="dim">The Crowd</b><span class="v dim">{{ '%.3f'|format(stn.crowd_brier) }}</span></div>{% endif %}</div>{% endif %}
     {% if fmt == 'wide' or not stn.forecast %}<div class="col" data-in="1.3"><h3>Betting record</h3>
-      {% for a in stn.betting %}<div class="st"><b style="color:{{ colors.get(a.agent, '#888')|edge }}">{{ a.name }}</b><span class="v">{{ a.wins }}–{{ a.losses }} <span class="{{ 'pos' if a.net > 0 else 'neg' if a.net < 0 else 'zero' }}">{{ a.net|signed }}</span></span></div>{% endfor %}</div>{% endif %}
+      {% for a in stn.betting %}<div class="srow"><b style="color:{{ colors.get(a.agent, '#888')|edge }}">{{ a.name }}</b><span class="v">{{ a.wins }}–{{ a.losses }} <span class="{{ 'pos' if a.net > 0 else 'neg' if a.net < 0 else 'zero' }}">{{ a.net|signed }}</span></span></div>{% endfor %}</div>{% endif %}
   </div>
   <div class="bigurl" data-in="1.6">{{ sc.url }}</div>
   <div class="cta" data-in="1.9">{{ sc.cta }}</div>
 {% endif %}
 </div>
 {% if sc.kind == 's_twist' %}<div class="flash" data-flash="0"></div>{% endif %}
-{% if th.trans != 'cut' and idx > 0 %}<div class="trans" data-trans="{{ th.trans }}"></div>{% endif %}
+{% if th.trans != 'cut' and idx > 0 and sc.kind != 's_twist' %}<div class="trans" data-trans="{{ th.trans }}"></div>{% endif %}
 <div class="foot"><span class="em">{{ emblem(84, True) }}</span><div class="lines">
   {% if sig_line %}<div class="sig {{ 'one' if fmt == 'wide' }}">{{ sig_line }}</div>{% endif %}
   <div class="one">{% if sc.banner %}<span class="ex {{ 'gold' if 'HIGH' in sc.banner }}">{{ 'HIGH STAKES · EXHIBITION' if 'HIGH' in sc.banner else 'EXHIBITION' }}</span>{% endif %}{{ [model, 'Methodology v' ~ mver]|select|join(' · ') }}{% if fmt == 'wide' %} · <span class="url">{{ url }}</span>{% endif %}</div>

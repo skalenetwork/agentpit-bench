@@ -59,6 +59,7 @@ class Settings:
     opai_model_motd_script: str = "fable"   # claude CLI alias for the script writer (strongest for creative writing)
     opai_timeout_s: int = 300
     opai_config_dir: str = ""          # CLAUDE_CONFIG_DIR for opai (the separate login); empty = the CLI default
+    motd_narrator: bool = True        # ElevenLabs narrator when ELEVENLABS_API_KEY is set; false = captions only
     motd_music: bool = True           # the CC0 music bed (static/motd/theme.m4a); false = silent films
     sandbox: bool = True             # run agents inside bubblewrap (bwrap); never disable in production
     # independent-standard layer

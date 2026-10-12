@@ -24,7 +24,11 @@ def E(agent, outcome, won, price=0.5, conf=0.5, quote=None, pnl=None, decided=60
             "avg_price": price if outcome else None, "confidence": conf if outcome else None, "quote": quote,
             "pnl": pnl if pnl is not None else ((100 / price - 100) if won else -100.0) if outcome else None,
             "decided_s": decided if outcome else None, "statement": statement, "exit_reason": exit_reason,
-            "stake_filled": 100 if outcome else 0}
+            "stake_filled": 100 if outcome else 0, "model_reported": PLAYED.get(agent)}
+
+
+# the model each agent reported in these rounds: ChatGPT on GPT-6 Luna, though config now names GPT-6 Astra
+PLAYED = {"claude": "claude-fable-5-1", "codex": "gpt-6-luna", "agy": "Gemini 3.1 Pro (High)", "grok": "grok-4.7"}
 
 
 def R(rid, entries, winner="A", resolved_at=IN_WINDOW, exhibition=False, humans=None, collected=1, **kw):
@@ -310,7 +314,11 @@ async def test_render_both_formats_smoke(env):
     tall, wide = media.probe(out / rec["files"]["tall"]), media.probe(out / rec["files"]["wide"])
     assert tall["video"] == "1080x1920" and wide["video"] == "1920x1080"
     assert tall["audio"] and wide["audio"] and tall["duration"] > 1
-    assert json.loads((out / "film.json").read_text())["hook"] == "3 AIs said CYBERSHOKE. Claude said Nexus."
+    film = json.loads((out / "film.json").read_text())
+    # the writer is unavailable in tests: the templated film, X text from the template, hook = the question
+    assert film["scripted"] is False and film["narrated"] is False
+    assert film["post_hook"] == "3 AIs said CYBERSHOKE. Claude said Nexus."
+    assert len(film["hook"]) <= motd.HOOK_MAX and film["title_line"].endswith("Match of the Day")
     assert [f["round_id"] for f in motd.films(s)] == [rid]
     from agentpitbench import site
     built = site.build(s)
