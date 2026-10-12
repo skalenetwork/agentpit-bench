@@ -24,6 +24,16 @@ class OrderRejected(Exception):
     pass
 
 
+def unreachable(e: BaseException) -> bool:
+    """A network-level failure (DNS, refused or reset connection, timeout) or the far side's 5xx: the service or our
+    network is down for a while, the next cycle retries, and a one-line warning says so (no traceback)."""
+    import requests
+    from .twitter import TransientError
+    if isinstance(e, (httpx.TransportError, requests.ConnectionError, requests.Timeout, TransientError)):
+        return True
+    return isinstance(e, httpx.HTTPStatusError) and e.response.status_code >= 500
+
+
 class Agentpit:
     def __init__(self, base_url: str, api_key: str | None = None, timeout: float = 30):
         headers = {"X-API-Key": api_key} if api_key else {}

@@ -24,7 +24,7 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from .agentpit import Agentpit
+from .agentpit import Agentpit, unreachable
 from .config import AGENT_MODELS, AGENT_NAMES, Settings
 from .db import DB
 from .orchestrator import (CLIS, AgentCLI, CleanHome, Round, agent_env, home_model, infra_failure, sandbox_ok,
@@ -287,7 +287,11 @@ async def score_due(s: Settings, db: DB, api: Agentpit) -> int:
             pass
         try:
             m = await api.market(r["market_id"])
-        except Exception:
+        except Exception as e:
+            if unreachable(e):  # every other market would fail the same way: one line, next cycle retries
+                log.warning("agentpit unreachable (%s: %s); sweep resolution retries next cycle",
+                            type(e).__name__, str(e)[:200])
+                break
             log.exception("could not fetch sweep market %s", r["market_id"])
             continue
         if m and m.get("winner"):

@@ -6,7 +6,7 @@ import logging
 import time
 from datetime import datetime, timedelta, timezone
 
-from .agentpit import Agentpit
+from .agentpit import Agentpit, unreachable
 from .config import Settings
 from .db import DB
 
@@ -52,7 +52,11 @@ class Tracker:
         for r in self.db.q("SELECT * FROM rounds WHERE state='awaiting_resolution'"):
             try:
                 m = await self.api.market(r["market_id"])
-            except Exception:
+            except Exception as e:
+                if unreachable(e):  # every other market would fail the same way: one line, next cycle retries
+                    log.warning("agentpit unreachable (%s: %s); resolution checks retry next cycle",
+                                type(e).__name__, str(e)[:200])
+                    break
                 log.exception("could not fetch market %s", r["market_id"])
                 continue
             if m is None:

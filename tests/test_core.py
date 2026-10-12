@@ -233,6 +233,46 @@ async def test_tracker_retries_failed_redeem(s, db, monkeypatch):
     assert db.get("redeem_pending") == {}
 
 
+async def test_tracker_offline_logs_one_warning(s, db, caplog):
+    """DNS down (as right after a reboot): one warning line, no traceback, nothing resolved; the next cycle resolves."""
+    import logging
+    import httpx
+    from agentpitbench import cli
+    from agentpitbench.agentpit import unreachable
+    r1 = make_round(db, 1, {"claude": ("Yes", 0.5, 0.8)})
+    make_round(db, 2, {"claude": ("Yes", 0.5, 0.8)})
+    api = FakeAPI([gamma(1, winner="Yes", closed=True, active=False, resolvedAt=1000.0)])
+    real, calls = api.market, []
+
+    async def offline(mid):
+        calls.append(mid)
+        raise httpx.ConnectError("[Errno -3] Temporary failure in name resolution")
+    api.market = offline
+    with caplog.at_level(logging.WARNING):
+        assert await Tracker(s, db, api, NullPublisher()).check() == []
+    recs = [r for r in caplog.records if r.levelno >= logging.WARNING]
+    assert len(calls) == 1 and len(recs) == 1 and recs[0].exc_info is None and "unreachable" in recs[0].getMessage()
+    api.market = real
+    assert await Tracker(s, db, api, NullPublisher()).check() == [r1]
+    req = httpx.Request("GET", "https://x")
+    assert unreachable(httpx.HTTPStatusError("x", request=req, response=httpx.Response(502, request=req)))
+    assert not unreachable(httpx.HTTPStatusError("x", request=req, response=httpx.Response(400, request=req)))
+    assert not unreachable(ValueError("a bug"))
+
+    caplog.clear()
+    n = []
+
+    async def job():
+        n.append(1)
+        if len(n) == 1:
+            raise httpx.ConnectError("offline")
+        raise cli.asyncio.CancelledError
+    with caplog.at_level(logging.WARNING), pytest.raises(cli.asyncio.CancelledError):
+        await cli._every(0, job, "watcher")
+    recs = [r for r in caplog.records if r.levelno >= logging.WARNING]
+    assert len(recs) == 1 and recs[0].exc_info is None and "network unavailable" in recs[0].getMessage()
+
+
 async def test_tracker_voids_long_closed_market(s, db):
     rid = make_round(db, 1, {"claude": ("Yes", 0.5, 0.8)})
     db.set_round(rid, end_date=iso(datetime.now(timezone.utc) - timedelta(days=s.void_after_days + 1)))

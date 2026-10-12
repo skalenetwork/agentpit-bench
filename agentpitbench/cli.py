@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import config, exports
-from .agentpit import Agentpit
+from .agentpit import Agentpit, unreachable
 from .db import DB, leaderboard
 from .orchestrator import NullPublisher, Round, sandbox_ok, warm_login
 from .tracker import Tracker
@@ -34,8 +34,12 @@ async def _every(seconds: float, fn, name: str):
     while True:
         try:
             await fn()
-        except Exception:
-            log.exception("%s failed", name)
+        except Exception as e:
+            if unreachable(e):
+                log.warning("%s: network unavailable (%s: %s); retrying in %ds", name, type(e).__name__,
+                            str(e)[:200], seconds)
+            else:
+                log.exception("%s failed", name)
         await asyncio.sleep(seconds)
 
 
