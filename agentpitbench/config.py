@@ -48,6 +48,14 @@ class Settings:
     # decision posts in a burst; keeps a round at 2-3 posts (reveal, results, one press reply)
     post_decisions: bool = False
     press_max_replies: int = 1
+    # Match of the Day (docs/match-of-the-day-spec.md): the daily film of yesterday's most dramatic resolved round.
+    # Off until the first film is reviewed; gates selection, rendering and posting.
+    motd_enabled: bool = False
+    motd_hour_utc: int = 17
+    motd_min_score: float = 20
+    motd_fps: int = 15
+    motd_exhibition_factor: float = 0.5
+    motd_music: bool = True           # the CC0 music bed (static/motd/theme.m4a); false = silent films
     sandbox: bool = True             # run agents inside bubblewrap (bwrap); never disable in production
     # independent-standard layer
     methodology_version: str = "1.0"
@@ -73,6 +81,13 @@ class Settings:
     high_stakes_weekday: int = 4        # High-Stakes Friday: one round a week at a bigger stake
     high_stakes_hour_utc: int = 16
     high_stakes_stake: float = 500
+    # X analytics (docs/x-analytics-spec.md): read prices per resource returned, from X's pay-per-use page
+    x_read_prices: dict = field(default_factory=lambda: {"post": 0.005, "user": 0.010, "owned": 0.001})
+    x_metrics_budget_usd: float = 1.00   # per UTC day, metrics puller only (callers metrics + account): hard stop
+    x_read_alert_usd: float = 5.00       # per UTC day, all callers: one WARNING a day and a digest flag
+    x_app_owned: bool = False            # @agentpitbench owns the developer app: timeline mode, owned-read prices
+    x_reward_max_age_ratio: float = 1.5  # a snapshot counts as a reward only if age_s <= ratio x bucket age
+    x_series_free_rereads: bool = True   # re-read posts already billed today (free under X's same-day dedup)
     explorer_url: str = "https://skale-base-explorer.skalenodes.com"   # agentpit settles on SKALE Base
 
     @property
@@ -134,6 +149,8 @@ def load(path: str | Path = "bench.toml") -> Settings:
     data = tomllib.loads(p.read_text()) if p.exists() else {}
     if "data_dir" in data:
         data["data_dir"] = Path(data["data_dir"])
+    if "x_read_prices" in data:  # a partial [x_read_prices] table overrides only the prices it names
+        data["x_read_prices"] = {**Settings().x_read_prices, **data["x_read_prices"]}
     s = Settings(**data)
     if os.environ.get("BENCH_DRY_RUN") in ("0", "false"):
         s.dry_run = False

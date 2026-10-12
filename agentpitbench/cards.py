@@ -53,6 +53,43 @@ CLIP_JS = r"""
 """
 
 
+# Match of the Day scene timeline. data-in="<s>" enters at that second (data-fx: up | slam | fade | pop);
+# data-count counts up to data-to from data-in over data-cd seconds (data-fmt: signed | time | int), ending
+# on the element's own text. The rest state (t = 1e9) is the finished scene.
+MOTD_JS = r"""
+(function(){
+  const q = s => Array.from(document.querySelectorAll(s));
+  const ease = x => x <= 0 ? 0 : x >= 1 ? 1 : 1 - Math.pow(1 - x, 3);
+  let D = 3;
+  const fmt = {
+    signed: v => (v >= 0 ? '+' : '−') + Math.round(Math.abs(v)).toLocaleString('en-US'),
+    time: v => { const s = Math.round(v), m = Math.floor(s / 60), r = s % 60;
+                 return m ? `${m}m ${String(r).padStart(2, '0')}s` : `${r}s`; },
+    int: v => Math.round(v).toLocaleString('en-US')};
+  q('[data-count]').forEach(el => { el.dataset.final = el.textContent; });
+  window.__motdDur = d => { D = d; };
+  window.__motdEnd = () => {
+    let end = 0.6;
+    q('[data-in]').forEach(el => { end = Math.max(end, parseFloat(el.dataset.in) + 0.55); });
+    q('[data-count]').forEach(el => { end = Math.max(end, parseFloat(el.dataset.in || 0) + parseFloat(el.dataset.cd || 1) + 0.1); });
+    return Math.min(end, D);
+  };
+  window.__motd = function(t){
+    q('[data-in]').forEach(el => {
+      const p = ease((t - parseFloat(el.dataset.in)) / 0.45), fx = el.dataset.fx || 'up';
+      el.style.opacity = fx === 'slam' ? Math.min(1, p * 2) : p;
+      el.style.transform = p >= 1 ? '' : fx === 'slam' ? `scale(${1.25 - 0.25 * p})` :
+        fx === 'pop' ? `scale(${0.6 + 0.4 * p})` : fx === 'fade' ? '' : `translateY(${40 * (1 - p)}px)`;
+    });
+    q('[data-count]').forEach(el => {
+      const k = ease((t - parseFloat(el.dataset.in || 0)) / parseFloat(el.dataset.cd || 1));
+      el.textContent = k >= 1 ? el.dataset.final : fmt[el.dataset.fmt || 'int'](parseFloat(el.dataset.to) * k);
+    });
+  };
+})();
+"""
+
+
 def cents(p: float | None) -> str:
     return "—" if p is None else f"{round(p * 100):d}¢"
 
@@ -432,6 +469,56 @@ class CardRenderer:
                            variant: str | None = None) -> Path | None:
         html = self._results_html(rnd, board, crowd, cast, top_humans, variant)
         return await self.clip(html, self._dir(rnd) / "results")
+
+    async def sequence(self, scenes: list[dict], out_base: Path, width: int, height: int, fps: int = 15,
+                       fmt: str = "tall") -> Path | None:
+        """Match of the Day: render a scene list (motd.script) to one silent MP4 at width x height. Each scene is
+        motd.html animated by MOTD_JS; frames after it comes to rest are copies of its rest frame. The browser
+        lock is held per scene, so other cards can render between scenes."""
+        from . import media
+        if not media.ffmpeg_exe():
+            return None
+        frames_dir = out_base.parent / f"{out_base.name}-frames"
+        shutil.rmtree(frames_dir, ignore_errors=True)
+        frames_dir.mkdir(parents=True, exist_ok=True)
+        tpl = env.get_template("motd.html")
+        clip = {"x": 0, "y": 0, "width": width, "height": height}
+        n = 0
+        async with self._lock:
+            browser = await self._ensure()
+            page = await browser.new_page(viewport={"width": width, "height": height}, device_scale_factor=1)
+        try:
+            for i, sc in enumerate(scenes):
+                strip = self._strip(f"round/{sc['round_id']}", sc.get("agent"))
+                html = tpl.render(sc=sc, fmt=fmt, w=width, h=height, idx=i, count=len(scenes),
+                                  colors=AGENT_COLORS, names=AGENT_NAMES, **strip,
+                                  sig_line=sc.get("sig") or strip["sig"],
+                                  model=sc.get("model_line") or strip["model_line"])
+                total = max(1, int(round(sc["dur"] * fps)))
+                async with self._lock:
+                    await page.set_content(html, wait_until="load")
+                    await page.evaluate("document.fonts && document.fonts.ready")
+                    await page.add_script_tag(content=MOTD_JS)
+                    await page.evaluate("d => window.__motdDur(d)", sc["dur"])
+                    end = await page.evaluate("window.__motdEnd()")
+                    moving = min(total - 1, int(end * fps) + 1)
+                    for k in range(moving):
+                        await page.evaluate("t => window.__motd(t)", k / fps)
+                        await page.screenshot(path=str(frames_dir / f"f{n + k:05d}.png"), clip=clip)
+                    rest = frames_dir / f"f{n + moving:05d}.png"
+                    await page.evaluate("window.__motd(1e9)")
+                    await page.screenshot(path=str(rest), clip=clip)
+                for k in range(moving + 1, total):
+                    shutil.copyfile(rest, frames_dir / f"f{n + k:05d}.png")
+                n += total
+        finally:
+            await page.close()
+        frames = sorted(frames_dir.glob("f*.png"))
+        try:
+            out = await asyncio.to_thread(media.encode, frames, out_base, fps, False)
+        finally:
+            shutil.rmtree(frames_dir, ignore_errors=True)
+        return out
 
     async def frames(self, template: str, contexts: list[dict], out_dir: Path) -> list[Path]:
         """Render one PNG per context (video frames), reusing a single page."""

@@ -135,6 +135,30 @@ CREATE TABLE IF NOT EXISTS sweep_runs (      -- per agent per day: ok / infra / 
     transcript_path TEXT,
     PRIMARY KEY (sweep_date, agent)
 );
+CREATE TABLE IF NOT EXISTS x_reads (         -- one row per distinct resource per UTC day = what X bills
+    day TEXT NOT NULL,                       -- YYYY-MM-DD (UTC)
+    resource TEXT NOT NULL,                  -- post / user / owned
+    id TEXT NOT NULL,                        -- post id or user id
+    caller TEXT NOT NULL,                    -- metrics / replies / mentions / likes / me / account
+    PRIMARY KEY (day, resource, id)
+);
+CREATE TABLE IF NOT EXISTS tweet_metrics (   -- one row per read of one post: the impressions time series
+    tweet_id TEXT NOT NULL,
+    taken_at REAL NOT NULL,
+    age_s REAL NOT NULL,                     -- taken_at - tweets.posted_at
+    bucket TEXT,                             -- 1h / 24h / 72h / 7d for a canonical snapshot; NULL = series row
+    impressions INTEGER,
+    likes INTEGER, replies INTEGER, reposts INTEGER, quotes INTEGER, bookmarks INTEGER,
+    engagements INTEGER, link_clicks INTEGER, profile_clicks INTEGER,   -- non_public: NULL when >= 29 days
+    video_views INTEGER, p0 INTEGER, p25 INTEGER, p50 INTEGER, p75 INTEGER, p100 INTEGER,  -- NULL without video
+    organic_impressions INTEGER,             -- only from an adhoc `x-boosted --check`
+    raw_json TEXT,
+    PRIMARY KEY (tweet_id, taken_at)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS tweet_metrics_bucket ON tweet_metrics(tweet_id, bucket) WHERE bucket IS NOT NULL;
+CREATE TABLE IF NOT EXISTS account_metrics (
+    day TEXT PRIMARY KEY, followers INTEGER, following INTEGER, tweets INTEGER, listed INTEGER, taken_at REAL
+);
 """
 
 MIGRATIONS = [  # (table, column, definition): added when missing, so old databases keep working
@@ -147,6 +171,8 @@ MIGRATIONS = [  # (table, column, definition): added when missing, so old databa
     # why a round is outside the neutral statistics: summon / high-stakes / pre-season / infra (NULL = counts)
     ("rounds", "exclusion", "TEXT"),
     ("rounds", "headline_variant", "TEXT"),              # A/B tone of the results headline: fun / plain
+    ("tweets", "boosted", "INTEGER NOT NULL DEFAULT 0"),  # operator-marked (x-boosted); excluded from rewards
+    ("tweets", "deleted", "INTEGER NOT NULL DEFAULT 0"),  # X returned Not Found: never read again
 ]
 
 

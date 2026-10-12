@@ -30,8 +30,10 @@ ME_URL = "https://api.x.com/2/users/me"
 SEARCH_URL = "https://api.x.com/2/tweets/search/recent"
 TWEETS_URL = "https://api.x.com/2/tweets"
 MENTIONS_URL = "https://api.x.com/2/users/{id}/mentions"
+USER_TWEETS_URL = "https://api.x.com/2/users/{id}/tweets"
 CHUNK = 4 * 1024 * 1024
 NEEDED_SCOPES = {"tweet.write", "media.write", "users.read", "offline.access"}
+READ_SCOPES = {"tweet.read", "users.read"}   # replies, mentions, likes, metrics (docs/x-analytics-spec.md §1.3)
 URL_RE = re.compile(r"https?://\S+")
 MAX_LEN = 280
 TAG = "#AgentpitBench"
@@ -219,9 +221,9 @@ class OAuth2Token:
         new = {"access_token": j["access_token"], "refresh_token": j.get("refresh_token", d["refresh_token"]),
                "expires_at": time.time() + int(j.get("expires_in", 7200)) - 300, "scope": j.get("scope", "")}
         self._save(new)
-        missing = NEEDED_SCOPES - set(new["scope"].split())
+        missing = (NEEDED_SCOPES | READ_SCOPES) - set(new["scope"].split())
         if missing:
-            log.error("X token lacks scopes %s: posting or image upload will fail", sorted(missing))
+            log.error("X token lacks scopes %s: posting, image upload or reads will fail", sorted(missing))
         return new["access_token"]
 
     def authorize_url(self, redirect_uri: str) -> str:
@@ -237,7 +239,7 @@ class OAuth2Token:
             json.dump({"verifier": verifier, "state": state, "redirect_uri": redirect_uri}, f)
         return "https://x.com/i/oauth2/authorize?" + urlencode({
             "response_type": "code", "client_id": self.client_id, "redirect_uri": redirect_uri,
-            "scope": " ".join(sorted(NEEDED_SCOPES | {"tweet.read"})), "state": state,
+            "scope": " ".join(sorted(NEEDED_SCOPES | READ_SCOPES)), "state": state,
             "code_challenge": challenge, "code_challenge_method": "S256"})
 
     def finish_login(self, redirected_url: str) -> set[str]:
@@ -387,23 +389,43 @@ class Poster:
     def can_read(self) -> bool:
         return not self.s.dry_run and self.oauth2.ready
 
-    def read(self, url: str, params: dict) -> dict:
-        return self._call("GET", url, params=params).json()
+    def read(self, url: str, params: dict, resource: str, caller: str, now: float | None = None) -> dict:
+        """Every billed X read goes through here. resource: what `data` items bill as (post / user / owned);
+        caller: who read (metrics / replies / mentions / likes / me / account). Writes the x_reads ledger:
+        one row per distinct resource per UTC day, which is what X bills (same-day reads are deduplicated)."""
+        j = self._call("GET", url, params=params).json()
+        self._ledger(j, resource, caller, now)
+        return j
+
+    def _ledger(self, j: dict, resource: str, caller: str, now: float | None = None) -> None:
+        from datetime import datetime, timezone
+        day = datetime.fromtimestamp(now if now is not None else time.time(), timezone.utc).strftime("%Y-%m-%d")
+        data = j.get("data") or []
+        items = [(resource, d) for d in (data if isinstance(data, list) else [data])]
+        items += [("user", u) for u in (j.get("includes") or {}).get("users", [])]   # counted as users, conservatively
+        for res, item in items:
+            if not isinstance(item, dict) or not item.get("id"):
+                continue
+            try:  # one statement per row: safe from asyncio.to_thread callers
+                self.db.x("INSERT OR IGNORE INTO x_reads(day,resource,id,caller) VALUES(?,?,?,?)",
+                          day, res, str(item["id"]), caller)
+            except Exception:  # a locked DB undercounts rather than failing the read
+                log.exception("x_reads ledger write failed (%s %s)", res, item.get("id"))
 
     def my_user_id(self) -> str:
         uid = self.db.get("x_user_id")
         if not uid:
-            uid = self.read(ME_URL, {})["data"]["id"]
+            uid = self.read(ME_URL, {}, "user", "me")["data"]["id"]
             self.db.put("x_user_id", uid)
         return uid
 
-    def _paged(self, url: str, params: dict, max_reads: int) -> list[dict]:
+    def _paged(self, url: str, params: dict, max_reads: int, resource: str, caller: str) -> list[dict]:
         out, token = [], None
         while len(out) < max_reads:
             p = {**params, "max_results": max(10, min(100, max_reads - len(out)))}
             if token:
                 p["pagination_token" if "/mentions" in url else "next_token"] = token
-            j = self.read(url, p)
+            j = self.read(url, p, resource, caller)
             users = {u["id"]: u.get("username") for u in (j.get("includes") or {}).get("users", [])}
             for tw in j.get("data") or []:
                 tw["username"] = users.get(tw.get("author_id"))
@@ -417,22 +439,66 @@ class Poster:
         """Replies in a thread (X recent search: the last 7 days only)."""
         return self._paged(SEARCH_URL, {"query": f"conversation_id:{conversation_id} is:reply",
                                         "tweet.fields": "author_id,created_at", "expansions": "author_id",
-                                        "user.fields": "username"}, max_reads)
+                                        "user.fields": "username"}, max_reads, "post", "replies")
 
     def mentions(self, since_id: str | None, max_reads: int = 100) -> list[dict]:
         params = {"tweet.fields": "author_id,created_at,public_metrics,entities", "expansions": "author_id",
                   "user.fields": "username"}
         if since_id:
             params["since_id"] = since_id
-        return self._paged(MENTIONS_URL.format(id=self.my_user_id()), params, max_reads)
+        return self._paged(MENTIONS_URL.format(id=self.my_user_id()), params, max_reads,
+                           "owned" if self.s.x_app_owned else "post", "mentions")
 
     def like_counts(self, ids: list[str]) -> dict[str, int]:
         out = {}
         for i in range(0, len(ids), 100):
-            j = self.read(TWEETS_URL, {"ids": ",".join(ids[i:i + 100]), "tweet.fields": "public_metrics"})
+            j = self.read(TWEETS_URL, {"ids": ",".join(ids[i:i + 100]), "tweet.fields": "public_metrics"},
+                          "post", "likes")
             for tw in j.get("data") or []:
                 out[tw["id"]] = int((tw.get("public_metrics") or {}).get("like_count", 0))
         return out
+
+    # metrics reads for xstats.pull_due (docs/x-analytics-spec.md §3). Never promoted_metrics on routine pulls.
+    @staticmethod
+    def _metric_params(non_public: bool) -> dict:
+        fields = "public_metrics,non_public_metrics" if non_public else "public_metrics"
+        return {"tweet.fields": f"{fields},created_at,attachments", "expansions": "attachments.media_keys",
+                "media.fields": f"{fields},type"}
+
+    def tweet_metrics(self, ids: list[str], non_public: bool, now: float | None = None) -> dict:
+        """Lookup mode: one GET /2/tweets?ids= per 100 ids. Returns {data, includes.media, errors} merged."""
+        out: dict = {"data": [], "includes": {"media": []}, "errors": []}
+        for i in range(0, len(ids), 100):
+            j = self.read(TWEETS_URL, {"ids": ",".join(ids[i:i + 100]), **self._metric_params(non_public)},
+                          "post", "metrics", now)
+            _merge(out, j)
+        return out
+
+    def timeline_metrics(self, start: float, end: float, non_public: bool, now: float | None = None) -> dict:
+        """Timeline mode (x_app_owned): every own post in [start, end], replies included, paged."""
+        from datetime import datetime, timezone
+        iso = lambda t: datetime.fromtimestamp(t, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")  # noqa: E731
+        params = {"start_time": iso(start), "end_time": iso(end), "max_results": 100,
+                  **self._metric_params(non_public)}
+        out: dict = {"data": [], "includes": {"media": []}, "errors": []}
+        url, token = USER_TWEETS_URL.format(id=self.my_user_id()), None
+        for _ in range(50):
+            j = self.read(url, {**params, **({"pagination_token": token} if token else {})},
+                          "owned" if self.s.x_app_owned else "post", "metrics", now)
+            _merge(out, j)
+            token = (j.get("meta") or {}).get("next_token")
+            if not token:
+                break
+        return out
+
+    def account_metrics(self, now: float | None = None) -> dict:
+        """GET /2/users/me with public_metrics: followers etc. One user read."""
+        return self.read(ME_URL, {"user.fields": "public_metrics"}, "user", "account", now)["data"]
+
+    def boost_check(self, tweet_id: str) -> dict:
+        """Adhoc only (x-boosted --check): organic and promoted metrics for one post."""
+        return self.read(TWEETS_URL, {"ids": tweet_id, "tweet.fields": "public_metrics,non_public_metrics,"
+                                      "organic_metrics,promoted_metrics"}, "post", "metrics")
 
     def upload(self, image: Path) -> str:
         # bytes, not a file handle: a 401 retry must resend the whole image
@@ -470,7 +536,17 @@ class Poster:
 
 
 class PermanentError(Exception):
-    pass
+    def __init__(self, msg: str = "", status: int | None = None):
+        super().__init__(msg)
+        self.status = status
+
+
+class RateLimited(RuntimeError):
+    """A 429. Still a RuntimeError, so posting's retry path is unchanged; `reset` is X's x-rate-limit-reset
+    (epoch seconds, 0 when absent)."""
+    def __init__(self, msg: str, reset: int = 0):
+        super().__init__(msg)
+        self.reset = reset
 
 
 def _media_list(image) -> list[Path]:
@@ -478,6 +554,12 @@ def _media_list(image) -> list[Path]:
     if not image:
         return []
     return [Path(m) for m in (image if isinstance(image, (list, tuple)) else [image])][:4]
+
+
+def _merge(out: dict, j: dict) -> None:
+    out["data"] += j.get("data") or []
+    out["includes"]["media"] += (j.get("includes") or {}).get("media", [])
+    out["errors"] += j.get("errors") or []
 
 
 def _media_str(image) -> str | None:
@@ -489,6 +571,12 @@ def _check(r) -> None:
     if r.status_code < 300:
         return
     msg = f"X API {r.status_code}: {r.text[:300]}"
-    if r.status_code in (429,) or r.status_code >= 500:
+    if r.status_code == 429:
+        try:
+            reset = int((getattr(r, "headers", None) or {}).get("x-rate-limit-reset", 0))
+        except (TypeError, ValueError):
+            reset = 0
+        raise RateLimited(msg, reset)
+    if r.status_code >= 500:
         raise RuntimeError(msg)
-    raise PermanentError(msg)
+    raise PermanentError(msg, r.status_code)
