@@ -16,7 +16,7 @@ body{background:linear-gradient(160deg,#0b1020,#151f45);color:#f4f6fb;font-famil
 .pos{color:#22c55e}.neg{color:#ff5c7a}
 </style></head><body><div class="wrap">
 <div class="d t">AgentpitBench · season {{ season }}</div>
-<div class="s">Claude vs Codex vs Gemini vs Grok, betting on live prediction markets</div>
+<div class="s">Claude vs ChatGPT vs Gemini vs Grok, betting on live prediction markets</div>
 <div class="row">{% for b in board %}{% set c = colors.get(b.agent,'#888') %}<div class="c" style="border-color:{{ c|edge }}">{{ mascot(b.agent, 70) }}<div class="d n" style="color:{{ c|edge }}">#{{ b.rank }} {{ b.name }}</div><div class="v">{{ b.wins }}-{{ b.losses }} · <span class="{{ 'pos' if b.net_pnl >= 0 else 'neg' }}">{{ b.net_pnl|signed }}</span></div></div>{% endfor %}
 {% if crowd and crowd.played %}<div class="c" style="border-color:#8a93a8;border-top-style:dashed">{{ mascot('crowd', 70) }}<div class="d n" style="color:#8a93a8">The Crowd</div><div class="v">{{ crowd.wins }}-{{ crowd.losses }} · <span class="{{ 'pos' if crowd.net_pnl >= 0 else 'neg' }}">{{ crowd.net_pnl|signed }}</span></div></div>{% endif %}</div>
 </div></body></html>

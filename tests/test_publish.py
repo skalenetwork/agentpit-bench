@@ -173,7 +173,7 @@ def test_site_build(env):
         assert f.exists(), p
         assert f.stat().st_size < 100_000, p
     home = (out / "index.html").read_text()
-    assert "Claude vs Codex vs Gemini vs Grok" in home and "data-live" in home
+    assert "Claude vs ChatGPT vs Gemini vs Grok" in home and "data-live" in home
     assert 'class="team dkb"' in home  # Grok's near-black colour gets a light ring in dark mode
     r1 = (out / "round/1/index.html").read_text()
     assert "Bet against the AIs" in r1 and "utm_source" in r1 and "transcripts/1/claude.txt" in r1

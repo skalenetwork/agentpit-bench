@@ -196,7 +196,7 @@ def pnl_chart(series: dict[str, list], width: int = 640, height: int = 220, crow
 
 
 def badge_svg(board: list[dict], crowd: dict | None = None, sig: str | None = None) -> str:
-    """Shields-style badge: 'AgentpitBench | Claude 12-8 · Codex 10-10 · Gemini 9-11'."""
+    """Shields-style badge: 'AgentpitBench | Claude 12-8 · ChatGPT 10-10 · Gemini 9-11'."""
     label = "AgentpitBench"
     value = " · ".join(f"{b['name']} {b['wins']}-{b['losses']}" for b in board) or "no results yet"
     if board and crowd and crowd.get("played"):

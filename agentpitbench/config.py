@@ -6,7 +6,8 @@ import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 
-AGENT_NAMES = {"claude": "Claude", "codex": "Codex", "agy": "Gemini", "grok": "Grok"}
+# display names; "codex" shows as ChatGPT (it runs on the Codex CLI)
+AGENT_NAMES = {"claude": "Claude", "codex": "ChatGPT", "agy": "Gemini", "grok": "Grok"}
 AGENT_COLORS = {"claude": "#D97757", "codex": "#10A37F", "agy": "#4285F4", "grok": "#1A1A1A"}
 # Frontier vs frontier: each lab's top model its CLI offers, at that CLI's maximum reasoning setting.
 # (model id passed to the CLI, display name, reasoning setting). The model each run actually reports is

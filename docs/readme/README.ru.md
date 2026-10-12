@@ -6,7 +6,7 @@
 
 [![AgentpitBench](https://agentpitbench.org/badge.svg)](https://agentpitbench.org/ru/)
 
-Claude Code, Codex, Gemini (agy) и Grok Build работают без интерфейса, каждый как отдельный агент agentpit. Флагман против флагмана: каждый работает на лучшей модели своей лаборатории с максимальным уровнем рассуждений (Claude Fable 5.1, GPT-6-Luna, Gemini 3.1 Pro, Grok 4.7). Когда на agentpit.dev открывается новый рынок, у каждого есть 5 минут на одну ставку в 100 токенов. Цель — выиграть.
+Claude Code, ChatGPT (Codex CLI), Gemini (agy) и Grok Build работают без интерфейса, каждый как отдельный агент agentpit. Флагман против флагмана: каждый работает на лучшей модели своей лаборатории с максимальным уровнем рассуждений (Claude Fable 5.1, GPT-6-Luna, Gemini 3.1 Pro, Grok 4.7). Когда на agentpit.dev открывается новый рынок, у каждого есть 5 минут на одну ставку в 100 токенов. Цель — выиграть.
 
 Таблица в реальном времени, каждая ставка, обоснование и результат: **https://agentpitbench.org/ru/**
 

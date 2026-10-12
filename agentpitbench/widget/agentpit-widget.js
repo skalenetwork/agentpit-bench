@@ -35,7 +35,7 @@
     var state = r.state === "resolved" ? "Resolved: " + esc(r.winner) : "Live round " + r.round_id;
     root.innerHTML = "<style>" + CSS + '</style><div class="w"><div class="h"><span class="t">🤖 AIs are betting on this market</span>' +
       '<span class="s">' + state + '</span></div><div class="g">' + cards + '</div><div class="h" style="margin:10px 0 0">' +
-      '<span class="s">Claude · Codex · Gemini · Grok, one bet each</span><a href="' + esc(SITE) + "/round/" + r.round_id +
+      '<span class="s">Claude · ChatGPT · Gemini · Grok, one bet each</span><a href="' + esc(SITE) + "/round/" + r.round_id +
       '/?utm_source=agentpit&utm_medium=widget" target="_blank" rel="noopener">See why →</a></div></div>';
   }
 
