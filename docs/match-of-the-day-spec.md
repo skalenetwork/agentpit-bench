@@ -131,19 +131,29 @@ carries the chosen `_twist`. A re-render of the same round reuses its newest acc
 it still passes the validator (no new call). Typical call: 1.5–3 minutes.
 
 ### Narrator, score, sting (`agentpitbench/sound.py`)
-- **Narrator:** ElevenLabs text-to-speech, model `eleven_v4`, one stock voice per concept, hard-coded (the key can't
-  list voices): noir Brian, nature_doc George, heist Eric, courtroom Daniel, broadcast Liam, countdown Callum,
+- **Narrator:** ElevenLabs text-to-speech, model `eleven_v4`, one stock voice per concept, hard-coded: noir Brian, nature_doc George, heist Eric, courtroom Daniel, broadcast Liam, countdown Callum,
   mockumentary Jessica, western Clyde, mission_control Roger; fallback George. A v4 audio tag per concept sets the
   delivery (e.g. `[hushed, reverent]`); tags are not spoken (checked with speech-to-text). Each line is spoken from
   the same slot values as its caption. A scene lasts at least 0.3 s + its line + 0.45 s; if the lines alone pass
   60 s they are sped up (atempo, ≤ 1.12×), then visual holds are trimmed; if it still doesn't fit, the film drops the
   voice and keeps captions (60 s is a hard cap). Captions stay on for silent viewing.
+- **Voice choice:** `motd_voice_overrides` (concept → voice id) wins; else the hard-coded voice, unless the key's
+  voice list (needs voices_read; cached a day in `audio_cache/voices.json`, a failed lookup cached too) no longer has
+  it, then the listed voice whose labels best match the concept's traits (`sound.TRAITS`). Without the list, the
+  hard-coded voice.
+- **Local narrator (fallback):** Piper (piper-tts in its own venv, `~/.local/share/agentpitbench/piper/`; voices
+  ryan-high, alan, northern_english_male, lessac-high, joe, amy) with a voice, pace and noise per concept
+  (`sound.PIPER`). Used when there's no ElevenLabs key, or when ElevenLabs fails on any line: the whole film is then
+  re-voiced locally (one engine per film, never a mix). Free, offline, ~1.5 s a line. Captions only if neither works.
+  `motd_local_voice = false` turns it off.
 - **Score:** ElevenLabs Music (`music_v1`, instrumental, 62 s) from a per-concept prompt. **One track per concept,
   generated the first time the concept is used** and reused after that (any cached track for the concept counts),
   so the library is at most 9 generations, filled gradually. Guard: a new track only if today's music spend plus
   the estimate (800 credits) stays within `motd_music_daily_credits` (1,500; local ledger `audio_cache/
   music-ledger.json`) and, when the key may read its balance, the balance after it stays above
-  `motd_narration_reserve_credits` (200). Otherwise the procedural CC0 bed. The score is ducked under the narrator
+  `motd_narration_reserve_credits` (200). Otherwise the concept's procedural CC0 variation (`music.PRESETS`: its own
+  tempo, harmony, groove and lead: muted horn for noir, whistle for the western, brass for the broadcast, ...;
+  rendered once per concept in ~2 s and cached as `audio_cache/proc-<concept>-v<N>-62s.m4a`), else the committed theme. The score is ducked under the narrator
   (sidechain compression), faded in 0.5 s and out 2 s.
 - **Sting:** one ElevenLabs Sound Effect per concept (gavel, vault door, ricochet, crowd roar...) at the twist's
   flash. Fallback: none.
