@@ -243,7 +243,8 @@ def _summaries(s: Settings, db: DB, a) -> None:
 def _translate(s: Settings, db: DB, a) -> None:
     from . import market_i18n as mi
     if a.tr_cmd == "round":
-        _print(mi.translate_round(s, db, a.round_id))
+        import asyncio
+        _print(asyncio.run(mi.translate_round(s, db, a.round_id)))
     elif a.tr_cmd == "backfill":
         _print(mi.tick(s, db, limit=a.limit))
     else:

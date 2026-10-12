@@ -28,6 +28,7 @@ from urllib.parse import urlparse, quote, urlencode
 from xml.sax.saxutils import escape
 
 from jinja2 import Environment, PackageLoader, pass_context, select_autoescape
+from markupsafe import Markup
 
 from . import og
 from .cards import cents, is_dark, fmt_time, is_upset, payout_x, ranked, results_headline, signed, split_headline
@@ -686,6 +687,29 @@ def sweep_prompt_example(s: Settings) -> str:
 _build_lock = threading.Lock()  # builds run in worker threads; two at once would share the .new folder
 
 
+def market_text(mt: dict[str, str]):
+    """Per-language market wording from the market_i18n table (empty for English: pages unchanged).
+    tq: plain translated text (falls back to English). mq: the translation with the exact English source in a
+    title attribute, so the market wording stays auditable. loc: a round dict with translated question and
+    labels, for page titles, descriptions, alt text and share text only (never data attributes, JSON-LD, API)."""
+    def tq(t):
+        return mt.get(t, t) if isinstance(t, str) else t
+
+    def mq(t):
+        if isinstance(t, str) and mt.get(t) and mt[t] != t:
+            return Markup('<span class="mt" title="{}">{}</span>').format(t, mt[t])
+        return t
+
+    def loc(r: dict) -> dict:
+        if not mt:
+            return r
+        crowd = r.get("crowd") or {}
+        return dict(r, question=tq(r["question"]), winner=tq(r.get("winner")),
+                    outcomes=[tq(o) for o in r.get("outcomes") or []],
+                    crowd=dict(crowd, outcome=tq(crowd.get("outcome"))) if crowd else crowd)
+    return tq, mq, loc
+
+
 def _db_extras(s: Settings) -> dict:
     """Read-only DB extras for the pages: published incidents (newest first) and market-title translations.
     The build never calls a model: a missing translation shows the English source."""
@@ -767,6 +791,7 @@ def _build(s: Settings) -> Path:
 
     for lang in CODES:
         _ = Translator(lang)
+        tq, mq, loc = market_text(extra["mt"].get(lang, {}) if lang != "en" else {})
         roster = (_("{a} and {b}", a=", ".join(names[:-1]), b=names[-1]) if len(names) > 1
                   else (names[0] if names else ""))
         common = {"vs": vs, "roster": roster, "s": s, "board": board, "lb": lb, "colors": AGENT_COLORS,
@@ -780,7 +805,8 @@ def _build(s: Settings) -> Path:
                   "lang_name": NAMES[lang], "mascot_sprite": sprite(s.agents), "mi": mascot_use,
                   "commentary": commentary, "model_line": lambda a, _=_: model_line(a, _),
                   "models": AGENT_MODELS, "reasoning": REASONING, "exclusions": EXCLUSION_REASONS,
-                  "fc": lb.get("forecast") or {}, "sig": lb.get("significance") or {}}
+                  "fc": lb.get("forecast") or {}, "sig": lb.get("significance") or {},
+                  "tq": tq, "mq": mq}
         common["vs_links"] = vs_links
         prefix = _.prefix()
         suffixes = round_suffixes(rounds, _)
@@ -840,15 +866,16 @@ def _build(s: Settings) -> Path:
             cat = category(r["question"])
             same = [x for x in sorted(rounds, key=lambda x: -(x.get("started_at") or 0))
                     if x is not r and category(x["question"]) == cat][:3]
-            page(f"round/{rid}/index.html", "round.html", r=r, card=card, card_alt=card_alt(r, _, ", ".join(names)),
+            lr = loc(r)  # translated question/outcome labels for the page's own text; data stays English
+            page(f"round/{rid}/index.html", "round.html", r=r, card=card, card_alt=card_alt(lr, _, ", ".join(names)),
                  film=film_of.get(rid),
-                 og=previews["rounds"].get(rid), share_text=round_share(r, _, vs),
+                 og=previews["rounds"].get(rid), share_text=round_share(lr, _, vs),
                  prev_r=by_id[i - 1] if i else None, next_r=by_id[i + 1] if i + 1 < len(by_id) else None,
                  cat=cat, same_cat=same,
                  lastmod=r["resolved_at"] or r["started_at"],
                  jsonld=crumbs(discover.round_ld(s, r, f"{base}/round/{rid}/"),
                                (_("Round {n}", n=rid), f"round/{rid}/")),
-                 title=round_title(r, _, ", ".join(names), sfx), description=round_description(r, _, sfx))
+                 title=round_title(lr, _, ", ".join(names), sfx), description=round_description(lr, _, sfx))
         for a in s.agents:
             row = next((b for b in board if b["agent"] == a), None)
             nm = AGENT_NAMES.get(a, a)

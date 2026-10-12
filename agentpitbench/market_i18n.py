@@ -38,7 +38,7 @@ GENERIC = {
     "Most", "Least", "More", "Less", "Than", "Exactly", "Any", "None", "Both", "Either", "Neither", "Team", "Map",
     "Set", "Half", "First", "Second", "Third", "Last", "Top", "Bottom", "Range", "Rate", "Rates", "Cut", "Cuts",
     "Hike", "Hold", "Up or Down", "Not", "Yes/No", "Even", "Odd", "Party", "Seats", "Votes", "Vote", "Market",
-    "Daily", "Weekly", "Monthly", "Annual", "Q1", "Q2", "Q3", "Q4", "Inc", "Week of", "Earnings", "Revenue",
+    "Daily", "Weekly", "Monthly", "Annual", "Q1", "Q2", "Q3", "Q4", "Week of", "Earnings", "Revenue",
     "Score", "Scores", "Kills", "Over/Under", "Spread", "Moneyline", "Handicap", "Series", "Season", "League",
     "Cup", "Championship", "Tournament", "Open", "Grand", "Prix", "Race", "Stage", "Tweets", "Posts", "Post",
 }
@@ -81,7 +81,10 @@ def proper_nouns(src: str) -> list[str]:
 
 
 def tickers(src: str) -> list[str]:
-    return [t for t in _TICKER.findall(src) if t not in GENERIC_CAPS and not t.isdigit()]
+    """Codes in capitals that must survive: tickers (AMZN), and any capitalised word in brackets ((LOW))."""
+    bracketed = re.findall(r"\(([A-Z][A-Z0-9]{1,5})\)", src)
+    return list(dict.fromkeys([t for t in _TICKER.findall(src) if t not in GENERIC_CAPS and not t.isdigit()]
+                              + bracketed))
 
 
 def _norm_num(n: str) -> str:
