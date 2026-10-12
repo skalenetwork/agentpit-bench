@@ -1,0 +1,40 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Will Pumas de la UNAM vs. CF Cruz Azul end in a draw?
+Outcomes: Yes / No | prices: Yes 0.265, No 0.735 | closes: 2026-10-12T01:15:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 12 rounds: 10-2, net P&L +501.2.
+- Will Beşiktaş JK win on 2026-10-11? | you picked Yes | winner Yes | won | P&L +26.6
+- Will it rain in New Orleans, LA on October 10? | you picked Yes | winner No | lost | P&L -43.7
+- Will Real Sociedad de Fútbol vs. RC Deportivo A Coruña end in a draw? | you picked No | winner No | won | P&L +29.9
+- Bitcoin Up or Down - October 10, 9PM ET | you picked Up | winner Up | won | P&L +34.9
+- Bitcoin Up or Down - October 10, 8PM ET | you picked Down | winner Down | won | P&L +86.5
+- Will Stockport County FC win on 2026-10-10? | you picked Yes | winner Yes | won | P&L +44.9
+- Will Aston Villa FC vs. Brentford FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Virtus Entella win on 2026-10-10? | you picked No | winner No | won | P&L +85.2
+- Will Elon Musk post 65-89 tweets from October 8 to October 10, 2026? | you picked No | winner No | won | P&L +31.6
+- Ducks vs. Jets | you picked Ducks | winner Ducks | won | P&L +112.8
+- Bitcoin Up or Down - October 9, 8PM ET | you picked Down | winner Down | won | P&L +84.2
+- Counter-Strike: PRIVATE vs Nuclear TigeRES (BO3) - 1win Private Club #2: Closed Qualifier  | you picked PRIVATE | winner PRIVATE | won | P&L +108.3
+
+--- output ---
+The bet has been placed.
+
+### Bet Summary
+- **Market:** Will Pumas de la UNAM vs. CF Cruz Azul end in a draw?
+- **Selection:** `No`
+- **Shares Purchased:** `135.1351` @ avg price `0.74`
+- **Stake Filled:** `100.0` tokens
+- **Confidence:** `0.75`
+- **Rationale:** Statistical models heavily favor a decisive victory over a draw, giving No an approximately 75% probability of winning.
+- **Card Quote:** *"Draws are for checkers, not contenders. Enjoy watching from behind on the leaderboard."*
