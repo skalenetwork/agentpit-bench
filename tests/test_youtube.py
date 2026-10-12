@@ -451,6 +451,27 @@ def test_published_at_comment_once_and_buckets_from_publish(yt):
     assert body["snippet"]["videoId"] == "vid1"
 
 
+def test_refused_comment_is_recorded_once_and_reads_continue(yt):
+    s, db, rec = yt
+    g = FakeGoogle()
+    g.fail_comment = True
+    c = client(s, db, g)
+    ytstats.pull_due(s, db, c, now=NOW)
+    g.videos_items = [{"id": "vid1", "status": {"privacyStatus": "public", "uploadStatus": "processed"},
+                       "statistics": {"viewCount": "5"}}]
+    ytstats.pull_due(s, db, c, now=NOW + 60)
+    ytstats.pull_due(s, db, c, now=NOW + 60 + 3600)
+    assert g.n(lambda c: c[1].endswith("/commentThreads")) == 1
+    assert youtube.row(db, "motd-" + DAY)["comment_id"] == "failed:forbidden"
+    assert ytstats.snapshot(db, "motd-" + DAY, "1h")["views"] == 5
+
+
+def test_soft_cap_never_blocks_the_upload_guard(yt):
+    s, db, rec = yt
+    s.youtube_units_budget = 0
+    assert _up(s, db, rec, FakeGoogle())["state"] == "uploaded"
+
+
 def test_locked_private_flag_after_30_min(yt):
     s, db, rec = yt
     s.youtube_privacy = "public"

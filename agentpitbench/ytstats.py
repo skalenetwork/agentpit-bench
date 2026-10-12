@@ -126,9 +126,16 @@ def _poll(s: Settings, db, client, now: float, out: dict) -> None:
             from .motd import film_dir
             fj = film_dir(s, r["post_key"][len("motd-"):]) / "film.json"
             rec = json.loads(fj.read_text()) if fj.exists() else {"round_id": r["round_id"], "date": r["post_key"][5:]}
-            cid = client.comment(r["video_id"], youtube.comment_text(s, rec))
+            try:
+                cid = client.comment(r["video_id"], youtube.comment_text(s, rec))
+                out["comments"] += 1
+            except youtube.YouTubeError as e:
+                if e.status is None or e.status >= 500:
+                    raise
+                # a 4xx (comments off, missing scope): record it once rather than paying 50 units every cycle
+                log.error("yt %s: comment refused (%s %s); not retried", r["post_key"], e.status, e.reason)
+                cid = f"failed:{e.reason or e.status}"
             db.x("UPDATE yt_videos SET comment_id=? WHERE post_key=?", cid or "?", r["post_key"])
-            out["comments"] += 1
         stats = v.get("statistics") or {}
         age = now - r["published_at"]
         taken = {x["bucket"] for x in db.q("SELECT bucket FROM yt_metrics WHERE video_id=? AND source='data' "

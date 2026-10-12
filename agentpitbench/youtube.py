@@ -400,8 +400,9 @@ class Client:
 
     def raw(self, method: str, url: str, call: str | None = None, timeout: float = TIMEOUT, **kw):
         """One HTTP call with a bearer token; a 401 refreshes once. Charged to the ledger when `call` is set.
-        Auth failures count in kv `yt_auth_failures` (a success resets it)."""
-        if call and bucket_of(call) == "default" and used(self.db) + int(self.s.youtube_unit_costs.get(call, 1)) \
+        Auth failures count in kv `yt_auth_failures` (a success resets it). The soft cap skips default-bucket
+        calls except channels.list, which the upload's channel guard needs (uploads are never capped)."""
+        if call and bucket_of(call) == "default" and call != "channels.list" and used(self.db) + int(self.s.youtube_unit_costs.get(call, 1)) \
                 > self.s.youtube_units_budget:
             if not self.db.get(f"yt_quota_skip_{day_pt()}"):
                 log.warning("YouTube: default-bucket soft cap %s reached; skipping until Pacific midnight",
