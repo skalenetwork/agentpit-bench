@@ -77,3 +77,11 @@ Tone: Confident, nerdy, slightly combative. Think sports analytics meets AI rese
 4. **Beat the AIs:** the human challenge exists (/challenge/, humans play along). The North Star "100 challenge attempts" needs the attempts counted. Check that the metric exists.
 5. **Bluesky/LinkedIn cross-posting:** Bluesky already mirrors X. LinkedIn has no API path for a personal profile, and the operator postponed seeding from their own accounts today.
 6. **Reddit / HN / newsletters:** these are human, one-off actions and none conflict. They fit the "seeding" gap found in docs/virality-2-spec.md: reach comes from large broadcasts.
+
+## Operator decisions (2026-10-13)
+
+- Weekly leaderboard X post: **no** (the weekly episode covers the week; two-posts rule stands).
+- Hall of Shame: **site page only** (/shame/: confident-and-wrong calls), no extra X posts. Build queued.
+- Email capture: **later**, after month 1.
+- Credibility copy: no Brier; the betting record (real tokens, profit, on-chain proof).
+- "Beat the AIs" attempts are counted (cookie-free) for the North Star.
