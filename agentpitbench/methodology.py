@@ -14,6 +14,7 @@ No model, ops agent or other service path writes it.
 """
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 import json
 import logging
@@ -169,14 +170,22 @@ def _check_change(lock: dict, key: str, value, author: str) -> None:
         return
     if author != "operator":
         raise MethodologyError(f"{key} can only be proposed by the operator")
-    if key not in lock["params"]:
+    if key not in lock["params"] and not _is_setting(key):  # a new rule may join the lock, but only a real setting
         raise MethodologyError(f"unknown methodology key {key}")
+
+
+def _is_setting(key: str) -> bool:
+    return "." not in key and key in {f.name for f in dataclasses.fields(Settings)}
 
 
 def _coerce(lock: dict, key: str, raw):
     if not isinstance(raw, str):
         return raw
-    cur = lock["params"].get(key) if "." not in key else (
+    if "." not in key and key not in lock["params"] and _is_setting(key):  # new key: typed like its Settings default
+        cur = getattr(Settings(), key)
+    else:
+        cur = None
+    cur = cur if cur is not None else lock["params"].get(key) if "." not in key else (
         lock["selection"]["scoring"] if key == "selection.scoring" else lock["selection"]["rater"]["prompt_version"])
     if isinstance(cur, bool):
         return raw.lower() in ("1", "true", "yes")

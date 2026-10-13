@@ -167,3 +167,13 @@ def test_only_methodology_writes_the_lock():
                 assert f.name == "opscli.py", (f.name, "may not call methodology.approve")
     for name in ("opai.py", "engage.py", "watcher.py", "policy.py", "selection_review.py", "ops.py"):
         assert "approve(" not in (PKG / name).read_text()
+
+
+def test_operator_may_add_a_new_setting_to_the_lock(tree, tmp_path):
+    s = Settings(data_dir=tmp_path / "var")
+    p = m.propose(s, {"max_rounds_per_event_per_day": "1"}, "One round per event per day.")
+    assert p["changes"] == {"max_rounds_per_event_per_day": 1}           # typed like the Settings default
+    with pytest.raises(m.MethodologyError):
+        m.propose(s, {"no_such_setting": "1"}, "typo")
+    with pytest.raises(m.MethodologyError):
+        m.propose(s, {"max_rounds_per_event_per_day": "1"}, "x", author="opai")

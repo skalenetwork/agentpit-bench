@@ -39,6 +39,7 @@ URL_RE = re.compile(r"https?://\S+")
 MAX_LEN = 280
 TAG = "#AgentpitBench"
 # Vendor accounts, tagged only on results tweets for the round's winners (never on decisions or splits).
+REPLY_BACK = "reply-back"   # F2: an answer to someone who replied to our reveal/results post first
 VENDOR_HANDLES = {"claude": "@AnthropicAI", "codex": "@OpenAI", "agy": "@GoogleDeepMind", "grok": "@xai"}
 
 
@@ -428,10 +429,16 @@ class Poster:
         never block X): alt is per-image alt text on Bluesky, bsky_fallback the still card either mirror posts if
         its video upload fails or the video is over its limit, bsky_media other media for Bluesky (the weekly
         episode's trailer: Bluesky caps video at 3 minutes)."""
-        if self.s.post_kinds and (kind not in self.s.post_kinds or reply_to):  # mirrors follow X: nothing either
+        # mirrors follow X: nothing either. The one reply allowed is a listed "reply-back" (docs/virality-2-spec.md F2)
+        if self.s.post_kinds and (kind not in self.s.post_kinds or (reply_to and kind != REPLY_BACK)):
             log.info("[not posted] %s: only %s posts, no replies", post_key, "/".join(self.s.post_kinds))
             return None
+        if kind == REPLY_BACK and not self.s.post_kinds:   # never by default: only when listed in post_kinds
+            log.info("[not posted] %s: reply-back is not in post_kinds", post_key)
+            return None
         tweet_id = await self._post_x(post_key, kind, text, image, reply_to, round_id, quote_of)
+        if kind == REPLY_BACK:   # an answer on X only: never mirrored (two-posts rule on every channel)
+            return tweet_id
         if tweet_id and self.bsky.enabled:
             try:
                 await self.bsky.post(post_key, kind, text, bsky_media or image, reply_to=reply_to, quote_of=quote_of,
@@ -601,19 +608,26 @@ class Poster:
                 p["pagination_token" if "/mentions" in url else "next_token"] = token
             j = self.read(url, p, resource, caller)
             users = {u["id"]: u.get("username") for u in (j.get("includes") or {}).get("users", [])}
+            created = {u["id"]: u.get("created_at") for u in (j.get("includes") or {}).get("users", [])}
             for tw in j.get("data") or []:
                 tw["username"] = users.get(tw.get("author_id"))
+                tw["author_created_at"] = created.get(tw.get("author_id"))
                 out.append(tw)
             token = (j.get("meta") or {}).get("next_token")
             if not token:
                 break
         return out[:max_reads]
 
-    def replies(self, conversation_id: str, max_reads: int) -> list[dict]:
-        """Replies in a thread (X recent search: the last 7 days only)."""
-        return self._paged(SEARCH_URL, {"query": f"conversation_id:{conversation_id} is:reply",
-                                        "tweet.fields": "author_id,created_at", "expansions": "author_id",
-                                        "user.fields": "username"}, max_reads, "post", "replies")
+    def replies(self, conversation_id: str, max_reads: int, since_id: str | None = None,
+                caller: str = "replies") -> list[dict]:
+        """Replies in a thread (X recent search: the last 7 days only). since_id: only newer replies (reply-back
+        polls, so a quiet thread bills nothing). Each row carries author_created_at (the account's age)."""
+        params = {"query": f"conversation_id:{conversation_id} is:reply",
+                  "tweet.fields": "author_id,created_at,in_reply_to_user_id", "expansions": "author_id",
+                  "user.fields": "username,created_at"}
+        if since_id:
+            params["since_id"] = since_id
+        return self._paged(SEARCH_URL, params, max_reads, "post", caller)
 
     def mentions(self, since_id: str | None, max_reads: int = 100) -> list[dict]:
         params = {"tweet.fields": "author_id,created_at,public_metrics,entities", "expansions": "author_id",

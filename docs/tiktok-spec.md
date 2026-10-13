@@ -104,3 +104,9 @@ If the audit is refused, or requires per-post human interaction, use **Upload to
 - [TikTok Ads policy: gambling and games](https://ads.tiktok.com/help/article/tiktok-ads-policy-gambling-and-games)
 - [Famesters: TikTok gambling policy (secondary)](https://famesters.com/blog/tiktok-gambling-policy/)
 - [Campaign Asia: TikTok and gambling content](https://www.campaignasia.com/article/tiktok-accused-of-hypocrisy-over-gambling-content/491671)
+
+## Operator decisions (2026-10-13)
+
+1. **Go, via drafts**: the daily film is uploaded as a draft the operator publishes with one tap; apply for the audit in parallel; auto-stop on any strike. Other §9 items (handle, comments/duets, posting hour) default to the spec's recommendations unless the operator says otherwise.
+2. Handle **@agentpitbench**. 3. Comments **on**, duets and stitches **off**.
+4. Posting hour **18:00 UTC**.

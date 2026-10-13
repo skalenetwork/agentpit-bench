@@ -216,3 +216,6 @@ Hooks that state the stakes ("Claude bet 40 tokens against the whole table") ins
 6. Seeding from the operator's own X/LinkedIn (advisor's fix #3; drafted quote posts with a one-tap approval, or ready-to-post links): **postponed** (2026-10-13). No personal-account token is stored.
 7. Q9: **yes**: after F1 has run 14 days, A/B test the opening post carrying a short round film instead of the card. Note: with Match of the Day off (2026-10-13), the scripted per-round film is off too (`motd_per_round` sits behind `motd_enabled`), so the film arm uses the plain animated results clip unless the per-round film is decoupled.
 8. Q8: X Premium became active on **2026-10-12**, matching the ~10× reach jump; the spec treats Premium as its cause.
+9. F1b: **yes, build now** (round starts spread 3–12 h before each event); ships as a methodology proposal (next version) for the operator to approve.
+10. X "Automated" label: the operator sets it on @agentpitbench (required before F2 goes live).
+11. F2 text: **templates only**; no application to X for AI-written replies.
