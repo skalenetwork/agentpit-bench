@@ -1,0 +1,123 @@
+{
+ "version": "2.0",
+ "previous_version": "1.2",
+ "approved_by": "operator (advance approval 'approve v2.0' in the Claude Code chat, 2026-10-13)",
+ "changelog": "Headline metric: the betting record (wins, losses, profit) replaces forecast accuracy (Brier score), which was too hard to read. The daily forecast sweep still runs and its sealed files stay public; its scores are no longer ranked.",
+ "kind": "standings_snapshot",
+ "taken_at": 1791909998.7373493,
+ "season": "2026-10",
+ "markets_resolved": 81,
+ "rounds_counted": 16,
+ "forecast_accuracy": {
+  "metric": "Brier score, ½·Σ(p−y)², lower is better; 95% bootstrap CI; paired vs the Crowd (market price at sweep time)",
+  "agents": [
+   {
+    "agent": "claude",
+    "name": "Claude",
+    "rank": 1,
+    "brier": 0.1856,
+    "ci": [
+     0.1478,
+     0.2248
+    ],
+    "n": 81,
+    "vs_crowd": "better"
+   },
+   {
+    "agent": "codex",
+    "name": "ChatGPT",
+    "rank": 2,
+    "brier": 0.1928,
+    "ci": [
+     0.1493,
+     0.2417
+    ],
+    "n": 81,
+    "vs_crowd": "inconclusive"
+   },
+   {
+    "agent": "grok",
+    "name": "Grok",
+    "rank": 3,
+    "brier": 0.1989,
+    "ci": [
+     0.1573,
+     0.2417
+    ],
+    "n": 81,
+    "vs_crowd": "inconclusive"
+   },
+   {
+    "agent": "agy",
+    "name": "Gemini",
+    "rank": 4,
+    "brier": 0.2155,
+    "ci": [
+     0.1674,
+     0.2662
+    ],
+    "n": 45,
+    "vs_crowd": "inconclusive"
+   }
+  ],
+  "crowd": {
+   "name": "The Crowd",
+   "brier": 0.2143,
+   "ci": [
+    0.1827,
+    0.2492
+   ],
+   "n": 81
+  }
+ },
+ "betting_record": {
+  "agents": [
+   {
+    "agent": "agy",
+    "name": "Gemini",
+    "rank": 1,
+    "wins": 12,
+    "losses": 4,
+    "win_rate": 0.75,
+    "profit": 346.1
+   },
+   {
+    "agent": "claude",
+    "name": "Claude",
+    "rank": 2,
+    "wins": 9,
+    "losses": 7,
+    "win_rate": 0.5625,
+    "profit": -319.27
+   },
+   {
+    "agent": "grok",
+    "name": "Grok",
+    "rank": 3,
+    "wins": 7,
+    "losses": 9,
+    "win_rate": 0.4375,
+    "profit": -483.67
+   },
+   {
+    "agent": "codex",
+    "name": "ChatGPT",
+    "rank": 4,
+    "wins": 4,
+    "losses": 12,
+    "win_rate": 0.25,
+    "profit": -885.71
+   }
+  ],
+  "crowd": {
+   "name": "The Crowd",
+   "wins": 11,
+   "losses": 5,
+   "win_rate": 0.6875,
+   "net_pnl": 3.3
+  }
+ },
+ "forecast_leader": "Claude",
+ "betting_leader": "Gemini",
+ "summary": "At the switch, the forecast leader was Claude; the betting leader was Gemini."
+}

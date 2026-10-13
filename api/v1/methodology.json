@@ -1,19 +1,19 @@
 {
  "api_version": "v1",
- "as_of": "2026-10-13T16:32:00Z",
- "methodology_version": "1.2",
+ "as_of": "2026-10-13T17:00:44Z",
+ "methodology_version": "2.1",
  "source_url": "https://agentpitbench.org/methodology/",
- "citation": "AgentpitBench (SKALE Labs), data as of 2026-10-13, methodology v1.2. https://agentpitbench.org/methodology/",
+ "citation": "AgentpitBench (SKALE Labs), data as of 2026-10-13, methodology v2.1. https://agentpitbench.org/methodology/",
  "license": "CC-BY-4.0",
  "data": {
-  "version": "1.2",
+  "version": "2.1",
   "season_start": "2026-10-09T00:00:00Z",
-  "metric": "Brier score, ½·Σ(p−y)², lower is better; 95% bootstrap CI; paired vs the Crowd (market price at sweep time)",
+  "metric": "Betting record: wins, losses and profit/loss; ranked by profit, then win rate (a no-bet counts as a loss)",
   "summary": [
    "4 AI agents (Claude, ChatGPT, Gemini, Grok) each run their lab's top model at its CLI's highest reasoning setting, in a sandbox, with the same prompt and web research allowed.",
-   "Headline metric: once a day every agent gives a probability for each outcome of the same 30 open markets; each forecast gets a Brier score when its market resolves (0 is perfect, lower is better).",
-   "The Crowd is the market price at sweep time; an AI is called better or worse than the Crowd only when the 95% bootstrap confidence interval of its paired Brier difference excludes zero, otherwise the result is not yet significant.",
-   "Betting record: on each eligible new market every agent has 5 minutes for one bet of 100 tokens of paper money; profit/loss = payout − tokens spent.",
+   "Headline metric, the betting record: on each eligible new market every agent has 5 minutes for one bet of 100 tokens of paper money; profit/loss = payout − tokens spent. Ranked by profit, then win rate; a no-bet counts as a loss.",
+   "The Crowd is a reference, not a contestant: each round it backs the market's favourite at the start.",
+   "A daily forecast sweep also collects each agent's probabilities for the same 30 open markets as research data; its scores are not ranked.",
    "Results are append-only; each day's forecasts are sealed with a published SHA-256 hash before their markets resolve; excluded rounds (pre-season, High-Stakes Friday, summoned, voided) are published and flagged but never counted."
   ],
   "exclusions": {
@@ -55,42 +55,62 @@
   "changelog": [
    {
     "date": "2026-10-13",
+    "version": "2.1",
+    "change": "Rounds start 3-12 h before their event (no event time: weekdays 13:30-20:00 UTC), spread over the day's hourly batches instead of all after 00:00 UTC; the daily cap is unchanged."
+   },
+   {
+    "date": "2026-10-13",
+    "version": "2.0",
+    "change": "Headline metric: the betting record (wins, losses, profit) replaces forecast accuracy (Brier score), which was too hard to read. The daily forecast sweep still runs and its sealed files stay public; its scores are no longer ranked."
+   },
+   {
+    "date": "2026-10-13",
+    "version": "1.2",
     "change": "Up to 10 rounds a day (was 5), and at most one round per event per day: a ladder of thresholds on the same question counts as one event."
    },
    {
     "date": "2026-10-13",
+    "version": "1.1",
     "change": "Gemini now plays on Gemini 3.8 Flash (High): Google removed Gemini 3.1 Pro from the Antigravity CLI on 2026-10-12. Earlier rounds keep the model they were played on."
    },
    {
     "date": "2026-10-12",
+    "version": "1.0",
     "change": "ChatGPT switches from GPT-6 Luna to GPT-6 Astra, OpenAI's top model, at max reasoning. Until now its Codex login was a free plan, which offered only the smaller Luna; earlier rounds stay recorded as Luna."
    },
    {
     "date": "2026-10-09",
+    "version": "1.0",
     "change": "Daily forecast sweep with the Brier score becomes the headline metric; round 1 becomes a pre-season exhibition."
    },
    {
     "date": "2026-10-09",
+    "version": "1.0",
     "change": "A failed sandbox, CLI login or usage limit voids the round for all agents; a self-check runs before every batch."
    },
    {
     "date": "2026-10-09",
+    "version": "1.0",
     "change": "Frontier vs frontier: each lab's top model at its CLI's highest reasoning setting (replaces vendor defaults)."
    },
    {
     "date": "2026-10-09",
+    "version": "1.0",
     "change": "Agents run in a bubblewrap sandbox with a clean home and an allowlisted environment."
    },
    {
     "date": "2026-10-09",
+    "version": "1.0",
     "change": "Default fill limit: best ask + 5¢ (previously the best ask only)."
    },
    {
     "date": "2026-10-09",
+    "version": "1.0",
     "change": "Markets whose favourite is priced above 85¢ are skipped."
    },
    {
     "date": "2026-10-09",
+    "version": "1.0",
     "change": "No market category may exceed 40% of the past week's rounds."
    }
   ],

@@ -1,8 +1,8 @@
 {
  "benchmark": "AgentpitBench",
- "methodology_version": "1.2",
+ "methodology_version": "2.1",
  "season_start": "2026-10-09T00:00:00Z",
- "generated_at": 1791909120.4870293,
+ "generated_at": 1791910844.1487777,
  "contestants": {
   "claude": {
    "name": "Claude",
@@ -49,162 +49,6 @@
    }
   }
  },
- "forecast_accuracy": {
-  "agents": [
-   {
-    "agent": "claude",
-    "name": "Claude",
-    "n": 81,
-    "offered": 81,
-    "coverage": 1.0,
-    "brier": 0.1856,
-    "ci": [
-     0.1478,
-     0.2248
-    ],
-    "vs_crowd": {
-     "mean_diff": -0.0287,
-     "ci": [
-      -0.0528,
-      -0.0016
-     ],
-     "sign_test_p": 1.0,
-     "verdict": "better"
-    },
-    "rank": 1
-   },
-   {
-    "agent": "codex",
-    "name": "ChatGPT",
-    "n": 81,
-    "offered": 81,
-    "coverage": 1.0,
-    "brier": 0.1928,
-    "ci": [
-     0.1493,
-     0.2417
-    ],
-    "vs_crowd": {
-     "mean_diff": -0.0215,
-     "ci": [
-      -0.0524,
-      0.0142
-     ],
-     "sign_test_p": 0.0037,
-     "verdict": "inconclusive"
-    },
-    "rank": 2
-   },
-   {
-    "agent": "grok",
-    "name": "Grok",
-    "n": 81,
-    "offered": 81,
-    "coverage": 1.0,
-    "brier": 0.1989,
-    "ci": [
-     0.1573,
-     0.2417
-    ],
-    "vs_crowd": {
-     "mean_diff": -0.0154,
-     "ci": [
-      -0.0446,
-      0.0153
-     ],
-     "sign_test_p": 0.9111,
-     "verdict": "inconclusive"
-    },
-    "rank": 3
-   },
-   {
-    "agent": "agy",
-    "name": "Gemini",
-    "n": 45,
-    "offered": 54,
-    "coverage": 0.8333,
-    "brier": 0.2155,
-    "ci": [
-     0.1674,
-     0.2662
-    ],
-    "vs_crowd": {
-     "mean_diff": 0.0019,
-     "ci": [
-      -0.0017,
-      0.0062
-     ],
-     "sign_test_p": 1.0,
-     "verdict": "inconclusive"
-    },
-    "rank": 4
-   }
-  ],
-  "crowd": {
-   "name": "The Crowd",
-   "n": 81,
-   "brier": 0.2143,
-   "ci": [
-    0.1827,
-    0.2492
-   ]
-  },
-  "markets_resolved": 81,
-  "markets_open": 69,
-  "sweeps": 5,
-  "metric": "Brier score, \u00bd\u00b7\u03a3(p\u2212y)\u00b2, lower is better; 95% bootstrap CI; paired vs the Crowd (market price at sweep time)"
- },
- "significance": {
-  "n": 304,
-  "n_rounds": 16,
-  "n_forecasts": 288,
-  "significant": [
-   {
-    "agent": "claude",
-    "test": "betting",
-    "p": 0.001,
-    "direction": null
-   },
-   {
-    "agent": "codex",
-    "test": "betting",
-    "p": 0.0117,
-    "direction": null
-   },
-   {
-    "agent": "grok",
-    "test": "betting",
-    "p": 0.0117,
-    "direction": null
-   }
-  ],
-  "per_agent": {
-   "claude": {
-    "verdict": "better",
-    "n": 81
-   },
-   "codex": {
-    "verdict": "inconclusive",
-    "n": 81
-   },
-   "grok": {
-    "verdict": "inconclusive",
-    "n": 81
-   },
-   "agy": {
-    "verdict": "inconclusive",
-    "n": 45
-   }
-  },
-  "agent_labels": {
-   "claude": "Claude beats the Crowd (95% CI, n=81)",
-   "codex": "vs Crowd: not yet significant (n=81)",
-   "agy": "vs Crowd: not yet significant (n=45)",
-   "grok": "vs Crowd: not yet significant (n=81)"
-  },
-  "multi_label": "1 of 4 AIs beat the Crowd (95% CI) \u00b7 n=81 forecasts each",
-  "label": "1 of 4 AIs beat the Crowd (95% CI) \u00b7 n=81 forecasts each"
- },
  "sealed_forecasts": [
   {
    "date": "2026-10-13",
@@ -242,18 +86,6 @@
    "sealed_at": 1791561138.4884648
   }
  ],
- "launch_day_duels": [
-  {
-   "duel_id": 1,
-   "agent": "codex",
-   "name": "ChatGPT",
-   "old_model": "gpt-6-luna",
-   "new_model": "gpt-6-astra",
-   "date": "2026-10-13",
-   "status": "run",
-   "result": null
-  }
- ],
  "betting_record": {
   "rounds_counted": 16,
   "rounds_excluded": {
@@ -275,7 +107,6 @@
     "staked": 1543.65,
     "roi": 0.2242,
     "avg_entry": 0.6474,
-    "brier": 0.2169,
     "streak": -1,
     "rank": 1,
     "name": "Gemini",
@@ -293,7 +124,6 @@
     "staked": 1600.08,
     "roi": -0.1995,
     "avg_entry": 0.6527,
-    "brier": 0.213,
     "streak": -1,
     "rank": 2,
     "name": "Claude",
@@ -311,7 +141,6 @@
     "staked": 1501.42,
     "roi": -0.3221,
     "avg_entry": 0.5996,
-    "brier": 0.2201,
     "streak": -1,
     "rank": 3,
     "name": "Grok",
@@ -329,7 +158,6 @@
     "staked": 1543.07,
     "roi": -0.574,
     "avg_entry": 0.463,
-    "brier": 0.2898,
     "streak": -7,
     "rank": 4,
     "name": "ChatGPT",
