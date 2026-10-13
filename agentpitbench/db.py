@@ -316,6 +316,7 @@ CREATE TABLE IF NOT EXISTS yt_quota (day_pt TEXT NOT NULL, bucket TEXT NOT NULL,
 """
 
 MIGRATIONS = [  # (table, column, definition): added when missing, so old databases keep working
+    ("seen_markets", "condition_id", "TEXT"),            # stable across agentpit's id renumbering
     ("bets", "quote", "TEXT"),
     ("bets", "tx_hashes", "TEXT"),                       # JSON list of on-chain trade tx hashes
     ("rounds", "exhibition", "INTEGER NOT NULL DEFAULT 0"),

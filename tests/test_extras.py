@@ -137,7 +137,8 @@ async def test_tracker_calls_press_after_results(env, monkeypatch):
         return json.dumps({"type": "result", "result": "Tough beat."}) if agent == "claude" else "Tough beat."
     monkeypatch.setattr(press, "run_cli", runner)
     api = FakeAPI([gamma(1)])
-    api.markets_ = [dict(gamma(1), id="m1", winner="Nexus", closed=True, active=False, resolvedAt=time.time())]
+    api.markets_ = [dict(gamma(1), id="m1", conditionId=db.round(rid)["condition_id"], winner="Nexus", closed=True,
+                         active=False, resolvedAt=time.time())]
     try:
         assert await Tracker(s, db, api, pub).check() == [rid]
     finally:

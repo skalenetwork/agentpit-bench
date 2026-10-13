@@ -294,6 +294,8 @@ async def score_due(s: Settings, db: DB, api: Agentpit) -> int:
                 break
             log.exception("could not fetch sweep market %s", r["market_id"])
             continue
+        if m and m.get("question") != r["question"]:  # agentpit renumbered: this id is another market now
+            continue
         if m and m.get("winner"):
             db.x("UPDATE sweep_markets SET winner=?, state='resolved' WHERE market_id=?", m["winner"], r["market_id"])
             for f in db.q("SELECT agent, probs FROM forecasts WHERE market_id=? AND brier IS NULL", r["market_id"]):

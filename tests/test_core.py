@@ -50,6 +50,9 @@ class FakeAPI:
     async def market(self, mid):
         return next((m for m in self.markets_ if str(m["id"]) == str(mid)), None)
 
+    async def market_by_condition(self, cid):
+        return next((m for m in self.markets_ if m.get("conditionId") == cid), None)
+
     async def book(self, token_id):
         return self.book_
 
@@ -148,6 +151,43 @@ async def test_watcher_drops_markets_without_sellers(s, db):
     assert db.one("SELECT eligible FROM seen_markets WHERE market_id='2'")["eligible"] == 0
 
 
+async def test_watcher_survives_agentpit_renumbering(s, db):
+    """2026-10-12 agentpit renumbered every market (newest id 6972 after 26242): new markets were never seen, and
+    a new market reusing an old number would have been skipped as seen. Old ids are retired, everything is
+    re-scanned, and a market that was already played (same condition id) never starts again."""
+    api = FakeAPI([gamma(i) for i in range(2000, 2003)])
+    w = Watcher(s, db, api)
+    await w.poll()
+    api.markets_.append(gamma(2003))
+    assert [m["id"] for m in await w.poll()] == ["2003"]
+    played = gamma(2003)
+    db.create_round(played)
+    db.x("INSERT INTO market_ratings(market_id, score, keyword_tier, rated_at) VALUES('5', 90, 1, 0)")
+    # renumbered: the played market is now id 7, an unrelated new market reuses the old number 5
+    api.markets_ = [gamma(7, conditionId=played["conditionId"]), gamma(5, question="Will C beat D?"),
+                    gamma(6, question="Will E beat F?")]
+    new = await w.poll()
+    assert sorted(m["id"] for m in new) == ["5", "6"]       # 7 is the played market under its new id
+    assert db.one("SELECT 1 FROM market_ratings WHERE market_id='5'") is None   # old 5's rating retired
+    assert int(db.get("max_market_id")) == 7
+    picked = await w.pick(free_slots=3)                     # (the category cap may hold one back)
+    assert picked and {m["id"] for m in picked} <= {"5", "6"}
+    api.markets_.append(gamma(8))
+    assert [m["id"] for m in await w.poll()] == ["8"]       # normal polling resumes under the new ids
+
+
+async def test_tracker_follows_condition_not_id(s, db):
+    """Rounds resolve by condition id: a renumbered market is found under its new id (and the round follows it),
+    and an unrelated market that now has the round's old id is never used to settle it."""
+    rid = make_round(db, 1, {"claude": ("Yes", 0.5, 0.8), "codex": ("No", 0.5, 0.6)})
+    cond = db.round(rid)["condition_id"]
+    api = FakeAPI([gamma(1, question="Other market", conditionId="0xother", winner="No", closed=True),
+                   gamma(42, conditionId=cond, winner="Yes", closed=True, active=False, resolvedAt=1000.0)])
+    assert await Tracker(s, db, api, NullPublisher()).check() == [rid]
+    r = db.round(rid)
+    assert r["winner"] == "Yes" and r["market_id"] == "42"
+
+
 # scoring / tracker / leaderboard
 def make_round(db: DB, mid: int, picks: dict[str, tuple | None]) -> int:
     rid = db.create_round(gamma(mid))
@@ -242,17 +282,17 @@ async def test_tracker_offline_logs_one_warning(s, db, caplog):
     r1 = make_round(db, 1, {"claude": ("Yes", 0.5, 0.8)})
     make_round(db, 2, {"claude": ("Yes", 0.5, 0.8)})
     api = FakeAPI([gamma(1, winner="Yes", closed=True, active=False, resolvedAt=1000.0)])
-    real, calls = api.market, []
+    calls = []
 
     async def offline(mid):
         calls.append(mid)
         raise httpx.ConnectError("[Errno -3] Temporary failure in name resolution")
-    api.market = offline
+    api.market = api.market_by_condition = offline
     with caplog.at_level(logging.WARNING):
         assert await Tracker(s, db, api, NullPublisher()).check() == []
     recs = [r for r in caplog.records if r.levelno >= logging.WARNING]
     assert len(calls) == 1 and len(recs) == 1 and recs[0].exc_info is None and "unreachable" in recs[0].getMessage()
-    api.market = real
+    del api.market, api.market_by_condition   # back to the class's lookups
     assert await Tracker(s, db, api, NullPublisher()).check() == [r1]
     req = httpx.Request("GET", "https://x")
     assert unreachable(httpx.HTTPStatusError("x", request=req, response=httpx.Response(502, request=req)))

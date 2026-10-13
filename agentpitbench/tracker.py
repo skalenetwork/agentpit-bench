@@ -51,7 +51,8 @@ class Tracker:
             log.exception("redeem retries failed")
         for r in self.db.q("SELECT * FROM rounds WHERE state='awaiting_resolution'"):
             try:
-                m = await self.api.market(r["market_id"])
+                m = await (self.api.market_by_condition(r["condition_id"]) if r["condition_id"]
+                           else self.api.market(r["market_id"]))
             except Exception as e:
                 if unreachable(e):  # every other market would fail the same way: one line, next cycle retries
                     log.warning("agentpit unreachable (%s: %s); resolution checks retry next cycle",
@@ -61,6 +62,10 @@ class Tracker:
                 continue
             if m is None:
                 continue
+            if str(m["id"]) != str(r["market_id"]):  # agentpit renumbered its markets: follow the new id
+                log.info("round %s: market id %s is now %s", r["round_id"], r["market_id"], m["id"])
+                self.db.set_round(r["round_id"], market_id=str(m["id"]))
+                r = self.db.round(r["round_id"])
             if m.get("winner"):
                 self.resolve(r["round_id"], m["winner"], float(m.get("resolvedAt") or time.time()))
                 await self._redeem(r)
@@ -177,4 +182,5 @@ class Tracker:
         for k, v in list((self.db.get("redeem_pending") or {}).items()):
             if v["at"] <= now:
                 round_id, agent = k.split(":", 1)
-                await self._redeem_one(int(round_id), v["market_id"], agent, v["tries"])
+                r = self.db.round(int(round_id))
+                await self._redeem_one(int(round_id), r["market_id"] if r else v["market_id"], agent, v["tries"])

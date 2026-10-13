@@ -452,11 +452,11 @@ class Engage:
         if (d.weekday() != self.s.high_stakes_weekday or d.hour < self.s.high_stakes_hour_utc
                 or self.db.get(f"high_stakes_{week}") or watcher.rounds_today() >= self.s.daily_round_cap):
             return None
-        ids = [r["market_id"] for r in self.db.q("SELECT market_id FROM seen_markets WHERE eligible=1 AND started=0")]
+        rows = self.db.q("SELECT market_id, condition_id FROM seen_markets WHERE eligible=1 AND started=0")
         cands = []
-        for mid in ids:
+        for mid, cond in ((r["market_id"], r["condition_id"]) for r in rows):
             m = await self.api.market(mid)
-            if m and basic_eligible(self.s, m):
+            if m and (not cond or m.get("conditionId") == cond) and basic_eligible(self.s, m):
                 cands.append(m)
         for m in sorted(cands, key=lambda m: priority(m, self.db, self.s), reverse=True):
             if await watcher._books_ok(m):

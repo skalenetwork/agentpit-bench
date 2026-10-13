@@ -53,20 +53,31 @@ class Watcher:
         first_run = self.db.one("SELECT 1 FROM seen_markets LIMIT 1") is None
         known_max = int(self.db.get("max_market_id", 0))
         fresh, offset = [], 0
+        renumbered = False
         while True:  # ids come newest first; page until we reach ids we already know
             page = await self.api.markets(limit=1000, offset=offset)
+            if not offset and not first_run and page and max(int(m["id"]) for m in page) < known_max - 500:
+                # agentpit renumbered its markets (2026-10-12: newest id 6972 after 26242). Every id we stored
+                # now names another market or none: retire them, and re-scan everything under the new ids.
+                log.warning("agentpit renumbered its markets (newest id %s, last known %s); re-scanning",
+                            max(int(m["id"]) for m in page), known_max)
+                self._retire_ids()
+                known_max, renumbered = 0, True
             fresh += [m for m in page if int(m["id"]) > known_max or first_run]
             if first_run or len(page) < 1000 or int(page[-1]["id"]) <= known_max:
                 break
             offset += 1000
         now = time.time()
+        played = {r["condition_id"] for r in self.db.q("SELECT condition_id FROM rounds WHERE condition_id IS NOT NULL")}
+        if renumbered:
+            self._remap_sweep(fresh)
         new_eligible = []
         for m in fresh:
             if self.db.one("SELECT 1 FROM seen_markets WHERE market_id=?", str(m["id"])):
                 continue
-            ok = (not first_run) and basic_eligible(self.s, m)
-            self.db.x("INSERT INTO seen_markets(market_id, first_seen, eligible) VALUES(?,?,?)",
-                      str(m["id"]), now, int(ok))
+            ok = (not first_run) and m.get("conditionId") not in played and basic_eligible(self.s, m)
+            self.db.x("INSERT INTO seen_markets(market_id, first_seen, eligible, condition_id) VALUES(?,?,?,?)",
+                      str(m["id"]), now, int(ok), m.get("conditionId"))
             if ok:
                 new_eligible.append(m)
         if fresh:
@@ -78,6 +89,31 @@ class Watcher:
         from . import rating  # newsworthiness rating, off the polling path (shadow mode until approved)
         rating.schedule(self.s, self.db, new_eligible)
         return new_eligible
+
+    def _retire_ids(self) -> None:
+        """After a renumbering: old ids keep their rows (history) under an 'old:' prefix, so a new market that
+        reuses the number is neither skipped as seen nor given the old market's rating."""
+        for table in ("seen_markets", "market_ratings", "exhibition_markets"):
+            self.db.x(f"UPDATE {table} SET market_id='old:'||market_id WHERE market_id NOT LIKE 'old:%'")
+
+    def _remap_sweep(self, markets: list[dict]) -> None:
+        """Open forecast-sweep markets follow their market (same question) to its new id, so they still resolve."""
+        by_q: dict[str, list[dict]] = {}
+        for m in markets:
+            by_q.setdefault(m.get("question"), []).append(m)
+        by_id = {str(m["id"]): m for m in markets}
+        for r in self.db.q("SELECT market_id, question FROM sweep_markets WHERE state='open'"):
+            cur = by_id.get(r["market_id"])
+            if cur and cur.get("question") == r["question"]:
+                continue
+            hits = by_q.get(r["question"], [])
+            new = str(hits[0]["id"]) if len(hits) == 1 else None
+            if new and not self.db.one("SELECT 1 FROM sweep_markets WHERE market_id=?", new):
+                self.db.x("UPDATE forecasts SET market_id=? WHERE market_id=?", new, r["market_id"])
+                self.db.x("UPDATE sweep_markets SET market_id=? WHERE market_id=?", new, r["market_id"])
+            else:  # gone or ambiguous: keep the row, out of the way of the new numbering
+                self.db.x("UPDATE forecasts SET market_id='old:'||market_id WHERE market_id=?", r["market_id"])
+                self.db.x("UPDATE sweep_markets SET market_id='old:'||market_id WHERE market_id=?", r["market_id"])
 
     def rounds_today(self) -> int:
         day0 = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
@@ -91,11 +127,11 @@ class Watcher:
         budget = min(free_slots, self.s.daily_round_cap - self.rounds_today())
         if budget <= 0:
             return []
-        ids = [r["market_id"] for r in self.db.q("SELECT market_id FROM seen_markets WHERE eligible=1 AND started=0")]
+        rows = self.db.q("SELECT market_id, condition_id FROM seen_markets WHERE eligible=1 AND started=0")
         cands = []
-        for mid in ids:
+        for mid, cond in ((r["market_id"], r["condition_id"]) for r in rows):
             m = await self.api.market(mid)
-            if m and basic_eligible(self.s, m):
+            if m and (not cond or m.get("conditionId") == cond) and basic_eligible(self.s, m):
                 cands.append(m)
             else:
                 self.db.x("UPDATE seen_markets SET eligible=0 WHERE market_id=?", mid)

@@ -59,6 +59,13 @@ class Agentpit:
         rows = await self._get("/markets", id=int(market_id))
         return parse_market(rows[0]) if rows else None
 
+    async def market_by_condition(self, condition_id: str) -> dict | None:
+        """The market for an on-chain condition id. Unlike agentpit's numeric ids (renumbered on 2026-10-12),
+        the condition id never changes, so stored rounds look their market up this way."""
+        rows = await self._get("/markets", condition_ids=condition_id)
+        rows = [m for m in rows if m.get("conditionId") == condition_id]
+        return parse_market(rows[0]) if rows else None
+
     async def book(self, token_id: str) -> dict:
         return await self._get("/book", token_id=token_id)
 
