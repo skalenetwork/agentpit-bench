@@ -154,3 +154,7 @@ About half a day: template/CSS ~2 h, audit ~1 h, tests ~1 h, i18n fill + screens
   The cycling button is smaller in an already full header on phones; the menu is more explicit.
 - Footer placement instead of header? Header is the convention readers look for; footer keeps the header
   uncluttered.
+
+## Operator decisions (2026-10-13)
+
+- §11: one cycling button (Auto → Light → Dark), in the header.

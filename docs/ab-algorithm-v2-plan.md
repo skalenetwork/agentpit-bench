@@ -211,3 +211,10 @@ change to live assignment.
   https://pmc.ncbi.nlm.nih.gov/articles/PMC8329003/
 - Gligorić, K., Lifchits, G., West, R. & Anderson, A. (2023). Linguistic effects on news headline success. PLoS One
   18(3). https://pmc.ncbi.nlm.nih.gov/articles/PMC10038272/
+
+## Operator decisions (2026-10-13)
+
+- §5.1: recommend only; the bench never auto-applies A/B winners, also after M8.
+- §5.2: yes, at most 2 variants per slot and 4 slots tested at once; other variants queue.
+- §5.3: /experiments/ shows numbers for finished tests only, "running, n so far" for the rest.
+- §5.4: still open (signal for hostile replies).

@@ -322,3 +322,9 @@ validator, and stays English if that fails.
    - A Telegram row with `&amp;` and the name doesn't raise it.
    - Rows posted before the `market_name_since` marker are ignored.
 10. **Site:** the round page `<title>` starts with the event title when it is set.
+
+## Operator decisions (2026-10-13)
+
+- §8.1: results posts drop the A/B call-to-action line when space runs out; the season line stays (CTA testing moves to the reveal post).
+- §8.3: press replies are exempt from the market name.
+- Share buttons (research 2026-10-13): keep our own plain share links, add one native "Share" button (`navigator.share`) on phones with the links as fallback, and put the full market name in the pre-filled share text. No third-party widget.
