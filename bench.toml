@@ -36,7 +36,7 @@ dry_run = true
 posting_paused = false
 # operator 2026-10-13: two posts per market on X (and its mirrors): the opening (reveal) and the closing
 # (results). No replies, no press, films, replays, awards, reports or other extra posts.
-post_kinds = ["reveal", "results", "week"]   # + the weekly Week in the Pit episode (operator exception 2026-10-13)
+post_kinds = ["reveal", "results", "week", "motd"]   # + weekly episode and daily Match of the Day film (operator exceptions 2026-10-13)
 
 agents = ["claude", "codex", "agy", "grok"]
 excluded_keywords = ["death", "dies", "die ", "killed", "shooting", "war ", "attack", "terror", "earthquake", "hurricane", "flood", "wildfire", "disaster", "casualt", "murder", "assassinat", "elon musk post"]
@@ -44,7 +44,7 @@ excluded_keywords = ["death", "dies", "die ", "killed", "shooting", "war ", "att
 
 # Match of the Day: daily film of the most dramatic resolved round, posted at motd_hour_utc
 motd_enabled = true   # scripted films approved by the operator 2026-10-12
-motd_daily = false    # operator 2026-10-13: the daily Match of the Day film dropped; each round's results film stays
+motd_daily = true     # operator 2026-10-13: the daily Match of the Day film is back on (posted as one X post, no link reply)
 
 # Operator AI (docs/ai-automation-spec.md): own login in ~/.config/agentpitbench/opai-claude (done 2026-10-12).
 opai_enabled = true
