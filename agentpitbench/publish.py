@@ -294,14 +294,10 @@ class BenchPublisher:
         text = ab.finish(self.db, key, choices,
                          lambda v: reveal_text(rnd, v.get("reveal.hook", headline), v.get("reveal.cta", ""),
                                                v.get("tags", "")), "reveal", required=market_name(rnd))
-        media = cards or None
-        m = ab.choose(self.db, self.s, "reveal.media", key, kind="reveal")
-        if m.key == "split_card":
-            split = self.s.cards_dir / str(round_id) / "split.png"
-            if split.exists():
-                media = split
-            else:  # no split card (fewer than 2 bettors, or the render failed): the decision cards, as the control
-                ab.realize_control(self.db, key, "reveal.media")
+        # one image, never the four decision cards: X crops each image of a multi-image post to its grid tile and
+        # cut the cards' edges ("LAUDE BETS"); operator 2026-10-13 ended the reveal.media A/B arm for the split card
+        split = self.s.cards_dir / str(round_id) / "split.png"
+        media = split if split.exists() else (cards[0] if cards else None)  # no split card (one bettor): its card
         return text, media
 
     async def on_resolved(self, round_id: int) -> None:

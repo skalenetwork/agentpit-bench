@@ -491,7 +491,7 @@ async def test_compact_round_posts_reveal_results_only(env):
     assert "Claude: CYBERSHOKE · ChatGPT: CYBERSHOKE · Gemini: no bet · Grok: Nexus" in reveal["text"]
     assert reveal["text"].split("\n")[1] == "2–1: Grok goes alone." and reveal["length"] <= MAX_LEN
     assert reveal["text"].split("\n")[0] == exports.round_record(s, db, db.round(rid))["market_name"]
-    assert len(reveal["images"]) == 4 and all(i.endswith(".png") and "decision-" in i for i in reveal["images"])
+    assert reveal["images"] == [str(s.cards_dir / str(rid) / "split.png")]   # one uncropped image (2026-10-13)
     assert db.round(rid)["thread_tweet_id"] == f"dry-r{rid}-reveal"         # human picks read from the reveal
     assert tweets[f"r{rid}-results"]["quote_of"] == f"dry-r{rid}-reveal"
     assert set(tweets) <= {f"r{rid}-reveal", f"r{rid}-results", f"r{rid}-press-1"}  # 2-3 posts per round
