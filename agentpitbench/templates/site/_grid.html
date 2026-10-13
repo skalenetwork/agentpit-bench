@@ -35,10 +35,11 @@
 .chip.more{padding:6px 12px;color:var(--mut);font-weight:600}
 .hero{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px}.hero h1{margin:.1em 0}
 .gh{font-size:16px;margin:18px 0 0;text-transform:none;letter-spacing:0}
+.mkw{position:relative;display:flex;min-width:0}.mkw>.mk{flex:1}.mkw>.bm{position:absolute;top:8px;inset-inline-end:8px}.mkw .mh{padding-inline-end:30px}
 </style>{% endmacro %}
 
 {% macro card(c) %}{% set live = c.state == 'live' %}{% set slug = c.category|lower if c.category in ('Sports', 'Crypto', 'Economy', 'Politics', 'Esports') else 'other' %}
-<a class="mk{% if not live %} done{% endif %}" href="{{ home }}round/{{ c.id }}/"{% if live %} data-live data-market="{{ c.market_id }}" data-end="{{ c.end_date or '' }}"{% endif %}>
+<div class="mkw"><a class="mk{% if not live %} done{% endif %}" href="{{ home }}round/{{ c.id }}/"{% if live %} data-live data-market="{{ c.market_id }}" data-end="{{ c.end_date or '' }}"{% endif %}>
 <div class="mh"><svg class="ci" role="img" aria-label="{{ _(c.category) }}"><use href="#ci-{{ slug }}"/></svg><div><div class="t1">{{ mq(c.event) if c.event else mq(c.question) }}</div>{% if c.event %}<div class="t2">{{ mq(c.question) }}</div>{% endif %}</div></div>
 {% if c.state == 'resolved' and c.winner %}<div class="win"><span class="ck" aria-hidden="true">✓</span> {{ _h("Resolved <b>{winner}</b>", winner=tq(c.winner)) }}</div>
 {% elif c.chance and c.chance|length == 2 and c.outcomes|length == 2 %}{% set a, b = c.chance %}
@@ -50,6 +51,7 @@
 <div class="pills">{% for p in c.picks %}{% set right = c.state == 'resolved' and p.won %}<span class="pl {{ 'off' if p.sealed or not p.outcome else p.kind }}"{% if live %} data-outcome="{{ p.outcome or '' }}"{% endif %} title="{{ p.name }}">{{ mi(p.agent, 20, p.name) }}{% if p.sealed %}<span aria-label="{{ _("Picks revealed when all four are in") }}">🔒</span>{% elif p.outcome %}<span class="ot">{{ mq(p.outcome) }}</span>{% if p.price is not none %} <span class="pr">{{ p.price|cents }}</span>{% endif %}{% if right %} ✓{% endif %}{% elif p.thinking %}{{ _("thinking…") }}{% else %}{{ _("No bet") }}{% endif %}</span>{% endfor %}</div>
 <div class="mf">{% if live %}<span class="lv"><span class="ldot" aria-hidden="true"></span>{{ _("Live") }}</span>{% if c.end_date %}<span>{{ _("closes {date}", date=c.end_date[:10]) }}</span>{% endif %}{% if c.sealed %}<span>🔒 {{ _("Picks revealed when all four are in") }}</span>{% endif %}
 {% elif c.state == 'void' %}<span>{{ _("Void") }}</span>{% elif c.bettors %}<span>{{ _("{n} of {k} AIs right", n=c.right, k=c.bettors) }}</span>{% endif %}<span class="rid">{{ _("Round {n}", n=c.id) }}</span></div></a>
+<button type="button" class="bm" data-bm="{{ c.id }}" aria-pressed="false" hidden>☆</button></div>
 {% endmacro %}
 
 {% macro film_card(film, today) %}{% set fsrc = film.files.wide or film.files.square %}

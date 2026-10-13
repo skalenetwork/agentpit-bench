@@ -1,0 +1,44 @@
+{% extends "base.html" %}{% import "_grid.html" as g with context %}
+{% set wide = true %}
+{% block main %}
+{#- Bookmarks (docs/polymarket-social-spec.md §3): the rounds this visitor saved with ☆, kept in this browser only
+    (localStorage "apb-saved"), drawn from data/rounds-index.json as the home grid's cards, live first. A saved round
+    that resolved since the last look here gets a "Resolved" dot. Same page for everyone, so noindex. -#}
+{{ g.style() }}
+<style>.mf .nd{display:inline-flex;align-items:center;gap:6px;color:var(--yesf);font-weight:800;text-transform:uppercase;letter-spacing:.5px}.mf .nd i{width:8px;height:8px;border-radius:50%;background:var(--yes)}
+.mk.new{border-color:color-mix(in srgb,var(--yes) 55%,var(--line))}</style>
+<h1>{{ _("Saved markets") }}</h1>
+<p class="mut small">{{ _("Kept in this browser only: nothing is sent to us. Tap ☆ on any round to save it.") }}</p>
+<noscript><p>{{ _("Saved markets need JavaScript.") }}</p></noscript>
+<div class="grid" data-saved-grid data-idx="{{ root }}data/rounds-index.json" data-home="{{ home }}" data-live="{{ _("Live") }}" data-void="{{ _("Void") }}"
+ data-new="{{ _("Resolved") }}" data-win="{{ _h("Resolved <b>{winner}</b>", winner="{w}")|forceescape }}" data-round="{{ _("Round {n}", n="{n}") }}"
+ data-cats="{{ {'Sports': _('Sports'), 'Crypto': _('Crypto'), 'Economy': _('Economy'), 'Politics': _('Politics'), 'Esports': _('Esports'), 'Other': _('Other')}|tojson|forceescape }}"></div>
+<p class="mut" data-saved-empty hidden>{{ _("Nothing saved yet. Tap ☆ on any round.") }}</p>
+<p class="mut" data-saved-err hidden>{{ _("The markets could not be loaded. Try again later.") }}</p>
+<div class="btns"><a class="btn" href="{{ home }}">{{ _("All markets") }}</a></div>
+<script>(function(){var G=document.querySelector("[data-saved-grid]"),S=window.apbSaved;if(!G||!S||!window.fetch)return;
+var D=G.dataset,ids=S.get(),seen=0,K="apb-saved-seen",cats={};try{cats=JSON.parse(D.cats)}catch(e){}
+try{seen=+localStorage.getItem(K)||0}catch(e){}
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function esc(x){var e=el("b");e.textContent=x;return e.innerHTML}
+function show(sel){document.querySelector(sel).hidden=false}
+if(!ids.length){show("[data-saved-empty]");return}
+fetch(D.idx).then(function(r){if(!r.ok)throw Error(r.status);return r.json()}).then(function(L){
+var by={};(L||[]).forEach(function(r){by[r.id]=r});
+var rs=ids.map(function(i){return by[i]}).filter(Boolean),fresh=function(r){return r.state==="resolved"&&seen&&r.rt>seen};
+rs=rs.filter(function(r){return r.state==="live"}).concat(rs.filter(fresh),rs.filter(function(r){return r.state!=="live"&&!fresh(r)}));
+if(!rs.length){show("[data-saved-empty]");return}
+rs.forEach(function(r){var live=r.state==="live",nu=fresh(r),slug=r.cat in cats&&r.cat!=="Other"?r.cat.toLowerCase():"other";
+var w=el("div","mkw"),a=el("a","mk"+(live?"":" done")+(nu?" new":""));a.href=D.home+"round/"+r.id+"/";
+var h=el("div","mh"),ic=document.createElementNS("http://www.w3.org/2000/svg","svg"),u=document.createElementNS("http://www.w3.org/2000/svg","use");
+ic.setAttribute("class","ci");ic.setAttribute("role","img");ic.setAttribute("aria-label",cats[r.cat]||r.cat);u.setAttribute("href","#ci-"+slug);ic.appendChild(u);h.appendChild(ic);
+var t=el("div"),ev=r.ev&&r.q.toLowerCase().indexOf(r.ev.toLowerCase())<0;t.appendChild(el("div","t1",ev?r.ev:r.q));if(ev)t.appendChild(el("div","t2",r.q));h.appendChild(t);a.appendChild(h);
+if(r.state==="resolved"&&r.w){var v=el("div","win");v.innerHTML='<span class="ck" aria-hidden="true">✓</span> '+D.win.replace("{w}",esc(r.w));a.appendChild(v)}
+var f=el("div","mf");if(live){var lv=el("span","lv");lv.appendChild(el("span","ldot"));lv.appendChild(document.createTextNode(D.live));f.appendChild(lv)}
+else if(nu){var nd=el("span","nd");nd.appendChild(el("i"));nd.appendChild(document.createTextNode(D["new"]));f.appendChild(nd)}
+else if(r.state==="void")f.appendChild(el("span","",D["void"]));
+f.appendChild(el("span","rid",D.round.replace("{n}",r.id)));a.appendChild(f);w.appendChild(a);
+var b=el("button","bm","☆");b.type="button";b.dataset.bm=r.id;w.appendChild(b);G.appendChild(w)});
+S.paint();try{localStorage.setItem(K,String(Math.floor(Date.now()/1000)))}catch(e){}
+}).catch(function(){show("[data-saved-err]")})})();</script>
+{% endblock %}

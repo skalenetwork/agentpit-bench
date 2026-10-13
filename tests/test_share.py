@@ -77,8 +77,8 @@ def test_share_links_utm_and_lengths(env):
         q = parse_qs(urlparse(unescape(href)).query)
         shared = (q.get("url") or q.get("u") or [None])[0] or re.search(r"https://\S+", (q.get("text") or q["body"])[0]).group(0)
         u = parse_qs(urlparse(shared).query)
-        assert u == {"utm_source": [net], "utm_medium": ["share"], "utm_campaign": ["site"],
-                     "utm_content": ["share-round"]}, net
+        assert u == {"s": ["r2"], "utm_source": [net], "utm_medium": ["share"], "utm_campaign": ["site"],
+                     "utm_content": ["share-round"]}, net  # ?s=r<id>: one X card cache entry per round
     copy = re.search(r'href="([^"]+)" data-copy', bar).group(1)
     assert "utm_source=copy" in unescape(copy) and "utm_content=share-round" in unescape(copy)
     assert "utm_source=native" in re.search(r'data-url="([^"]+)"', html).group(1)
@@ -354,7 +354,9 @@ def test_share_row_at_the_top_of_every_page(env):
             html = (out / prefix / p).read_text()
             top = html.find("data-share-top")
             assert 0 < top < html.index('id="share"'), (code, p)
-            assert top < html.index("</h1>") + 1500, (code, p)  # right under the heading, not further down
+            h1 = html.index("</h1>")  # a round's title row ends after its ☆ and share icon (social spec §4)
+            h1 = html.index("</details></div></div>", h1) if 'class="rh"' in html else h1
+            assert top < h1 + 1500, (code, p)  # right under the heading, not further down
             row = html[top:html.index("</div>", top)]
             nets = re.findall(r'data-net="(\w+)"', row.split("<details>", 1)[0])
             assert nets in (["x", "linkedin", "bluesky"], ["x", "bluesky"]), (code, p, nets)  # few buttons up top

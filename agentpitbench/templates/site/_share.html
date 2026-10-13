@@ -23,3 +23,13 @@
 {# Quote card (spec §4): phones share the decision card as a file; desktop posts the quote and saves the card #}
 {% macro quote(q) %}<div class="shrow qs" data-share-row data-text="{{ q.text }}" data-url="{{ q.url }}" data-file="{{ root }}{{ q.card }}" data-fname="{{ q.name }}">
 <span class="ql">{{ _("Share") }}</span><button type="button" class="btn sm" data-native>{{ _("Share") }}</button><a class="btn sm" href="{{ q.x }}" data-net="x" target="_blank" rel="noopener">X</a><a class="btn sm" href="{{ q.bluesky }}" data-net="bluesky" target="_blank" rel="noopener">Bluesky</a><a class="btn sm" href="{{ root }}{{ q.card }}" download="{{ q.name }}" data-save>{{ _("Save image") }}</a></div>{% endmacro %}
+
+{# The share icon beside a round's title (docs/polymarket-social-spec.md §4), Polymarket-style, on top of the share
+   row: Copy link and Post on X are plain links (they work with JavaScript off); Share… (the native sheet) and Embed
+   (copies the round's <iframe> code) appear with JavaScript. Every link carries the round's fixed ?s=r<id>. #}
+{% macro menu(sh, embed='') %}<details class="shm" data-share-menu data-st="{{ sh.title }}" data-sx="{{ sh.text }}" data-su="{{ sh.native_url }}">
+<summary class="bm" aria-label="{{ _("Share") }}" title="{{ _("Share") }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg></summary>
+<div class="shp"><a href="{{ sh.copy_url }}" data-mcopy>{{ _("Copy link") }}</a><button type="button" data-mnative hidden>{{ _("Share…") }}</button>
+{%- for net, label, href in sh.links if net == 'x' %}<a href="{{ href }}" target="_blank" rel="noopener" data-mx>{{ _("Post on X") }}</a>{% endfor -%}
+{% if embed %}<button type="button" data-membed data-code="{{ embed }}" hidden>{{ _("Embed") }}</button>{% endif %}
+<span class="ok" role="status" data-copied hidden>{{ _("Copied") }}</span></div></details>{% endmacro %}

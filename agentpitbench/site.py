@@ -641,7 +641,7 @@ def indexnow_ping(s: Settings, rels: list[str]) -> bool:
 SHARE_BAR = 'data-share-bar'  # every public page carries it (checked at build)
 OG_REQUIRED = ('property="og:title"', 'property="og:description"', 'property="og:image"', SHARE_BAR,
                'data-share-top')  # share UX v2: a share control in the first screen
-NO_SHARE = ("widget/", "embed/", "404.html", "go/", "vs/", "hall-of-shame/")  # embedded elsewhere, the not-found page, the A/B redirect hop, or a retired/moved page's stub: no bar, no preview
+NO_SHARE = ("widget/", "embed/", "404.html", "go/", "vs/", "hall-of-shame/", "saved/")  # embedded elsewhere, the not-found page, the A/B redirect hop, a retired/moved page's stub, or the visitor's own bookmarks: no bar, no preview
 
 # Pages that moved: old folder -> new folder (under each language root). The old URL keeps working as a noindex
 # stub that points search engines (canonical) and visitors (instant refresh) at the new one.
@@ -924,10 +924,21 @@ def grid_rounds(rounds: list[dict], cat: str | None = None, live_only: bool = Fa
 
 def rounds_index(rounds: list[dict]) -> list[dict]:
     """data/rounds-index.json, the header search's index (spec §3): id, question, event title, category, state.
-    Never a pick, so a sealed round leaks nothing."""
-    return [{"id": r["round_id"], "q": r["question"], "ev": r.get("event_title") or "",
+    A resolved round also carries its winner (w) and resolution time (rt, Unix seconds) for /saved/'s "Resolved"
+    dot (docs/polymarket-social-spec.md §3). Never a pick, so a sealed round leaks nothing."""
+    def one(r: dict) -> dict:
+        x = {"id": r["round_id"], "q": r["question"], "ev": r.get("event_title") or "",
              "cat": grid_category(r), "state": "live" if r["state"] in LIVE_STATES else r["state"]}
-            for r in sorted(rounds, key=lambda r: -(r.get("started_at") or 0))]
+        if r["state"] == "resolved":
+            x.update(w=r.get("winner") or "", rt=int(r.get("resolved_at") or 0))
+        return x
+    return [one(r) for r in sorted(rounds, key=lambda r: -(r.get("started_at") or 0))]
+
+
+def round_share_url(rurl: str, rid: int) -> str:
+    """A round's shared link (docs/polymarket-social-spec.md §4): a fixed per-round query, so X keeps one fresh
+    card per round instead of a stale card cached for the bare address. The canonical URL stays clean."""
+    return f"{rurl}?s=r{rid}"
 
 
 def agent_stats(rounds: list[dict], agent: str) -> dict:
@@ -1332,13 +1343,13 @@ def _build(s: Settings) -> Path:
                 ctx["description"] = None if text is ctx["title"] else (text.full if isinstance(text, ShareText) else text)
             ctx["description"] = ctx["description"] or blurb
             seo.append((lang, rel, ctx["title"], ctx["description"]))
-            ctx["share"] = share_bar(text, ctx["title"], ctx["canonical"], kind, _)
+            ctx["share"] = share_bar(text, ctx["title"], ctx.pop("share_url", None) or ctx["canonical"], kind, _)
             og_rel = ctx.pop("og", None)
             if og_rel is None and kind in BRANDED:
                 og_rel = previews["pages"].get((kind, lang))
             ctx["og_image"] = previews["pv"].url(og_rel)
             lastmod = ctx.pop("lastmod", None)
-            if lang == "en":
+            if lang == "en" and not ctx.get("noindex"):  # a noindex page (/saved/) stays out of the sitemaps
                 sitemap[rel] = lastmod or as_of
             html = env.get_template(tpl).render(**common, root=root, home=root + prefix, rel=rel, **ctx)
             f = out / prefix / path
@@ -1418,6 +1429,7 @@ def _build(s: Settings) -> Path:
             same = [x for x in sorted(rounds, key=lambda x: -(x.get("started_at") or 0))
                     if x is not r and category(x["question"]) == cat][:3]
             rurl = f"{base}/{prefix}round/{rid}/"
+            surl = round_share_url(rurl, rid)  # what the share controls link to
             lr = loc(r)  # translated question/outcome labels for the page's own text; data stays English
             ar = discover.api_round(r, base, rurl)  # the public, sealed-safe shape: no pick before the reveal
             open_r = r["state"] in ("running", "awaiting_resolution")
@@ -1426,9 +1438,9 @@ def _build(s: Settings) -> Path:
                                   state_sig=f"{ar['state']}|{'true' if ar['sealed'] else 'false'}", every=60000)
             page(f"round/{rid}/index.html", "round.html", r=r, card=card, card_alt=card_alt(lr, _, ", ".join(names)),
                  film=film_of.get(rid), cta=cta if lang == "en" else None,
-                 picks=pick_share(r, rurl, _), wins=win_share(r, rurl, _), cap_hit=cap_hit.get(rid),
-                 grid=grid_share(r, rurl, _), qshare=quote_shares(s, r, rurl),
-                 img=share_image(card, f"round-{rid}", round_share(lr, _, vs), rurl, "round"),
+                 picks=pick_share(r, surl, _), wins=win_share(r, surl, _), cap_hit=cap_hit.get(rid),
+                 grid=grid_share(r, surl, _), qshare=quote_shares(s, r, surl), share_url=surl,
+                 img=share_image(card, f"round-{rid}", round_share(lr, _, vs), surl, "round"),
                  og=previews["rounds"].get(rid), share_text=round_share(lr, _, vs),
                  prev_r=by_id[i - 1] if i else None, next_r=by_id[i + 1] if i + 1 < len(by_id) else None,
                  cat=cat, same_cat=same,
@@ -1481,6 +1493,10 @@ def _build(s: Settings) -> Path:
              title=branded(_("Beat the AIs")),
              description=_("One market a day. Lock in your pick before you see how the AIs bet, then compare once it resolves."),
              share_text=_("Can you beat the AIs? Today's AgentpitBench challenge:"))
+        # bookmarks (docs/polymarket-social-spec.md §3): rendered in the browser from data/rounds-index.json and
+        # localStorage, so the page is the same for everyone and kept out of search
+        page("saved/index.html", "saved.html", noindex=True, title=branded(_("Saved markets")),
+             description=_("The markets you saved on AgentpitBench, kept in this browser only."))
         page("films/index.html", "films.html", films=films, episodes=episodes, title=branded("Match of the Day"),
              description=_("Match of the Day: a short film of the most dramatic AgentpitBench round each day."))
         page("splits/index.html", "splits.html", splits=splits, title=branded(_("Split decisions")),

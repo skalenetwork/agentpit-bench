@@ -28,6 +28,14 @@ if(nb&&navigator.share){if(r.dataset.file&&files)nb.addEventListener("pointerdow
 nb.onclick=function(){var o={text:r.dataset.text,url:r.dataset.url};if(r.dataset.title)o.title=r.dataset.title;
 if(r.dataset.file&&files)blob().then(function(x){o.files=[new File([x],r.dataset.fname,{type:"image/png"})];return navigator.share(o)}).catch(function(e){if(!e||e.name!=="AbortError")sh({text:o.text,url:o.url})});else sh(o)}}
 if(cp)cp.onclick=function(e){e.preventDefault();var t=r.dataset.copyText||cp.href;copy(t,r,function(){window.prompt("",t)})}});
+/* the share icon's menu beside a round title (social spec §4) */
+each("[data-share-menu]",function(m){var nb=m.querySelector("[data-mnative]"),cp=m.querySelector("[data-mcopy]"),em=m.querySelector("[data-membed]");
+function later(){setTimeout(function(){m.open=false},1200)}
+if(nb&&navigator.share){nb.hidden=false;nb.onclick=function(){m.open=false;sh({title:m.dataset.st,text:m.dataset.sx,url:m.dataset.su})}}
+cp.onclick=function(e){e.preventDefault();copy(cp.href,m,function(){window.prompt("",cp.href)});later()};
+if(em){em.hidden=false;em.onclick=function(){copy(em.dataset.code,m,function(){window.prompt("",em.dataset.code)});later()}}
+var x=m.querySelector("[data-mx]");if(x)x.addEventListener("click",function(){m.open=false});
+d.addEventListener("click",function(e){if(m.open&&!m.contains(e.target))m.open=false});d.addEventListener("keydown",function(e){if(e.key==="Escape")m.open=false})});
 /* film end screen: share or watch again */
 each("[data-fend]",function(o){var v=o.parentNode.querySelector("video");if(!v)return;v.addEventListener("ended",function(){o.hidden=false});
 v.addEventListener("play",function(){o.hidden=true});var rp=o.querySelector("[data-replay]");if(rp)rp.onclick=function(){o.hidden=true;v.currentTime=0;v.play()}});
