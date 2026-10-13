@@ -133,6 +133,7 @@ async def test_bounds_rejected(env, fake_claude):
 
 async def test_rate_limit(env, fake_claude):
     s, db, pkg = env
+    cap0 = s.daily_round_cap                      # the lock's cap (10 since v1.2)
     fake_claude.respond(GOOD)
     assert (await sr.review(s, db, SUNDAY))["applied"] == "1.1"
     fake_claude.respond({**GOOD, "changes": {"daily_round_cap": 6}})
@@ -140,7 +141,7 @@ async def test_rate_limit(env, fake_claude):
     assert out.get("applied", "missing") is None and "rate limit" in out["summary"], out
     p = m.get_proposal(s, out["proposal"])
     assert p["state"] == "rejected" and "rate limit" in p["reject_reason"]   # doesn't block next week
-    assert m.load()["version"] == "1.1" and s.daily_round_cap == 5
+    assert m.load()["version"] == "1.1" and s.daily_round_cap == cap0
     assert [x["title"] for x in alerts(s)][-1].endswith("not applied")
     # a week later by the calendar (the review may tick a few minutes earlier than last Sunday's)
     out = await sr.review(s, db, SUNDAY + WEEK - 300)
