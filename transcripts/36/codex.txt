@@ -1,0 +1,545 @@
+$ codex exec <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Will NVIDIA (NVDA) hit (LOW) $224 Week of October 12 2026?
+Outcomes: Yes / No | prices: Yes 0.620, No 0.380 | closes: 2026-10-16T20:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 16 rounds: 4-12, net P&L -885.7.
+- Will Levante UD vs. Sevilla FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Atalanta BC vs. Venezia FC end in a draw? | you picked Yes | winner No | lost | P&L -100.0
+- Will Pumas de la UNAM vs. CF Cruz Azul end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Ethereum dip to $2,400 October 5-11? | you picked Yes | winner No | lost | P&L -98.9
+- Will Beşiktaş JK win on 2026-10-11? | you picked No | winner Yes | lost | P&L -100.0
+- Will it rain in New Orleans, LA on October 10? | you picked Yes | winner No | lost | P&L -43.7
+- Will Real Sociedad de Fútbol vs. RC Deportivo A Coruña end in a draw? | you picked Yes | winner No | lost | P&L -100.0
+- Bitcoin Up or Down - October 10, 9PM ET | you picked Up | winner Up | won | P&L +31.6
+- Bitcoin Up or Down - October 10, 8PM ET | you picked Down | winner Down | won | P&L +92.2
+- Will Stockport County FC win on 2026-10-10? | you picked No | winner Yes | lost | P&L -100.0
+- Will Aston Villa FC vs. Brentford FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Virtus Entella win on 2026-10-10? | you picked No | winner No | won | P&L +85.2
+- Will Elon Musk post 65-89 tweets from October 8 to October 10, 2026? | you picked Yes | winner No | lost | P&L -100.0
+- Ducks vs. Jets | you picked Jets | winner Ducks | lost | P&L -100.0
+- Bitcoin Up or Down - October 9, 8PM ET | you picked Down | winner Down | won | P&L +47.9
+- Counter-Strike: PRIVATE vs Nuclear TigeRES (BO3) - 1win Private Club #2: Closed Qualifier  | you picked Nuclear TigeRES | winner PRIVATE | lost | P&L -100.0
+
+--- output ---
+WARNING: proceeding, even though we could not create PATH aliases: Refusing to create helper binaries under temporary dir "/tmp" (codex_home: AbsolutePathBuf("/tmp/apbh-codex-ydkrzg0k/.codex"))
+Reading additional input from stdin...
+OpenAI Codex v0.161.0
+--------
+workdir: /tmp/apb-36-codex-wmp63ufb
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: max
+reasoning summaries: none
+session id: 01a13660-2d80-7161-8e90-e68f55af4f52
+--------
+user
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Will NVIDIA (NVDA) hit (LOW) $224 Week of October 12 2026?
+Outcomes: Yes / No | prices: Yes 0.620, No 0.380 | closes: 2026-10-16T20:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 16 rounds: 4-12, net P&L -885.7.
+- Will Levante UD vs. Sevilla FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Atalanta BC vs. Venezia FC end in a draw? | you picked Yes | winner No | lost | P&L -100.0
+- Will Pumas de la UNAM vs. CF Cruz Azul end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Ethereum dip to $2,400 October 5-11? | you picked Yes | winner No | lost | P&L -98.9
+- Will Beşiktaş JK win on 2026-10-11? | you picked No | winner Yes | lost | P&L -100.0
+- Will it rain in New Orleans, LA on October 10? | you picked Yes | winner No | lost | P&L -43.7
+- Will Real Sociedad de Fútbol vs. RC Deportivo A Coruña end in a draw? | you picked Yes | winner No | lost | P&L -100.0
+- Bitcoin Up or Down - October 10, 9PM ET | you picked Up | winner Up | won | P&L +31.6
+- Bitcoin Up or Down - October 10, 8PM ET | you picked Down | winner Down | won | P&L +92.2
+- Will Stockport County FC win on 2026-10-10? | you picked No | winner Yes | lost | P&L -100.0
+- Will Aston Villa FC vs. Brentford FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Virtus Entella win on 2026-10-10? | you picked No | winner No | won | P&L +85.2
+- Will Elon Musk post 65-89 tweets from October 8 to October 10, 2026? | you picked Yes | winner No | lost | P&L -100.0
+- Ducks vs. Jets | you picked Jets | winner Ducks | lost | P&L -100.0
+- Bitcoin Up or Down - October 9, 8PM ET | you picked Down | winner Down | won | P&L +47.9
+- Counter-Strike: PRIVATE vs Nuclear TigeRES (BO3) - 1win Private Club #2: Closed Qualifier  | you picked Nuclear TigeRES | winner PRIVATE | lost | P&L -100.0
+
+codex
+I’ll check the settlement rules and NVIDIA’s trading range this week, then place the single 100-token bet before the deadline.
+
+exec
+/usr/bin/zsh -lc 'bench --help' in /tmp/apb-36-codex-wmp63ufb
+ succeeded in 0ms:
+usage: bench [-h] {market,book,history,bet} ...
+
+Inspect the market and place your one bet.
+
+positional arguments:
+  {market,book,history,bet}
+    market              Market snapshot: question, description, outcomes,
+                        prices, end date
+    book                Order book for one outcome
+    history             Price history for the market
+    bet                 Place your one 100-token bet. Works once.
+
+options:
+  -h, --help            show this help message and exit
+
+web search: 
+exec
+/usr/bin/zsh -lc 'bench bet --help' in /tmp/apb-36-codex-wmp63ufb
+ succeeded in 0ms:
+usage: bench bet [-h] --outcome OUTCOME --rationale RATIONALE --confidence
+                 CONFIDENCE [--max-price MAX_PRICE] [--quote QUOTE]
+
+options:
+  -h, --help            show this help message and exit
+  --outcome OUTCOME
+  --rationale RATIONALE
+  --confidence CONFIDENCE
+                        0 to 1
+  --max-price MAX_PRICE
+                        worst price you accept (default: best ask + 0.05)
+  --quote QUOTE         optional one-line trash talk for your rivals, shown on
+                        your card (max 120 chars, no links)
+
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-36-codex-wmp63ufb
+ succeeded in 0ms:
+{
+  "question": "Will NVIDIA (NVDA) hit (LOW) $224 Week of October 12 2026?",
+  "description": "This market will resolve to \"Yes\" if, at any point after market creation and during the week of October 12 2026, any 1-minute candle for NVIDIA (NVDA) has a final \"High\" or \"Low\" price equal to or beyond (above for \u2191 High Prices, below for \u2193 Low Prices) the listed price. Otherwise, this market will resolve to \"No\".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM \u2013 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth \u2014 specifically, the NVIDIA (NVDA) \"High\" and \"Low\" prices available at https://pythdata.app/explore/Equity.US.NVDA%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the \"t=\" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.NVDA%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.",
+  "outcomes": [
+    "Yes",
+    "No"
+  ],
+  "prices": [
+    0.62,
+    0.38
+  ],
+  "best_bid": 0.59,
+  "best_ask": 0.65,
+  "end_date": "2026-10-16T20:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 287
+}
+
+web search: NVDA October 12 2026 stock price low October 13 2026
+web search: 
+exec
+/usr/bin/zsh -lc 'bench history --help' in /tmp/apb-36-codex-wmp63ufb
+ succeeded in 0ms:
+usage: bench history [-h] --outcome OUTCOME
+
+options:
+  -h, --help         show this help message and exit
+  --outcome OUTCOME
+
+exec
+/usr/bin/zsh -lc 'bench book --help' in /tmp/apb-36-codex-wmp63ufb
+ succeeded in 0ms:
+usage: bench book [-h] --outcome OUTCOME
+
+options:
+  -h, --help         show this help message and exit
+  --outcome OUTCOME
+
+web search: https://pythdata.app/explore/Equity.US.NVDA%2FUSD
+web search: 
+exec
+/usr/bin/zsh -lc 'bench history --outcome Yes' in /tmp/apb-36-codex-wmp63ufb
+exec
+/usr/bin/zsh -lc 'bench book --outcome Yes' in /tmp/apb-36-codex-wmp63ufb
+ succeeded in 117ms:
+{
+  "history": []
+}
+
+ succeeded in 122ms:
+{
+  "outcome": "Yes",
+  "bids": [
+    {
+      "price": "0.59",
+      "size": "665"
+    },
+    {
+      "price": "0.58",
+      "size": "130"
+    },
+    {
+      "price": "0.57",
+      "size": "20.1"
+    },
+    {
+      "price": "0.31",
+      "size": "5"
+    },
+    {
+      "price": "0.15",
+      "size": "50"
+    },
+    {
+      "price": "0.01",
+      "size": "39"
+    }
+  ],
+  "asks": [
+    {
+      "price": "0.65",
+      "size": "160"
+    },
+    {
+      "price": "0.66",
+      "size": "20.1"
+    },
+    {
+      "price": "0.67",
+      "size": "159"
+    },
+    {
+      "price": "0.72",
+      "size": "200"
+    },
+    {
+      "price": "0.82",
+      "size": "6"
+    },
+    {
+      "price": "0.99",
+      "size": "20"
+    }
+  ],
+  "last_trade_price": "0"
+}
+
+web search: site:pythdata.app/explore/Equity.US.NVDA "2026" "224" ...
+codex
+Several price feeds show an October 13 low near $223.06, below the $224 threshold. That strongly favors Yes; I’m checking the specified Pyth source and the market’s creation time before committing. [Price history](https://stockanalysis.com/stocks/nvda/history/)
+
+web search: 
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-36-codex-wmp63ufb
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request
+u='https://pythdata.app/explore/Equity.US.NVDA%2FUSD'
+try:
+ r=urllib.request.urlopen(u, timeout=15)
+ s=r.read().decode()
+ print(s[:18000])
+except Exception as e:
+ print(type(e).__name__, str(e))
+PY" in /tmp/apb-36-codex-wmp63ufb
+ succeeded in 72ms:
+{
+  "question": "Will NVIDIA (NVDA) hit (LOW) $224 Week of October 12 2026?",
+  "description": "This market will resolve to \"Yes\" if, at any point after market creation and during the week of October 12 2026, any 1-minute candle for NVIDIA (NVDA) has a final \"High\" or \"Low\" price equal to or beyond (above for \u2191 High Prices, below for \u2193 Low Prices) the listed price. Otherwise, this market will resolve to \"No\".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM \u2013 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth \u2014 specifically, the NVIDIA (NVDA) \"High\" and \"Low\" prices available at https://pythdata.app/explore/Equity.US.NVDA%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the \"t=\" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.NVDA%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.",
+  "outcomes": [
+    "Yes",
+    "No"
+  ],
+  "prices": [
+    0.62,
+    0.38
+  ],
+  "best_bid": 0.59,
+  "best_ask": 0.65,
+  "end_date": "2026-10-16T20:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 252
+}
+
+ succeeded in 763ms:
+<!DOCTYPE html><html data-dpl-id="dpl_Cojf7EVUPZ5d5aTxWaXmXqMPFrf3" class="suisseintl_8b7d04d3-module__9GgD3a__variable suisseworks_68a94bcb-module__Yzp1eq__variable jetbrains_mono_5b693260-module__gyROdq__variable" lang="en"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/_next/static/immutable/chunks/29dv2ghwfme3x.css" data-precedence="next"/><link rel="stylesheet" href="/_next/static/immutable/chunks/0s2341tsn1tze.css" data-precedence="next"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/immutable/chunks/17i-ouaox5m13.js"/><script src="/_next/static/immutable/chunks/3050-xf9ga8h8.js" async=""></script><script src="/_next/static/immutable/chunks/201pz26f3vo_5.js" async=""></script><script src="/_next/static/immutable/chunks/38yk38d79r3zo.js" async=""></script><script src="/_next/static/immutable/chunks/0rvqiy-c8wmnv.js" async=""></script><script src="/_next/static/immutable/chunks/turbopack-2u-m8zv1ck1n8.js" async=""></script><script src="/_next/static/immutable/chunks/0ds7jbgsvby5y.js" async=""></script><script src="/_next/static/immutable/chunks/1fkt8is2t2xk8.js" async=""></script><script src="/_next/static/immutable/chunks/2_1mmk_ms2ay0.js" async=""></script><script src="/_next/static/immutable/chunks/31k8_p8j-7jf0.js" async=""></script><script src="/_next/static/immutable/chunks/0iuo4r2iqa4e5.js" async=""></script><script src="/_next/static/immutable/chunks/1qc1_09smdqbl.js" async=""></script><script src="/_next/static/immutable/chunks/44toxjpnhuwom.js" async=""></script><script src="/_next/static/immutable/chunks/35xtr7zprck1u.js" async=""></script><script src="/_next/static/immutable/chunks/3_5nlb4_5dn8p.js" async=""></script><script src="/_next/static/immutable/chunks/0tn0ndwiegkrc.js" async=""></script><script src="/_next/static/immutable/chunks/0ui1jqi7_d1te.js" async=""></script><script src="/_next/static/immutable/chunks/39h9z74jzltfr.js" async=""></script><script src="/_next/static/immutable/chunks/0fgifuapz6-wo.js" async=""></script><script src="/_next/static/immutable/chunks/0oi2la8x2syko.js" async=""></script><script src="/_next/static/immutable/chunks/0_6b6jol0s204.js" async=""></script><script src="/_next/static/immutable/chunks/2-1kow3_066wn.js" async=""></script><meta name="next-size-adjust" content=""/><script src="/_next/static/immutable/chunks/0c0hxoamwjsbw.js" noModule=""></script></head><body class="antialiased"><div hidden=""><!--$?--><template id="B:0"></template><!--/$--></div><!--$?--><template id="B:1"></template><!--/$--><script>requestAnimationFrame(function(){$RT=performance.now()});</script><script src="/_next/static/immutable/chunks/17i-ouaox5m13.js" id="_R_" async=""></script><script>(self.__next_f=self.__next_f||[]).push([0])</script><script>self.__next_f.push([1,"1:\"$Sreact.fragment\"\n2:\"$Sreact.suspense\"\n4:I[779595,[\"/_next/static/immutable/chunks/0ds7jbgsvby5y.js\",\"/_next/static/immutable/chunks/1fkt8is2t2xk8.js\",\"/_next/static/immutable/chunks/2_1mmk_ms2ay0.js\",\"/_next/static/immutable/chunks/31k8_p8j-7jf0.js\",\"/_next/static/immutable/chunks/0iuo4r2iqa4e5.js\",\"/_next/static/immutable/chunks/1qc1_09smdqbl.js\",\"/_next/static/immutable/chunks/44toxjpnhuwom.js\",\"/_next/static/immutable/chunks/35xtr7zprck1u.js\",\"/_next/static/immutable/chunks/3_5nlb4_5dn8p.js\",\"/_next/static/immutable/chunks/0tn0ndwiegkrc.js\",\"/_next/static/immutable/chunks/0ui1jqi7_d1te.js\",\"/_next/static/immutable/chunks/39h9z74jzltfr.js\",\"/_next/static/immutable/chunks/0fgifuapz6-wo.js\",\"/_next/static/immutable/chunks/0oi2la8x2syko.js\"],\"DashboardLayout\"]\n6:I[530240,[\"/_next/static/immutable/chunks/0ds7jbgsvby5y.js\",\"/_next/static/immutable/chunks/1fkt8is2t2xk8.js\",\"/_next/static/immutable/chunks/2_1mmk_ms2ay0.js\",\"/_next/static/immutable/chunks/31k8_p8j-7jf0.js\",\"/_next/static/immutable/chunks/0iuo4r2iqa4e5.js\",\"/_next/static/immutable/chunks/1qc1_09smdqbl.js\",\"/_next/static/immutable/chunks/44toxjpnhuwom.js\",\"/_next/static/immutable/chunks/35xtr7zprck1u.js\",\"/_next/static/immutable/chunks/3_5nlb4_5dn8p.js\",\"/_next/static/immutable/chunks/0tn0ndwiegkrc.js\",\"/_next/static/immutable/chunks/0ui1jqi7_d1te.js\",\"/_next/static/immutable/chunks/39h9z74jzltfr.js\",\"/_next/static/immutable/chunks/0fgifuapz6-wo.js\",\"/_next/static/immutable/chunks/0oi2la8x2syko.js\"],\"WelcomeDialogProvider\"]\n8:I[452774,[\"/_next/static/immutable/chunks/0ds7jbgsvby5y.js\",\"/_next/static/immutable/chunks/1fkt8is2t2xk8.js\",\"/_next/static/immutable/chunks/2_1mmk_ms2ay0.js\",\"/_next/static/immutable/chunks/31k8_p8j-7jf0.js\",\"/_next/static/immutable/chunks/0iuo4r2iqa4e5.js\",\"/_next/static/immutable/chunks/1qc1_09smdqbl.js\",\"/_next/static/immutable/chunks/44toxjpnhuwom.js\",\"/_next/static/immutable/chunks/35xtr7zprck1u.js\",\"/_next/static/immutable/chunks/3_5nlb4_5dn8p.js\",\"/_next/static/immutable/chunks/0tn0ndwiegkrc.js\",\"/_next/static/immutable/chunks/0ui1jqi7_d1te.js\",\"/_next/static/immutable/chunks/39h9z74jzltfr.js\",\"/_next/static/immutable/chunks/0fgifuapz6-wo.js\",\"/_next/static/immutable/chunks/0oi2la8x2syko.js\"],\"WelcomeDialog\"]\n9:I[367195,[\"/_next/static/immutable/chunks/0ds7jbgsvby5y.js\",\"/_next/static/immutable/chunks/1fkt8is2t2xk8.js\",\"/_next/static/immutable/chunks/2_1mmk_ms2ay0.js\",\"/_next/static/immutable/chunks/31k8_p8j-7jf0.js\",\"/_next/static/immutable/chunks/0iuo4r2iqa4e5.js\",\"/_next/static/immutable/chunks/1qc1_09smdqbl.js\",\"/_next/static/immutable/chunks/44toxjpnhuwom.js\",\"/_next/static/immutable/chunks/35xtr7zprck1u.js\",\"/_next/static/immutable/chunks/3_5nlb4_5dn8p.js\"],\"default\"]\na:I[214884,[\"/_next/static/immutable/chunks/0ds7jbgsvby5y.js\",\"/_next/static/immutable/chunks/1fkt8is2t2xk8.js\",\"/_next/static/immutable/chunks/2_1mmk_ms2ay0.js\",\"/_next/static/immutable/chunks/31k8_p8j-7jf0.js\",\"/_next/static/immutable/chunks/0iuo4r2iqa4e5.js\",\"/_next/static/immutable/chunks/1qc1_09smdqbl.js\",\"/_next/static/immutable/chunks/44toxjpnhuwom.js\",\"/_next/static/immutable/chunks/35xtr7zprck1u.js\",\"/_next/static/immutable/chunks/3_5nlb4_5dn8p.js\",\"/_next/static/immutable/chunks/0tn0ndwiegkrc.js\",\"/_next/static/immutable/chunks/0ui1jqi7_d1te.js\",\"/_next/static/immutable/chunks/39h9z74jzltfr.js\",\"/_next/static/immutable/chunks/0fgifuapz6-wo.js\",\"/_next/static/immutable/chunks/0oi2la8x2syko.js\",\"/_next/static/immutable/chunks/0_6b6jol0s204.js\"],\"default\"]\nb:I[712883,[\"/_next/static/immutable/chunks/0ds7jbgsvby5y.js\",\"/_next/static/immutable/chunks/1fkt8is2t2xk8.js\",\"/_next/static/immutable/chunks/2_1mmk_ms2ay0.js\",\"/_next/static/immutable/chunks/31k8_p8j-7jf0.js\",\"/_next/static/immutable/chunks/0iuo4r2iqa4e5.js\",\"/_next/static/immutable/chunks/1qc1_09smdqbl.js\",\"/_next/static/immutable/chunks/44toxjpnhuwom.js\",\"/_next/static/immutable/chunks/35xtr7zprck1u.js\",\"/_next/static/immutable/chunks/3_5nlb4_5dn8p.js\"],\"default\"]\nc:I[367195,[\"/_next/static/immutable/chunks/0ds7jbgsvby5y.js\",\"/_next/static/immutable/chunks/1fkt8is2t2xk8.js\",\"/_next/static/immut"])</script><script>self.__next_f.push([1,"able/chunks/2_1mmk_ms2ay0.js\",\"/_next/static/immutable/chunks/31k8_p8j-7jf0.js\",\"/_next/static/immutable/chunks/0iuo4r2iqa4e5.js\",\"/_next/static/immutable/chunks/1qc1_09smdqbl.js\",\"/_next/static/immutable/chunks/44toxjpnhuwom.js\",\"/_next/static/immutable/chunks/35xtr7zprck1u.js\",\"/_next/static/immutable/chunks/3_5nlb4_5dn8p.js\"],\"LoadingBoundaryProvider\"]\n16:I[152961,[\"/_next/static/immutable/chunks/0ds7jbgsvby5y.js\",\"/_next/static/immutable/chunks/1fkt8is2t2xk8.js\",\"/_next/static/immutable/chunks/2_1mmk_ms2ay0.js\",\"/_next/static/immutable/chunks/31k8_p8j-7jf0.js\",\"/_next/static/immutable/chunks/0iuo4r2iqa4e5.js\",\"/_next/static/immutable/chunks/1qc1_09smdqbl.js\",\"/_next/static/immutable/chunks/44toxjpnhuwom.js\",\"/_next/static/immutable/chunks/35xtr7zprck1u.js\",\"/_next/static/immutable/chunks/3_5nlb4_5dn8p.js\",\"/_next/static/immutable/chunks/2-1kow3_066wn.js\"],\"default\"]\n:HL[\"/_next/static/immutable/chunks/29dv2ghwfme3x.css\",\"style\"]\n:HL[\"/_next/static/immutable/chunks/0s2341tsn1tze.css\",\"style\"]\n:HL[\"/_next/static/immutable/media/70bc3e132a0a741e-s.p.269kn9uafm0ti.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n:HL[\"/_next/static/immutable/media/SuisseIntl_Bold-s.p.2ltrt9pic58-h.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n:HL[\"/_next/static/immutable/media/SuisseIntl_Light-s.p.3t_ns6xc70_un.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n:HL[\"/_next/static/immutable/media/SuisseIntl_Medium-s.p.23lcpdnot992d.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n:HL[\"/_next/static/immutable/media/SuisseIntl_MediumIt-s.p.3klnriyifd3wc.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n:HL[\"/_next/static/immutable/media/SuisseIntl_Regular-s.p.3hg7ld1vy_vjm.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n:HL[\"/_next/static/immutable/media/SuisseIntl_RegularIt-s.p.0m092er1kxqm8.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n:HL[\"/_next/static/immutable/media/SuisseIntl_Semibold-s.p.37459o3hlnap-.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n10:X\n11:X\n12:X\n13:X\n14:X\n19:X\n1a:X\n1b:X\n"])</script><script>self.__next_f.push([1,"0:{\"P\":null,\"c\":[\"\",\"explore\",\"Equity.US.NVDA%2FUSD\"],\"q\":\"\",\"i\":false,\"f\":[[[\"\",{\"children\":[\"(dashboard)\",{\"children\":[\"explore\",{\"children\":[[\"feed\",\"Equity.US.NVDA%2FUSD\",\"d\",[]],{\"children\":[\"__PAGE__\",{},\"$undefined\",\"$undefined\",4256]},\"$undefined\",\"$undefined\",4196]},\"$undefined\",\"$undefined\",4200]},\"$undefined\",\"$undefined\",4200]},\"$undefined\",\"$undefined\",4184],[[\"$\",\"$1\",\"c\",{\"children\":[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/immutable/chunks/29dv2ghwfme3x.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}],[\"$\",\"link\",\"1\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/immutable/chunks/0s2341tsn1tze.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}],[\"$\",\"script\",\"script-0\",{\"src\":\"/_next/static/immutable/chunks/0ds7jbgsvby5y.js\",\"async\":true,\"nonce\":\"$undefined\"}],[\"$\",\"script\",\"script-1\",{\"src\":\"/_next/static/immutable/chunks/1fkt8is2t2xk8.js\",\"async\":true,\"nonce\":\"$undefined\"}],[\"$\",\"script\",\"script-2\",{\"src\":\"/_next/static/immutable/chunks/2_1mmk_ms2ay0.js\",\"async\":true,\"nonce\":\"$undefined\"}],[\"$\",\"script\",\"script-3\",{\"src\":\"/_next/static/immutable/chunks/31k8_p8j-7jf0.js\",\"async\":true,\"nonce\":\"$undefined\"}],[\"$\",\"script\",\"script-4\",{\"src\":\"/_next/static/immutable/chunks/0iuo4r2iqa4e5.js\",\"async\":true,\"nonce\":\"$undefined\"}],[\"$\",\"script\",\"script-5\",{\"src\":\"/_next/static/immutable/chunks/1qc1_09smdqbl.js\",\"async\":true,\"nonce\":\"$undefined\"}],[\"$\",\"script\",\"script-6\",{\"src\":\"/_next/static/immutable/chunks/44toxjpnhuwom.js\",\"async\":true,\"nonce\":\"$undefined\"}],[\"$\",\"script\",\"script-7\",{\"src\":\"/_next/static/immutable/chunks/35xtr7zprck1u.js\",\"async\":true,\"nonce\":\"$undefined\"}],[\"$\",\"script\",\"script-8\",{\"src\":\"/_next/static/immutable/chunks/3_5nlb4_5dn8p.js\",\"async\":true,\"nonce\":\"$undefined\"}]],[\"$\",\"html\",null,{\"className\":\"suisseintl_8b7d04d3-module__9GgD3a__variable suisseworks_68a94bcb-module__Yzp1eq__variable jetbrains_mono_5b693260-module__gyROdq__variable\",\"lang\":\"en\",\"suppressHydrationWarning\":true,\"children\":[\"$\",\"body\",null,{\"className\":\"antialiased\",\"suppressHydrationWarning\":true,\"children\":[\"$\",\"$2\",null,{\"fallback\":null,\"children\":\"$L3\"}]}]}]]}],{\"children\":[[\"$\",\"$1\",\"c\",{\"children\":[[[\"$\",\"script\",\"script-0\",{\"src\":\"/_next/static/immutable/chunks/0tn0ndwiegkrc.js\",\"async\":true,\"nonce\":\"$undefined\"}],[\"$\",\"script\",\"script-1\",{\"src\":\"/_next/static/immutable/chunks/0ui1jqi7_d1te.js\",\"async\":true,\"nonce\":\"$undefined\"}],[\"$\",\"script\",\"script-2\",{\"src\":\"/_next/static/immutable/chunks/39h9z74jzltfr.js\",\"async\":true,\"nonce\":\"$undefined\"}],[\"$\",\"script\",\"script-3\",{\"src\":\"/_next/static/immutable/chunks/0fgifuapz6-wo.js\",\"async\":true,\"nonce\":\"$undefined\"}],[\"$\",\"script\",\"script-4\",{\"src\":\"/_next/static/immutable/chunks/0oi2la8x2syko.js\",\"async\":true,\"nonce\":\"$undefined\"}]],[\"$\",\"$2\",null,{\"children\":[\"$\",\"$L4\",null,{\"subtitle\":[\"$\",\"$2\",null,{\"fallback\":[\"$\",\"div\",null,{\"className\":\"animate-pulse bg-zinc-200 rounded-md dark:bg-zinc-800 w-full h-4\"}],\"children\":\"$L5\"}],\"children\":[\"$\",\"$L6\",null,{\"apiBaseUrl\":\"https://pyth.dourolabs.app/v1\",\"trialPeriodDays\":14,\"children\":[[\"$\",\"$2\",null,{\"children\":\"$L7\"}],[\"$\",\"$L8\",null,{}],[\"$\",\"$L9\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$a\",\"errorStyles\":[],\"errorScripts\":[[\"$\",\"script\",\"script-0\",{\"src\":\"/_next/static/immutable/chunks/0_6b6jol0s204.js\",\"async\":true,\"nonce\":\"$undefined\"}]],\"template\":[\"$\",\"$Lb\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":404}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]]}]}]}]]}],{\"children\":[[\"$\",\"$1\",\"c\",{\"children\":[null,[\"$\",\"$L9\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$Lb\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]]}],{\"children\":[[\"$\",\"$Lc\",null,{\"loading\":[[\"$\",\"div\",\"l\",{\"className\":\"flex min-h-screen items-center justify-center bg-background\",\"children\":\"$Ld\"}],[],null],\"children\":\"$Le\"}],{\"children\":[\"$Lf\",{},null,false,\"$10\"]},null,false,\"$11\"]},null,false,\"$12\"]},null,false,\"$13\"]},null,false,\"$14\"],\"$L15\",false]],\"m\":\"$undefined\",\"G\":[\"$16\",[\"$L17\",\"$L18\"]],\"S\":true,\"h\":\"$19\",\"r\":\"$1a\",\"s\":\"$1b\",\"a\":\"$@1c\",\"l\":\"$@1d\",\"p\":\"$undefined\",\"d\":\"$undefined\"}\n"])</script><script src="/_next/static/immutable/chunks/0c0hxoamwjsbw.js" noModule=""></script><link rel="preload" href="https://www.googletagmanager.com/gtag/js?id=AW-18126230783" as="script"/><div hidden id="S:1"><script>((a, b, c, d, e, f, g, h) => {
+      let i = document.documentElement, j = ["light", "dark"];
+      function k(b) {
+        var c;
+        (Array.isArray(a) ? a : [a]).forEach((a) => {
+          let c = a === "class", d = c && f ? e.map((a) => f[a] || a) : e;
+          c ? (i.classList.remove(...d), i.classList.add(f && f[b] ? f[b] : b)) : i.setAttribute(a, b);
+        }), c = b, h && j.includes(c) && (i.style.colorScheme = c);
+      }
+      if (d)
+        k(d);
+      else
+        try {
+          let a = localStorage.getItem(b) || c, d = g && a === "system" ? window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light" : a;
+          k(d);
+        } catch (a) {}
+    })("class","theme","system",null,["light","dark"],null,true,true)</script><section aria-label="Notifications alt+T" tabindex="-1" aria-live="polite" aria-relevant="additions text" aria-atomic="false" data-react-aria-top-layer="true"></section><!--$?--><template id="B:2"></template><div class="flex min-h-screen items-center justify-center bg-background"><div class="flex flex-col items-center gap-6"><div class="inline-flex flex-col items-center gap-2" role="status"><svg aria-hidden="true" class="animate-spin h-8 w-8 text-brand-pyth-primary" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path></svg><span class="sr-only">Loading</span></div><span class="text-sm font-medium text-muted-foreground">Loading...</span></div></div><!--/$--></div><script>$RB=[];$RV=function(a){$RT=performance.now();for(var b=0;b<a.length;b+=2){var c=a[b],e=a[b+1];null!==e.parentNode&&e.parentNode.removeChild(e);var f=c.parentNode;if(f){var g=c.previousSibling,h=0;do{if(c&&8===c.nodeType){var d=c.data;if("/$"===d||"/&"===d)if(0===h)break;else h--;else"$"!==d&&"$?"!==d&&"$~"!==d&&"$!"!==d&&"&"!==d||h++}d=c.nextSibling;f.removeChild(c);c=d}while(c);for(;e.firstChild;)f.insertBefore(e.
+
+web search: "Will NVIDIA (NVDA) hit (LOW) $224" "October 12" ...
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,re,concurrent.futures,pathlib
+base='https://pythdata.app'
+s=urllib.request.urlopen(base+'/explore/Equity.US.NVDA%2FUSD',timeout=12).read().decode()
+p=pathlib.Path('/tmp/nvda-pyth');p.mkdir(exist_ok=True)
+(p/'page.html').write_text(s)
+urls=list(dict.fromkeys(re.findall(r'<script["'^>]+src="([''^"]+)"'"',s)))
+def fetch(u):
+ try:
+  t=urllib.request.urlopen(base+u,timeout=12).read().decode()
+  (p/u.rsplit('/',1)[-1]).write_text(t)
+  hits=[]
+  for pat in [r'.{0,120}history.{0,170}',r'.{0,120}candles.{0,170}',r'.{0,80}https://["'^'"\\s\"<>"'`]+'"']:
+   hits+=re.findall(pat,t,re.I)[:12]
+  return u,hits
+ except Exception as e: return u,[str(e)]
+with concurrent.futures.ThreadPoolExecutor(max_workers=12) as pool:
+ for u,hits in pool.map(fetch,urls):
+  if hits: print(u, '\\n'.join(hits)[:6000])
+PY" in /tmp/apb-36-codex-wmp63ufb
+ succeeded in 6291ms:
+/_next/static/immutable/chunks/3050-xf9ga8h8.js norelist:rF,ignore_text_selection:!0}:!e||"2025-11-30">e||{content_ignorelist:!0},capture_pageview:!e||"2025-05-24">e||"history_change",session_recording:(i={},e&&"unset"!==e&&("2025-11-30">e||(i.strictMinimumDuration=!0),"2026-05-30">e||(i.canvasCapture={resolutionScale:.6}),"2026-06-25">e||(i.s
+extensionClasses),c=[];h.exceptions&&this.lu.push(this.exceptions=null!=(i=this.exceptions)?i:new h.exceptions(this)),h.historyAutocapture&&this.lu.push(this.historyAutocapture=new h.historyAutocapture(this)),h.tracingHeaders&&this.lu.push(this.tracingHeaders=new h.tracingHeaders(this)),h.siteApp
+,null==(h=this.heatmaps)||h.startIfEnabled(),("capture_pageview"in e||"disable_capture_url_hashes"in e)&&(null==(m=this.historyAutocapture)||m.startIfEnabledOrStop()),null==(c=this.exceptionObserver)||c.startIfEnabledOrStop(),null==(d=this.deadClicksAutocapture)||d.startIfEnabledOrStop(),null==(p
+lushBeforeIdentityReset)||t.call(e)}}}),{autocapture:class extends lS{constructor(e){super(new lI(e)),this.instance=e}},historyAutocapture:class{constructor(e){this.wv=!1,this._instance=e,this.Sv=this.xv()}initialize(){this.startIfEnabled()}get isEnabled(){let e=this.Cv();return!!(e.path||e.searc
+h||this.$v(e))}startIfEnabled(){this.isEnabled&&(ik.info("History API monitoring enabled, starting..."),this.monitorHistoryChanges())}startIfEnabledOrStop(){this.stop(),this.Sv=this.xv(),this.startIfEnabled()}stop(){this.Tv&&this.Tv(),this.Tv=void 0,this.Iv&&this.Iv(),this.Iv=void 0,ik.info("
+History API monitoring stopped")}monitorHistoryChanges(){u&&u.history&&(this.Mv("pushState"),this.Mv("replaceState"),this.Ev(),this.$v()&&this.Pv())}Mv(e){var t;if(!u||(null==(t=u.history[e])?void 0:t.__posthog_wrapped__))return;let i=this
+;lO(u.history,e,t=>function(s,r,n){var o;i.Rv(n)&&i.Av(),t.call(this,s,r,n),i.Fv(e,!i.wv&&"popstate"!==(null==u||null==(o=u.event)?void 0:o.type))})}xv(){let e=null==u?void 0:u.locati
+thname)return{pathname:e.pathname,search:e.search,hash:e.hash}}Cv(){let e=this._instance.config.capture_pageview;return"history_change"===e?{path:!0}:q(e)?e:{}}$v(){let e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:this.Cv();return!!e.hash&&!this._instance.config.disable_capture_url_ha
+uments[2]?arguments[2]:void 0;if(sK(this.instance.config)||!u||!d)return!1;i=null!=(e=i)?e:u.location,r=null!=(t=r)?t:u.history;try{let e;if(!s){try{u.localStorage.setItem("test","test"),u.localStorage.removeItem("test")}catch(e){return!1}s=null==u?void 0:u.localStorage}let t=l5||ni(i.hash,"__pos
+.critical("Implementation error. Please turn on debug mode and open a ticket on https://app.posthog.com/home#panel=support%3Asupport%3A.
+l==(c=f[0])?void 0:c.type,$sentry_tags:o.tags};return t&&i&&(v.$sentry_url=(s||"https://sentry.io/organizations/
+t apiHost(){let e=this.instance.config.api_host.trim().replace(/\/$/,"");return"https://app.posthog.com
+"===e?"https://us.i.posthog.com
+.replace(/\/$/,"");return t||(t=this.apiHost.replace(`.${oY}`,".posthog.com")),"https://app.posthog.com
+"===t?"https://us.posthog.com
+is.ou(e,t,this.apiHost+t);let i=oY+t;switch(e){case"assets":return this.ou(e,t,`https://${this.region}-assets.${i}
+`);case"api":return this.ou(e,t,`https://${this.region}.${i}
+["token","distinct_id",s_],lv="posthog",l_=e=>{var t;let i;return tb({api_host:"https://us.i.posthog.com
+. Use a custom transformation or "Discard IP data" project setting instead. See https://posthog.com/tutorials/web-redact-properties#hiding-customer-ip-address
+ will not be able to load feature flags until the quota is reset.  Please visit https://posthog.com/docs/billing/limits-alerts
+/_next/static/immutable/chunks/201pz26f3vo_5.js ({askPrice:x.z.number(),bidPrice:x.z.number(),price:x.z.number(),timestamp:x.z.string()}),N=x.z.array(U);t.s(["BenchmarkHistoryRowSchema",0,U,"BenchmarkHistorySchema",0,N,"CoverageSchema",0,k,"PriceFeedHistoryPointSchema",0,D,"PriceFeedHistorySchema",0,O,"PriceFeedListItemSchema",0,S,"PriceFeedMe
+(delete t.allOf,uO(t,n))}(t)}}let a={};if("draft-2020-12"===t.target?a.$schema="https://json-schema.org/draft/2020-12/schema
+ use $defs/$ref for recursive schemas")}let u={version:(r=a,n=i?.defaultTarget,"https://json-schema.org/draft/2020-12/schema
+/_next/static/immutable/chunks/38yk38d79r3zo.js gnal_count=e.length,t.properties.bot_signature=r,t.properties.environment=f),t),capture_exceptions:!1,capture_pageview:"history_change",cookieless_mode:"on_reject",person_profiles:"identified_only",ui_host:"https://eu.posthog.com"}),"pending"===l.default.get_explicit_consent_status()&&l.default.o
+:r}=e;return(0,i.useInsertionEffect)(()=>{let{tree:e,pushRef:t,canonicalUrl:n,renderedSearch:o}=r,a={...t.preserveCustomHistoryState?window.history.state:{},__NA:!0,__PRIVATE_NEXTJS_INTERNALS_TREE:{tree:e,renderedSearch:o}};t.pendingPush&&(0,l.createHrefFromUrl)(new URL(window.location.href))!==n
+?(t.pendingPush=!1,window.history.pushState(a,"",n)):window.history.replaceState(a,"",n),(0,d.setLastCommittedTree)(e)},[r]),(0,i.useEffect)(()=>{(0,k.pingVisibleLinks)(r.nextUrl,r.tree)},[r.nextUrl,r.tree]),null}function N(e){null==e&&(
+e={});let r=window.history.state,t=r?.__NA;t&&(e.__NA=t);let n=r?.__PRIVATE_NEXTJS_INTERNALS_TREE;return n&&(e.__PRIVATE_NEXTJS_INTERNALS_TREE=n),e}function C(e){let{headCacheNode:r}=e,t=null!==r?
+nal_src_page=e:delete window.next.__internal_src_page},[d.tree]),(0,i.useEffect)(()=>{function e(e){e.persisted&&window.history.state?.__PRIVATE_NEXTJS_INTERNALS_TREE&&(P.pendingMpaPath=void 0,(0,f.dispatchAppRouterAction)({type:s.ACTION_RESTORE,url:new URL(window.location.href),historyState:wind
+ow.history.state.__PRIVATE_NEXTJS_INTERNALS_TREE}))}return window.addEventListener("pageshow",e),()=>{window.removeEventListener("pageshow",e)}},[]),(0,i.useEffect)(()=>{function e
+;R.pendingPush?e.assign(w):e.replace(w),P.pendingMpaPath=w}throw g.unresolvedThenable}(0,i.useEffect)(()=>{let e=window.history.pushState.bind(window.history),r=window.history.replaceState.bind(window.history),t=e=>{let r=window.location.href,t=window.history.state?.__PRIVATE_NEXTJS_INTERNALS_TRE
+E;(0,i.startTransition)(()=>{(0,f.dispatchAppRouterAction)({type:s.ACTION_RESTORE,url:new URL(e??r,r),historyState:t})})};window.history.pushState=function(r,n,o){return r?.__NA||r?._N||(r=N(r),o&&t(o)),e(r,n,o)},window.history.replaceState=function(e,n,o){return e?.__NA||e?._N|
+dow.location.href,e.state.__PRIVATE_NEXTJS_INTERNALS_TREE)})}};return window.addEventListener("popstate",n),()=>{window.history.pushState=e,window.history.replaceState=r,window.removeEventListener("popstate",n)}},[]);let{cache:I,tree:M,nextUrl:L,focusAndScrollRef:z,previousNextUrl:j}=d,D=(0,i.use
+ton,children:"Reload"})}),!i&&(0,n.jsx)("button",{type:"button",style:a.errorStyles.buttonSecondary,onClick:()=>{window.history.length>1?window.history.back():window.location.href="/"},children:"Back"})]})]})}),t&&(0,n.jsxs)("p",{style:a.errorStyles.digestFooter,children:["ERROR ",t]})]})]})};("f
+egmentCacheMap)}).catch(()=>{})}return{tree:I.route,cache:I.node,pushRef:{pendingPush:!1,mpaNavigation:!1,preserveCustomHistoryState:!0},focusAndScrollRef:{scrollRef:null,forceScroll:!1,onlyHashChange:!1,hashFragment:null},canonicalUrl:A,renderedSearch:g,nextUrl:((0,o.extractPathFromFlightRouterS
+on){var e=navigation.currentEntry;e&&null!=e.url&&navigation.navigate(e.url,{state:e.getState(),info:"react-transition",history:"replace"})}}if("object"==typeof navigation){var n=!1,o=null;return navigation.addEventListener("navigate",e),navigation.addEventListener("navigatesuccess",r),navigation
+ne;l.default.init("phc_ooGgfkxLqJhLBsis3XdjZqffxdsHsQBetQajMyLTwMeg",{api_host:"https://hostpog.pythdata.app
+_change",cookieless_mode:"on_reject",person_profiles:"identified_only",ui_host:"https://eu.posthog.com
+r n,o=e.i(708270),a=e.r(18170),i=e.r(888786),u=e.r(609675);function s(e){var r="https://react.dev/errors/
+rock.ru), 2025–2026 CoreJS Company (core-js.io). All rights reserved.",license:"https://github.com/zloirock/core-js/blob/v3.50.0/LICENSE
+",source:"https://github.com/zloirock/core-js
+(431937),u=o("iterator");r.exports=!n(function(){var e=new URL("b?a=1&b=2&c=3","https://a
+,1)||t.has("a",2)||!t.has("a",void 0)||t.has("b"))||!r.size&&(i||!a)||!r.sort||"https://a/c%20d?a=1&c=3
+=r.get("c")||"a=1"!==String(new URLSearchParams("?a=1"))||!r[u]||"a"!==new URL("https://a@b
+w URLSearchParams(new URLSearchParams("a=b")).get("a")||"xn--e1aybc"!==new URL("https://тест
+").host||"#%D0%B1"!==new URL("https://a#б").hash||"a1c3"!==n||"x"!==new URL("https://x
+/_next/static/immutable/chunks/0rvqiy-c8wmnv.js RouterTransition)(e,"traverse",P().state.tree,null),(0,f.dispatchAppRouterAction)({type:u.ACTION_RESTORE,url:new URL(e),historyState:t})}let T={back:()=>window.history.back(),forward:()=>window.history.forward(),prefetch:(e,t)=>{let r;if((0,y.isJavaScriptURLString)(e))throw Object.defineProperty(
+r(74e4),E=e.r(457483),R=e.r(692546),P=e.r(877243);var S=((n={})[n.Default=0]="Default",n[n.Hydration=1]="Hydration",n[n.HistoryTraversal=2]="HistoryTraversal",n[n.RefreshAll=3]="RefreshAll",n[n.HMRRefresh=4]="HMRRefresh",n[n.Gesture=5]="Gesture",n);let b=()=>{};function T(e,t,r,n,a){return w(e,t,
+ction(){return i}});let n=e.r(979688),a=e.r(4047),u=e.r(994789),l=e.r(294434),o=e.r(877243);function i(e,t){let r,i,c=t.historyState;c?(r=c.tree,i=c.renderedSearch):(r=e.tree,i=e.renderedSearch);let s=new URL(e.canonicalUrl,location.origin),f=t.url,d=(0,n.extractPathFromFlightRouterState)(r)??f.p
+leTime),g=(0,a.startPPRNavigation)(p,s,e.renderedSearch,e.cache,e.tree,y.routeTree,y.metadataVaryPath,a.FreshnessPolicy.HistoryTraversal,null,null,y.dynamicStaleAt,!1,h,l.segmentCacheMap,!1);return null===g?(0,u.completeHardNavigation)(e,f,"replace"):((0,a.spawnDynamicRequests)(g,f,d,a.FreshnessP
+olicy.HistoryTraversal,h,null,"replace",null,l.segmentCacheMap,void 0),(0,a.resetNavigationLockToPending)(),(0,u.completeTraverseNavigation)(e,f,i,g.node,g.route,d))}("function"==type
+tch"];async function S(e,t,r,n,a,u,d,h,y,g,_,v,m){let E;switch(y){case o.FreshnessPolicy.Default:case o.FreshnessPolicy.HistoryTraversal:case o.FreshnessPolicy.Gesture:E=h;break;case o.FreshnessPolicy.Hydration:case o.FreshnessPolicy.RefreshAll:case o.FreshnessPolicy.HMRRefresh:E=P;break;default:
+igin===location.origin?(0,i.createHrefFromUrl)(t):t.href,pushRef:{pendingPush:"push"===r,mpaNavigation:!0,preserveCustomHistoryState:!1},renderedSearch:e.renderedSearch,focusAndScrollRef:e.focusAndScrollRef,cache:e.cache,tree:e.tree,nextUrl:e.nextUrl,previousNextUrl:e.previousNextUrl,debugInfo:nu
+.current=!1)}d=!1}return{canonicalUrl:l,renderedSearch:u,pushRef:{pendingPush:"push"===o,mpaNavigation:!1,preserveCustomHistoryState:!1},focusAndScrollRef:{scrollRef:f,forceScroll:d,onlyHashChange:_,hashFragment:i!==h.ScrollBehavior.NoScroll&&""!==t.hash?decodeURIComponent(t.hash.slice(1)):e.focu
+{return{canonicalUrl:(0,i.createHrefFromUrl)(t),renderedSearch:r,pushRef:{pendingPush:!1,mpaNavigation:!1,preserveCustomHistoryState:!0},focusAndScrollRef:e.focusAndScrollRef,cache:n,tree:a,nextUrl:u,previousNextUrl:null,debugInfo:null}}function C(e,t,r,n,a){let l=t,o=null,i=null,c=!1;if(null!==r
+onstructor(){super("Method unavailable on `ReadonlyURLSearchParams`. Read more: https://nextjs.org/docs/app/api-reference/functions/use-search-params#updating-searchparams
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+.r(21270)},342886,(e,t,r)=>{"use strict";var n=e.r(888786);function a(e){var t="https://react.dev/errors/
+r(342886)},545911,(e,t,r)=>{"use strict";var n=e.r(609675);function a(e){var t="https://react.dev/errors/
+ inside of your public folder. This conflicts with the internal '/_next' route. https://nextjs.org/docs/messages/public-next-folder-conflict
+ remove getServerSideProps",Z="can not have getInitialProps/getServerSideProps, https://nextjs.org/docs/messages/404-get-initial-props
+",ee="pages with `getServerSideProps` can not be exported. See more info here: https://nextjs.org/docs/messages/gssp-export
+d to a page's component and must be exported from the page. See more info here: https://nextjs.org/docs/messages/gssp-component-member
+ates inconsistencies in the project and is strongly advised against. Read more: https://nextjs.org/docs/messages/non-standard-node-env',el=
+`fallback` enabled in `getStaticPaths` can not be exported. See more info here: https://nextjs.org/docs/messages/ssg-fallback-true-export
+Learn more: https://nextjs.org/docs/messages/instant-unrendered-segment
+Learn more: https://nextjs.org/docs/messages/instant-link-prefetch-partial
+/_next/static/immutable/chunks/1fkt8is2t2xk8.js 0]!==e?(n=Object.fromEntries(e.map(d)),m[0]=e,m[1]=n):n=m[1];let g=n;m[2]===Symbol.for("react.memo_cache_sentinel")?(i={history:"push",shallow:!0},m[2]=i):i=m[2];let[z,h]=(0,l.useQueryStates)(g,i);m[3]!==z?(r=e=>z[e]??[],m[3]=z,m[4]=r):r=m[4];let y=r;m[5]!==h?(s=(e,t)=>{h(n=>{let i=n[e]??[],r=i.i
+e strict";var t=e.i(708270);e.i(924856);var n=e.i(385096);let i={auth:{baseUrl:"https://app.pyth.com
+1b9-8852-9b73494262d8",widgetHost:t.default.env.NEXT_PUBLIC_PYLON_WIDGET_HOST||"https://widget.usepylon.com
+ervices:{pythDeveloperHubUrl:t.default.env.NEXT_PUBLIC_PYTH_DEVELOPER_HUB_URL??"https://docs.pyth.network
+tring().trim().refine(e=>{let t;if(!e)return!0;let n=/^https?:\/\//i.test(e)?e:`https://${e}
+:"Please enter a valid website URL"}).transform(e=>e?/^https?:\/\//i.test(e)?e:`https://${e}
+/_next/static/immutable/chunks/0iuo4r2iqa4e5.js w new u.BetterAuthError(`Invalid base URL: ${e}. URL must include 'http://' or 'https://'
+/_next/static/immutable/chunks/1qc1_09smdqbl.js f)(e);return t.current!==e&&(t.current=e,v.r.reset()),(0,w.useEffect)(()=>(!function(){var e;if(e="next/app","u"<typeof history||(history.nuqs?.version&&"2.10.1"!==history.nuqs.version?(console.error((0,_.l)(409),history.nuqs.version,_.s,e),!0):!!history.nuqs?.adapters?.includes(e)))return;let t=
+history.replaceState,n=history.pushState;history.replaceState=function(e,n,i){return t.call(history,e,"__nuqs__"===n?"":n,i)},history.pushState=function(e,t,i){return"__nuqs__"!==t&&function(){let e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:C;O.mutex=Math.
+max(0,O.mutex-1),O.mutex>0||e()}(()=>{queueMicrotask(C)}),n.call(history,e,"__nuqs__"===t?"":t,i)},history.nuqs=history.nuqs??{version:"2.10.1",adapters:[]},history.nuqs.adapters.push("next/app")}(),window.addEventListener("popstate",E),()=>window.removeEventListener("popstate",E)),[]),nu
+ction(e){let{origin:t,pathname:n,hash:i}=location;return t+n+(0,_.c)(e)+i}(t);(0,b.t)(20,"next/app",r);let s="push"===n.history?history.pushState:history.replaceState;x(0),s.call(history,null,"__nuqs__",r),n.scroll&&window.scrollTo(0,0),n.shallow||e.replace(r,{scroll:!1})})},[]),rateLimitFactor:3
+ent-init",strategy:"afterInteractive",children:h}),l[5]=h,l[6]=a):a=l[6];let f=`https://www.googletagmanager.com/gtag/js?id=${c}
+.createElement("script");\nb.type = "text/javascript";b.async = true;\nb.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js
+";\ns.parentNode.insertBefore(b, s);})(window.lintrk);'}),o[2]=r):r=o[2];let d=`https://px.ads.linkedin.com/collect/?pid=${l}&fmt=gif
+c, and improve our services."," ",(0,t.jsx)(H.Link,{className:"underline",href:"https://www.dourolabs.xyz/Privacy-Notice.pdf
+/_next/static/immutable/chunks/44toxjpnhuwom.js s}),resolve:t,reject:r}}function c(){return new URLSearchParams(location.search)}var d=class{updateMap=new Map;options={history:"replace",scroll:!1,shallow:!0};timeMs=n.timeMs;transitions=new Set;resolvers=null;controller=null;lastFlushedAt=0;resetQueueOnNextPush=!1;push(e){let{key:r,query:s,opti
+s.resetQueueOnNextPush&&(this.reset(),this.resetQueueOnNextPush=!1),(0,t.t)(7,r,s,i),this.updateMap.set(r,s),"push"===i.history&&(this.options.history="push"),i.scroll&&(this.options.scroll=!0),!1===i.shallow&&(this.options.shallow=!1),i.startTransition&&this.transitions.add(i.startTransition),(!
+t)(10,JSON.stringify(Object.fromEntries(this.updateMap))),this.updateMap.clear(),this.transitions.clear(),this.options={history:"replace",scroll:!1,shallow:!0},this.timeMs=n.timeMs,e}applyPendingUpdates(e,s){let{updateUrl:i,getSearchParamsSnapshot:n}=e,a=n();if((0,t.t)(11,this.updateMap.size,a.to
+;function E(e){let i=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{},a=(0,s.useId)(),u=(0,r.i)(),l=(0,r.a)(),{history:o=u?.history??"replace",scroll:h=u?.scroll??!1,shallow:c=u?.shallow??!0,throttleMs:d=n.timeMs,limitUrlUpdates:f=u?.limitUrlUpdates,clearOnDefault:y=u?.clearOnDefault??!0
+Value)&&(t=null);let w=null===t?null:(i.serialize??String)(t);P.emit(a,{state:t,query:w});let O={key:a,query:w,options:{history:s.history??i.history??o,shallow:s.shallow??i.shallow??c,scroll:s.scroll??i.scroll??h,startTransition:s.startTransition??i.startTransition??b}},R=s.limitUrlUpdates??i.lim
+  See https://nuqs.dev/NUQS-${e}
+/_next/static/immutable/chunks/35xtr7zprck1u.js try","compvalues","dirs","disable","disown","echotc","echoti","emulate","fc","fg","float","functions","getcap","getln","history","integer","jobs","kill","limit","log","noglob","popd","print","pushd","pushln","rehash","sched","setcap","setopt","stat","suspend","ttyctl","unfunction","unhash","unlim
+ublish=e=>{this.subscribers.forEach(t=>t(e))},this.addToast=e=>{this.publish(e),this.toasts=[...this.toasts,e],this.trimHistory()},this.trimHistory=()=>{let e=this.toasts.length-100;e<=0||(this.toasts=this.toasts.filter(t=>!(e>0&&this.dismissedToasts.has(t.id))||(this.dismissedToasts.delete(t.id)
+ng:h.warning,error:h.error,custom:h.custom,message:h.message,promise:h.promise,dismiss:h.dismiss,loading:h.loading},{getHistory:()=>h.toasts,getToasts:()=>h.getActiveToasts()});function m(e){return void 0!==e.label}function g(){for(var e=arguments.length,t=Array(e),n=0;n<e;n++)t[n]=arguments[n];r
+sn}}let e$={Bar:(e,t,n,i)=>{let r=t.upColor,s=t.downColor,l=N(e(n,i)),a=O(l.Wt[0])<=O(l.Wt[3]);return{sh:l.R??(a?r:s)}},Candlestick:(e,t,n,i)=>{let r=t.upColor,s=t.downColor,l=t.borderUpColor,a=t.borderDownColor,o=t.wickUpColor,u=t.wickDownColor,c=N(e(n,i)),d=O(c.Wt[0])<=O(c.Wt[3]);return{sh:c.R?
+.get(t);return n||(this.$a(t),this.va.get(t)??this.qt)}ja(e){let t=this.qt.Mh(e);return null===t?null:"Bar"===this.wa||"Candlestick"===this.wa||"Custom"===this.wa?{jr:t.Wt[0],qr:t.Wt[1],Yr:t.Wt[2],Kr:t.Wt[3]}:t.Wt[3]}qa(e){let t=[];e7(this.fa,e9,"top",t);let n=this.ua;return null!==n&&n.It()&&(nu
+n,i,r,s,l)=>(l?l(i):void 0===i.open&&void 0===i.value)?nI({wt:t,$n:n,Qr:r},i):nI(e(t,n,i,r,s),i)}function nO(e){return({Candlestick:nN(nA),Bar:nN(nT),Area:nN(nk),Baseline:nN(nR),Histogram:nN(nC),Line:nN(nC),Custom:nN(n_)})[e]}function nL(e){return{$n:0,ng:new Map,Oa:e}}function nj(e,t){if(void 0!
+&(t.borderColor=i),void 0!==r&&(t.wickColor=r),t}function n3(e){return({Area:n2,Line:n1,Baseline:n8,Histogram:n1,Bar:n5,Candlestick:n4,Custom:n7})[e]}function n7(e){let t=e.Qr;return{...e.ue,time:t}}let n9={vertLine:{color:"#9598A1",width:1,style:3,visible:!0,labelVisible:!0,labelBackgroundColor:
+),void 0===(t=n.priceFormat)||"custom"===t.type||void 0!==t.minMove&&void 0===t.precision&&(t.precision=tz(t.minMove)),"Candlestick"===e.type&&(void 0!==n.borderColor&&(n.borderUpColor=n.borderColor,n.borderDownColor=n.borderColor),void 0!==n.wickColor&&(n.wickUpColor=n.wickColor,n.wickDownColor=
+){let e=this.ae.N();this.Vg.ht({Un:this.kg,ml:this.le.Et().ml(),pS:e.wickVisible,gi:e.borderVisible,lt:this.Tg})}}e.s(["CandlestickSeries",0,{type:"Candlestick",isBuiltIn:!0,defaultOptions:{upColor:"#26a69a",downColor:"#ef5350",wickVisible:!0,borderVisible:!0,borderColor:"#378658",borderUpColor:"
+high","High"],["low","Low"],["close","Close"]];e.s(["PriceChart",0,function(e){let{benchmarkData:n,benchmarkPluginRef:d,candlestickData:h,candlestickSeriesRef:f,chartRef:m,chartType:g="candlestick",exponent:v,data:b,theme:x,className:y,legend:w,lineSeriesRef:E,lookbackLimit:M,marker:C,onLegendTog
+(e,void 0,el.current)}}),p=h.addSeries(i.LineSeries,{color:n.line,lineWidth:2,priceFormat:s,visible:r}),g=h.addSeries(i.CandlestickSeries,{...I(n),priceFormat:s,visible:!r}),v=new l.BenchmarkBandPrimitive({fillColor:n.benchmarkFill,lineColor:n.benchmarkLine,lineWidth:1}),b=new _((0,a.cssVar)(e,"-
+uments.length,n=Array(t>1?t-1:0),i=1;i<t;i++)n[i-1]=arguments[i];let r=new URL("https://base-ui.com/production-error
+as been deprecated."),H("10.7.0","Please use highlight(code, options) instead.\nhttps://github.com/highlightjs/highlight.js/issues/2277
+es unescaped HTML. This is a potentially serious security risk."),console.warn("https://github.com/highlightjs/highlight.js/wiki/security
+l:#D1D4DC;--stroke:#131722;}",this.jv=document.createElement("a"),this.jv.href=`https://www.tradingview.com/?utm_medium=lwc-link&utm_campaign=lwc-chart${this.im()}
+/_next/static/immutable/chunks/3_5nlb4_5dn8p.js dmin/users",internalAdminUsersExport:()=>"/api/internal-admin/users/export",lazerToken:()=>"/api/lazer/token",playgroundHistory:()=>"/api/playground/history",postMagicLinkSigninCallbackBase:()=>"/api/auth/magic-link-signin-callback",postSocialSignin:()=>"/api/auth/post-social-signin",priceFeedBen
+chmark:t=>`${e(t)}/benchmark`,priceFeedDetail:e,priceFeedFacets:()=>"/api/price-feeds/facets",priceFeedHistory:t=>`${e(t)}/history`,priceFeedMetrics:t=>`${e(t)}/metrics`,priceFeedPrice:t=>`${e(t)}/price`,priceFeeds:()=>"/api/price-feeds",priceFeedsCategoryCounts:()=>"/api/price-f
+/_next/static/immutable/chunks/0tn0ndwiegkrc.js very Pyth price feed - crypto, equities, FX, commodities, precious metals and rates - with real-time prices, charts and history.",title:"Explore"},slug:"all"},{analyticsId:"my_feeds",header:{description:"The feeds your plan entitles you to stream."},label:"My Feeds",params:{},scope:"entitled",seo
+:{description:"The Pyth price feeds your plan entitles you to stream, with real-time prices, charts and history.",title:"My Feeds"},slug:c},{analyticsId:"watchlist",label:"Watchlist",params:{},scope:"watchlist",seo:{description:"The Pyth price feeds you starred, with real-time pri
+ces, charts and history.",title:"Watchlist"},slug:"watchlist"},{analyticsId:"pyth_indices",header:{action:u,description:d},heroBanner:{actions:[{...u,variant:"cta"},m],badge:"Pyth Indices",body
+ds, the thematic baskets Pyth publishes across equities, crypto and emerging sectors, with real-time prices, charts and history.",title:"Pyth Index Price Feeds"},slug:"pyth-indices"},{analyticsId:"metals",header:{description:"Real-time prices for gold, silver, platinum and palladium."},heroBanner
+precious metals price feeds from Pyth, covering gold, silver, platinum and palladium, with real-time prices, charts and history.",title:"Precious Metals Price Feeds"},slug:"metals"},{analyticsId:"crypto",header:{description:"Real-time prices for major tokens and crypto indices."},heroBanner:{acti
+ription:"Live crypto price feeds from Pyth, covering major tokens and crypto indices, with real-time prices, charts and history.",title:"Crypto Price Feeds"},slug:"crypto"},{analyticsId:"equities",header:{description:"Real-time prices for listed stocks and equity indices."},heroBanner:{actions:[p
+iption:"Live equity price feeds from Pyth, covering listed stocks and equity indices, with real-time prices, charts and history.",title:"Equity Price Feeds"},slug:"equities"},{analyticsId:"fx",header:{description:"Real-time prices for major and emerging market currency pairs."},heroBanner:{action
+on:"Live FX price feeds from Pyth, covering major and emerging market currency pairs, with real-time prices, charts and history.",title:"FX Price Feeds"},slug:"fx"},{analyticsId:"commodities",header:{description:"Real-time prices for energy and agricultural markets."},heroBanner:{actions:[p,h],ba
+tion:"Live commodity price feeds from Pyth, covering energy and agricultural markets, with real-time prices, charts and history.",title:"Commodity Price Feeds"},slug:"commodities"},{analyticsId:"rates",header:{description:"Real-time government bond yields and interest rates."},heroBanner:{actions
+"Live interest rate and yield price feeds from Pyth, covering government bond yields, with real-time prices, charts and history.",title:"Interest Rate & Yield Price Feeds"},slug:"rates"}];e.s(["ALL_FEEDS_SLUG",0,"all","CategoryCountsSchema",0,l,"EXPLORE_CATEGORIES",0,z,"MY_FEEDS_SLUG",0,c,"PYTH_I
+& Pricing",variant:"cta"},m={ctaAction:"read_success_stories",external:!0,href:"https://www.pyth.network/success-stories
+ss Stories",variant:"outline"},h={ctaAction:"view_publishers",external:!0,href:"https://www.pyth.network/publishers
+or(e/t)*t:Math.ceil(e/t)*t}])},762447,e=>{"use strict";var t=e.i(568199);let i="https://www.dourolabs.xyz
+BROWSER_CONFIG.services.pythDeveloperHubUrl}/api/playground/deeplink`,docs:()=>"https://docs.pyth.network/price-feeds/pro
+",hubspotCompany:e=>`https://app-eu1.hubspot.com/contacts/${t.PYTH_APP_BROWSER_CONFIG.hubspot.accountId}/record/0-2/${e}
+`,hubspotContact:e=>`https://app-eu1.hubspot.com/contacts/${t.PYTH_APP_BROWSER_CONFIG.hubspot.accountId}/record/0-1/${e}
+`,indicesAccessRequest:e=>`https://www.pyth.network/indices?${new
+Address}`,privacyPolicy:()=>`${i}/Privacy-Notice.pdf`,stripeCustomer:e=>{let i=`https://dashboard.stripe.com/${t.PYTH_APP_BROWSER_CONFIG.stripe.accountId}${t.PYTH_APP_BROWSER_CONFIG.vercel.isProduction?
+"":"/test"}/customers`;return`${i}/${e}`},subscribeToPricesDocs:()=>"https://docs.pyth.network/price-feeds/pro/subscribe-to-prices
+",sumsubApplicant:e=>`https://cockpit.sumsub.com/checkus/#/applicant/${encodeURIComponent(e)}
+/_next/static/immutable/chunks/39h9z74jzltfr.js ,{mutateAsync:u,state:h}=function(){let e,a,l,n,r,i=(0,t.c)(21),s=v.executeFetch;i[0]!==s?(e=e=>s(_.apiRoutes.playgroundHistory(),{acceptStatuses:w,body:JSON.stringify(e),method:"POST",schema:C}),i[0]=s,i[1]=e):e=i[1],i[2]===Symbol.for("react.memo_cache_sentinel")?(a=["useRunHistory"],i[2]=a):a=i
+n(()=>d(o.AnalyticsEvent.WELCOME_DIALOG_CALL_FINISHED,{feed_symbol:c.symbol})).catch(e=>{N.logger.error("Welcome dialog history run failed",{error:e}),d(o.AnalyticsEvent.WELCOME_DIALOG_CALL_ERROR,{feed_symbol:c.symbol})})},s[0]=c.from,s[1]=c.symbol,s[2]=c.to,s[3]=u,s[4]=d,s[5]=l):l=s[5];let p=l;r
+/_next/static/immutable/chunks/0fgifuapz6-wo.js stead of \`${r}\` (in \`${a}\`) for formatting ${i} to the input \`${o}\`; see: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md
+/_next/static/immutable/chunks/0oi2la8x2syko.js URRENT_SUBSCRIPTION_QUERY_KEY})]).catch(_)},x[7]=I,x[8]=d):d=x[8];let X=d;x[9]!==O||x[10]!==T?(m=T?{...M,text:(0,v.buildHistoryCurl)({apiKey:T,baseUrl:O,...M})}:void 0,x[9]=O,x[10]=T,x[11]=m):m=x[11],x[12]!==U||x[13]!==$?(y=$?{status:"unavailable"}:U,x[12]=U,x[13]=$,x[14]=y):y=x[14];let J=!B;retu
+return l[0]!==o?(e=(0,a.activePersonalApiKey)(o),l[0]=o,l[1]=e):e=l[1],e}],550674);let i="fixed_rate@1000ms";e.s(["buildHistoryCurl",0,function(e){let{apiKey:t,baseUrl:a,from:r,resolution:n="1D",symbol:s,to:o}=e,c=new URL(`${l(a)}/v1/${i}/history`);return c.searchParams.set("symbol",s),c.searchPa
+"images.loaderFile detected but the file is missing default export.\nRead more: https://nextjs.org/docs/messages/invalid-images-config
+Read more: https://nextjs.org/docs/messages/next-image-missing-loader
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-localpatterns
+/_next/static/immutable/chunks/0c0hxoamwjsbw.js 1",mode:"global",copyright:"© 2014-2024 Denis Pushkarev (zloirock.ru)",license:"https://github.com/zloirock/core-js/blob/v3.38.1/LICENSE
+",source:"https://github.com/zloirock/core-js
+n e&&e.value},Tp=dt("iterator"),Mp=!a(function(){var t=new URL("b?a=1&b=2&c=3","https://a
+elete("b"),n+=r+t}),r.delete("a",2),r.delete("b",void 0),!e.size&&!u||!e.sort||"https://a/c%20d?a=1&c=3
+e.get("c")||"a=1"!==String(new URLSearchParams("?a=1"))||!e[Tp]||"a"!==new URL("https://a@b
+w URLSearchParams(new URLSearchParams("a=b")).get("a")||"xn--e1aybc"!==new URL("https://тест
+").host||"#%D0%B1"!==new URL("https://a#б").hash||"a1c3"!==n||"x"!==new URL("https://x
+/_next/static/immutable/chunks/17i-ouaox5m13.js tOrigins:[...new Set([e.branchDomain,e.deploymentDomain].filter(e=>!!e).map(e=>`https://${e}
+iew:n,isProduction:"production"===t,isStaging:"staging"===t,previewOrigin:n&&o?`https://${o}
+/_next/static/immutable/chunks/0hxde7v48g5b2.js (68067);let eu={"signed-in":{bars:(0,t.jsxs)(t.Fragment,{children:["Free plan includes ",5e3.toLocaleString()," bars of history. Upgrade to unlock the full date range."]}),lookback:(0,t.jsxs)(t.Fragment,{children:["Free plan includes ",30..toLocaleString()," days of history. Upgrade to unlock the
+nge."]})},"signed-out":{bars:(0,t.jsxs)(t.Fragment,{children:["Showing the most recent ",5e3.toLocaleString()," bars of history. Sign in to unlock the full date range."]}),lookback:(0,t.jsxs)(t.Fragment,{children:["Showing the most recent ",30..toLocaleString()," days of history. Sign in to unloc
+m).toISOString(),resolution:t,to:new Date(r.to).toISOString()}),i=await (0,ef.lazerProxyFetch)(`${eg.apiRoutes.priceFeedHistory(e)}?${n.toString()}`,{signal:a});if(!i.ok){if(403===i.status)throw new eb;throw Error(`History request failed: ${i.status} ${i.statusText}`)}let s=ey.PriceFeedHistorySch
+ema.parse(await i.json());return{candlestickData:(0,v.mapPriceFeedHistoryToCandlestickDataPoints)(s),data:(0,v.mapPriceFeedHistoryToChartDataPoints)(s)}}async function ev(e,t,r,a){let n=new URLSearchParams({from:new Date(r.from).toISOString(),
+oString()}`,{signal:a});if(!s.ok)throw Error(`Benchmark request failed: ${s.status} ${s.statusText}`);let o=ey.BenchmarkHistorySchema.parse(await s.json());return(0,i.mapBenchmarkRows)(o)}async function eE(e,t,r,a){let[n,i]=await Promise.all([ex(e,t,r,a),ev(e,t,r,a).catch(e=>{if(e_(e))throw e;ret
+,V,D,Z,B,O,P,U,z,$,G,W,K,q,Y,X,J,ee,et,er,ea,en,ei,es,eo,el=(0,r.c)(128),{assetType:ec,feedSymbol:eu,exponent:ed,hasFullHistory:ef,initialTimestamp:eg,marketSessionSchedule:ey,renderContainer:ex,symbol:ev,upsell:eV}=e,{track:eD}=(0,c.useAnalyticsClient)(),eU=(0,u.useResolvedTheme)(),ez=(0,o.useRe
+sNullOrUndefined)(es),en[0]=es,en[1]=er):er=en[1],eo=!er,en[2]!==ef||en[3]!==eo?(ea=function(e){let{isSignedIn:t,hasFullHistory:r}=e;return r?{isSignedIn:t,lookbackLimitDays:void 0,maxBars:void 0}:{isSignedIn:t,lookbackLimitDays:30,maxBars:5e3}}({hasFullHistory:ef,isSignedIn:eo}),en[2]=ef,en[3]=e
+andlestickData,data:t.data,lookbackLimitReachedTime:(0,E.computeLookbackReached)(n.from,i,a),range:(0,E.computeRangeFromHistory)(t.data),type:"INITIAL_FETCH_SUCCESS"})}).catch(t=>{if(!(e.signal.aborted||e_(t))){if(t instanceof eb)return void s({type:"INITIAL_FETCH_FORBIDDEN"});ep.logger.error("Fa
+iled to load chart history",t),s({type:"INITIAL_FETCH_FAILED"})}}),()=>{e.abort()}},[i.fetchToken]);let g=(0,o.useCallback)(async e=>{let t=Date.now(),r=l.current;if(!function(e,t,r){if(e.loading.
+kLimitReachedTime:u,range:a,type:"EXTEND_SUCCESS"})}catch(t){if(e_(t))return;ep.logger.error("Failed to load more chart history",t),s({direction:e,type:"EXTEND_FAILED"})}},[]),y=(0,o.useCallback)(e=>{s({center:t,timeRange:e,type:"TIME_RANGE_CHANGED"})},[t]),b=(0,o.useCallback)((e,t)=>{s({center:t
+(0,t.jsx)(a.ChartContainerComp,{notice:n,children:r})}e.s(["ChartArea",0,function(e){let a,i=(0,r.c)(11),{feed:s,hasFullHistory:o,initialTimestamp:l,shortSymbol:c,upsell:u}=e;if((0,n.isChartlessFeedState)(s.state)){let e;return i[0]!==s.state?(e=e$({children:(0,t.jsx)(ez,{state:s.state})}),i[0]=s
+=o||i[7]!==l||i[8]!==c||i[9]!==u?(a=(0,t.jsx)(eU,{assetType:s.asset_type,exponent:s.exponent,feedSymbol:s.symbol,hasFullHistory:o,initialTimestamp:l,marketSessionSchedule:s.market_session_schedule,renderContainer:e$,symbol:c,upsell:u}),i[2]=s.asset_type,i[3]=s.exponent,i[4]=s.market_session_sched
+,{children:[c,(0,t.jsxs)(X.Tooltip,{children:[(0,t.jsx)(X.TooltipTrigger,{render:(0,t.jsx)(_.TabsTrigger,{"aria-label":"Candlestick chart",className:"px-2",value:"candlestick",children:(0,t.jsx)(D,{})})}),(0,t.jsx)(X.TooltipContent,{children:"Candlestick chart"})]})]}),H[12]=u):u=H[12],H[13]!==I|
+ror(`History request failed: ${i.status} ${i.statusText}`)}let s=ey.PriceFeedHistorySchema.parse(await i.json());return{candlestickData:(0,v.mapPriceFeedHistoryToCandlestickDataPoints)(s),data:(0,v.mapPriceFeedHistoryToChartDataPoints)(s)}}async function ev(e,t,r,a){let n=new URLSearchParams({fro
+r,a).catch(e=>{if(e_(e))throw e;return ep.logger.warn("Benchmark fetch failed",{error:e}),[]})]);return{benchmarkData:i,candlestickData:n.candlestickData,data:n.data}}function e_(e){return e instanceof DOMException&&"AbortError"===e.name}function eA(e,t){return void 0===e?void 0:t-e*v.ONE_DAY_MS}
+");if(r===e.showBenchmark&&a===e.showSchedule)return e;return{...e,showBenchmark:r,showSchedule:a}}}}let eP={chartType:"candlestick",showBenchmark:!0,showSchedule:!0};function eU(e){let a,n,d,f,m,p,g,b,_,A,w,k,j,M,I,R,N,F,V,D,Z,B,O,P,U,z,$,G,W,K,q,Y,X,J,ee,et,er,ea,en,ei,es,eo,el=(0,r.c)(128),{as
+e6,symbol:eu},el[6]=eu,el[7]=eg,el[8]=e4,el[9]=e6,el[10]=m):m=el[10];let{barLimitReached:e7,addTick:e9,benchmarkData:te,candlestickData:tt,data:tr,dataChangeKind:ta,dataRef:tn,fetchToken:ti,isFetchingMore:ts,isLoading:to,loadNewer:tl,loadOlder:tc,lookbackLimitReachedTime:tu,notEntitled:th,resolut
+nal.aborted)return;let r=t.data.at(0)?.time,i=void 0===r?void 0:(0,E.timeToSeconds)(r);s({benchmarkData:t.benchmarkData,candlestickData:t.candlestickData,data:t.data,lookbackLimitReachedTime:(0,E.computeLookbackReached)(n.from,i,a),range:(0,E.computeRangeFromHistory)(t.data),type:"INITIAL_FETCH_S
+0:(0,E.timeToSeconds)(i),u="older"===e?(0,E.computeLookbackReached)(c.from,l,o):void 0;s({benchmarkData:t.benchmarkData,candlestickData:t.candlestickData,data:t.data,direction:e,lookbackLimitReachedTime:u,range:a,type:"EXTEND_SUCCESS"})}catch(t){if(e_(t))return;ep.logger.error("Failed to load mor
+?.abort(),m.current?.abort()},[]),{addTick:_,barLimitReached:void 0!==a&&i.data.length>=a,benchmarkData:i.benchmarkData,candlestickData:i.candlestickData,data:i.data,dataChangeKind:i.dataChangeKind,dataRef:d,fetchToken:i.fetchToken,isFetchingMore:i.loading.older||i.loading.newer,isLoading:i.loadi
+=tV?(X=(0,t.jsx)("div",{className:"grow min-h-0",children:(0,t.jsx)(i.PriceChart,{benchmarkData:Y,benchmarkPluginRef:eK,candlestickData:tt,candlestickSeriesRef:eW,chartRef:ez,chartType:eX,data:tr
+
+web search: 
+web search: https://polymarket.com/event/will-nvda-hit-week-of-october-12-2026
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+from pathlib import Path
+import re
+for f in Path('/tmp/nvda-pyth').glob('*.js'):
+ s=f.read_text()
+ for term in ['priceFeedHistory:', 'lazerProxyFetch', 'async function ex(', 'mapPriceFeedHistoryToCandlestickDataPoints']:
+  p=s.find(term)
+  if p>=0: print(f.name, term, s[max(0,p-350):p+1100])
+PY" in /tmp/apb-36-codex-wmp63ufb
+ succeeded in 0ms:
+0hxde7v48g5b2.js lazerProxyFetch (t.Fragment,{children:[s,b]}),v[21]=b,v[22]=s,v[23]=x):x=v[23],x}var ed=e.i(504339),ef=e.i(650909),em=e.i(569810),ep=e.i(797657),eg=e.i(407036);e.i(624356);var ey=e.i(562578);class eb extends Error{}async function ex(e,t,r,a){let n=new URLSearchParams({from:new Date(r.from).toISOString(),resolution:t,to:new Date(r.to).toISOString()}),i=await (0,ef.lazerProxyFetch)(`${eg.apiRoutes.priceFeedHistory(e)}?${n.toString()}`,{signal:a});if(!i.ok){if(403===i.status)throw new eb;throw Error(`History request failed: ${i.status} ${i.statusText}`)}let s=ey.PriceFeedHistorySchema.parse(await i.json());return{candlestickData:(0,v.mapPriceFeedHistoryToCandlestickDataPoints)(s),data:(0,v.mapPriceFeedHistoryToChartDataPoints)(s)}}async function ev(e,t,r,a){let n=new URLSearchParams({from:new Date(r.from).toISOString(),resolution:t,to:new Date(r.to).toISOString()}),s=await (0,ed.apiFetch)(`${eg.apiRoutes.priceFeedBenchmark(e)}?${n.toString()}`,{signal:a});if(!s.ok)throw Error(`Benchmark request failed: ${s.status} ${s.statusText}`);let o=ey.BenchmarkHistorySchema.parse(await s.json());return(0,i.mapBenchmarkRows)(o)}async function eE(e,t,r,a){let[n,i]=await Promise.all([ex(e,t,r,a),ev(e,t,r,a).catch(e=>{if(e_(e))throw e;return ep.logger.warn("Benchmark fetch failed",{error:e}),[]})]);return{benchmarkData:i,candlestickData:n.candlestickData,data:n.data}}function e_(e){return e instanceof DOMException&&"AbortError"===e.name}function eA(e,t){return
+0hxde7v48g5b2.js async function ex( 18]!==y||v[19]!==h?(b=(0,t.jsxs)(ei.Alert,{icon:u,variant:"upsell",children:[h,y]}),v[18]=y,v[19]=h,v[20]=b):b=v[20],v[21]!==b||v[22]!==s?(x=(0,t.jsxs)(t.Fragment,{children:[s,b]}),v[21]=b,v[22]=s,v[23]=x):x=v[23],x}var ed=e.i(504339),ef=e.i(650909),em=e.i(569810),ep=e.i(797657),eg=e.i(407036);e.i(624356);var ey=e.i(562578);class eb extends Error{}async function ex(e,t,r,a){let n=new URLSearchParams({from:new Date(r.from).toISOString(),resolution:t,to:new Date(r.to).toISOString()}),i=await (0,ef.lazerProxyFetch)(`${eg.apiRoutes.priceFeedHistory(e)}?${n.toString()}`,{signal:a});if(!i.ok){if(403===i.status)throw new eb;throw Error(`History request failed: ${i.status} ${i.statusText}`)}let s=ey.PriceFeedHistorySchema.parse(await i.json());return{candlestickData:(0,v.mapPriceFeedHistoryToCandlestickDataPoints)(s),data:(0,v.mapPriceFeedHistoryToChartDataPoints)(s)}}async function ev(e,t,r,a){let n=new URLSearchParams({from:new Date(r.from).toISOString(),resolution:t,to:new Date(r.to).toISOString()}),s=await (0,ed.apiFetch)(`${eg.apiRoutes.priceFeedBenchmark(e)}?${n.toString()}`,{signal:a});if(!s.ok)throw Error(`Benchmark request failed: ${s.status} ${s.statusText}`);let o=ey.BenchmarkHistorySchema.parse(await s.json());return(0,i.mapBenchmarkRows)(o)}async function eE(e,t,r,a){let[n,i]=await Promise.all([ex(e,t,r,a),ev(e,t,r,a).catch(e=>{if(e_(e))throw e;return ep.logger.warn("Benchmark fetch failed",{error:e}),[]})]);return{benchm
+0hxde7v48g5b2.js mapPriceFeedHistoryToCandlestickDataPoints ).toISOString(),resolution:t,to:new Date(r.to).toISOString()}),i=await (0,ef.lazerProxyFetch)(`${eg.apiRoutes.priceFeedHistory(e)}?${n.toString()}`,{signal:a});if(!i.ok){if(403===i.status)throw new eb;throw Error(`History request failed: ${i.status} ${i.statusText}`)}let s=ey.PriceFeedHistorySchema.parse(await i.json());return{candlestickData:(0,v.mapPriceFeedHistoryToCandlestickDataPoints)(s),data:(0,v.mapPriceFeedHistoryToChartDataPoints)(s)}}async function ev(e,t,r,a){let n=new URLSearchParams({from:new Date(r.from).toISOString(),resolution:t,to:new Date(r.to).toISOString()}),s=await (0,ed.apiFetch)(`${eg.apiRoutes.priceFeedBenchmark(e)}?${n.toString()}`,{signal:a});if(!s.ok)throw Error(`Benchmark request failed: ${s.status} ${s.statusText}`);let o=ey.BenchmarkHistorySchema.parse(await s.json());return(0,i.mapBenchmarkRows)(o)}async function eE(e,t,r,a){let[n,i]=await Promise.all([ex(e,t,r,a),ev(e,t,r,a).catch(e=>{if(e_(e))throw e;return ep.logger.warn("Benchmark fetch failed",{error:e}),[]})]);return{benchmarkData:i,candlestickData:n.candlestickData,data:n.data}}function e_(e){return e instanceof DOMException&&"AbortError"===e.name}function eA(e,t){return void 0===e?void 0:t-e*v.ONE_DAY_MS}var ew=e.i(877025),eS=e.i(521679),eC=e.i(524856),eT=e.i(929270),eL=e.i(530662),ek=e.i(189007),ej=e.i(755340);let eM=(e,t)=>{let r=v.RANGES[t].resolutionMs/1e3;return Math.round(e/1e3/r)*r};var eH=e.i(291020),eI=e.i(627100),eR=e.i(91959),
+3_5nlb4_5dn8p.js priceFeedHistory: "/api/internal-admin/users/export",lazerToken:()=>"/api/lazer/token",playgroundHistory:()=>"/api/playground/history",postMagicLinkSigninCallbackBase:()=>"/api/auth/magic-link-signin-callback",postSocialSignin:()=>"/api/auth/post-social-signin",priceFeedBenchmark:t=>`${e(t)}/benchmark`,priceFeedDetail:e,priceFeedFacets:()=>"/api/price-feeds/facets",priceFeedHistory:t=>`${e(t)}/history`,priceFeedMetrics:t=>`${e(t)}/metrics`,priceFeedPrice:t=>`${e(t)}/price`,priceFeeds:()=>"/api/price-feeds",priceFeedsCategoryCounts:()=>"/api/price-feeds/category-counts",priceFeedsExport:()=>"/api/price-feeds/export",sealSignupCallback:()=>"/api/auth/seal-signup-callback",socialAuthProviders:()=>"/api/auth/providers",updateKYC:()=>"/api/kyc",userDelete:()=>"/api/user/delete",userEntitledFeeds:()=>"/api/user/entitled-feeds",userMe:()=>"/api/user/me",userSettings:()=>"/api/user/settings",userWatchlist:()=>"/api/user/watchlist",userWatchlistEntry:t=>`/api/user/watchlist/${t}`}])},329765,t=>{"use strict";var e=t.i(382474);t.s(["isServer",0,()=>e.isServer])},107732,t=>{"use strict";var e=t.i(551864);let i=new class extends e.Subscribable{#t;#e;#i;constructor(){super(),this.#i=t=>{if("u">typeof window&&window.addEventListener){let e=()=>t();return window.addEventListener("visibilitychange",e,!1),()=>{window.removeEventListener("visibilitychange",e)}}}}onSubscribe(){this.#e||this.setEventListener(this.#i)}onUnsubscribe(){this.hasListeners()||(this.#e?.(
+0rvqiy-c8wmnv.js async function ex(  t)r=e;if(void 0!==r)return e+(isNaN(r)?_.STATIC_STALETIME_MS:C(r))}return void 0!==r?eI(e,r):e+_.STATIC_STALETIME_MS}function eF(e,t,r,n,a,u,o,i,c,s,f){let d=(0,l.readVaryParams)(a,u),p=(0,g.normalizeFlightData)(r);if("string"==typeof p)return;let h=(0,b.convertServerPatchToFullTree)(e,i,p,c,P.UnknownDynamicStaleTime);ew(e,t,p,n,s,d,u,o,h,null,f)}async function ex(e,t,r,n){let{stream:a,isPartial:u}=await eL(t),o=await (0,i.createFromNextReadableStream)(a,void 0,{allowPartialStream:!0}),c=o.r??null,s=(0,l.readVaryParams)(o.h,c),f=await eD(e,o.s),d=(0,g.normalizeFlightData)(o.f);if("string"==typeof d)return null;let p=(0,b.convertServerPatchToFullTree)(e,r,d,n,P.UnknownDynamicStaleTime);return{flightDatas:d,navigationSeed:p,buildId:o.b,isResponsePartial:u,headVaryParams:s,rootVaryParamsIterable:c,staleAt:f}}async function eL(e){let t=e.getReader(),{done:r,value:n}=await t.read();if(r||!n||0===n.byteLength)return{stream:new ReadableStream({start:e=>e.close()}),isPartial:!0};let a=n[0],u=35===a||126===a,l=u?n.byteLength>1?n.subarray(1):null:n;return{isPartial:!u||126===a,stream:new ReadableStream({start(e){l&&e.enqueue(l)},async pull(e){let r=await t.read();r.done?e.close():e.enqueue(r.value)}})}}("function"==typeof r.default||"object"==typeof r.default&&null!==r.default)&&void 0===r.default.__esModule&&(Object.defineProperty(r.default,"__esModule",{value:!0}),Object.assign(r.default,r),t.exports=r.default)},398898,(e,t,r)=>{"use
+
+exec
+/usr/bin/zsh -lc "rg -o '.{0,80}/api/price-feeds/["'^;]{0,180}|.{0,60}lazerProxyFetch.{0,220}|.{0,60}650909.{0,600}|.{0,60}resolutionMs.{0,300}'"' /tmp/nvda-pyth/3_5nlb4_5dn8p.js /tmp/nvda-pyth/0hxde7v48g5b2.js" in /tmp/apb-36-codex-wmp63ufb
+ succeeded in 0ms:
+/tmp/nvda-pyth/3_5nlb4_5dn8p.js:ToString)(t.cause):(0,e.errorToString)(t)}])},407036,t=>{"use strict";let e=t=>`/api/price-feeds/${encodeURIComponent(t)}`
+/tmp/nvda-pyth/3_5nlb4_5dn8p.js:riceFeedBenchmark:t=>`${e(t)}/benchmark`,priceFeedDetail:e,priceFeedFacets:()=>"/api/price-feeds/facets",priceFeedHistory:t=>`${e(t)}/history`,priceFeedMetrics:t=>`${e(t)}/metrics`,priceFeedPrice:t=>`${e(t)}/price`,priceFeeds:()=>"/api/price-feeds",priceFeedsCategoryCounts:()=
+/tmp/nvda-pyth/3_5nlb4_5dn8p.js:>"/api/price-feeds/category-counts",priceFeedsExport:()=>"/api/price-feeds/export",sealSignupCallback:()=>"/api/auth/seal-signup-callback",socialAuthProviders:()=>"/api/auth/providers",updateKYC:()=>"/api/kyc",userDelete:()=>"/api/user/delete",userEntitle
+/tmp/nvda-pyth/0hxde7v48g5b2.js:[21]=b,v[22]=s,v[23]=x):x=v[23],x}var ed=e.i(504339),ef=e.i(650909),em=e.i(569810),ep=e.i(797657),eg=e.i(407036);e.i(624356);var ey=e.i(562578);class eb extends Error{}async function ex(e,t,r,a){let n=new URLSearchParams({from:new Date(r.from).toISOString(),resolution:t,to:new Date(r.to).toISOString()}),i=await (0,ef.lazerProxyFetch)(`${eg.apiRoutes.priceFeedHistory(e)}?${n.toString()}`,{signal:a});if(!i.ok){if(403===i.status)throw new eb;throw Error(`History request failed: ${i.status} ${i.statusText}`)}let s=ey.PriceFeedHistorySchema.parse(await i.json());return{candlestickData:(0,v.mapPriceFeedHistoryToCandlestickDataPoints)(s),data:(0,v.mapPriceFeedHisto
+/tmp/nvda-pyth/0hxde7v48g5b2.js:e.i(189007),ej=e.i(755340);let eM=(e,t)=>{let r=v.RANGES[t].resolutionMs/1e3;return Math.round(e/1e3/r)*r};var eH=e.i(291020),eI=e.i(627100),eR=e.i(91959),eN=e.i(128433),eF=e.i(394683);class eV{_points;_barWidth;constructor(e,t){this._points=e,this._barWidth=t}draw(e){e.useBitmapCoordinateSpace(e=>{let t,r=e.context,a=e.bitmapSize.height,n=e.horizontalPixelRatio*this._b
+/tmp/nvda-pyth/0hxde7v48g5b2.js:]!==t_?(w={assetType:ec,enabled:eJ,marketSessionSchedule:ey,resolutionMs:t_,seriesRef:e$},el[30]=ec,el[31]=ey,el[32]=eJ,el[33]=t_,el[34]=w):w=el[34];let{sessionClassifier:tA}=function(e){let t,a,n,i,l,c,h=(0,r.c)(21),{assetType:d,enabled:f,marketSessionSchedule:m,resolutionMs:p,seriesRef:g}=e,y=void 0===f||f,b=(0,u.useResolvedTheme)();h[0]!==m?(t=(0,s.parseSessionSchedu
+/tmp/nvda-pyth/0hxde7v48g5b2.js:nction(){return(0,s.useContext)(H)}],541904)},660654,542147,650909,128433,394683,e=>{"use strict";let t={"1D":{ms:864e5,resolution:"5m",resolutionMs:3e5},"1H":{ms:36e5,resolution:"1m",resolutionMs:6e4},"1M":{ms:2592e6,resolution:"2h",resolutionMs:72e5},"1W":{ms:6048e5,resolution:"30m",resolutionMs:18e5},"1Y":{ms:31104e6,resolution:"1d",resolutionMs:864e5},"3M":{ms:7776e6,resolution:"6h",resolutionMs:216e5}};e.s(["EXTEND_BARS",0,500,"MIN_INITIAL_BARS",0,100,"ONE_DAY_MS",0,864e5,"ONE_DAY_SEC",0,86400,"OVERFETCH_MULTIPLIER",0,3,"RANGES",0,t,"RESOLUTIONS",0,["1m","5m","15m","30m","2h","4h","6h","1d"],"TIME_RANGES",0,["1H","1D","1W","1M","3M","1Y"],"mapPriceFeedH
+/tmp/nvda-pyth/0hxde7v48g5b2.js:PIRED_STATUS?s:(await a.ensureTokens({force:!0}),i())}e.s(["lazerProxyFetch",0,h],650909);var d=e.i(585734),f=e.i(888786);function m(){return Date.now()}e.s(["useNow",0,function(e){let t,r,a=(0,d.c)(3),[n,i]=(0,f.useState)(m);return a[0]!==e?(t=()=>{let t=setInterval(()=>{i(Date.now())},e);retu
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,urllib.parse
+params=urllib.parse.urlencode({'from':'2026-10-13T13:30:00.000Z','to':'2026-10-13T14:00:00.000Z','resolution':'1'})
+u='https://pythdata.app/api/price-feeds/Equity.US.NVDA%2FUSD/history?'+params
+try:
+ r=urllib.request.urlopen(u, timeout=10)
+ print(r.status,r.read().decode()[:6000])
+except Exception as e: print(str(e))
+PY" in /tmp/apb-36-codex-wmp63ufb
+ succeeded in 192ms:
+HTTP Error 400: Bad Request
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,urllib.parse,json
+params=urllib.parse.urlencode({'from':'2026-10-13T13:30:00.000Z','to':'2026-10-13T14:00:00.000Z','resolution':'1m'})
+u='https://pythdata.app/api/price-feeds/Equity.US.NVDA%2FUSD/history?'+params
+try:
+ r=urllib.request.urlopen(u, timeout=10)
+ data=r.read().decode()
+ print(r.status,data[:7000])
+except urllib.error.HTTPError as e: print(str(e),e.read().decode()[:1000])
+except Exception as e: print(str(e))
+PY" in /tmp/apb-36-codex-wmp63ufb
+ succeeded in 198ms:
+HTTP Error 419: status code 419 lazer token has expired
+
+codex
+I’m choosing Yes. NVDA’s reported October 13 low is below $224, and the live market now prices that outcome at 100%. I couldn’t retrieve Pyth’s minute candles, so I’m allowing a small margin for settlement uncertainty. [Price history](https://stockanalysis.com/stocks/nvda/history/) · [Live market](https://polymarket.com/event/will-nvda-hit-week-of-october-12-2026)
+
+exec
+/usr/bin/zsh -lc "bench bet --outcome Yes --confidence 0.99 --rationale 'Multiple price feeds report an October 13 regular-session NVDA low near "'$223.06, below the $224 barrier, and the live Polymarket page now prices this outcome at 100%. Yes at the benchmark ask of 0.65 offers a strong edge, with a small allowance for settlement uncertainty because I could not directly retrieve the Pyth minute candles.'"' --quote 'You brought forecasts. I checked the tape.'" in /tmp/apb-36-codex-wmp63ufb
+ succeeded in 3794ms:
+{
+  "placed": true,
+  "outcome": "Yes",
+  "avg_price": 0.664,
+  "shares": 150.597,
+  "stake_filled": 100.0,
+  "unspent": -0.0,
+  "quote": "You brought forecasts. I checked the tape."
+}
+
