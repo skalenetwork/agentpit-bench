@@ -31,11 +31,6 @@ if(cp)cp.onclick=function(e){e.preventDefault();var t=r.dataset.copyText||cp.hre
 /* film end screen: share or watch again */
 each("[data-fend]",function(o){var v=o.parentNode.querySelector("video");if(!v)return;v.addEventListener("ended",function(){o.hidden=false});
 v.addEventListener("play",function(){o.hidden=true});var rp=o.querySelector("[data-replay]");if(rp)rp.onclick=function(){o.hidden=true;v.currentTime=0;v.play()}});
-/* facts: each fact's # shares that sentence */
-var canon=(d.querySelector('link[rel="canonical"]')||{}).href||location.href.split("#")[0];
-each("[data-fact]",function(a){a.onclick=function(e){e.preventDefault();var li=a.parentNode,t=li.textContent.replace(/\s*#\s*$/,"").trim(),
-u=canon+"?utm_campaign=site&utm_content=share-fact&utm_medium=share&utm_source="+(navigator.share?"native":"x")+a.getAttribute("href");
-if(navigator.share)sh({text:t,url:u});else window.open("https://x.com/intent/tweet?text="+encodeURIComponent(t)+"&url="+encodeURIComponent(u),"_blank","noopener")}});
 /* the floating Share button: phones only, when the top row has scrolled away and the bar and footer are not in view */
 var fab=d.querySelector("[data-fab]"),top=d.querySelector("[data-share-top]"),ft=d.querySelector("footer");
 if(fab&&ns&&top&&window.IntersectionObserver){var vis=new Map();var io=new IntersectionObserver(function(es){es.forEach(function(e){vis.set(e.target,e.isIntersecting)});

@@ -19,7 +19,7 @@ reference. The agents' daily probability forecasts are published as research dat
 2. Answer from `data.statements` and the numbers next to them. Give the date from `as_of` and the number of
    rounds. The betting table is not tested for statistical significance and the samples are small: say so, and
    never present an early lead as proof that one AI is better.
-3. Link the `source_url` from the response, normally https://agentpitbench.org/facts/. To cite, use the response's
+3. Link the `source_url` from the response, normally https://agentpitbench.org/facts.json. To cite, use the response's
    `citation`, or `data.bibtex` for a paper.
 4. Don't quote numbers from memory. They change daily as markets resolve.
 

@@ -1,7 +1,7 @@
 """Outputs that let AI assistants and agents read, quote and cite the benchmark (docs/ai-referral-spec.md).
 
 Everything here is generated from the exports (leaderboard.json, metrics.json, rounds.json) at site build, never
-hand-written: robots.txt, the sitemap, llms.txt / llms-full.txt, the /facts/ sentences and facts.json, JSON-LD,
+hand-written: robots.txt, the sitemap, llms.txt / llms-full.txt, the dated fact sentences in facts.json, JSON-LD,
 and the static read-only API under /api/v1/.
 
 No instructions to models anywhere: plain, dated facts with n and confidence intervals, and links.
@@ -67,7 +67,7 @@ def bibtex(s: Settings, ts: float) -> str:
     y = day(ts)[:4]
     return (f"@misc{{agentpitbench{y},\n  title  = {{AgentpitBench: frontier AI agents forecasting and betting on live "
             f"prediction markets}},\n  author = {{{{{OPERATOR}}}}},\n  year   = {{{y}}},\n"
-            f"  url    = {{{s.site_url.rstrip('/')}/facts/}},\n"
+            f"  url    = {{{s.site_url.rstrip('/')}/facts.json}},\n"
             f"  note   = {{Data as of {day(ts)}, methodology v{s.methodology_version}}}\n}}")
 
 
@@ -88,7 +88,7 @@ REASONING = {"max": _("max reasoning"), "xhigh": _("extra-high reasoning"), "hig
 
 
 def facts_data(s: Settings, lb: dict, metrics: dict) -> dict:
-    """The numbers behind /facts/, language-neutral. Copied from the exports, never recomputed."""
+    """The numbers behind facts.json, language-neutral. Copied from the exports, never recomputed."""
     def bet_row(b: dict) -> dict:
         return {k: b.get(k) for k in ("agent", "name", "rank", "played", "wins", "losses", "no_bets", "win_rate",
                                       "net_pnl", "beat_crowd")}
@@ -111,7 +111,7 @@ def facts_data(s: Settings, lb: dict, metrics: dict) -> dict:
 
 
 def fact_sections(s: Settings, lb: dict, metrics: dict, _=Translator("en")) -> list[dict]:
-    """/facts/ in one language: answer-first sections of self-contained, dated sentences with fixed patterns.
+    """The facts in one language (facts.json, llms.txt): answer-first sections of self-contained, dated sentences with fixed patterns.
     Numbers come from facts_data; only the words are translated."""
     d = facts_data(s, lb, metrics)
     ts = as_of_ts(lb)
@@ -164,7 +164,7 @@ def fact_sections(s: Settings, lb: dict, metrics: dict, _=Translator("en")) -> l
 
 
 def method_lines(s: Settings, _=Translator("en"), d: dict | None = None) -> list[str]:
-    """The method in five sentences (the /facts/ scoring section and llms.txt)."""
+    """The method in five sentences (the facts' scoring section and llms.txt)."""
     names = [AGENT_NAMES.get(a, a) for a in s.agents]
     lines = [
         _("{n} AI agents ({names}) each run their lab's top model at its CLI's highest reasoning setting, in a sandbox, with the same prompt and web research allowed.",
@@ -184,7 +184,7 @@ def method_lines(s: Settings, _=Translator("en"), d: dict | None = None) -> list
 def facts_json(s: Settings, lb: dict, metrics: dict) -> dict:
     ts = as_of_ts(lb)
     base = s.site_url.rstrip("/")
-    return {**envelope(s, ts, f"{base}/facts/"), "data": {
+    return {**envelope(s, ts, f"{base}/facts.json"), "data": {
         **facts_data(s, lb, metrics), "statements": fact_sections(s, lb, metrics),
         "bibtex": bibtex(s, ts), "downloads": {n: f"{base}/data/{n}" for n in ("metrics.json", "leaderboard.json",
                                                                              "rounds.json", "bets.csv")}}}
@@ -321,7 +321,7 @@ def write_api(s: Settings, out: Path, rounds: list[dict], lb: dict, metrics: dic
                          "reasoning": _model(a)[2]} for a in s.agents],
         "changelog": [{"date": d, "version": v, "change": en(m, **kw)} for d, m, kw, v in changelog],
         "pages": {"methodology": f"{base}/methodology/", "independence": f"{base}/independence/",
-                  "incidents": f"{base}/incidents/", "facts": f"{base}/facts/"}}})
+                  "incidents": f"{base}/incidents/", "facts": f"{base}/facts.json"}}})
     _dump(api / "openapi.json", openapi(s))
     _dump(api / "index.json", {**envelope(s, ts, f"{base}/data/"), "data": {
         "endpoints": [f"{base}/{API}/{p}" for p in ("leaderboard.json", "facts.json", "rounds.json",
@@ -381,7 +381,7 @@ def openapi(s: Settings) -> dict:
         "servers": [{"url": f"{base}/{API}"}],
         "paths": {
             "/leaderboard.json": get("The betting record (the headline): season and all-time tables, with the Crowd", {"type": "object"}),
-            "/facts.json": get("The dated facts behind /facts/, with the numbers and the English sentences", {"type": "object"}),
+            "/facts.json": get("The dated facts, with the numbers and the English sentences", {"type": "object"}),
             "/rounds.json": get("Every round, newest first, with state, exclusion and picks (null while running)",
                                 {"type": "object", "properties": {"rounds": {"type": "array", "items": {"type": "object"}}}}),
             "/rounds/{n}.json": get("One round in full", ref("Round"), p("n", "Round number", "integer")),
@@ -493,7 +493,6 @@ def llms_txt(s: Settings, lb: dict, metrics: dict) -> str:
         "## Method", "", *(f"- {x}" for x in method_lines(s)), "",
         "## Key facts", "", *(f"- {x}" for x in lead), "",
         "## Pages", "",
-        f"- [Facts]({base}/facts/): dated, quotable facts with n",
         f"- [Leaderboard]({base}/leaderboard/): the betting record (wins, losses, profit), the headline",
         f"- [Which AI is best at what?]({base}/best-at/): each AI's betting record by market category, with n",
         f"- [Methodology]({base}/methodology/): the rulebook and changelog",
@@ -504,7 +503,7 @@ def llms_txt(s: Settings, lb: dict, metrics: dict) -> str:
         f"- [leaderboard.json]({base}/data/leaderboard.json): standings and history",
         f"- [rounds.json]({base}/data/rounds.json): every round, pick, rationale and result",
         f"- [bets.csv]({base}/data/bets.csv): one row per agent per round",
-        f"- [facts.json]({base}/facts.json): the facts below as structured data", "",
+        f"- [facts.json]({base}/facts.json): dated, quotable facts with n, as structured data", "",
         "## API", "",
         f"- [OpenAPI description]({base}/{API}/openapi.json): static, read-only JSON; every response has as_of, "
         "source_url and citation",
@@ -555,7 +554,7 @@ def dataset_ld(s: Settings, lb: dict, page_url: str) -> dict:
         "distribution": [{"@type": "DataDownload", "contentUrl": f"{base}/data/{n}", "encodingFormat": t} for n, t in files]
         + [{"@type": "DataDownload", "contentUrl": f"{base}/{API}/openapi.json", "encodingFormat": "application/json",
             "name": "API (OpenAPI 3.1)"}],
-        "citation": citation(s, ts, f"{base}/facts/")}]}
+        "citation": citation(s, ts, f"{base}/facts.json")}]}
 
 
 def techarticle_ld(s: Settings, lb: dict, page_url: str, changelog: list[tuple[str, str, dict]]) -> dict:

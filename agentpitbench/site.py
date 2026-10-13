@@ -641,11 +641,11 @@ def indexnow_ping(s: Settings, rels: list[str]) -> bool:
 SHARE_BAR = 'data-share-bar'  # every public page carries it (checked at build)
 OG_REQUIRED = ('property="og:title"', 'property="og:description"', 'property="og:image"', SHARE_BAR,
                'data-share-top')  # share UX v2: a share control in the first screen
-NO_SHARE = ("widget/", "embed/", "404.html", "go/", "vs/", "hall-of-shame/", "experiments/")  # embedded elsewhere, the not-found page, the A/B redirect hop, or a retired/moved page's stub: no bar, no preview
+NO_SHARE = ("widget/", "embed/", "404.html", "go/", "vs/", "hall-of-shame/", "experiments/", "facts/")  # embedded elsewhere, the not-found page, the A/B redirect hop, or a retired/moved page's stub: no bar, no preview
 
 # Pages that moved: old folder -> new folder (under each language root). The old URL keeps working as a noindex
 # stub that points search engines (canonical) and visitors (instant refresh) at the new one.
-MOVED = {"hall-of-shame/": "shame/", "experiments/": ""}   # /experiments/ removed (operator 2026-10-13): home
+MOVED = {"hall-of-shame/": "shame/", "experiments/": "", "facts/": ""}   # /experiments/ and /facts/ removed (operator 2026-10-13): home; the facts live on as /facts.json
 MOVED_HTML = """<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>AgentpitBench</title>
 <link rel="canonical" href="{url}"><meta http-equiv="refresh" content="0;url={url}"></head>
@@ -1407,10 +1407,6 @@ def _build(s: Settings) -> Path:
              img_url=utm(f"{base}/{prefix}leaderboard/", "native", "leaderboard", "share-image"),
              embed=lb_embed["code"], oembed=lb_embed["oembed"],
              jsonld=discover.dataset_ld(s, lb, f"{base}/leaderboard/"))
-        page("facts/index.html", "facts.html", sections=discover.fact_sections(s, lb, metrics, _),
-             bibtex=discover.bibtex(s, as_of), as_of=discover.stamp(as_of),
-             description=_("Dated, quotable facts about AgentpitBench: the betting record and the methodology, regenerated on every update."),
-             jsonld=discover.dataset_ld(s, lb, f"{base}/facts/"), title=branded(_("Facts")))
         by_id = sorted(rounds, key=lambda r: r["round_id"])
         for i, r in enumerate(by_id):
             card, rid, sfx = cards[r["round_id"]], r["round_id"], suffixes[r["round_id"]]
@@ -1606,7 +1602,7 @@ def _build(s: Settings) -> Path:
                     dst = out / e["transcript"]
                     dst.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(src, dst)
-    # for AI assistants and agents (docs/ai-referral-spec.md): crawl access, sitemap, llms.txt, facts, API
+    # for AI assistants and agents (docs/ai-referral-spec.md): crawl access, sitemap, llms.txt, facts.json, API
     (out / "robots.txt").write_text(discover.robots(s))
     for name, xml in discover.sitemaps(s, sitemap).items():
         (out / name).write_text(xml)

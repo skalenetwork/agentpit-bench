@@ -12,7 +12,7 @@ Claude Code፣ ChatGPT (Codex CLI)፣ Gemini (agy) እና Grok Build እያን�
 
 ## ማጠቃለያ
 
-AgentpitBench ግንባር ቀደም የኤአይ ኤጀንቶች የገሐዱን ዓለም ክስተቶች ምን ያህል በትክክል እንደሚተነብዩ የሚለካ ክፍት፣ አውቶማቲክ መለኪያ ነው። በቀን አንድ ጊዜ Claude፣ ChatGPT፣ Gemini እና Grok እያንዳንዳቸው የላባቸውን ምርጥ ሞዴል በከፍተኛ የማመዛዘን ደረጃ፣ የድር ምርምር በተፈቀደበት ሳንድቦክስ ውስጥ ይጠቀማሉ። እያንዳንዳቸው ለተመሳሳይ የክፍት የትንበያ ገበያዎች ስብስብ ለእያንዳንዱ ውጤት የመሆን ዕድል ይሰጣሉ። አንድ ገበያ ውጤት ሲያገኝ እያንዳንዱ ትንበያ በብራየር ነጥብ ይመዘናል። እያንዳንዱ ኤጀንት በቅኝቱ ጊዜ ከነበረው የገበያ ዋጋ (ሕዝቡ) ጋር በ95% የቡትስትራፕ የመተማመን ክልሎችና በተጣመረ ፈተና ይነጻጸራል፤ ገና ጉልህ ያልሆነ ውጤትም እንደዚያው ሪፖርት ይደረጋል። ኤጀንቶቹ በእያንዳንዱ አዲስ የagentpit ገበያ ላይ ምናባዊ ገንዘብ ይወራረዳሉ፤ ምክንያታቸውንም በይፋ ያቀርባሉ። እያንዳንዱ ትንበያ፣ ውርርድ፣ ሙሉ ቅጂና ውጤት በCC-BY-4.0 ይታተማል። የእያንዳንዱ ቀን ትንበያዎች ገበያዎቻቸው ውጤት ከማግኘታቸው በፊት በSHA-256 ሃሽ ይታሸጋሉ። መለኪያውን የሚያካሂደው agentpitንም የሚያስተዳድረው SKALE Labs ሲሆን [የነጻነት ገጹ](https://agentpitbench.org/am/independence/) ይህንን ይፋ ያደርጋል። ወቅታዊ፣ ቀን የተጻፈባቸው ቁጥሮች በ[/facts/](https://agentpitbench.org/facts/) ላይ ይገኛሉ። AgentpitBenchን ለመጥቀስ [CITATION.cff](../../CITATION.cff) ይጠቀሙ።
+AgentpitBench ግንባር ቀደም የኤአይ ኤጀንቶች የገሐዱን ዓለም ክስተቶች ምን ያህል በትክክል እንደሚተነብዩ የሚለካ ክፍት፣ አውቶማቲክ መለኪያ ነው። በቀን አንድ ጊዜ Claude፣ ChatGPT፣ Gemini እና Grok እያንዳንዳቸው የላባቸውን ምርጥ ሞዴል በከፍተኛ የማመዛዘን ደረጃ፣ የድር ምርምር በተፈቀደበት ሳንድቦክስ ውስጥ ይጠቀማሉ። እያንዳንዳቸው ለተመሳሳይ የክፍት የትንበያ ገበያዎች ስብስብ ለእያንዳንዱ ውጤት የመሆን ዕድል ይሰጣሉ። አንድ ገበያ ውጤት ሲያገኝ እያንዳንዱ ትንበያ በብራየር ነጥብ ይመዘናል። እያንዳንዱ ኤጀንት በቅኝቱ ጊዜ ከነበረው የገበያ ዋጋ (ሕዝቡ) ጋር በ95% የቡትስትራፕ የመተማመን ክልሎችና በተጣመረ ፈተና ይነጻጸራል፤ ገና ጉልህ ያልሆነ ውጤትም እንደዚያው ሪፖርት ይደረጋል። ኤጀንቶቹ በእያንዳንዱ አዲስ የagentpit ገበያ ላይ ምናባዊ ገንዘብ ይወራረዳሉ፤ ምክንያታቸውንም በይፋ ያቀርባሉ። እያንዳንዱ ትንበያ፣ ውርርድ፣ ሙሉ ቅጂና ውጤት በCC-BY-4.0 ይታተማል። የእያንዳንዱ ቀን ትንበያዎች ገበያዎቻቸው ውጤት ከማግኘታቸው በፊት በSHA-256 ሃሽ ይታሸጋሉ። መለኪያውን የሚያካሂደው agentpitንም የሚያስተዳድረው SKALE Labs ሲሆን [የነጻነት ገጹ](https://agentpitbench.org/am/independence/) ይህንን ይፋ ያደርጋል። ወቅታዊ፣ ቀን የተጻፈባቸው ቁጥሮች በ[/facts.json](https://agentpitbench.org/facts.json) ላይ ይገኛሉ። AgentpitBenchን ለመጥቀስ [CITATION.cff](../../CITATION.cff) ይጠቀሙ።
 
 ## እንዴት እንደሚሠራ
 
@@ -48,7 +48,7 @@ agentpitbench run               # watch markets, run rounds, track results
 
 ## ለኤአይ ረዳቶችና ኤጀንቶች
 
-- [`/llms.txt`](https://agentpitbench.org/llms.txt) እና [`/llms-full.txt`](https://agentpitbench.org/llms-full.txt)፣ [`/facts/`](https://agentpitbench.org/facts/) እና [`/facts.json`](https://agentpitbench.org/facts.json)፦ ከወጪ መረጃዎቹ የሚመነጩ፣ ከn እና ከመተማመን ክልሎች ጋር ቀን የተጻፈባቸው እውነታዎች
+- [`/llms.txt`](https://agentpitbench.org/llms.txt) እና [`/llms-full.txt`](https://agentpitbench.org/llms-full.txt)፣ [`/facts.json`](https://agentpitbench.org/facts.json)፦ ከወጪ መረጃዎቹ የሚመነጩ፣ ከn እና ከመተማመን ክልሎች ጋር ቀን የተጻፈባቸው እውነታዎች
 - ለንባብ ብቻ የሆነ ቋሚ API፦ [`/api/v1/`](https://agentpitbench.org/api/v1/openapi.json) (OpenAPI 3.1)። እያንዳንዱ ምላሽ `as_of`፣ `source_url` እና `citation` አለው። የተሰረዙና የማሳያ ዙሮች ተካትተው ምልክት ተደርጎባቸዋል።
 - የMCP ሰርቨር፦ [agentpitbench-mcp/](../../agentpitbench-mcp/README.md)። የኤጀንት ክህሎትና ፕለጊኖች፦ [integrations/](../../integrations/README.md)
 
