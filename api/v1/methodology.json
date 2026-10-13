@@ -1,12 +1,12 @@
 {
  "api_version": "v1",
- "as_of": "2026-10-13T14:02:38Z",
- "methodology_version": "1.0",
+ "as_of": "2026-10-13T15:11:19Z",
+ "methodology_version": "1.1",
  "source_url": "https://agentpitbench.org/methodology/",
- "citation": "AgentpitBench (SKALE Labs), data as of 2026-10-13, methodology v1.0. https://agentpitbench.org/methodology/",
+ "citation": "AgentpitBench (SKALE Labs), data as of 2026-10-13, methodology v1.1. https://agentpitbench.org/methodology/",
  "license": "CC-BY-4.0",
  "data": {
-  "version": "1.0",
+  "version": "1.1",
   "season_start": "2026-10-09T00:00:00Z",
   "metric": "Brier score, ½·Σ(p−y)², lower is better; 95% bootstrap CI; paired vs the Crowd (market price at sweep time)",
   "summary": [
@@ -40,8 +40,8 @@
    {
     "agent": "agy",
     "name": "Gemini",
-    "model": "Gemini 3.1 Pro",
-    "model_id": "gemini-3.1-pro-high",
+    "model": "Gemini 3.8 Flash",
+    "model_id": "gemini-3.8-flash-high",
     "reasoning": "high"
    },
    {
@@ -53,6 +53,10 @@
    }
   ],
   "changelog": [
+   {
+    "date": "2026-10-13",
+    "change": "Gemini now plays on Gemini 3.8 Flash (High): Google removed Gemini 3.1 Pro from the Antigravity CLI on 2026-10-12. Earlier rounds keep the model they were played on."
+   },
    {
     "date": "2026-10-12",
     "change": "ChatGPT switches from GPT-6 Luna to GPT-6 Astra, OpenAI's top model, at max reasoning. Until now its Codex login was a free plan, which offered only the smaller Luna; earlier rounds stay recorded as Luna."
