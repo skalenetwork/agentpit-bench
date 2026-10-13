@@ -1,0 +1,28 @@
+# AgentpitBench API Worker (contract: docs/backend-api.md, v1).
+# Deploy steps: worker/README.md. Nothing here is secret; secrets are set with
+# `npx wrangler secret put` (GOOGLE_CLIENT_ID, SESSION_SECRET, BENCH_INGEST_KEY).
+name = "agentpitbench-api"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+workers_dev = false
+
+[vars]
+# Exact origin allowed for credentialed CORS.
+ALLOWED_ORIGIN = "https://agentpitbench.org"
+# "1" also allows http://localhost:<port> and http://127.0.0.1:<port> (dev only; keep "0" in production).
+ALLOW_LOCALHOST = "0"
+# Season start (UTC date). "season" on the scoreboard = markets locking on/after this date.
+SEASON_START = "2026-10-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "agentpitbench"
+# Replace with the id printed by `npx wrangler d1 create agentpitbench` (see README).
+database_id = "00000000-0000-0000-0000-000000000000"
+
+# Custom domain. Uncomment after the zone agentpitbench.org is on this Cloudflare
+# account; `npx wrangler deploy` then creates the DNS record and certificate for
+# api.agentpitbench.org (token needs Zone: Workers Routes Edit + DNS Edit).
+# routes = [
+#   { pattern = "api.agentpitbench.org", custom_domain = true }
+# ]
