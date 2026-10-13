@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import time
 from datetime import datetime, timedelta, timezone
 
@@ -42,6 +43,11 @@ def priority(m: dict, db: DB | None = None, s: Settings | None = None) -> tuple:
     selection.scoring = model, the published model rating orders markets (keyword rule as fallback and floor)."""
     from .rating import priority as rated
     return rated(m, db, s) if db is not None and s is not None else market_priority(m)
+
+
+def event_key(question: str) -> str:
+    """The question with its numbers blanked: one key for a ladder of thresholds on the same event."""
+    return re.sub(r"\d+(?:[.,]\d+)*", "#", (question or "").lower()).strip()
 
 
 class Watcher:
@@ -137,9 +143,13 @@ class Watcher:
                 self.db.x("UPDATE seen_markets SET eligible=0 WHERE market_id=?", mid)
         chosen, held = [], []  # held: fillable, but its category is over the weekly cap
         recent = self.recent_categories()
+        per_event = self.event_counts_today()
         for m in sorted(cands, key=lambda m: priority(m, self.db, self.s), reverse=True):
             if len(chosen) >= budget:
                 break
+            ek = event_key(m.get("question", ""))
+            if self.s.max_rounds_per_event_per_day and per_event.get(ek, 0) >= self.s.max_rounds_per_event_per_day:
+                continue  # stays eligible: another day may take it
             if not await self._books_ok(m):
                 self.db.x("UPDATE seen_markets SET eligible=0 WHERE market_id=?", str(m["id"]))
                 continue
@@ -147,6 +157,7 @@ class Watcher:
             if category_ok(cat, recent, self.s.max_category_share):
                 chosen.append(m)
                 recent.append(cat)
+                per_event[ek] = per_event.get(ek, 0) + 1
             else:
                 held.append(m)
         if not chosen and held:  # the cap only reorders: if nothing else can run, an over-cap market still does
@@ -157,6 +168,14 @@ class Watcher:
             self.db.x("UPDATE seen_markets SET started=1 WHERE market_id=?", str(m["id"]))
             m["nw"] = nw_of(m, self.db, self.s)  # recorded on the round: the rating used when it was picked
         return chosen
+
+    def event_counts_today(self) -> dict[str, int]:
+        day0 = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
+        out: dict[str, int] = {}
+        for r in self.db.q("SELECT question FROM rounds WHERE started_at>=? AND state!='void'", day0):
+            k = event_key(r["question"])
+            out[k] = out.get(k, 0) + 1
+        return out
 
     def recent_categories(self, days: float = 7) -> list[str]:
         """Category of every season round started in the trailing window (exhibitions don't count)."""

@@ -141,6 +141,31 @@ async def test_watcher_respects_daily_cap(s, db):
     assert await w.pick(free_slots=3) == []
 
 
+async def test_watcher_one_round_per_event_per_day(s, db):
+    """A ladder of thresholds on one event (Trump approval >= 38.0 / 38.2 / 38.4) is one event: one round a day."""
+    s.max_rounds_per_event_per_day = 1
+    s.max_category_share = 1.0
+    api = FakeAPI([gamma(1)])
+    w = Watcher(s, db, api)
+    await w.poll()
+    q = "Will Trump's approval rating be at least {} on October 16, 2026?"
+    api.markets_ += [gamma(2, question=q.format("38.0")), gamma(3, question=q.format("38.2")),
+                     gamma(4, question="Will Lille win on 2026-10-17?")]
+    await w.poll()
+    picked = [m["id"] for m in await w.pick(free_slots=3)]
+    assert len(picked) == 2 and "4" in picked and len({"2", "3"} & set(picked)) == 1
+    db.create_round(next(m for m in api.markets_ if m["id"] in picked and m["id"] != "4"))
+    assert await w.pick(free_slots=3) == []        # the other bracket waits for another day
+    assert db.one("SELECT COUNT(*) n FROM seen_markets WHERE eligible=1 AND started=0")["n"] == 1
+
+
+def test_event_key_blanks_numbers():
+    from agentpitbench.watcher import event_key
+    assert event_key("Will AMZN hit (LOW) $252 Week of October 12 2026?") == \
+        event_key("Will AMZN hit (LOW) $256 Week of October 12 2026?")
+    assert event_key("Will Lille win?") != event_key("Will Brest win?")
+
+
 async def test_watcher_drops_markets_without_sellers(s, db):
     api = FakeAPI([gamma(1)], book={"asks": [], "bids": []})
     w = Watcher(s, db, api)

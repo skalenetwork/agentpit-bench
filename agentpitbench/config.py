@@ -37,6 +37,9 @@ class Settings:
     stake: float = 100
     max_concurrent_rounds: int = 3
     daily_round_cap: int = 10
+    # rounds per event per UTC day (0: no limit). An "event" is the question with its numbers blanked, so a
+    # ladder like "approval >= 38.0 / 38.2 / 38.4 on Oct 16" counts once (operator 2026-10-13)
+    max_rounds_per_event_per_day: int = 0
     max_days_to_close: int = 7
     max_category_share: float = 0.4     # no category above this share of the rounds started in 7 days
     max_favourite_price: float = 0.85   # skip near-certain markets: they make dead rounds
