@@ -132,7 +132,13 @@ def versions(lock: dict, *, after: str | None = None, only: list[str] | None = N
 
 def link(s: Settings, vers: list[dict]) -> str:
     from .methodology import changelog_url
-    return changelog_url(s, vers[-1]["version"]) if vers else s.site_url.rstrip("/") + "/"
+    # a query X hasn't seen: X caches one card per exact URL, and an old empty card for the bare home page stuck
+    # (2026-10-13); the fragment is not part of X's cache key, the query is
+    day = time.strftime("%Y%m%d", time.gmtime())
+    if vers:
+        base, _, frag = changelog_url(s, vers[-1]["version"]).partition("#")
+        return f"{base}?d={day}" + (f"#{frag}" if frag else "")
+    return s.site_url.rstrip("/") + f"/?d={day}"
 
 
 def fit(text: str, url: str) -> str:

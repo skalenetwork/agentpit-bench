@@ -1,6 +1,7 @@
 """announce.py: the operator's X draft per deploy, delivered privately on Telegram (never a real message here:
 every send goes through a fake http object to a .invalid API URL)."""
 import json
+import re
 from urllib.parse import parse_qs, unquote, urlparse
 
 import pytest
@@ -72,12 +73,12 @@ def test_draft_fits_and_keeps_the_link(s):
     text, source = announce.write(s, None, vers, subjects)
     assert source == "template"
     assert tweet_len(text) <= 280
-    assert text.endswith(" https://agentpitbench.org/methodology/#v1.2")
+    assert re.search(r" https://agentpitbench\.org/methodology/\?d=\d{8}#v1\.2$", text)  # unique query: X card cache
     assert "v1.1:" in text and "v1.2:" in text and "Gemini 3.8 Flash" in text and "10 rounds a day" in text
     long = announce.fit("x " * 400, "https://agentpitbench.org/")
     assert tweet_len(long) <= 280 and long.endswith(" https://agentpitbench.org/")
     text, _ = announce.write(s, None, [], subjects)          # no version: the site home
-    assert text.startswith("New on AgentpitBench: Site: dark/light switch") and text.endswith(" https://agentpitbench.org/")
+    assert text.startswith("New on AgentpitBench: Site: dark/light switch") and re.search(r" https://agentpitbench\.org/\?d=\d{8}$", text)
 
 
 def test_generated_entry_text_is_formatted():
@@ -198,7 +199,7 @@ def test_backfill_today(s, lock, repo):
                      "Methodology v1.2: up to 10 rounds a day", "The reveal waits for its live window before kickoff"])
     rec = announce.backfill(s, None, ["1.1", "v1.2"], now=DAY, lock_path=lock)
     assert [v["version"] for v in rec["versions"]] == ["1.1", "1.2"] and rec["kind"] == "backfill"
-    assert tweet_len(rec["draft"]) <= 280 and rec["draft"].endswith("/methodology/#v1.2")
+    assert tweet_len(rec["draft"]) <= 280 and re.search(r"/methodology/\?d=\d{8}#v1\.2$", rec["draft"])
     assert "Methodology v1.2: up" not in rec["draft"]
     http = Http()
     assert announce.tick(s, None, http, now=DAY + 1, lock_path=lock) and len(http.calls) == 1
