@@ -34,6 +34,9 @@ deploy_debounce_s = 30
 dry_run = true
 # kill switch: when true, nothing is posted to X even outside dry-run.
 posting_paused = false
+# operator 2026-10-13: two posts per market on X (and its mirrors): the opening (reveal) and the closing
+# (results). No replies, no press, films, replays, awards, reports or other extra posts.
+post_kinds = ["reveal", "results"]
 
 agents = ["claude", "codex", "agy", "grok"]
 excluded_keywords = ["death", "dies", "die ", "killed", "shooting", "war ", "attack", "terror", "earthquake", "hurricane", "flood", "wildfire", "disaster", "casualt", "murder", "assassinat", "elon musk post"]

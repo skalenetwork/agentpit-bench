@@ -17,7 +17,8 @@ AGENT_SLUGS = {"claude": "claude", "codex": "chatgpt", "agy": "gemini", "grok": 
 AGENT_MODELS = {
     "claude": ("claude-fable-5-1", "Claude Fable 5.1", "max"),
     "codex": ("gpt-6-astra", "GPT-6 Astra", "max"),  # top pure-reasoning level; "ultra" adds task delegation
-    "agy": ("gemini-3.1-pro-high", "Gemini 3.1 Pro", "high"),   # agy's Pro tier tops out at "High"
+    # Google removed Gemini 3.1 Pro from Antigravity on 2026-10-12 (also for Ultra): 3.8 Flash at its top "High"
+    "agy": ("gemini-3.8-flash-high", "Gemini 3.8 Flash", "high"),
     "grok": ("grok-4.7", "Grok 4.7", "xhigh"),                  # grok's top effort level is xhigh
 }
 
@@ -92,6 +93,8 @@ class Settings:
     sweep_hour_utc: int = 6
     dry_run: bool = True
     posting_paused: bool = False
+    # the only post kinds that go out (empty: every kind). Replies are never posted while this is set.
+    post_kinds: list[str] = field(default_factory=list)
     agents: list[str] = field(default_factory=lambda: ["claude", "codex", "agy", "grok"])
     excluded_keywords: list[str] = field(default_factory=list)
     # engagement extras

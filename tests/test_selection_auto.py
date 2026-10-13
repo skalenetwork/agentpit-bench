@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
+from conftest import copy_lock_v10
 
 from agentpitbench import anomaly, i18n, i18n_fill, methodology as m, opai, selection_review as sr
 from agentpitbench.config import Settings
@@ -28,7 +29,7 @@ def env(tmp_path, monkeypatch):
     shutil.copy(PKG / "prompt.txt", pkg / "prompt.txt")
     shutil.copytree(PKG / "prompts", pkg / "prompts")
     shutil.copytree(PKG / "i18n", pkg / "i18n")
-    shutil.copy(PKG / "methodology.json", pkg / "methodology.json")
+    copy_lock_v10(pkg / "methodology.json")
     monkeypatch.setattr(m, "PKG", pkg)
     monkeypatch.setattr(m, "LOCK", pkg / "methodology.json")
     monkeypatch.setattr(m, "I18N_DIR", pkg / "i18n")

@@ -361,3 +361,7 @@ A test that asserted Brier output on a public surface now asserts its absence. I
 - The §8 sweep test passes, so no Brier or head-to-head content remains outside the §7 exemptions.
 - The methodology is v2.0, the drift detector is quiet, and the evidence file is public.
 - Every old `/vs/` URL lands on the leaderboard.
+
+## Operator decisions (2026-10-13)
+
+- Keep the daily forecast sweep (it feeds /contrarian/); revisit 2026-11-10.
