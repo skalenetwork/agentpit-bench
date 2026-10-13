@@ -100,27 +100,25 @@ def test_sitemap_every_page_every_language(built):
 def test_facts_page_in_every_language_matches_the_leaderboard(built):
     s, _, out, _ = built
     lb = json.loads((out / "data/leaderboard.json").read_text())
-    leader = lb["forecast"]["agents"][0]
-    brier = "%.3f" % leader["brier"]
-    lo, hi = ("%.3f" % v for v in leader["ci"])
-    assert brier in (out / "leaderboard/index.html").read_text()
+    leader = next(b for b in lb["agents"] if b["rank"] == 1)   # the betting record is the headline
+    pnl = site.signed(leader["net_pnl"])
+    assert leader["name"] in (out / "leaderboard/index.html").read_text()
     for code in i18n.CODES:
         prefix = "" if code == "en" else f"{code}/"
         f = out / prefix / "facts/index.html"
         html = f.read_text()
         assert f.stat().st_size < 100_000 and f'<html lang="{code}"' in html
-        assert brier in html and lo in html and hi in html and f"n={leader['n']}" in html
+        assert leader["name"] in html and pnl in html
     en = (out / "facts/index.html").read_text()
     assert "@misc{agentpitbench" in en and "Last updated" in en
-    assert "not yet significant" in en and "forecasts better than the Crowd with 95% confidence" in en
+    assert f"{leader['name']} leads the AgentpitBench betting table" in en
+    assert "Brier" not in en and "95% confidence" not in en and "does not test the gap" not in en
     assert "<h1>Fakten</h1>" in (out / "de/facts/index.html").read_text()
 
     fj = json.loads((out / "facts.json").read_text())
     assert fj == json.loads((out / "api/v1/facts.json").read_text())
     d = fj["data"]
-    assert d["forecast"]["leader"]["agent"] == leader["agent"]
-    assert [(a["agent"], a["brier"], a["ci"], a["n"]) for a in d["forecast"]["agents"]] == \
-        [(a["agent"], a["brier"], a["ci"], a["n"]) for a in lb["forecast"]["agents"]]
+    assert "forecast" not in d and d["betting"]["leader"]["agent"] == leader["agent"]
     assert [(b["agent"], b["wins"], b["losses"], b["net_pnl"]) for b in d["betting"]["agents"]] == \
         [(b["agent"], b["wins"], b["losses"], b["net_pnl"]) for b in lb["agents"]]
     assert "⁨" not in json.dumps(fj)  # no RTL isolates leak into data
@@ -139,8 +137,9 @@ def test_llms_txt(built):
         for link in ("/facts/", "/methodology/", "/independence/", "/leaderboard/", "/data/metrics.json",
                      "/api/v1/openapi.json"):
             assert s.site_url + link in text, link
-        assert "%.3f" % lb["forecast"]["agents"][0]["brier"] in text
+        assert next(b for b in lb["agents"] if b["rank"] == 1)["name"] in text
     assert full.startswith(short.rstrip())
+    assert "Brier" not in short and "head to head" not in short.lower() and "/vs/" not in short + full
     assert "Changelog" in full and "@misc{agentpitbench" in full and "Sandbox" in full
     assert "You are taking part" not in full  # the agents' prompts stay on the page, not in text aimed at models
     assert len(full) < 100_000
@@ -191,9 +190,16 @@ def test_api(built):
     assert by[ids["void"]]["url"] is None and by[1]["url"] == f"{s.site_url}/round/1/"
     assert by[1]["counts"] is True and json.loads((api / "rounds/1.json").read_text())["data"]["winner"] == "Nexus"
     agent = json.loads((api / "agents/grok.json").read_text())
-    assert agent["data"]["forecast"]["brier"] is not None and agent["source_url"] == f"{s.site_url}/agent/grok/"
+    assert agent["source_url"] == f"{s.site_url}/agent/grok/"
     lb = json.loads((api / "leaderboard.json").read_text())["data"]
-    assert lb["forecast"]["agents"][0]["agent"] == "claude"
+    # no Brier competition left on the API (docs/simple-scoring-spec.md §6); vs_crowd = the Brier verdict
+    for f in [api / "leaderboard.json", *(api / "agents").glob("*.json")]:
+        data = json.loads(f.read_text())["data"]
+        assert "forecast" not in data and "vs_crowd" not in data, f.name
+        assert "brier" not in json.dumps(data).lower(), f.name
+    assert lb["betting"]["agents"][0]["rank"] == 1 and lb["betting"]["rounds_counted"] is not None
+    assert "ForecastRow" not in json.dumps(spec) and spec["info"]["version"] == "2.0"
+    assert "research data" in spec["paths"]["/forecasts.json"]["get"]["summary"]
     idx = json.loads((api / "forecasts.json").read_text())["data"]["sweeps"]
     pub = {x["date"]: x["published"] for x in idx}
     assert pub == {"2026-10-10": True, "2026-10-11": False}  # a day with open markets stays sealed

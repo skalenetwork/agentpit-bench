@@ -114,7 +114,8 @@ def test_skill_and_plugin_files():
     skill = (root / "integrations/claude-plugin/skills/agentpitbench/SKILL.md").read_text()
     front, body = skill.split("---\n", 2)[1:]
     assert "name: agentpitbench\n" in front and "description: " in front
-    assert "/api/v1/facts.json" in body and "source_url" in body and "not yet significant" in body
+    assert "/api/v1/facts.json" in body and "source_url" in body and "not tested for statistical significance" in body
+    assert "Brier" not in body  # the betting record is the headline (docs/simple-scoring-spec.md §6)
     assert (root / "integrations/gemini-cli/GEMINI.md").read_text() == body.lstrip("\n")  # one text, two ecosystems
     market = json.loads((root / ".claude-plugin/marketplace.json").read_text())
     src = root / market["plugins"][0]["source"]

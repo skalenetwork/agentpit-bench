@@ -86,13 +86,14 @@ def test_quotes_two_points_each():
     assert keys(motd.score(r, [r])) == {"quotes": 4}
 
 
-def test_grudge_from_history():
+def test_no_grudge_signal():
+    """The grudge match (betting head to head under another name) is gone (docs/simple-scoring-spec.md D4)."""
     hist = [R(i, [E("claude", "A", True), E("codex", "B", False), E("agy", "A", True), E("grok", "A", True)],
               resolved_at=IN_WINDOW - 86400 * (4 - i)) for i in (1, 2)]
     now = R(3, [E("claude", "A", True), E("codex", "B", False), E("agy", "A", True), E("grok", "A", True)])
     sc = motd.score(now, hist + [now])
-    assert keys(sc)["grudge"] == 20
-    assert motd.hook_line(now, sc) == "Claude vs ChatGPT: opposite sides, 3 rounds running."
+    assert "grudge" not in keys(sc) and "grudge" not in motd.SIGNALS
+    assert "opposite sides" not in motd.hook_line(now, sc)
 
 
 def test_streak_flip_counts_only_earlier_counted_rounds():
@@ -149,11 +150,8 @@ def test_pick_window_ties_and_quiet_day():
 
 # ---------- script ----------
 
-LB = {"updated_at": IN_WINDOW, "season": "2026-10",
-      "agents": [{"agent": a, "name": AGENT_NAMES[a], "wins": 3, "losses": 1, "net_pnl": 12.5} for a in AGENTS],
-      "forecast": {"agents": [{"agent": a, "name": AGENT_NAMES[a], "brier": 0.2 + i / 100, "n": 30}
-                              for i, a in enumerate(AGENTS)], "crowd": {"brier": 0.22}},
-      "significance": {"agent_labels": {a: f"{AGENT_NAMES[a]} label" for a in AGENTS}, "multi_label": "multi line"}}
+LB = {"updated_at": IN_WINDOW, "season": "2026-10", "rounds_counted": 12,
+      "agents": [{"agent": a, "name": AGENT_NAMES[a], "wins": 3, "losses": 1, "net_pnl": 12.5} for a in AGENTS]}
 THINK = ["I'll check the order book and recent form before betting on this one.",
          "The favourite has won nine of its last ten series on LAN, which matters here.",
          "The underdog plays with a stand-in, so the market price looks fair to me.",
@@ -168,7 +166,7 @@ def lone():
                  E("grok", None, False, exit_reason="timeout")], winner="B")
 
 
-def test_script_scenes_names_numbers_and_significance():
+def test_script_scenes_names_numbers_and_rounds_strip():
     r = lone()
     sc = motd.score(r, [r])
     scenes = motd.script(r, sc, LB, THINK)
@@ -183,8 +181,8 @@ def test_script_scenes_names_numbers_and_significance():
     assert picks[0]["dur"] == 3.5 and picks[0]["mkt"] == "60%"
     nobet = next(s for s in scenes if s["kind"] == "nobet")
     assert nobet["dur"] == 2.0 and nobet["why"] == "timed out" and nobet["name"] == "Grok"
-    # the strip: an agent's own verdict on its scenes, the multi-agent line elsewhere
-    assert claude["sig"] == "Claude label" and scenes[0]["sig"] == "multi line"
+    # the strip: the betting record's sample on every scene, no significance claim (simple-scoring-spec §4)
+    assert claude["sig"] == scenes[0]["sig"] == "12 rounds · season 2026-10"
     assert claude["model_line"].startswith("Claude Fable")
     think = next(s for s in scenes if s["kind"] == "think")
     assert think["agent"] == "claude" and think["lines"] == THINK[:4]  # stops at the bet, nothing after it
@@ -195,7 +193,8 @@ def test_script_scenes_names_numbers_and_significance():
     assert after["statements"] == [{"agent": "codex", "name": "ChatGPT", "text": "I got this one wrong."}]
     close = scenes[-1]
     assert close["url"] == "agentpitbench.org/round/7"
-    assert [a["name"] for a in close["standings"]["forecast"]] == ["Claude", "ChatGPT", "Gemini", "Grok"]
+    assert "forecast" not in close["standings"] and "crowd_brier" not in close["standings"]
+    assert [a["name"] for a in close["standings"]["betting"]] == ["Claude", "ChatGPT", "Gemini", "Grok"]
     assert motd.MIN_S <= sum(s["dur"] for s in scenes) <= motd.MAX_S
 
 

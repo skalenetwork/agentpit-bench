@@ -349,19 +349,9 @@ async def test_high_stakes(env, monkeypatch):
     assert rnd._stake() == 500
 
 
-# 14. grudge
-def test_grudge(env):
-    s, db = env
-    for i in range(3):
-        make_round(db, {"claude": ("Nexus", 0.4, 0.6), "grok": ("CYBERSHOKE", 0.6, 0.6)}, "Nexus" if i else "CYBERSHOKE", f"g{i}")
-    rid = make_round(db, {"claude": ("CYBERSHOKE", 0.6, 0.6), "grok": ("Nexus", 0.4, 0.6), "codex": ("Nexus", 0.4, 0.6)}, mid="g3")
-    rounds = exports.export(s, db)["rounds"]
-    rnd = next(r for r in rounds if r["round_id"] == rid)
-    g = v.grudge(rnd, rounds)
-    assert (g["a"], g["b"], g["clash"]) == ("claude", "grok", 4) and (g["a_wins"], g["b_wins"]) == (2, 1)
-    assert v.grudge_headline(g) == "GRUDGE MATCH: Claude vs Grok — clash #4"
-    first = next(r for r in rounds if r["round_id"] == 1)
-    assert v.grudge(first, rounds) is None
+# 14. grudge matches: removed with head to head (docs/simple-scoring-spec.md D4)
+def test_grudge_is_gone():
+    assert not hasattr(v, "grudge") and not hasattr(v, "grudge_headline")
 
 
 # 15. replay
@@ -444,8 +434,7 @@ async def test_new_cards_render(env):
     cr = CardRenderer(s)
     try:
         paths = [await cr.decision(r, r["entries"][0], lb["agents"]),
-                 await cr.split(r, lb["agents"], headline="GRUDGE MATCH: Claude vs Grok — clash #4",
-                                grudge={"a_name": "Claude", "b_name": "Grok", "a_wins": 1, "b_wins": 2}),
+                 await cr.split(r, lb["agents"]),
                  await cr.results(r, lb["agents"], lb["crowd"], cast=v.commentary(r), top_humans=lb["humans"][:3]),
                  await cr.trophy("2026-09", lb["agents"], lb["crowd"]),
                  await cr.milestone("ms-x", "Grok has won 4 straight", "Hottest hand in the pit", "grok", "2026-10"),

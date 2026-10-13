@@ -11,7 +11,7 @@ to all of them: no manipulation, truthful and dated with n, same facts everywher
 |---|---|---|---|
 | **Per-category pages** ("Which AI is best at sports / crypto / politics?") | Search and AI-assistant queries are phrased exactly like this; one indexable page per category × 40 languages; `lb.by_category` already exists | Low: one template, no DB or methodology change | **Build** |
 | **Streaks ("Who's on fire")** | A running storyline people check back on; gives the home page and the leaderboard a fresh line after every resolution | Very low: a pure function over resolved rounds | **Build** |
-| **Your record vs the AIs card** on /challenge/ | Closes the challenge's share loop with an image (images travel further than text); per-AI head-to-head is the personal hook | Low: client-side canvas from the localStorage history the page already keeps | **Build** |
+| **Your record vs the AIs card** on /challenge/ | Closes the challenge's share loop with an image (images travel further than text); per-AI head-to-head is the personal hook (retired 2026-10-13, see docs/simple-scoring-spec.md) | Low: client-side canvas from the localStorage history the page already keeps | **Build** |
 | Permanent quote pages per decision | The decision card already *is* the quote card and is already shareable from the round page; one URL per decision multiplies the page count ×5 across 40 languages for English-only content | High | Deferred |
 | Per-agent RSS/JSON feeds | Small audience; the site feed and the API already cover machines | Very low | Deferred (bonus if time remains) |
 

@@ -25,11 +25,13 @@ leaderboard.json = {updated_at, season (YYYY-MM, UTC month of resolution; tables
                     humans: [{rank, username, picks, wins, accuracy}],  -- all-time, top humans_board_size
                     by_model: [{agent, name, model, played, wins, losses, win_rate, net_pnl}],  -- all time
                     by_category: {agent: [{category, played, wins, win_rate, net_pnl}]},     -- all time
-                    forecast: forecast.metrics() -- the headline metric (daily sweep, Brier score),
-                    sweeps: [{date, runs: [{agent, status, detail, n, model, transcript}]}]}
+                    rounds_counted: counted rounds behind the betting record (the cards' "{n} rounds" strip),
+                    sweeps: [{date, runs: [{agent, status, detail, n, model, transcript}]}],
+                    contrarian: [...], sealed: [...]}  -- the daily forecast sweep is research data: its scores
+                                                          are not ranked (docs/simple-scoring-spec.md)
 newsworthiness.json = [{market_id, question, score (0-100 | null), reason, keyword_tier, source_used, rated_at,
                         prompt_version, model}]  -- every model rating of the last 30 days (methodology §5)
-metrics.json = paper-ready summary: methodology version, forecast metrics with CIs and tests, betting record.
+metrics.json = paper-ready summary: methodology version, the betting record (the headline), sealed forecast files.
 
 The Crowd is a reference baseline, not a contestant: each round it notionally stakes 100 tokens on the
 outcome priced highest at the start snapshot, filled at that price. Tied top prices mean no pick. It has no
@@ -258,10 +260,8 @@ def export(s: Settings, db: DB) -> dict:
           "all_time": {"agents": all_time["agents"], "crowd": all_time["crowd"]},
           "humans": humans_board(db, s.humans_board_size), "by_model": by_model(db),
           "by_category": by_category(rounds, s.agents),
-          "forecast": forecast.metrics(db, s.agents), "sweeps": forecast.sweeps(db)[:60],
-          "contrarian": forecast.contrarian(db, s.agents)[:200], "duels": forecast.duels(db),
-          "sealed": forecast.sealed_list(db)[:60], "pairs": forecast.pair_metrics(db, s.agents)}
-    lb["significance"] = forecast.significance(rounds, lb["forecast"], s.agents)
+          "rounds_counted": len(counted_rounds(rounds)), "sweeps": forecast.sweeps(db)[:60],
+          "contrarian": forecast.contrarian(db, s.agents)[:200], "sealed": forecast.sealed_list(db)[:60]}
     _write(out / "rounds.json", json.dumps(rounds, indent=1))
     _write(out / "leaderboard.json", json.dumps(lb, indent=1))
     _write(out / "metrics.json", json.dumps(paper_metrics(s, rounds, lb), indent=1))
@@ -289,41 +289,33 @@ def _iso_week(ts: float) -> str:
 
 
 def weekly_reports(s: Settings, db: DB, rounds: list[dict], lb: dict) -> list[dict]:
-    """'State of the AIs' per ISO week, newest first: forecast accuracy on markets swept that week (resolved so
-    far), the betting record of rounds resolved that week, and the contrarian calls' hit rate."""
-    from .forecast import brier, crowd_probs
+    """'State of the AIs' per ISO week, newest first: the betting record of rounds resolved that week and the
+    contrarian calls' hit rate (the sweep's scores are not ranked: docs/simple-scoring-spec.md)."""
     weeks: dict[str, dict] = {}
 
     def wk(key: str) -> dict:
-        return weeks.setdefault(key, {"week": key, "rounds": 0, "markets": 0, "betting": {}, "fc": {}, "crowd": []})
+        return weeks.setdefault(key, {"week": key, "rounds": 0, "betting": {}, "crowd": {"wins": 0, "losses": 0}})
 
     for r in rounds:
         if r["state"] == "resolved" and not r["exhibition"] and r["resolved_at"]:
             w = wk(_iso_week(r["resolved_at"]))
             w["rounds"] += 1
+            if (r.get("crowd") or {}).get("outcome"):   # the Crowd's W-L beside the AIs' (it has no pick on a tie)
+                w["crowd"]["wins" if r["crowd"]["won"] else "losses"] += 1
             for e in r["entries"]:
                 b = w["betting"].setdefault(e["agent"], {"agent": e["agent"], "name": e["name"], "wins": 0, "losses": 0,
                                                          "profit": 0.0})
                 b["wins" if e["won"] else "losses"] += 1
                 b["profit"] = round(b["profit"] + (e["pnl"] or 0), 2)
-    snap = {m["market_id"]: m for m in db.q("SELECT * FROM sweep_markets WHERE state='resolved'")}
-    for mid, m in snap.items():
-        ts = datetime.fromisoformat(m["sweep_date"] + "T00:00:00+00:00").timestamp()
-        w = wk(_iso_week(ts))
-        w["markets"] += 1
-        w["crowd"].append(brier(crowd_probs(json.loads(m["outcomes"]), json.loads(m["prices"])), m["winner"]))
-        for f in db.q("SELECT agent, brier FROM forecasts WHERE market_id=? AND brier IS NOT NULL", mid):
-            if f["agent"] in s.agents:
-                w["fc"].setdefault(f["agent"], []).append(f["brier"])
+    for c in lb.get("contrarian", []):   # a week with only contrarian calls still gets its report
+        if c["state"] == "resolved":
+            wk(_iso_week(datetime.fromisoformat(c["date"] + "T00:00:00+00:00").timestamp()))
     out = []
     for key, w in sorted(weeks.items(), reverse=True):
-        fc = sorted(({"agent": a, "name": AGENT_NAMES.get(a, a), "n": len(xs), "brier": round(sum(xs) / len(xs), 4)}
-                     for a, xs in w["fc"].items()), key=lambda x: x["brier"])
         calls = [c for c in lb.get("contrarian", []) if c["state"] == "resolved"
                  and _iso_week(datetime.fromisoformat(c["date"] + "T00:00:00+00:00").timestamp()) == key]
-        out.append({"week": key, "rounds": w["rounds"], "markets": w["markets"], "forecast": fc,
-                    "crowd_brier": round(sum(w["crowd"]) / len(w["crowd"]), 4) if w["crowd"] else None,
-                    "betting": sorted(w["betting"].values(), key=lambda b: -b["profit"]),
+        out.append({"week": key, "rounds": w["rounds"],
+                    "betting": sorted(w["betting"].values(), key=lambda b: -b["profit"]), "crowd": w["crowd"],
                     "contrarian": {"total": len(calls), "right": sum(1 for c in calls if c["right"])} if calls else None})
     from .report_prose import attach  # model prose, numbers filled in by code (docs/ai-automation-spec.md §8)
     attach(db, out)
@@ -338,9 +330,50 @@ def _played_on(rounds: list[dict], agent: str) -> dict:
     return {"current_since": e["since"], "earlier_models": e["earlier"]}
 
 
+def counted_rounds(rounds: list[dict]) -> list[dict]:
+    """The rounds behind the betting record: resolved and not excluded (pre-season, High-Stakes, summoned, infra)."""
+    return [r for r in rounds if r["state"] == "resolved" and not r["exhibition"]]
+
+
+SNAPSHOT_KIND = "standings_snapshot"   # marks the evidence file of the headline switch (site.py finds it by this)
+
+
+def standings_snapshot(s: Settings, db: DB) -> dict:
+    """The evidence of the switch to the betting record as the headline (methodology 2.0,
+    docs/simple-scoring-spec.md §2): the forecast-accuracy table as it stood (per agent and the Crowd: Brier, CI,
+    n, the vs-Crowd verdict) beside the season betting table, so anyone can check whether the switch changed who
+    is #1. Built from the live DB at approve time; frozen in /methodology/changes/<version>.json."""
+    from . import forecast
+    db.mark_preseason(s.season_start_ts)
+    rounds = all_rounds(s, db)
+    season = season_label()
+    cur = standings(s, db, rounds, season)
+    fc = forecast.metrics(db, s.agents)
+    f_agents = [{"agent": a["agent"], "name": a["name"], "rank": a["rank"], "brier": a["brier"], "ci": a["ci"],
+                 "n": a["n"], "vs_crowd": (a.get("vs_crowd") or {}).get("verdict")} for a in fc["agents"]]
+    b_agents = [{"agent": b["agent"], "name": b["name"], "rank": b["rank"], "wins": b["wins"], "losses": b["losses"],
+                 "win_rate": b["win_rate"], "profit": b["net_pnl"]} for b in cur["agents"]]
+    crowd = fc.get("crowd") or {}
+    f_lead = next((a["name"] for a in f_agents if a["rank"] == 1), None)
+    b_lead = next((b["name"] for b in b_agents if b["rank"] == 1 and (b["wins"] or b["losses"])), None)
+    return {"kind": SNAPSHOT_KIND, "taken_at": time.time(), "season": season,
+            "markets_resolved": fc.get("markets_resolved") or 0, "rounds_counted": len(counted_rounds(rounds)),
+            "forecast_accuracy": {"metric": fc.get("metric"), "agents": f_agents,
+                                  "crowd": {k: crowd.get(k) for k in ("name", "brier", "ci", "n")}},
+            "betting_record": {"agents": b_agents,
+                               "crowd": {k: cur["crowd"].get(k) for k in ("name", "wins", "losses", "win_rate",
+                                                                          "net_pnl")}},
+            "forecast_leader": f_lead, "betting_leader": b_lead,
+            "summary": SWITCH_TEXT.format(a=f_lead or "none", b=b_lead or "none")}
+
+
+# the methodology page's sentence under the switch's changelog entry (site.py translates it; filled from the file)
+SWITCH_TEXT = "At the switch, the forecast leader was {a}; the betting leader was {b}."
+
+
 def paper_metrics(s: Settings, rounds: list[dict], lb: dict) -> dict:
     """The numbers a write-up cites, with the rules that produced them."""
-    counted = [r for r in rounds if r["state"] == "resolved" and not r["exhibition"]]
+    counted = counted_rounds(rounds)
     excluded: dict[str, int] = {}
     for r in rounds:
         if r["exclusion"] or r["state"] == "void":
@@ -352,8 +385,7 @@ def paper_metrics(s: Settings, rounds: list[dict], lb: dict) -> dict:
         "contestants": {a: {"name": AGENT_NAMES.get(a, a), "model": AGENT_MODELS[a][1], "model_id": AGENT_MODELS[a][0],
                             "reasoning": AGENT_MODELS[a][2], "played_on": _played_on(rounds, a)}
                         for a in s.agents if a in AGENT_MODELS},
-        "forecast_accuracy": lb["forecast"], "significance": lb["significance"],
-        "sealed_forecasts": lb["sealed"], "launch_day_duels": lb["duels"],
+        "sealed_forecasts": lb["sealed"],
         "betting_record": {"rounds_counted": len(counted), "rounds_excluded": excluded,
                            "season": lb["season"], "agents": lb["all_time"]["agents"], "crowd": lb["all_time"]["crowd"]},
         "operator": "SKALE Labs (also operates agentpit)", "site": s.site_url,

@@ -26,7 +26,6 @@ ul{padding-inline-start:20px}li{margin:6px 0}
 <li><a href="{{ base }}/leaderboard/" data-href="leaderboard/" data-t="leaderboard">{{ t.leaderboard }}</a></li>
 {% if latest %}<li><a href="{{ base }}/round/{{ latest.round_id }}/" data-href="round/{{ latest.round_id }}/"><span data-t="latest">{{ t.latest }}</span>: {{ latest.question }}</a></li>{% endif %}
 </ul>
-{% if vs %}<h2 data-t="h2h">{{ t.h2h }}</h2><ul>{% for href in vs %}<li><a href="{{ base }}/{{ href }}" data-href="{{ href }}" data-vs="{{ loop.index0 }}">{{ t.vs[loop.index0] }}</a></li>{% endfor %}</ul>{% endif %}
 </main>
 <script>(function(){var S={{ strings|tojson }},B={{ base|tojson }};
 /* the language: the missing page's language folder, else the browser's (as the site's own redirect does) */
@@ -37,7 +36,6 @@ if(!L||!S[L]){L=null;(navigator.languages||[navigator.language||""]).some(functi
 if(!L||L==="en"||!S[L])return;var t=S[L],p=B+"/"+L+"/";
 document.documentElement.lang=L;document.documentElement.dir=t.dir;document.title=t.title+" · AgentpitBench";
 document.querySelectorAll("[data-t]").forEach(function(e){e.textContent=t[e.dataset.t]});
-document.querySelectorAll("[data-vs]").forEach(function(e){e.textContent=t.vs[+e.dataset.vs]});
 document.querySelectorAll("[data-href]").forEach(function(e){e.href=p+e.dataset.href});
 document.querySelector("[data-home]").href=p})();</script>
 </body></html>

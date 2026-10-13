@@ -3,7 +3,6 @@
 <h1>{{ _("Split decisions") }}</h1>
 {{ sh.row(share) }}
 <p class="mut">{{ _("Rounds where the AIs picked different sides. Newest first.") }}</p>
-<table>{% for h in h2h %}<tr><td>{{ h.a_name }} vs {{ h.b_name }}</td><td class="r num">{{ h.a_wins }}–{{ h.b_wins }}</td></tr>{% endfor %}</table>
 <h2>{{ _("Rounds") }}</h2>
 {% for r in splits %}<div class="box"><div class="small mut">{{ _("Round {n}", n=r.round_id) }} · {{ split_headline(r)[1] }}{% if r.winner %} · {{ _("resolved {winner}", winner=tq(r.winner)) }}{% endif %}</div>
 <div><a href="{{ home }}round/{{ r.round_id }}/"><b>{{ mq(r.question) }}</b></a></div>

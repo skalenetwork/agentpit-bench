@@ -6,7 +6,7 @@ Day (docs/match-of-the-day-spec.md): the same credibility rules, slots, validato
 Target first episode: Sunday 2026-10-18 (ISO week 2026-W42).
 
 ## Credibility (unchanged from the films)
-Every fact is data: standings, P&L, Brier, awards, counts, handles, questions and prices come from the database or
+Every fact is data: standings, P&L, Brier (retired 2026-10-13, see docs/simple-scoring-spec.md), awards, counts, handles, questions and prices come from the database or
 the film records, filled by code. The writer (operator AI) only writes words around slots; the validator is the
 only gate (fully automatic once on). Tone: playful rivalry, no insults, no lab or model names, no significance or
 superiority claims; background colour from general knowledge is allowed. No invented twist: the cold open's twist
@@ -24,7 +24,7 @@ badge-less cold open); exhibition rounds may still appear as films (badged as in
 |---|---|---|---|
 | 1 | Cold open (~8 s) | The week's biggest true twist: the highest-surprise twist among the week's film.json records, else the top `twists.detect` result over the week's rounds | Twist card: the twist's agents, the code-written fact |
 | 2 | Title (~4 s) | Week label, episode title (writer, no numbers) | Title card |
-| 3 | Standings race (~35 s) | P&L race: cumulative P&L per agent and the Crowd round by round over the week (`media.race_contexts` maths). Forecast race: cumulative mean Brier per agent and the Crowd by sweep date over the week's resolved sweep markets (`forecasts` x `sweep_markets`) | Animated bars that grow and reorder; two scenes |
+| 3 | Standings race (~35 s) | P&L race: cumulative P&L per agent and the Crowd round by round over the week (`media.race_contexts` maths). Forecast race (retired 2026-10-13, see docs/simple-scoring-spec.md): cumulative mean Brier per agent and the Crowd by sweep date over the week's resolved sweep markets (`forecasts` x `sweep_markets`) | Animated bars that grow and reorder; two scenes |
 | 4 | Top 3 films (~45 s each) | The week's three most dramatic resolved rounds by the published drama score (`motd.score`; exhibition rounds discounted as for the films). Since motd v0.6 every round has its own film (cards/motd/rounds/<id>/); a round without one is rendered here as the templated film | An intro card by the host, then a ~40 s re-cut of the film |
 | 5 | Awards (~30 s) | `engage.weekly_awards` (MVP, Most Overconfident, Buzzer-Beater, Contrarian): the data of the weekly awards card | One card per award |
 | 6 | Best human (~10 s) | The X reply picker with the most correct picks in the week's rounds (ties: accuracy, then fewer picks, then name). Handle only if it is a valid X handle that passes the quote safety filter (as the film shout-out). None qualifies: skipped | Handle in big type, wins / picks |

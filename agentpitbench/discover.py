@@ -25,6 +25,7 @@ from .i18n import CODES, Translator
 
 API = "api/v1"
 API_VERSION = "v1"
+OPENAPI_VERSION = "2.0"   # info.version: 2.0 dropped the Brier blocks (docs/simple-scoring-spec.md §6), a breaking change
 DATA_LICENSE = "CC-BY-4.0"
 DATA_LICENSE_URL = "https://creativecommons.org/licenses/by/4.0/"
 GITHUB = "https://github.com/skalenetwork/agentpit-bench"
@@ -51,11 +52,6 @@ def day(ts: float) -> str:
 
 def stamp(ts: float) -> str:
     return datetime.fromtimestamp(float(ts), timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-
-
-def f3(v: float | None) -> str:
-    """Brier scores and intervals exactly as /leaderboard/ prints them."""
-    return "—" if v is None else "%.3f" % v
 
 
 def as_of_ts(lb: dict) -> float:
@@ -93,19 +89,6 @@ REASONING = {"max": _("max reasoning"), "xhigh": _("extra-high reasoning"), "hig
 
 def facts_data(s: Settings, lb: dict, metrics: dict) -> dict:
     """The numbers behind /facts/, language-neutral. Copied from the exports, never recomputed."""
-    fc = lb.get("forecast") or {}
-    sig = (lb.get("significance") or {}).get("per_agent") or {}
-    fagents = []
-    for a in fc.get("agents", []):
-        model, model_id, effort = _model(a["agent"])
-        fagents.append({"agent": a["agent"], "name": a["name"], "model": model, "model_id": model_id,
-                        "reasoning": effort, "rank": a.get("rank"), "brier": a.get("brier"), "ci": a.get("ci"),
-                        "n": a.get("n"), "coverage": a.get("coverage"), "vs_crowd": a.get("vs_crowd"),
-                        "vs_crowd_verdict": (sig.get(a["agent"]) or {}).get("verdict")
-                        or ((a.get("vs_crowd") or {}).get("verdict")) or "inconclusive"})
-    scored = [a for a in fagents if a["brier"] is not None]
-    crowd = fc.get("crowd") or {}
-
     def bet_row(b: dict) -> dict:
         return {k: b.get(k) for k in ("agent", "name", "rank", "played", "wins", "losses", "no_bets", "win_rate",
                                       "net_pnl", "beat_crowd")}
@@ -117,12 +100,6 @@ def facts_data(s: Settings, lb: dict, metrics: dict) -> dict:
     all_time = [bet_row(b) for b in (lb.get("all_time") or {}).get("agents", [])]
     excluded = (metrics.get("betting_record") or {}).get("rounds_excluded") or {}
     return {
-        "forecast": {"metric": fc.get("metric"), "markets_resolved": fc.get("markets_resolved") or 0,
-                     "markets_open": fc.get("markets_open") or 0, "sweeps": fc.get("sweeps") or 0,
-                     "leader": scored[0] if scored else None, "agents": fagents,
-                     "crowd": {k: crowd.get(k) for k in ("name", "brier", "ci", "n")} if crowd else None,
-                     "beat_crowd": sum(1 for a in fagents if a["vs_crowd_verdict"] == "better"),
-                     "trail_crowd": sum(1 for a in fagents if a["vs_crowd_verdict"] == "worse")},
         "betting": {"season": lb.get("season"), "agents": season,
                     "leader": next((b for b in season if b["played"]), None),
                     "rounds_counted": max((b["played"] or 0 for b in season), default=0),
@@ -139,29 +116,8 @@ def fact_sections(s: Settings, lb: dict, metrics: dict, _=Translator("en")) -> l
     d = facts_data(s, lb, metrics)
     ts = as_of_ts(lb)
     date = day(ts)
-    fc, bet = d["forecast"], d["betting"]
-    total = len(fc["agents"])
-    scored = [a for a in fc["agents"] if a["brier"] is not None]
+    bet = d["betting"]
     lead, out = [], []
-
-    def ci(a):
-        return (f3(a["ci"][0]), f3(a["ci"][1])) if a.get("ci") else ("—", "—")
-
-    if scored:
-        a = scored[0]
-        lo, hi = ci(a)
-        lead.append(_("As of {date}, {name} ({model}) has the best forecast accuracy on AgentpitBench: mean Brier score {brier} (95% CI {lo}–{hi}, n={n} forecasts; lower is better).",
-                      date=date, name=a["name"], model=a["model"] or a["name"], brier=f3(a["brier"]), lo=lo, hi=hi, n=a["n"]))
-        if len(scored) > 1 and a.get("ci") and scored[1].get("ci"):
-            b = scored[1]
-            overlap = a["ci"][1] >= b["ci"][0] and b["ci"][1] >= a["ci"][0]
-            msg = (_("AgentpitBench does not test the gap between {a} ({brier_a}) and {b} ({brier_b}) for significance; their 95% confidence intervals overlap.",
-                     a=a["name"], b=b["name"], brier_a=f3(a["brier"]), brier_b=f3(b["brier"])) if overlap else
-                   _("AgentpitBench does not test the gap between {a} ({brier_a}) and {b} ({brier_b}) for significance; their 95% confidence intervals do not overlap.",
-                     a=a["name"], b=b["name"], brier_a=f3(a["brier"]), brier_b=f3(b["brier"])))
-            lead.append(msg)
-    else:
-        lead.append(_("As of {date}, no forecast on AgentpitBench has been scored yet.", date=date))
     if bet["leader"]:
         b = bet["leader"]
         lead.append(_("As of {date}, {name} leads the AgentpitBench betting table for season {season}: {wins} wins, {losses} losses and {pnl} tokens of profit/loss over {played} rounds (paper money).",
@@ -169,39 +125,23 @@ def fact_sections(s: Settings, lb: dict, metrics: dict, _=Translator("en")) -> l
                       pnl=signed(b["net_pnl"]), played=b["played"]))
         lead.append(_("The betting table is not tested for statistical significance; season {season} has {n} counted rounds so far.",
                       season=bet["season"], n=bet["rounds_counted"]))
+    else:
+        lead.append(_("As of {date}, no betting round on AgentpitBench has resolved yet.", date=date))
     out.append({"id": "leaders", "title": _("Current leaders"), "facts": lead})
 
     crowd_facts = []
-    c = fc["crowd"]
-    if c and c.get("brier") is not None:
-        lo, hi = ci(c)
-        crowd_facts.append(_("As of {date}, the Crowd (the market price at sweep time) has a mean Brier score of {brier} (95% CI {lo}–{hi}, n={n} markets).",
-                             date=date, brier=f3(c["brier"]), lo=lo, hi=hi, n=c["n"]))
-        crowd_facts.append(_("As of {date}, {k} of {total} AIs forecast better than the Crowd with 95% confidence.",
-                             date=date, k=fc["beat_crowd"], total=total))
-    for a in scored:
-        vs = a.get("vs_crowd") or {}
-        dlo, dhi = (f"{vs['ci'][0]:+.3f}", f"{vs['ci'][1]:+.3f}") if vs.get("ci") else ("—", "—")
-        kw = dict(name=a["name"], diff=f"{vs.get('mean_diff', 0):+.3f}", lo=dlo, hi=dhi, n=a["n"])
-        if a["vs_crowd_verdict"] == "better":
-            crowd_facts.append(_("{name} forecasts better than the Crowd with 95% confidence: mean Brier difference {diff} (95% CI {lo} to {hi}, n={n}).", **kw))
-        elif a["vs_crowd_verdict"] == "worse":
-            crowd_facts.append(_("{name} forecasts worse than the Crowd with 95% confidence: mean Brier difference {diff} (95% CI {lo} to {hi}, n={n}).", **kw))
-        else:
-            crowd_facts.append(_("{name} vs the Crowd: not yet significant (mean Brier difference {diff}, 95% CI {lo} to {hi}, n={n}).", **kw))
-    if not crowd_facts:
-        crowd_facts.append(_("As of {date}, no forecast on AgentpitBench has been scored yet.", date=date))
+    c = bet["crowd"]
+    if c and c.get("played"):
+        crowd_facts.append(_("As of {date}, the Crowd (it backs the favourite at the start of every round) has a betting record of {wins} wins and {losses} losses, {pnl} tokens of profit/loss over {played} rounds.",
+                             date=date, wins=c["wins"], losses=c["losses"], pnl=signed(c["net_pnl"]), played=c["played"]))
+        for b in bet["agents"]:
+            if b["played"]:
+                crowd_facts.append(_("{name} won {n} rounds that the Crowd lost.", name=b["name"], n=b.get("beat_crowd") or 0))
+    else:
+        crowd_facts.append(_("As of {date}, no betting round on AgentpitBench has resolved yet.", date=date))
     out.append({"id": "crowd", "title": _("AIs vs the Crowd"), "facts": crowd_facts})
 
     records = []
-    for a in fc["agents"]:
-        if a["brier"] is not None:
-            lo, hi = ci(a)
-            records.append(_("{name} ({model}): mean Brier score {brier} (95% CI {lo}–{hi}, n={n} forecasts), rank {rank} of {total}.",
-                             name=a["name"], model=a["model"] or a["name"], brier=f3(a["brier"]), lo=lo, hi=hi,
-                             n=a["n"], rank=a["rank"], total=total))
-        else:
-            records.append(_("{name} ({model}): no scored forecasts yet.", name=a["name"], model=a["model"] or a["name"]))
     for b in bet["agents"]:
         if b["played"]:
             records.append(_("{name}, betting, season {season}: {wins} wins, {losses} losses, {pnl} tokens of profit/loss over {played} rounds.",
@@ -219,8 +159,7 @@ def fact_sections(s: Settings, lb: dict, metrics: dict, _=Translator("en")) -> l
     out.append({"id": "scoring", "title": _("How scoring works"), "facts": method_lines(s, _, d)})
     out.append({"id": "updated", "title": _("Last updated"), "facts": [
         _("Data as of {time}, methodology v{v}.", time=stamp(ts), v=s.methodology_version),
-        _("These facts are regenerated from the published data on every site update; forecast scores change as markets resolve, and a new sweep runs every day at {hour}:00 UTC.",
-          hour="%02d" % s.sweep_hour_utc)]})
+        _("These facts are regenerated from the published data on every site update, as betting rounds resolve.")]})
     return out
 
 
@@ -230,11 +169,11 @@ def method_lines(s: Settings, _=Translator("en"), d: dict | None = None) -> list
     lines = [
         _("{n} AI agents ({names}) each run their lab's top model at its CLI's highest reasoning setting, in a sandbox, with the same prompt and web research allowed.",
           n=len(names), names=", ".join(names)),
-        _("Headline metric: once a day every agent gives a probability for each outcome of the same {n} open markets; each forecast gets a Brier score when its market resolves (0 is perfect, lower is better).",
-          n=s.sweep_markets),
-        _("The Crowd is the market price at sweep time; an AI is called better or worse than the Crowd only when the 95% bootstrap confidence interval of its paired Brier difference excludes zero, otherwise the result is not yet significant."),
-        _("Betting record: on each eligible new market every agent has {minutes} minutes for one bet of {stake} tokens of paper money; profit/loss = payout − tokens spent.",
+        _("Headline metric, the betting record: on each eligible new market every agent has {minutes} minutes for one bet of {stake} tokens of paper money; profit/loss = payout − tokens spent. Ranked by profit, then win rate; a no-bet counts as a loss.",
           minutes=round(s.decision_limit_s / 60), stake=int(s.stake)),
+        _("The Crowd is a reference, not a contestant: each round it backs the market's favourite at the start."),
+        _("A daily forecast sweep also collects each agent's probabilities for the same {n} open markets as research data; its scores are not ranked.",
+          n=s.sweep_markets),
         _("Results are append-only; each day's forecasts are sealed with a published SHA-256 hash before their markets resolve; excluded rounds (pre-season, High-Stakes Friday, summoned, voided) are published and flagged but never counted."),
     ]
     if d and d["rounds_excluded_total"]:
@@ -304,7 +243,7 @@ def _dump(path: Path, obj) -> None:
 
 
 def write_api(s: Settings, out: Path, rounds: list[dict], lb: dict, metrics: dict, sealed: list[dict],
-              exp: Path, open_ok: set[str], pages: set[str], changelog: list[tuple[str, str, dict]],
+              exp: Path, open_ok: set[str], pages: set[str], changelog: list[tuple[str, str, dict, str]],
               exclusions: dict[str, str]) -> dict:
     """/api/v1/: static JSON, one file per resource. `rounds` is the unfiltered list (void rounds included and
     flagged); `pages` the site-relative English pages that exist, for source links. Returns facts.json."""
@@ -319,19 +258,11 @@ def write_api(s: Settings, out: Path, rounds: list[dict], lb: dict, metrics: dic
     _dump(api / "facts.json", fj)
     _dump(out / "facts.json", fj)
 
-    fc = lb.get("forecast") or {}
-    keep_fc = ("agent", "name", "rank", "brier", "ci", "n", "offered", "coverage", "vs_crowd")
     keep_bet = ("agent", "name", "rank", "played", "wins", "losses", "no_bets", "win_rate", "net_pnl", "staked",
                 "roi", "streak", "beat_crowd")
     keep_crowd = ("name", "played", "wins", "losses", "win_rate", "net_pnl")
-    sig = lb.get("significance") or {}
     _dump(api / "leaderboard.json", {**envelope(s, ts, f"{base}/leaderboard/"), "data": {
-        "forecast": {"metric": fc.get("metric"), "markets_resolved": fc.get("markets_resolved") or 0,
-                     "markets_open": fc.get("markets_open") or 0, "sweeps": fc.get("sweeps") or 0,
-                     "agents": [{k: a.get(k) for k in keep_fc} for a in fc.get("agents", [])],
-                     "crowd": fc.get("crowd")},
-        "vs_crowd": {"per_agent": sig.get("per_agent") or {}, "summary": sig.get("multi_label")},
-        "betting": {"season": lb.get("season"), "agents": [{k: b.get(k) for k in keep_bet} for b in lb.get("agents", [])],
+        "betting": {"season": lb.get("season"), "rounds_counted": lb.get("rounds_counted"), "agents": [{k: b.get(k) for k in keep_bet} for b in lb.get("agents", [])],
                     "crowd": {k: (lb.get("crowd") or {}).get(k) for k in keep_crowd}},
         "betting_all_time": {"agents": [{k: b.get(k) for k in keep_bet} for b in (lb.get("all_time") or {}).get("agents", [])],
                              "crowd": {k: ((lb.get("all_time") or {}).get("crowd") or {}).get(k) for k in keep_crowd}},
@@ -345,7 +276,6 @@ def write_api(s: Settings, out: Path, rounds: list[dict], lb: dict, metrics: dic
         _dump(api / "rounds" / f"{r['round_id']}.json",
               {**envelope(s, ts, url or f"{base}/{API}/rounds/{r['round_id']}.json"), "data": api_round(r, base, url)})
 
-    fcrows = {a["agent"]: a for a in fc.get("agents", [])}
     season = {b["agent"]: b for b in lb.get("agents", [])}
     alltime = {b["agent"]: b for b in (lb.get("all_time") or {}).get("agents", [])}
     for a in s.agents:
@@ -361,7 +291,6 @@ def write_api(s: Settings, out: Path, rounds: list[dict], lb: dict, metrics: dic
         _dump(api / "agents" / f"{a}.json", {**envelope(s, ts, page_url(f"agent/{a}/") or f"{base}/leaderboard/"), "data": {
             "agent": a, "name": AGENT_NAMES.get(a, a), "model": model, "model_id": model_id, "reasoning": effort,
             "played_on": _played_on(ordered, a),
-            "forecast": {k: fcrows[a].get(k) for k in keep_fc} if a in fcrows else None,
             "betting_season": {"season": lb.get("season"), **{k: season[a].get(k) for k in keep_bet}} if a in season else None,
             "betting_all_time": {k: alltime[a].get(k) for k in keep_bet} if a in alltime else None,
             "by_category": (lb.get("by_category") or {}).get(a, []),
@@ -385,11 +314,12 @@ def write_api(s: Settings, out: Path, rounds: list[dict], lb: dict, metrics: dic
 
     en = Translator("en")
     _dump(api / "methodology.json", {**envelope(s, ts, f"{base}/methodology/"), "data": {
-        "version": s.methodology_version, "season_start": s.season_start, "metric": fc.get("metric"),
+        "version": s.methodology_version, "season_start": s.season_start,
+        "metric": "Betting record: wins, losses and profit/loss; ranked by profit, then win rate (a no-bet counts as a loss)",
         "summary": method_lines(s), "exclusions": {k: en(v) for k, v in exclusions.items()},
         "contestants": [{"agent": a, "name": AGENT_NAMES.get(a, a), "model": _model(a)[0], "model_id": _model(a)[1],
                          "reasoning": _model(a)[2]} for a in s.agents],
-        "changelog": [{"date": d, "change": en(m, **kw)} for d, m, kw in changelog],
+        "changelog": [{"date": d, "version": v, "change": en(m, **kw)} for d, m, kw, v in changelog],
         "pages": {"methodology": f"{base}/methodology/", "independence": f"{base}/independence/",
                   "incidents": f"{base}/incidents/", "facts": f"{base}/facts/"}}})
     _dump(api / "openapi.json", openapi(s))
@@ -414,7 +344,6 @@ def openapi(s: Settings) -> dict:
 
     ref = lambda n: {"$ref": f"#/components/schemas/{n}"}  # noqa: E731
     num, nnum, nstr = {"type": "number"}, {"type": ["number", "null"]}, {"type": ["string", "null"]}
-    ci = {"type": ["array", "null"], "items": num, "minItems": 2, "maxItems": 2, "description": "95% bootstrap CI"}
     entry = {"type": "object", "description": "One agent's decision. While a round is running every pick field is null "
                                               "and sealed is true: picks are published together when all agents are done.",
              "properties": {"agent": {"type": "string"}, "name": {"type": "string"}, "model_reported": nstr,
@@ -431,10 +360,6 @@ def openapi(s: Settings) -> dict:
         "sealed": {"type": "boolean"}, "outcomes": {"type": "array", "items": {"type": "string"}},
         "prices_at_start": {"type": "array", "items": num}, "winner": nstr, "started_at": nstr, "end_date": nstr,
         "resolved_at": nstr, "url": nstr, "api_url": {"type": "string"}, "entries": {"type": "array", "items": ref("Entry")}}}
-    fcrow = {"type": "object", "properties": {"agent": {"type": "string"}, "name": {"type": "string"},
-                                              "rank": {"type": ["integer", "null"]}, "brier": nnum, "ci": ci,
-                                              "n": {"type": "integer"}, "coverage": nnum,
-                                              "vs_crowd": {"type": ["object", "null"]}}}
 
     def get(summary: str, schema: dict, params: list | None = None) -> dict:
         op = {"get": {"summary": summary, "responses": {"200": {"description": "OK", "content": {
@@ -447,28 +372,28 @@ def openapi(s: Settings) -> dict:
                                          "schema": {"type": t}}]
     return {
         "openapi": "3.1.0",
-        "info": {"title": "AgentpitBench API", "version": API_VERSION, "license": {"name": DATA_LICENSE, "url": DATA_LICENSE_URL},
+        "info": {"title": "AgentpitBench API", "version": OPENAPI_VERSION, "license": {"name": DATA_LICENSE, "url": DATA_LICENSE_URL},
                  "description": "Static, read-only JSON regenerated on every site update from the published exports. "
                                 "Every response carries as_of, methodology_version, source_url and citation. Void and "
-                                "exhibition rounds are included and flagged with state and exclusion. Schemas are frozen "
-                                "within v1; changes go to v2."},
+                                "exhibition rounds are included and flagged with state and exclusion. 2.0 (methodology "
+                                "2.0): the forecast and vs_crowd blocks are gone from leaderboard.json and agents/{id}.json; "
+                                "the headline is the betting record."},
         "servers": [{"url": f"{base}/{API}"}],
         "paths": {
-            "/leaderboard.json": get("Forecast accuracy (Brier, 95% CI, vs the Crowd) and the betting tables", {"type": "object"}),
+            "/leaderboard.json": get("The betting record (the headline): season and all-time tables, with the Crowd", {"type": "object"}),
             "/facts.json": get("The dated facts behind /facts/, with the numbers and the English sentences", {"type": "object"}),
             "/rounds.json": get("Every round, newest first, with state, exclusion and picks (null while running)",
                                 {"type": "object", "properties": {"rounds": {"type": "array", "items": {"type": "object"}}}}),
             "/rounds/{n}.json": get("One round in full", ref("Round"), p("n", "Round number", "integer")),
-            "/agents/{id}.json": get("One agent: model, forecast accuracy, betting record, recent rounds",
-                                     {"type": "object", "properties": {"forecast": fcrow}},
+            "/agents/{id}.json": get("One agent: model, betting record, recent rounds", {"type": "object"},
                                      p("id", "Agent id: " + ", ".join(s.agents))),
-            "/forecasts.json": get("Sealed daily forecast files: date, SHA-256, and whether the content is published yet",
+            "/forecasts.json": get("Sealed daily forecast files (research data): date, SHA-256, and whether the content is published yet",
                                    {"type": "object"}),
             "/forecasts/{date}.json": get("One day's sealed forecasts, published once that day's markets have resolved",
                                           {"type": "object"}, p("date", "YYYY-MM-DD")),
             "/methodology.json": get("Methodology version, rules summary, exclusions and changelog", {"type": "object"}),
         },
-        "components": {"schemas": {"Round": rnd, "Entry": entry, "ForecastRow": fcrow}},
+        "components": {"schemas": {"Round": rnd, "Entry": entry}},
     }
 
 
@@ -568,10 +493,10 @@ def llms_txt(s: Settings, lb: dict, metrics: dict) -> str:
         "## Method", "", *(f"- {x}" for x in method_lines(s)), "",
         "## Key facts", "", *(f"- {x}" for x in lead), "",
         "## Pages", "",
-        f"- [Facts]({base}/facts/): dated, quotable facts with n and 95% confidence intervals",
-        f"- [Leaderboard]({base}/leaderboard/): forecast accuracy and betting tables",
+        f"- [Facts]({base}/facts/): dated, quotable facts with n",
+        f"- [Leaderboard]({base}/leaderboard/): the betting record (wins, losses, profit), the headline",
         f"- [Which AI is best at what?]({base}/best-at/): each AI's betting record by market category, with n",
-        f"- [Methodology]({base}/methodology/): the rulebook, statistics and changelog",
+        f"- [Methodology]({base}/methodology/): the rulebook and changelog",
         f"- [Independence & conflicts]({base}/independence/): who runs it and how",
         f"- [Incidents]({base}/incidents/): public incident log", "",
         "## Data", "",
@@ -618,15 +543,13 @@ def dataset_ld(s: Settings, lb: dict, page_url: str) -> dict:
     return {"@context": "https://schema.org", "@graph": [org, {
         "@type": "Dataset", "@id": f"{base}/#dataset", "name": "AgentpitBench", "url": page_url,
         "description": (f"{' vs '.join(AGENT_NAMES.get(a, a) for a in s.agents)}: frontier AI agents forecast and bet on "
-                        "live prediction markets. Daily forecasts scored with the Brier score (95% bootstrap confidence "
-                        "intervals, compared with the market price), plus every bet, rationale and result."),
+                        "live prediction markets. The headline is the betting record: every bet, rationale and result, "
+                        "with a sealed daily forecast sweep as research data."),
         "creator": {"@id": org["@id"]}, "publisher": {"@id": org["@id"]}, "license": DATA_LICENSE_URL,
-        "isAccessibleForFree": True, "keywords": ["LLM benchmark", "forecasting", "prediction markets", "AI agents",
-                                                  "Brier score"],
+        "isAccessibleForFree": True, "keywords": ["LLM benchmark", "forecasting", "prediction markets", "AI agents"],
         "temporalCoverage": f"{s.season_start[:10]}/{day(ts)}", "dateModified": iso(ts),
         "version": s.methodology_version,
         "variableMeasured": [
-            {"@type": "PropertyValue", "name": "Brier score", "description": "Mean Brier score of daily forecasts, lower is better"},
             {"@type": "PropertyValue", "name": "Profit/loss", "description": "Paper-money tokens won or lost per bet", "unitText": "tokens"},
             {"@type": "PropertyValue", "name": "Win rate"}],
         "distribution": [{"@type": "DataDownload", "contentUrl": f"{base}/data/{n}", "encodingFormat": t} for n, t in files]

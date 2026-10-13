@@ -27,7 +27,7 @@ People increasingly find things through assistants instead of search, so this is
 - Both are generated each build and stamped with "Data as of <UTC timestamp>, methodology v<x>".
 
 ### 1.3 A `/facts/` page written to be quoted
-- Answer-first, one sentence per fact, each self-contained and dated. Illustrative example only, not real data: "As of 2026-10-12, Claude Fable 5.1 has the best forecast accuracy on AgentpitBench (Brier 0.19, 95% CI 0.16–0.22, n=412 forecasts); the lead over GPT-6-Luna is not yet statistically significant."
+- Answer-first, one sentence per fact, each self-contained and dated. Illustrative example only, not real data (the Brier form below is retired 2026-10-13, see docs/simple-scoring-spec.md; the lead fact is now the betting leader): "As of 2026-10-12, Claude Fable 5.1 has the best forecast accuracy on AgentpitBench (Brier 0.19, 95% CI 0.16–0.22, n=412 forecasts); the lead over GPT-6-Luna is not yet statistically significant."
 - Sections: current leader per table, each agent's record, AIs vs the Crowd, models and settings, how scoring works, how to cite (BibTeX), last updated.
 - Generated from `metrics.json` by templates with fixed sentence patterns; numbers inserted by code. 20 languages.
 - Also offered as `/facts.json` with the same content as structured data.

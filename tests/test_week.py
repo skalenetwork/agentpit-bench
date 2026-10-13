@@ -42,15 +42,10 @@ def rounds_week():
     return [r1, r2, old, ex]
 
 
-def data_for(rounds=None, films=None, human=None, teaser_rounds=None, twist=True, forecast=True):
+def data_for(rounds=None, films=None, human=None, teaser_rounds=None, twist=True):
     rounds = rounds if rounds is not None else week.week_rounds(rounds_week(), MON, SUN18)
     from agentpitbench.engage import weekly_awards
     d = {"week": WEEK, "lo": MON, "cut": SUN18, "rounds": rounds, "pnl": week.pnl_race(rounds, AG),
-         "forecast": ({"keys": AG + ["crowd"], "steps": [{"claude": 0.2, "codex": 0.18, "agy": 0.25, "grok": None,
-                                                          "crowd": 0.21}], "days": ["2026-10-12"],
-                       "final": {"claude": 0.2, "codex": 0.18, "agy": 0.25, "grok": None, "crowd": 0.21},
-                       "leader": "codex", "n": {"claude": 5, "codex": 5, "agy": 5, "grok": 0, "crowd": 5}}
-                      if forecast else None),
          "films": films if films is not None else [{"date": "2026-10-14", "round_id": 1, "score": 75, "film": None,
                                                     "round": rounds[0]}],
          "awards": weekly_awards(rounds), "human": human, "teaser": teaser_rounds or [],
@@ -77,20 +72,13 @@ def test_week_rounds_and_pnl_race():
     assert race["record"]["claude"] == {"wins": 1, "losses": 1} and race["labels"] == [1, 2]
 
 
-def test_forecast_race_cumulative_by_sweep_day(env):
-    s, db = env
-    for mid, day, win, briers in (("m1", "2026-10-12", "Yes", {"claude": 0.1, "codex": 0.3}),
-                                   ("m2", "2026-10-13", "No", {"claude": 0.5, "codex": 0.1}),
-                                   ("m0", "2026-10-05", "No", {"claude": 0.9})):   # last week: out
-        db.x("INSERT INTO sweep_markets(market_id,sweep_date,question,outcomes,prices,winner,state) "
-             "VALUES(?,?,?,?,?,?,'resolved')", mid, day, "q", json.dumps(["Yes", "No"]), json.dumps([0.6, 0.4]), win)
-        for a, b in briers.items():
-            db.x("INSERT INTO forecasts(sweep_date,agent,market_id,probs,brier) VALUES(?,?,?,?,?)", day, a, mid, "{}", b)
-    fc = week.forecast_race(db, AG, MON, SUN18)
-    assert fc["days"] == ["2026-10-12", "2026-10-13"]
-    assert fc["steps"][0]["claude"] == 0.1 and fc["final"]["claude"] == 0.3 and fc["final"]["codex"] == 0.2
-    assert fc["leader"] == "codex" and fc["final"]["grok"] is None and fc["n"]["claude"] == 2
-    assert week.forecast_race(db, AG, MON + 30 * 86400, MON + 37 * 86400) is None
+def test_no_forecast_race():
+    """The Brier race is gone (docs/simple-scoring-spec.md §4): the money race is the only race."""
+    assert not hasattr(week, "forecast_race") and "race_forecast" not in week.CAPS
+    assert week.PROMPT_VERSION == "weekly_episode.v2"
+    pl = week.payload(data_for())
+    assert "forecast_race" not in pl and "race_forecast" not in pl["keys"] and "race_pnl" in pl["keys"]
+    assert "brier" not in opai.prompt_text("weekly_episode").lower()
 
 
 def test_top_films_are_the_weeks_most_dramatic_rounds():
@@ -150,13 +138,13 @@ def test_slots_carry_every_number():
     d = data_for(human={"handle": "zed", "wins": 2, "picks": 3})
     sl = d["slots"]
     assert sl["pnl_leader"] == "Claude" and sl["pnl_leader_pnl"] == "+300" and sl["n_rounds"] == "2"
-    assert sl["brier_leader"] == "ChatGPT" and sl["chatgpt_brier"] == "0.180" and "grok_brier" not in sl
+    assert not [k for k in sl if "brier" in k]
     assert sl["f1_claude_pick"] == "B" and sl["f1_date"] == "14 October" and sl["a1_name"] == "Claude"
     assert sl["human"] == "@zed" and sl["human_wins"] == "2"
 
 
 def test_templated_lines_pass_the_validator():
-    for kw in ({}, {"human": {"handle": "zed", "wins": 2, "picks": 3}}, {"twist": False, "forecast": False},
+    for kw in ({}, {"human": {"handle": "zed", "wins": 2, "picks": 3}}, {"twist": False},
                {"teaser_rounds": [R(10, [E("claude", "A", None)], state="awaiting_resolution")]}):
         d = data_for(**kw)
         pl = week.payload(d)
@@ -180,7 +168,6 @@ def good(d):
     ("welcome", "Welcome. Claude is the smartest of them all.", "superiority"),
     ("welcome", "Welcome. Grok, you clueless contraption.", "put-down"),
     ("race_pnl", "Grok leads the money race.", "the leader is Claude"),
-    ("race_forecast", "Claude is on top of the forecast table.", "the leader is ChatGPT"),
     ("film_1", "Claude took A, and the rest followed.", "picked B"),
     ("film_1", "ChatGPT won it.", "but ChatGPT lost"),
     ("award_1", "And the most valuable player is someone special.", "winner"),
@@ -237,7 +224,7 @@ def test_writer_runs_once_a_week_only_when_idle(env, fake_claude):
     db.set_round(rid, state="awaiting_resolution")
     sc, meta = week.write(s, db, d)
     assert meta["scripted"] is True and sc["title"] == script["title"] and len(fake_claude.calls) == 1
-    assert "weekly_episode.v1" in fake_claude.calls[0]["stdin"].splitlines()[0]
+    assert "weekly_episode.v2" in fake_claude.calls[0]["stdin"].splitlines()[0]
     # a re-render reuses the accepted script; a second call in the same week is never made
     sc, meta = week.write(s, db, d)
     assert meta.get("reused") and len(fake_claude.calls) == 1
@@ -265,7 +252,7 @@ def test_rejected_script_falls_back_to_templated_lines(env, fake_claude):
 def test_task_is_registered_and_budgeted():
     s = Settings()
     assert "weekly_episode" in s.opai_tasks and s.opai_task_budget["weekly_episode"] == 1
-    assert opai.PROMPTS["weekly_episode"] == 1 and opai.prompt_text("weekly_episode")
+    assert opai.PROMPTS["weekly_episode"] == 2 and opai.prompt_text("weekly_episode")
     assert opai.manifest() == json.loads(opai.prompt_path("MANIFEST.json").read_text())
     assert opai.model_for(s, "weekly_episode") == "fable" and s.week_episode_enabled is False
 
@@ -285,7 +272,7 @@ def test_host_scenes_and_segments():
     d = data_for(human={"handle": "zed", "wins": 2, "picks": 3})
     segs = week.build_scenes(week.templated(d), d, {"significance": {"multi_label": "x"}, "agents": []}, "site.org")
     kinds = [x["kind"] for seg in segs for x in seg.get("scenes", [])]
-    assert kinds[:4] == ["w_cold", "w_title", "w_race_pnl", "w_race_fc"] and kinds[-1] == "w_signoff"
+    assert kinds[:3] == ["w_cold", "w_title", "w_race_pnl"] and kinds[-1] == "w_signoff" and "w_race_fc" not in kinds
     assert [seg["type"] for seg in segs] == ["host", "host", "film", "host"]
     assert "w_human" in kinds and kinds.count("w_award") == len(d["awards"])
     cold = segs[0]["scenes"][0]
@@ -343,7 +330,7 @@ def _episode(s, with_trailer=True):
     rec = {"week": WEEK, "title": "Lone Wolves", "files": files, "n_rounds": 2,
            "films": [{"round_id": 1, "question": "Market 1?", "date": "2026-10-14"}],
            "awards": [{"title": "MVP", "name": "Claude", "detail": "+300 tokens this week"}],
-           "pnl_leader": "Claude", "brier_leader": "ChatGPT", "narrated": True,
+           "pnl_leader": "Claude", "narrated": True,
            "post_after": datetime(2026, 10, 18, 18, tzinfo=timezone.utc).timestamp()}
     (out / "episode.json").write_text(json.dumps(rec))
     return rec, out
@@ -466,19 +453,19 @@ async def test_render_smoke(env, monkeypatch):
 
 
 async def test_race_rows_never_cross_or_meet_the_caption():
-    """W41's forecast race drew CLAUDE over CHATGPT while rows re-sorted: rows now hold the final order and only the
+    """W41's race drew CLAUDE over CHATGPT while rows re-sorted: rows now hold the final order and only the
     bars move, and the race never runs under the caption (a long, three-line one in wide)."""
     from agentpitbench import cards as C
     d = data_for(human={"handle": "zed", "wins": 2, "picks": 3})
     segs = week.build_scenes(week.templated(d), d, {"significance": {"multi_label": "x"}, "agents": []}, "site.org")
-    sc = next(x for x in segs[0]["scenes"] if x["kind"] == "w_race_fc")
+    sc = next(x for x in segs[0]["scenes"] if x["kind"] == "w_race_pnl")
     keys = sc["race"]["keys"]
-    sc["race"]["steps"] = [dict(zip(keys, v)) for v in ([0.10, 0.30, None, 0.20, 0.25][:len(keys)],
-                                                       [0.30, 0.10, 0.20, 0.25, 0.15][:len(keys)],
-                                                       [0.20, 0.15, 0.30, 0.10, 0.22][:len(keys)])]
+    sc["race"]["steps"] = [dict(zip(keys, v)) for v in ([100, -300, None, 200, 250][:len(keys)],
+                                                       [-300, 100, 200, 250, -150][:len(keys)],
+                                                       [200, 150, -300, 100, 220][:len(keys)])]
     sc["labels"] = ["d1", "d2", "d3"]
-    sc["caption"] = "Flip the board: lower is better here, and Claude tops it at 0.190. ChatGPT 0.203, Grok 0.209, " \
-                    "Gemini 0.241, the Crowd 0.231 across 56 markets."
+    sc["caption"] = "The money race flips again: Claude tops it at +200 tokens. ChatGPT +150, Grok +100, " \
+                    "Gemini −300, the Crowd +220 across fifty-six rounds."
     cr = C.CardRenderer(week.Settings())
     try:
         br = await cr._ensure()
@@ -500,7 +487,7 @@ async def test_race_rows_never_cross_or_meet_the_caption():
                     - Math.max(...[...document.querySelectorAll('.rrow')].map(r => r.getBoundingClientRect().bottom))""")
                 assert gap >= 0, (fmt, t, gap)
             assert len(seen) == 1   # one row order for the whole scene
-            final = sorted(keys, key=lambda k: sc["race"]["steps"][-1][k])
+            final = sorted(keys, key=lambda k: -sc["race"]["steps"][-1][k])   # the money race: most profit on top
             assert [k for k, _ in sorted(next(iter(seen)), key=lambda x: float(x[1][:-2]))] == final
             await page.close()
     finally:

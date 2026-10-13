@@ -546,8 +546,6 @@ def leaderboard(db: DB, agents: list[str], since: float | None = None, until: fl
         staked = sum(r["stake_filled"] or 0 for r in rows)
         net = sum(r["pnl"] or 0 for r in rows)
         prices = [r["avg_price"] for r in rows if r["avg_price"]]
-        briers = [((r["confidence"] or 0) - (1 if r["outcome"] == r["winner"] else 0)) ** 2
-                  for r in rows if r["outcome"] and r["confidence"] is not None]
         streak = 0
         for r in reversed(rows):
             won = bool(r["outcome"]) and r["outcome"] == r["winner"]
@@ -563,7 +561,6 @@ def leaderboard(db: DB, agents: list[str], since: float | None = None, until: fl
             "net_pnl": round(net, 2), "staked": round(staked, 2),
             "roi": round(net / staked, 4) if staked else 0.0,
             "avg_entry": round(sum(prices) / len(prices), 4) if prices else None,
-            "brier": round(sum(briers) / len(briers), 4) if briers else None,
             "streak": streak,
         })
     out.sort(key=lambda r: (-r["net_pnl"], -r["win_rate"]))

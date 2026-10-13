@@ -346,47 +346,6 @@ def commentary(rnd: dict) -> str:
                  names=names, w=rnd.get("winner"), lo=" & ".join(e["name"] for e in losers) or "nobody")
 
 
-# ---------- grudge matches ----------
-
-GRUDGE_MIN = 3
-
-
-def grudge(rnd: dict, history: list[dict]) -> dict | None:
-    """The agent pair that picked opposite sides in this round and in the rounds right before it (3+ in a row).
-    history: rounds.json-style records, any order. Returns {a, b, a_name, b_name, clash, a_wins, b_wins}."""
-    def side(r, agent):
-        return next((e["outcome"] for e in r["entries"] if e["agent"] == agent and e.get("outcome")), None)
-
-    def won(r, agent):
-        return next((bool(e.get("won")) for e in r["entries"] if e["agent"] == agent), False)
-
-    past = sorted((r for r in history if r["round_id"] < rnd["round_id"] and not r.get("exhibition")),
-                  key=lambda r: r["round_id"], reverse=True)
-    agents = [e["agent"] for e in rnd["entries"] if e.get("outcome")]
-    best = None
-    for i, a in enumerate(agents):
-        for b in agents[i + 1:]:
-            if side(rnd, a) == side(rnd, b):
-                continue
-            run = [rnd]
-            for r in past:
-                sa, sb = side(r, a), side(r, b)
-                if sa and sb and sa != sb:
-                    run.append(r)
-                elif sa and sb:
-                    break  # they agreed: the rivalry run ends
-            if len(run) >= GRUDGE_MIN and (best is None or len(run) > best["clash"]):
-                names = {e["agent"]: e["name"] for e in rnd["entries"]}
-                done = [r for r in run if r.get("state") == "resolved"]
-                best = {"a": a, "b": b, "a_name": names[a], "b_name": names[b], "clash": len(run),
-                        "a_wins": sum(1 for r in done if won(r, a)), "b_wins": sum(1 for r in done if won(r, b))}
-    return best
-
-
-def grudge_headline(g: dict) -> str:
-    return f"GRUDGE MATCH: {g['a_name']} vs {g['b_name']} — clash #{g['clash']}"
-
-
 # ---------- watch-it-think replay ----------
 
 _SECRET = re.compile(

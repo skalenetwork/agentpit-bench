@@ -73,7 +73,7 @@ async def test_happy_path(env, fake_claude):
     assert e["values"] == {"param": "max_favourite_price", "old": "0.85", "new": "0.8",
                            "link": "https://agentpitbench.org/methodology/changes/1.1.json"}
     assert "80c" not in json.dumps(e)
-    assert m.changelog()[0] == (e["date"], m.AUTO_TEXT, e["values"])
+    assert m.changelog()[0] == (e["date"], m.AUTO_TEXT, e["values"], e["version"])
     # the evidence is published, the model's text included
     ev = json.loads((m.changes_dir(s) / "1.1.json").read_text())
     assert ev["change"] == {"key": "max_favourite_price", "old": 0.85, "new": 0.8}

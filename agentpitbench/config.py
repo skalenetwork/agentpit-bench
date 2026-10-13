@@ -9,8 +9,6 @@ from pathlib import Path
 # display names; "codex" shows as ChatGPT (it runs on the Codex CLI)
 AGENT_NAMES = {"claude": "Claude", "codex": "ChatGPT", "agy": "Gemini", "grok": "Grok"}
 AGENT_COLORS = {"claude": "#D97757", "codex": "#10A37F", "agy": "#4285F4", "grok": "#1A1A1A"}
-# URL slugs of the head-to-head pages (/vs/claude-vs-chatgpt/): public names, unlike the frozen /agent/<id>/ URLs
-AGENT_SLUGS = {"claude": "claude", "codex": "chatgpt", "agy": "gemini", "grok": "grok", "crowd": "crowd"}
 # Frontier vs frontier: each lab's top model its CLI offers, at that CLI's maximum reasoning setting.
 # (model id passed to the CLI, display name, reasoning setting). The model each run actually reports is
 # recorded per bet; if a vendor ships a newer flagship, update this table.
@@ -93,6 +91,9 @@ class Settings:
     cf_analytics_token: str = "7f12b95829f74ed488cdf4008a176a57"  # Cloudflare Web Analytics (public by design)
     season_start: str = "2026-10-09T00:00:00Z"   # rounds started before this are pre-season exhibitions
     sweep_markets: int = 30             # daily forecast sweep: markets per agent per day
+    # launch-day duels (a new model vs the previous one on the sweep): off since the Brier competitions were
+    # removed (docs/simple-scoring-spec.md D2); existing duel rows stay in the data
+    duels_enabled: bool = False
     sweep_timeout_s: int = 900          # one batched sweep run per agent
     sweep_hour_utc: int = 6
     dry_run: bool = True

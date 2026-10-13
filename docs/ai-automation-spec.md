@@ -596,7 +596,9 @@ return (score, _num(m, "volume"), _num(m, "liquidity"), int(m["id"]))
   `Engage.sunday_extras` **before** the thread is posted (and not awaited by it). It stores the prose in
   `operator_ai_outputs` with subject `week:<YYYY-Www>`, and `exports.weekly_reports` attaches `prose` to the week's
   dict when a valid output exists.
-- **Input:** exactly the report dict `report.html` renders (forecast rows with n and Brier, crowd Brier,
+- **Input** (the forecast and Brier parts retired 2026-10-13, see docs/simple-scoring-spec.md: prompt report.v2 has the
+  betting record and contrarian calls only, and "best" is checked against the week's betting leader): exactly the
+  report dict `report.html` renders (forecast rows with n and Brier, crowd Brier,
   betting rows, contrarian counts) plus `leaderboard.significance.label`. All of it covers resolved data only,
   so sweep privacy holds by construction.
 - **Output schema:** `{headline: str ≤ 90, paragraphs: [str] 2..4, each ≤ 400}`.

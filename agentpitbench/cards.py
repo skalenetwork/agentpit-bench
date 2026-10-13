@@ -306,11 +306,12 @@ def model_line(agent: str | None, reported: str | None = None, short: bool = Tru
     return "frontier models · max"
 
 
-def short_sig(label: str | None) -> str | None:
-    """The leaderboard's significance label, shortened for the one-line strip."""
-    if not label:
+def rounds_note(lb: dict | None) -> str | None:
+    """The strip's sample line, '{n} rounds · season {s}': the counted rounds behind the betting record (the
+    leaderboard export's rounds_counted). No significance claim: the betting table makes none."""
+    if not lb or lb.get("rounds_counted") is None:
         return None
-    return label.replace("significant vs the Crowd (p<0.05)", "significant vs Crowd p<.05")
+    return f"{lb['rounds_counted']} rounds · season {lb.get('season') or '—'}"
 
 
 def start_price(r: dict, outcome: str | None) -> float | None:
@@ -432,8 +433,8 @@ class CardRenderer:
         self._pw = None
         self._browser = None
         self._lock = asyncio.Lock()
-        # "n=12 · not yet significant": set by the publisher from the latest export before split/results renders
-        self.significance: str | None = None
+        # "12 rounds · season 2026-10": set by the publisher from the latest export before split/results renders
+        self.rounds_note: str | None = None
 
     async def _ensure(self):
         if self._browser is None:
@@ -467,12 +468,11 @@ class CardRenderer:
 
     @property
     def sig(self) -> str | None:
-        """The significance line; set by the publisher, else read from the latest export."""
-        if self.significance:
-            return self.significance
+        """The strip's '{n} rounds · season {s}' line; set by the publisher, else read from the latest export."""
+        if self.rounds_note:
+            return self.rounds_note
         try:
-            lb = json.loads((self.s.export_dir / "leaderboard.json").read_text())
-            return (lb.get("significance") or {}).get("label")
+            return rounds_note(json.loads((self.s.export_dir / "leaderboard.json").read_text()))
         except (OSError, ValueError):
             return None
 
@@ -480,20 +480,10 @@ class CardRenderer:
     def host(self) -> str:
         return self.s.site_url.replace("https://", "").replace("http://", "").rstrip("/")
 
-    def _sig_for(self, agent: str | None) -> str | None:
-        """Single-agent cards carry that agent's own verdict (with direction); others the multi-agent line."""
-        try:
-            sig = json.loads((self.s.export_dir / "leaderboard.json").read_text()).get("significance") or {}
-        except (OSError, ValueError):
-            sig = {}
-        if agent and (sig.get("agent_labels") or {}).get(agent):
-            return sig["agent_labels"][agent]
-        return sig.get("multi_label") or self.sig
-
     def _strip(self, url_path: str, agent: str | None = None, reported: str | None = None) -> dict:
-        """The credibility strip every card carries: model and reasoning, n and significance, methodology, URL.
+        """The credibility strip every card carries: model and reasoning, rounds and season, methodology, URL.
         `reported` = the run's model_reported, so a re-rendered old round names the model it was played on."""
-        url, sig = f"{self.host}/{url_path}".rstrip("/"), short_sig(self._sig_for(agent))
+        url, sig = f"{self.host}/{url_path}".rstrip("/"), self.sig
         ml = model_line(agent, reported) if agent and reported else model_line(agent)
         # one line at 26px holds ~107 condensed characters (with the URL); past that, multi-agent cards drop the model detail
         if agent is None and len(f"{ml} · {sig or ''} · Methodology v{self.s.methodology_version} {url}") > 107:
@@ -521,11 +511,10 @@ class CardRenderer:
             streak=abs(streak), mkt=mkt, against=against)
         return await self.render_html(html, self._dir(rnd) / f"decision-{entry['agent']}.png")
 
-    async def split(self, rnd: dict, board: list[dict] | None = None, headline: str | None = None,
-                    grudge: dict | None = None) -> Path:
+    async def split(self, rnd: dict, board: list[dict] | None = None, headline: str | None = None) -> Path:
         kind, default = split_headline(rnd)
         html = env.get_template("split.html").render(**self._ctx(rnd, board), kind=kind,
-                                                     headline=headline or default, grudge=grudge)
+                                                     headline=headline or default)
         return await self.render_html(html, self._dir(rnd) / "split.png")
 
     def _results_html(self, rnd, board, crowd, cast, top_humans, variant) -> str:
@@ -611,11 +600,10 @@ class CardRenderer:
             shutil.rmtree(frames_dir, ignore_errors=True)
         return out
 
-    async def split_clip(self, rnd: dict, board: list[dict] | None = None, headline: str | None = None,
-                         grudge: dict | None = None) -> Path | None:
+    async def split_clip(self, rnd: dict, board: list[dict] | None = None, headline: str | None = None) -> Path | None:
         kind, default = split_headline(rnd)
         html = env.get_template("split.html").render(**self._ctx(rnd, board), kind=kind,
-                                                     headline=headline or default, grudge=grudge)
+                                                     headline=headline or default)
         return await self.clip(html, self._dir(rnd) / "split")
 
     async def results_clip(self, rnd: dict, board: list[dict] | None = None, crowd: dict | None = None,

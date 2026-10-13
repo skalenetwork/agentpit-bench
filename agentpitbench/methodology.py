@@ -115,11 +115,12 @@ def verify(s: Settings | None = None, path: Path | None = None) -> list[str]:
     return problems
 
 
-def changelog(path: Path | None = None) -> list[tuple[str, str, dict]]:
-    """(date, message id, format values), newest first: the shape site.py and discover.py render. A generated
-    entry (auto-applied or reverted) stores a template id in `text` and its values in `values`, so one
-    translated template serves every such change."""
-    return [(e["date"], e["text"], e.get("values") or {}) for e in reversed(load(path)["changelog"])]
+def changelog(path: Path | None = None) -> list[tuple[str, str, dict, str]]:
+    """(date, message id, format values, version), newest first: the shape site.py and discover.py render. A
+    generated entry (auto-applied or reverted) stores a template id in `text` and its values in `values`, so one
+    translated template serves every such change. The version lets the site link a change's evidence file."""
+    return [(e["date"], e["text"], e.get("values") or {}, e.get("version") or "")
+            for e in reversed(load(path)["changelog"])]
 
 
 # generated changelog lines: one translated template per change type (i18n ids; site.py marks them with _())
@@ -264,10 +265,14 @@ def next_version(v: str, major: bool) -> str:
     return f"{a + 1}.0" if major else f"{a}.{b + 1}"
 
 
-def approve(s: Settings, pid: str, approver: str = "operator", *, major: bool = False,
+def approve(s: Settings, pid: str, approver: str = "operator", *, major: bool = False, snapshot: bool = False,
             isatty: Callable[[], bool] | None = None, ask: Callable[[str], str] = input,
-            path: Path | None = None, fill: Callable[[list[str]], dict] | None = None) -> dict:
-    """The operator's path. Refuses without a terminal and an exact typed confirmation."""
+            path: Path | None = None, fill: Callable[[list[str]], dict] | None = None,
+            standings: Callable[[], dict] | None = None) -> dict:
+    """The operator's path. Refuses without a terminal and an exact typed confirmation. With `snapshot`
+    (`--snapshot-standings`), the standings as they stand are frozen as the version's evidence file
+    (/methodology/changes/<version>.json; docs/simple-scoring-spec.md §2), written before the lock and removed
+    if the lock write fails."""
     path = path or LOCK
     if not (isatty or sys.stdin.isatty)():
         raise MethodologyError("approve needs an interactive terminal (the operator types the confirmation)")
@@ -278,12 +283,36 @@ def approve(s: Settings, pid: str, approver: str = "operator", *, major: bool = 
     nv = next_version(lock["version"], major)
     if ask(f"Type 'approve v{nv}' to apply proposal {pid} ({p['changelog_text']}): ").strip() != f"approve v{nv}":
         raise MethodologyError("not confirmed")
-    new = _commit(s, lock, p["changes"], p["author"], nv, {"text": p["changelog_text"], "approved_by": approver},
-                  path=path, hashes=p.get("hashes"))
+    commit = lambda: _commit(s, lock, p["changes"], p["author"], nv,  # noqa: E731
+                             {"text": p["changelog_text"], "approved_by": approver}, path=path, hashes=p.get("hashes"))
+    if snapshot:
+        ev = {"version": nv, "previous_version": lock["version"], "approved_by": approver,
+              "changelog": p["changelog_text"], **(standings or (lambda: _standings(s)))()}
+        new = _with_evidence(s, nv, ev, commit)
+    else:
+        new = commit()
     p.update(state="approved", approved_version=nv)
     _write_proposal(s, p)
     (fill or _fill_or_placeholder)([p["changelog_text"]])
     return new
+
+
+def _standings(s: Settings) -> dict:
+    from .db import DB
+    from .exports import standings_snapshot
+    return standings_snapshot(s, DB(s.db_path))
+
+
+def _with_evidence(s: Settings, nv: str, ev: dict, commit: Callable[[], dict]) -> dict:
+    """Write-then-commit-or-unlink: the evidence file first (the changelog line links it), then the lock; a
+    failed lock write removes the evidence again, so no version's evidence outlives a refused change."""
+    f = changes_dir(s) / f"{nv}.json"
+    _atomic(f, json.dumps(ev, indent=1, ensure_ascii=False))
+    try:
+        return commit()
+    except BaseException:
+        f.unlink(missing_ok=True)
+        raise
 
 
 def _write_proposal(s: Settings, p: dict) -> None:
@@ -341,15 +370,10 @@ def _generated(s: Settings, lock: dict, key: str, new_value, author: str, templa
     values = {"param": key, "old": _fmt(old), "new": _fmt(new_value), "link": change_url(s, nv), **(extra or {})}
     ev = {"version": nv, "previous_version": lock["version"], "applied_at": now, "approved_by": approved_by,
           "change": {"key": key, "old": old, "new": new_value}, "changelog": template.format(**values), **record}
-    f = changes_dir(s) / f"{nv}.json"
-    _atomic(f, json.dumps(ev, indent=1, ensure_ascii=False))
-    try:
-        new = _commit(s, lock, {key: new_value}, author, nv,
-                      {"text": template, "values": values, "approved_by": approved_by,
-                       "change": {"key": key, "old": old, "new": new_value}}, path=path, now=now)
-    except BaseException:
-        f.unlink(missing_ok=True)
-        raise
+    new = _with_evidence(s, nv, ev, lambda: _commit(
+        s, lock, {key: new_value}, author, nv, {"text": template, "values": values, "approved_by": approved_by,
+                                                "change": {"key": key, "old": old, "new": new_value}},
+        path=path, now=now))
     if any(template not in json.loads(f.read_text("utf-8")) for f in I18N_DIR.glob("*.json")):
         (fill or _fill_or_placeholder)([template])   # the shipped tables already hold both templates
     return new

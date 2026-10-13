@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import re
 
-from .virality import grudge
 
 LONG_THINK_S = 30          # "decided in the last seconds": within this many seconds of the decision limit
 SOURCES_MIN = 10           # a "most sources" twist needs a real research gap
@@ -175,21 +174,6 @@ def streak_ended(rnd, ctx):
         return _t("streak_ended", 40, [e], f"{e['name']} came in on {-n} straight losses. It won.", streak=n)
 
 
-def grudge_flipped(rnd, ctx):
-    g = grudge(rnd, ctx.get("history") or [])
-    if not g:
-        return None
-    ents = {e["agent"]: e for e in rnd["entries"]}
-    a, b = ents[g["a"]], ents[g["b"]]
-    prev_a = g["a_wins"] - (1 if a.get("won") else 0)
-    prev_b = g["b_wins"] - (1 if b.get("won") else 0)
-    leader, chaser = (a, b) if prev_a > prev_b else (b, a) if prev_b > prev_a else (None, None)
-    if leader and chaser.get("won") and not leader.get("won"):
-        return _t("grudge_flipped", 55, [chaser, leader],
-                  f"{leader['name']} vs {chaser['name']}, clash {g['clash']}: {leader['name']} led the rivalry, "
-                  f"{chaser['name']} took this one.", clash=g["clash"])
-
-
 def last_seconds(rnd, ctx):
     lim = ctx.get("decision_limit_s") or 300
     late = [e for e in _bettors(rnd) if e.get("decided_s") is not None and e["decided_s"] >= lim - LONG_THINK_S]
@@ -253,7 +237,7 @@ def unanimous(rnd, ctx):
 
 
 DETECTORS = [confident_only_wrong, favourite_fell, lone_wolf_won, same_evidence_opposite, upset_won, wipeout,
-             most_sources_lost, streak_ended, grudge_flipped, last_seconds, changed_mind, own_odds_against, twins,
+             most_sources_lost, streak_ended, last_seconds, changed_mind, own_odds_against, twins,
              fastest_beat_slowest, unanimous]
 
 
@@ -267,7 +251,6 @@ SETUP = {
     "wipeout": "Make the field's consensus look unbeatable.",
     "most_sources_lost": "Show {a} as the most diligent researcher, reading everything, the one who did the homework.",
     "streak_ended": "Make {a}'s run look unstoppable.",
-    "grudge_flipped": "Remind the viewer who has owned this rivalry.",
     "last_seconds": "Let the clock tick: {a} still hasn't moved.",
     "changed_mind": "Show {a} leaning one way.",
     "own_odds_against": "Make {a} look like they believe in their pick.",

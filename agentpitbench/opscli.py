@@ -41,6 +41,8 @@ def add_parsers(sub) -> None:
     ap = msub.add_parser("approve")
     ap.add_argument("id")
     ap.add_argument("--major", action="store_true")
+    ap.add_argument("--snapshot-standings", action="store_true",
+                    help="freeze today's forecast and betting tables as the version's evidence file")
     rj = msub.add_parser("reject")
     rj.add_argument("id")
     rv = msub.add_parser("revert", help="undo a generated change (e.g. an automatic selection change) as a new "
@@ -166,7 +168,7 @@ def _method(s: Settings, db: DB, a) -> None:
             p = m.propose(s, changes, a.text, "operator", rehash=a.rehash)
             print(f"proposal {p['id']} written to {m.proposals_dir(s) / (p['id'] + '.json')}")
         elif a.method_cmd == "approve":
-            new = m.approve(s, a.id, "operator", major=a.major)
+            new = m.approve(s, a.id, "operator", major=a.major, snapshot=a.snapshot_standings)
             print(f"methodology.json is now v{new['version']}. Commit and deploy it:\n"
                   f"  git add agentpitbench/methodology.json agentpitbench/i18n/*.json\n"
                   f"  git commit -m 'Methodology v{new['version']}: {new['changelog'][-1]['text'][:60]}'\n"

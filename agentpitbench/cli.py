@@ -226,7 +226,8 @@ async def run_forever(s: config.Settings) -> None:
         status = await forecast.sweep(s, db, api)
         if status and all(v == "skipped" for v in status.values()):
             return  # sandbox broken: try again next hour
-        await forecast.duels_due(s, db, api)
+        if s.duels_enabled:
+            await forecast.duels_due(s, db, api)
         forecast.seal(s, db, day)
         db.put(f"sweep_{day}", status or "empty")
         if hasattr(pub, "site"):
@@ -236,8 +237,7 @@ async def run_forever(s: config.Settings) -> None:
 
     async def score_forecasts():
         from . import forecast
-        if await forecast.score_due(s, db, api) and engage is not None:
-            await engage.duel_results()
+        await forecast.score_due(s, db, api)
 
     async def due_reveals():
         """Reveals held for their live window (virality-2 F1); also resumes holds after a restart."""
@@ -405,6 +405,10 @@ async def sweep_now(s: config.Settings) -> None:
 async def duel(s: config.Settings, agent: str, old: str, new: str) -> None:
     from . import forecast
     db, api = DB(s.db_path), Agentpit(s.api_url)
+    if not s.duels_enabled:
+        print("launch-day duels are off (duels_enabled = false)")
+        await api.close()
+        return
     forecast.queue_duel(db, agent, old, new)
     print(await forecast.duels_due(s, db, api))
     await api.close()
