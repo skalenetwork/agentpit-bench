@@ -176,3 +176,11 @@ def test_operator_may_add_a_new_setting_to_the_lock(tree, tmp_path):
         m.propose(s, {"no_such_setting": "1"}, "typo")
     with pytest.raises(m.MethodologyError):
         m.propose(s, {"max_rounds_per_event_per_day": "1"}, "x", author="opai")
+
+
+def test_f1b_round_start_window_is_proposable(tree, tmp_path):
+    """virality-2 F1b ships as an operator proposal: the new keys are typed like their Settings defaults."""
+    s = Settings(data_dir=tmp_path / "var")
+    p = m.propose(s, {"round_start_window": "true", "round_start_min_h": "3", "round_start_max_h": "12"},
+                  "Rounds start 3-12 h before their event.")
+    assert p["changes"] == {"round_start_window": True, "round_start_min_h": 3.0, "round_start_max_h": 12.0}

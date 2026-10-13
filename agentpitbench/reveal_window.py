@@ -98,3 +98,21 @@ def due_at(question: str, event_start: float | None, end_date: str | None, now: 
     if end is not None and due > end - LAST_S:
         due = max(now, end - LAST_S)
     return due
+
+
+def start_ok(question: str, end_date: str | None, description: str | None, now: float,
+             min_h: float = 3, max_h: float = 12) -> bool:
+    """F1b (docs/virality-2-spec.md): may a round on this market start now? Only when its event is min_h..max_h hours
+    away (T from the market's own description, which carries the 'scheduled for ...' text, then kickoff()'s
+    fallbacks). Markets with no kickoff start inside the weekday window 13:30-20:00 UTC, where their reveal posts at
+    once. On a weekend, a no-kickoff market that ends before Monday's window may use the same hours, or it never runs."""
+    end = _ts(end_date)
+    t = kickoff(question, parse_kickoff(description, end or now), end_date, description)
+    if t:
+        return t - max_h * 3600 <= now <= t - min_h * 3600
+    slot = _next_day_slot(now)
+    if slot == now:
+        return True
+    d = datetime.fromtimestamp(now, timezone.utc)
+    in_hours = DAY_OPEN <= (d.hour, d.minute) < DAY_CLOSE
+    return d.weekday() >= 5 and in_hours and end is not None and end < slot

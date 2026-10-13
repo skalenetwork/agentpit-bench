@@ -40,6 +40,12 @@ class Settings:
     # rounds per event per UTC day (0: no limit). An "event" is the question with its numbers blanked, so a
     # ladder like "approval >= 38.0 / 38.2 / 38.4 on Oct 16" counts once (operator 2026-10-13)
     max_rounds_per_event_per_day: int = 0
+    # F1b (docs/virality-2-spec.md): start a round only when its event is round_start_min_h..round_start_max_h hours
+    # away (no-kickoff markets: weekdays 13:30-20:00 UTC), and spread the day's cap over the hourly batches instead of
+    # filling it after 00:00 UTC. Market selection, so it is switched on by a methodology proposal; off by default.
+    round_start_window: bool = False
+    round_start_min_h: float = 3
+    round_start_max_h: float = 12
     max_days_to_close: int = 7
     max_category_share: float = 0.4     # no category above this share of the rounds started in 7 days
     max_favourite_price: float = 0.85   # skip near-certain markets: they make dead rounds
