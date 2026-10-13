@@ -62,11 +62,16 @@ def git(*args: str) -> str:
                           check=True).stdout
 
 
+_warned: set[str] = set()
+
+
 def head() -> str | None:
     try:
         return git("rev-parse", "HEAD").strip() or None
     except Exception as e:
-        log.warning("announce: no git HEAD (%s)", e)
+        if "head" not in _warned:   # once per process, not every tick
+            _warned.add("head")
+            log.warning("announce: no git HEAD in %s (%s); deploys are not announced", REPO, e)
         return None
 
 
@@ -374,8 +379,11 @@ def tick(s: Settings, db=None, http=requests, *, now: float | None = None, lock_
             save_state(s, st)
             log.info("announce: deploy %s has nothing reader-visible; baseline moved", sha[:8])
             return False
+        old = rec
         rec = build(s, db, kind="auto", from_sha=st.get("last_sha"), to_sha=sha, vers=vers, subjects=subjects,
                     to_version=cur, now=now)
+        if old:   # a newer deploy while the old draft was in backoff: keep the retry count and schedule
+            rec.update(attempts=old.get("attempts", 0), next_try_at=old.get("next_try_at", 0))
         save_pending(s, rec)
         log.info("announce: draft %s (%s): %s", rec["id"], rec["source"], rec["draft"])
     return deliver(s, rec, http, now=now)
