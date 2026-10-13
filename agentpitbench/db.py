@@ -318,7 +318,7 @@ CREATE TABLE IF NOT EXISTS tt_videos (
     post_key TEXT PRIMARY KEY,          -- tt-<date>
     round_id INTEGER, file TEXT, question TEXT, caption TEXT,
     mode TEXT,                          -- inbox (drafts) | direct
-    state TEXT NOT NULL,                -- uploading | sent | published | failed | outbox | paused | stopped | removed
+    state TEXT NOT NULL,                -- uploading | sent | published | failed | outbox | paused | stopped | removed | voided
     publish_id TEXT,                    -- set before any byte is sent: never a second init
     status TEXT,                        -- last status/fetch status
     video_id TEXT, share_url TEXT,

@@ -67,7 +67,11 @@ def _status(s: Settings, db, client, now: float, out: dict) -> None:
         except tiktok.TikTokError as e:
             if e.code in tiktok.STOP_CODES:
                 tiktok.kill(s, db, f"{e.code} on status of {r['post_key']}")
-            raise
+                raise
+            if e.status is None or e.status >= 500:
+                raise
+            log.warning("tt %s: status/fetch refused (%s %s); other rows still polled", r["post_key"], e.status, e.code)
+            continue
         out["polled"] += 1
         st = d.get("status")
         f = {"status": st}
@@ -176,6 +180,8 @@ def void_round(s: Settings, db, round_id: int) -> bool:
         r = db.one("SELECT post_key, video_id, state FROM tt_videos WHERE round_id=?", round_id)
         if not r or r["state"] not in ("sent", "published"):
             return False
+        # terminal state: the operator hides it, and its absence from video/query must not read as a removal
+        db.x("UPDATE tt_videos SET state='voided' WHERE post_key=?", r["post_key"])
         from . import alerts
         alerts.send(s, db, "warn", "tiktok", f"Voided round on TikTok ({r['post_key']})",
                     f"Round {round_id} was voided after its film went to TikTok "

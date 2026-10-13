@@ -418,9 +418,15 @@ def upload(s: Settings, db, client: Client | None, rec: dict, film_dir: Path, ma
     init would make a second draft."""
     key = post_key(rec["date"])
     cur = row(db, key)
+    if cur and cur["state"] == "failed" and cur.get("publish_id") and manual:
+        # the operator re-runs a failed send: start over (a half-made draft may already be in the inbox)
+        log.warning("tt %s: re-sending after a failure (old publish_id %s); delete any duplicate draft",
+                    key, cur["publish_id"])
+        _set(db, key, publish_id=None, status=None)
+        cur = row(db, key)
     if cur and cur.get("publish_id"):
         return cur
-    if cur and cur["state"] in ("failed", "paused", "outbox", "stopped") and not manual:
+    if cur and cur["state"] in ("failed", "paused", "outbox", "stopped", "voided") and not manual:
         return cur
     path = Path(film_dir) / ((rec.get("files") or {}).get("tall") or "")
     if not path.is_file():

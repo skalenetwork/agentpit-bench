@@ -383,3 +383,48 @@ def test_digest_has_tiktok_block_only_when_enabled(tt):
     assert "tiktok" in xstats.digest(s, db, AT_18)
     s.tiktok_enabled = False
     assert "tiktok" not in xstats.digest(s, db, AT_18)
+
+
+def test_failed_put_can_be_resent_by_hand(tt, capsys):
+    s, db, rec = tt
+    g = FakeTikTok()
+    g.put_status = 500
+    r = tiktok.upload(s, db, client(s, db, g), rec, _d(s))
+    assert r["state"] == "failed" and r["publish_id"] == "v_inbox_1"
+    assert tiktok.upload(s, db, client(s, db, g), rec, _d(s))["state"] == "failed"   # the cycle never retries
+    g.put_status = 201
+    g.init_script = [ok({"publish_id": "p_retry", "upload_url": "https://upload.tiktok.example/u/2"})]
+    cli.tiktok_upload(s, DAY, client=client(s, db, g))
+    out = json.loads(capsys.readouterr().out)
+    assert out["state"] == "sent" and out["publish_id"] == "p_retry"
+
+
+def test_voided_video_missing_from_query_does_not_stop_tiktok(tt):
+    s, db, rec = tt
+    g = FakeTikTok()
+    c = client(s, db, g)
+    tiktok.upload(s, db, c, rec, _d(s))
+    db.x("UPDATE tt_videos SET state='published', video_id='7004', published_at=?", AT_18)
+    assert ttstats.void_round(s, db, rec["round_id"])
+    g.videos = []
+    ttstats.pull_due(s, db, c, AT_18 + 3700)
+    assert not tiktok.killed(db) and tiktok.row(db, f"tt-{DAY}")["state"] == "voided"
+
+
+def test_one_refused_status_does_not_block_others(tt):
+    s, db, rec = tt
+    g = FakeTikTok()
+    c = client(s, db, g)
+    db.x("INSERT INTO tt_videos(post_key, state, publish_id, mode) VALUES('tt-2026-10-01','sent','bad','direct')")
+    db.x("INSERT INTO tt_videos(post_key, state, publish_id, mode) VALUES('tt-2026-10-02','sent','good','direct')")
+    real = g.request
+
+    def req(method, url, **kw):
+        if url.endswith(tiktok.STATUS_FETCH) and kw["json"]["publish_id"] == "bad":
+            g.calls.append((method, url, kw))
+            return err(400, "invalid_publish_id")
+        return real(method, url, **kw)
+    g.request = req
+    g.status_data = {"status": "PUBLISH_COMPLETE", "publicaly_available_post_id": [7005]}
+    ttstats.pull_due(s, db, c, AT_17)
+    assert tiktok.row(db, "tt-2026-10-02")["video_id"] == "7005" and not tiktok.killed(db)

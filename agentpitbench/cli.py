@@ -741,7 +741,7 @@ def tiktok_upload(s: config.Settings, day: str, client=None) -> None:
     db = DB(s.db_path)
     rec, d = _film(s, day)
     cur = tiktok.row(db, tiktok.post_key(day))
-    if cur and cur.get("publish_id"):
+    if cur and cur.get("publish_id") and cur["state"] != "failed":
         sys.exit(f"already sent to TikTok (publish_id {cur['publish_id']}, state {cur['state']})")
     if tiktok.killed(db):
         sys.exit(f"TikTok is stopped ({tiktok.killed(db).get('reason')}); `agentpitbench tiktok on` after review")
