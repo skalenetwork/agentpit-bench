@@ -104,3 +104,16 @@ def _no_real_piper(monkeypatch, tmp_path_factory):
     from agentpitbench import sound
     empty = tmp_path_factory.mktemp("no-piper")
     monkeypatch.setattr(sound, "piper_paths", lambda s: (empty / "piper", empty))
+
+
+def copy_lock_v10(dst):
+    """The repo's methodology lock rewound to its 1.0 baseline (current hashes, later changelog entries dropped),
+    so lock tests count versions from 1.0 whatever the live lock is at (v1.1: Gemini 3.8 Flash, 2026-10-13)."""
+    import json
+    from agentpitbench import methodology
+    d = json.loads(methodology.LOCK.read_text("utf-8"))
+    d["version"] = "1.0"
+    d["changelog"] = [e for e in d["changelog"] if e.get("version") == "1.0"]
+    if d["changelog"] and d["changelog"][-1].get("params_sha"):   # the baseline's seal over today's hashes
+        d["changelog"][-1]["params_sha"] = methodology.params_sha(d)
+    dst.write_text(json.dumps(d, indent=1, ensure_ascii=False), encoding="utf-8")

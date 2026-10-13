@@ -7,6 +7,7 @@ import shutil
 from pathlib import Path
 
 import pytest
+from conftest import copy_lock_v10
 
 from agentpitbench import config, methodology as m, site
 from agentpitbench.config import Settings
@@ -22,7 +23,7 @@ def tree(tmp_path, monkeypatch):
     shutil.copy(PKG / "prompt.txt", pkg / "prompt.txt")
     shutil.copytree(PKG / "prompts", pkg / "prompts")
     shutil.copytree(PKG / "i18n", pkg / "i18n")
-    shutil.copy(PKG / "methodology.json", pkg / "methodology.json")
+    copy_lock_v10(pkg / "methodology.json")
     monkeypatch.setattr(m, "PKG", pkg)
     monkeypatch.setattr(m, "LOCK", pkg / "methodology.json")
     monkeypatch.setattr(m, "I18N_DIR", pkg / "i18n")

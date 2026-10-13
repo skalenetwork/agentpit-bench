@@ -67,7 +67,7 @@ async def test_writes_a_proposal_and_never_applies(env, fake_claude):
     p = methodology.get_proposal(s, out["proposal"])
     assert p["author"] == "opai" and p["state"] == "open" and p["changes"] == {"selection.scoring": "model"}
     assert "news shadow" in p["evidence"] and p["output_id"]
-    assert methodology.LOCK.read_bytes() == before and methodology.load()["version"] == "1.0"
+    assert methodology.LOCK.read_bytes() == before
     assert db.get(sr.LAST)["proposal"] == p["id"]
     assert await sr.due(s, db, SUNDAY + 600) is None                  # once a week
     out = await sr.review(s, db, SUNDAY + 7 * 86400)                   # an open opai proposal: no new one
