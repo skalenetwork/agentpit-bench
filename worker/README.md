@@ -116,4 +116,7 @@ curl -s -H "X-Bench-Key: $BENCH_INGEST_KEY" https://api.agentpitbench.org/v1/adm
 - After an operator `restore`, only reports made after the restore count toward the
   3-report auto-hide.
 - Account deletion removes the user row, picks, likes and rate rows; their comments stay
-  with `user: {id: null, name: "Deleted user"}`.
+  with `user: {id: null, name: "Deleted user"}`. Reports the user filed are kept (opaque
+  internal id only) so comments they helped hide stay hidden until an operator restores them.
+- `round_id` / `market_id` may be sent as numbers (the bench's `round_id` is an integer);
+  they are stored and returned as strings matching `[A-Za-z0-9._:-]{1,128}`.

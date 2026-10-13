@@ -249,6 +249,11 @@ describe('ingest key', () => {
     expect((await bench('POST', '/v1/ingest/markets', [{ market_id: 'x' }])).status).toBe(400);
     expect((await bench('POST', '/v1/ingest/markets', [market('x', { outcomes: ['Only'] })])).status).toBe(400);
     expect((await bench('POST', '/v1/ingest/markets', [market('x', { locks_at: 'not a date' })])).status).toBe(400);
+    // Integer round_id / market_id (the bench's rounds.round_id is an INTEGER) are accepted as strings.
+    expect((await bench('POST', '/v1/ingest/markets', [market('x', { market_id: 123, round_id: 42 })])).status).toBe(200);
+    const m = await call('GET', '/v1/markets/123');
+    expect(m.data.market).toMatchObject({ market_id: '123', round_id: '42' });
+    expect((await bench('POST', '/v1/ingest/results', [{ market_id: 123, round_id: 42, winner: 'Yes', ai_picks: {} }])).data.scored).toBe(1);
     // Epoch seconds accepted.
     expect((await bench('POST', '/v1/ingest/markets', [market('x', { locks_at: Math.floor(Date.now() / 1000) + 60 })])).status).toBe(200);
   });

@@ -203,9 +203,13 @@ function str(v, max) {
   return typeof v === 'string' && v.length > 0 && v.length <= max;
 }
 
-function validateMarket(m, i) {
+// The bench's round_id is an integer and market ids may be numeric: accept numbers, store as strings.
+const asId = (v) => (typeof v === 'number' && Number.isFinite(v) ? String(v) : v);
+
+function validateMarket(raw, i) {
   const where = `markets[${i}]`;
-  if (!m || typeof m !== 'object') throw bad('bad_market', `${where} must be an object`);
+  if (!raw || typeof raw !== 'object') throw bad('bad_market', `${where} must be an object`);
+  const m = { ...raw, market_id: asId(raw.market_id), round_id: asId(raw.round_id) };
   if (!str(m.market_id, 128) || !ID_RE.test(m.market_id)) throw bad('bad_market', `${where}.market_id invalid`);
   if (m.round_id != null && (!str(m.round_id, 128) || !ID_RE.test(m.round_id))) throw bad('bad_market', `${where}.round_id invalid`);
   if (!str(m.question, 1000)) throw bad('bad_market', `${where}.question required`);
@@ -256,8 +260,9 @@ const isLocked = (ctx, m) => ctx.now >= m.locks_at || m.resolved_at !== null;
 export async function postPick(ctx) {
   const user = await ctx.requireUser();
   const body = await readJson(ctx.request);
-  if (typeof body.market_id !== 'string') throw bad('bad_pick', 'market_id required');
-  const m = await getMarketRow(ctx, body.market_id);
+  const marketId = asId(body.market_id);
+  if (typeof marketId !== 'string') throw bad('bad_pick', 'market_id required');
+  const m = await getMarketRow(ctx, marketId);
   const outcomes = JSON.parse(m.outcomes);
   if (!outcomes.includes(body.outcome)) throw bad('bad_outcome', 'outcome must be one of the market outcomes');
   if (isLocked(ctx, m)) throw new HttpError(409, 'locked', 'picks are locked for this market', { locks_at: iso(m.locks_at) });
@@ -304,7 +309,8 @@ export async function ingestResults(ctx) {
   const unknown = [];
   let scored = 0;
   let voided = 0;
-  for (const [i, r] of items.entries()) {
+  for (const [i, raw] of items.entries()) {
+    const r = raw && typeof raw === 'object' ? { ...raw, market_id: asId(raw.market_id), round_id: asId(raw.round_id) } : raw;
     if (!r || typeof r.market_id !== 'string') throw bad('bad_result', `results[${i}].market_id required`);
     const m = await db.prepare('SELECT * FROM markets WHERE market_id = ?').bind(r.market_id).first();
     if (!m) {
