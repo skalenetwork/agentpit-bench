@@ -9,7 +9,10 @@ rest (a missing card means a text-only tweet).
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 from . import ab, exports, press
@@ -210,7 +213,13 @@ class BenchPublisher:
                                            split_text(self.s, rnd, kind, headline), png, video)
             # otherwise the split card and clip stay on the site; the reveal below is the round's X post
         if not self.s.post_decisions and rnd["entries"]:
-            await self._reveal(round_id, rnd)
+            due = self.reveal_due(round_id)
+            if due > time.time() + 60:   # held for the live window (virality-2 F1); the site shows the picks already
+                self.db.set_round(round_id, reveal_due_at=due)
+                log.info("round %s: reveal held until %s UTC", round_id,
+                         datetime.fromtimestamp(due, timezone.utc).strftime("%Y-%m-%d %H:%M"))
+            else:
+                await self._reveal(round_id, rnd)
         try:
             await self.engage.model_changes(round_id)
         except Exception:
@@ -218,6 +227,38 @@ class BenchPublisher:
         self.site.request()
         from . import summaries  # two-line agent summaries, off the round's path (docs/ai-automation-spec.md §7)
         summaries.schedule(self.s, self.db, round_id)
+
+    def reveal_due(self, round_id: int, now: float | None = None) -> float:
+        """When this round's reveal should post: now unless reveal_window is on and the live window is still ahead."""
+        now = time.time() if now is None else now
+        if not self.s.reveal_window:
+            return now
+        from .reveal_window import due_at
+        r = self.db.round(round_id)
+        try:
+            desc = json.loads(r["snapshot_json"] or "{}").get("description")
+        except ValueError:
+            desc = None
+        return due_at(r["question"], r["event_start"], r["end_date"], now, desc)
+
+    async def post_due_reveals(self, now: float | None = None, round_id: int | None = None) -> list[int]:
+        """Post every held reveal whose time has come (or the one of round_id, at once: its results are due). Each
+        is cleared before posting, so a posting failure is one attempt like any other post, never a retry loop."""
+        now = time.time() if now is None else now
+        rows = self.db.q("SELECT round_id FROM rounds WHERE reveal_due_at IS NOT NULL AND thread_tweet_id IS NULL AND "
+                         + ("round_id=?" if round_id is not None else "reveal_due_at<=?"),
+                         round_id if round_id is not None else now)
+        done = []
+        for row in rows:
+            rid = row["round_id"]
+            self.db.set_round(rid, reveal_due_at=None)
+            data = exports.export(self.s, self.db)
+            rnd = next((r for r in data["rounds"] if r["round_id"] == rid), None)
+            if rnd and rnd["entries"]:
+                self.cards.significance = data["leaderboard"]["significance"]["label"]
+                await self._reveal(rid, rnd)
+                done.append(rid)
+        return done
 
     async def _reveal(self, round_id: int, rnd: dict) -> None:
         """The round's opener on X, once every pick is in: the decision cards as up to four images, the split
@@ -235,7 +276,8 @@ class BenchPublisher:
         except Exception:  # A/B never blocks a post: the control goes out
             log.exception("A/B for %s failed; posting the control", key)
             text, media = reveal_text(rnd, headline), cards or None
-        alt = [card_alt(rnd, e) for _, e in shown] if media and list(media) == cards else None
+        # media is the decision cards (a list) or one split card (a Path): alt texts only describe the cards
+        alt = [card_alt(rnd, e) for _, e in shown] if isinstance(media, list) and media == cards else None
         async with self._lock(round_id):
             tid = await self.poster.post(key, "reveal", text, media, round_id=round_id, alt=alt)
             if tid:
@@ -263,6 +305,10 @@ class BenchPublisher:
         return text, media
 
     async def on_resolved(self, round_id: int) -> None:
+        try:   # a reveal still held for its window goes first: results quote it (virality-2 F1, never dropped)
+            await self.post_due_reveals(round_id=round_id)
+        except Exception:
+            log.exception("held reveal for round %s failed", round_id)
         try:  # humans' picks: read once (if not already, after the market closed), then scored
             await self.engage.collect_humans(round_id)
             self.engage.score_humans(round_id)

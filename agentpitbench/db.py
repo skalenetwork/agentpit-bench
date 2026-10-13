@@ -346,6 +346,9 @@ MIGRATIONS = [  # (table, column, definition): added when missing, so old databa
     ("runs", "wallet", "TEXT"),
     # the sports match title ('Lille OSC vs. Stade Brestois 29') posts put in front of a one-sided question
     ("rounds", "event_title", "TEXT"),
+    # the reveal's live window (docs/virality-2-spec.md F1): kickoff parsed from the event, and the held reveal's due time
+    ("rounds", "event_start", "REAL"),
+    ("rounds", "reveal_due_at", "REAL"),
 ]
 
 

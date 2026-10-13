@@ -228,6 +228,11 @@ async def run_forever(s: config.Settings) -> None:
         if await forecast.score_due(s, db, api) and engage is not None:
             await engage.duel_results()
 
+    async def due_reveals():
+        """Reveals held for their live window (virality-2 F1); also resumes holds after a restart."""
+        if hasattr(pub, "post_due_reveals"):
+            await pub.post_due_reveals()
+
     async def summons():
         if engage is not None:
             await engage.poll_summons()
@@ -257,6 +262,7 @@ async def run_forever(s: config.Settings) -> None:
     log.info("AgentpitBench running (dry_run=%s, posting_paused=%s)", s.dry_run, s.posting_paused)
     tasks = [
         asyncio.create_task(_every(s.poll_interval_s, poll, "watcher")),
+        asyncio.create_task(_every(60, due_reveals, "due-reveals")),
         asyncio.create_task(_every(s.batch_interval_s, start_batch, "batch")),
         asyncio.create_task(_every(s.resolution_check_s, tracker.check, "tracker")),
         asyncio.create_task(_every(s.resolution_check_s, humans, "humans")),

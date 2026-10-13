@@ -95,6 +95,7 @@ class Settings:
     posting_paused: bool = False
     # the only post kinds that go out (empty: every kind). Replies are never posted while this is set.
     post_kinds: list[str] = field(default_factory=list)
+    reveal_window: bool = False   # virality-2 F1: hold the reveal for its live window (T-3h .. T-15min)
     agents: list[str] = field(default_factory=lambda: ["claude", "codex", "agy", "grok"])
     excluded_keywords: list[str] = field(default_factory=list)
     # engagement extras

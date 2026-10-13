@@ -324,20 +324,28 @@ async def cli_version(cli: AgentCLI) -> str | None:
 _VS = re.compile(r"\bvs\.?(?=\s|$)", re.I)
 
 
-async def event_title(api, condition_id: str | None, timeout: float = 60) -> str | None:
-    """The agentpit event title of a market when it is a sports match ('Lille OSC vs. Stade Brestois 29'), else
-    None: other categories have group titles that add nothing searchable. Any failure is None (logged)."""
+async def event_info(api, condition_id: str | None, ref: float | None = None,
+                     timeout: float = 60) -> tuple[str | None, float | None, str | None]:
+    """(match title, kickoff, description) of a market's agentpit event. The title only for sports matches
+    ('Lille OSC vs. Stade Brestois 29'): other categories have group titles that add nothing searchable. The kickoff
+    is parsed from the description (virality-2 spec F1). Any failure is (None, None, None), logged."""
     if not condition_id or api is None or not hasattr(api, "event_for"):
-        return None
+        return None, None, None
     try:
         ev = await asyncio.wait_for(api.event_for(condition_id), timeout)
     except Exception as e:
-        log.info("event title for %s unavailable: %s", condition_id, e)
-        return None
-    title = " ".join(((ev or {}).get("title") or "").split())
-    if (ev or {}).get("category") == "Sports" and _VS.search(title):
-        return title
-    return None
+        log.info("event for %s unavailable: %s", condition_id, e)
+        return None, None, None
+    ev = ev or {}
+    title = " ".join((ev.get("title") or "").split())
+    desc = ev.get("description") or None
+    from .reveal_window import parse_kickoff
+    start = parse_kickoff(desc, ref or time.time())
+    return (title if ev.get("category") == "Sports" and _VS.search(title) else None), start, desc
+
+
+async def event_title(api, condition_id: str | None, timeout: float = 60) -> str | None:
+    return (await event_info(api, condition_id, timeout=timeout))[0]
 
 
 def build_prompt(market: dict, memory: list[dict]) -> str:
@@ -640,15 +648,19 @@ class Round:
         if void:
             await self._safe(void(self.round_id))
 
-    async def _event_title(self) -> None:
-        """Store the match title for posts (longtail spec §2). Never blocks or fails a round; agents never see it."""
-        title = await event_title(self.public, self.market.get("conditionId"))
-        if title:
-            self.db.set_round(self.round_id, event_title=title)
+    async def _event_info(self) -> None:
+        """Store the match title (long-tail search) and the kickoff (reveal window) on the round. Never blocks or fails
+        a round; agents never see either."""
+        from .reveal_window import _ts
+        title, start, _desc = await event_info(self.public, self.market.get("conditionId"),
+                                               _ts(self.market.get("endDate")))
+        fields = {k: v for k, v in (("event_title", title), ("event_start", start)) if v}
+        if fields:
+            self.db.set_round(self.round_id, **fields)
 
     async def run(self) -> int:
         self.round_id = self.db.create_round(self.market, self.s.methodology_version)
-        self._hook(self._event_title())
+        self._hook(self._event_info())
         versions = await asyncio.gather(*(cli_version(CLIS[a]) for a in self.agents))
         for a, v in zip(self.agents, versions):
             self.run_ids[a] = self.db.create_run(self.round_id, a, cli_version=v)
