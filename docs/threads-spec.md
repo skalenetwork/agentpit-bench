@@ -135,3 +135,4 @@ CREATE TABLE IF NOT EXISTS threads_metrics ( -- one row per insights read of one
 
 - Account: a **new** Instagram/Threads account for AgentpitBench (not an existing one). The operator creates it; then `threads-login`.
 - Media: **wait for the site deploy** (media served from agentpitbench.org; no R2 bucket).
+- Topic tag: **per market category** (Sports / Crypto / Stocks …).
