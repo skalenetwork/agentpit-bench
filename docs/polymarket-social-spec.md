@@ -169,3 +169,12 @@ M1 can ship on its own right away. M3–M6 wait for tomorrow's backend and for t
 - [Polymarket on Wikipedia](https://en.wikipedia.org/wiki/Polymarket)
 - [PolyAlertHub Insights (third-party; Comments / Top Holders tabs on market pages)](https://addons.mozilla.org/en-US/firefox/addon/polyalerthub-insights/)
 - Internal: `docs/polymarket-layout-spec.md`, `docs/share-ux-v2-spec.md`, the 2026-10-13 share-button research, and the X card-cache finding.
+
+## Operator decisions (2026-10-13)
+
+1. Comments: **full comments** (visitor comments with pick badge), no pinned AI statements; built TODAY with the backend (operator 2026-10-13 evening).
+2. Names: **generated + optional rename** (word-filtered).
+3. Links / moderation: defaults (plain-text links; 3 reports auto-hide; daily list for the operator to confirm/restore) unless the operator says otherwise.
+5. Bookmarks: **browser only**. Bookmarks + share icon: **build tonight**.
+6. Agent identity: use the **real product logos** (Claude, ChatGPT, Gemini, Grok), small, next to names: on the site, share/preview images and films (see the logo task).
+7. Accounts: users log in with **Google (Gmail) only**: no anonymous tokens and no other providers. Applies to tomorrow's "Beat the AIs" picks and comments (Cloudflare Worker verifies the Google ID token; store only the Google account id (sub), a display name (generated + rename) and picks/comments; no email shown publicly). Bookmarks stay browser-only and need no login. The Privacy and Terms pages must be updated for Google sign-in before it ships.
