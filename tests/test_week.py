@@ -16,6 +16,12 @@ from agentpitbench.twitter import Poster
 from test_motd import E, R
 from test_publish import env, make_round  # noqa: F401  (env is a fixture)
 
+
+@pytest.fixture(autouse=True)
+def _outside_sweep_window(monkeypatch):
+    """opai skips calls during the daily forecast sweep (about 07:00 UTC): keep the writer tests off the clock."""
+    monkeypatch.setattr(opai, "sweep_window", lambda s, now: (0.0, 0.0))
+
 WEEK = "2026-W42"   # Monday 12 October .. Sunday 18 October 2026
 MON = datetime(2026, 10, 12, tzinfo=timezone.utc).timestamp()
 SUN18 = datetime(2026, 10, 18, 18, 5, tzinfo=timezone.utc).timestamp()
