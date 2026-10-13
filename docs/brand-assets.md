@@ -12,12 +12,12 @@ One asset map drives everything: `LOGOS` in `agentpitbench/mascots.py`, files in
 
 | Agent | File | Variant / used on | Source | SHA-256 |
 |---|---|---|---|---|
-| Claude (`claude`) | `claude-spark-clay.svg` | Claude Spark, Clay (the kit's only colourway of the mark): every background | Anthropic newsroom press kit, `https://www.anthropic.com/press-kit` (redirects to `https://www-cdn.anthropic.com/ae59ca4ca194dac9c9dc3bc78c5829468cb0e8af.zip`, "Anthropic media resources.zip"), `Anthropic logos/Claude logos/3 Claude Spark/SVG/Claude Spark - Clay.svg` | `6d53db4b…0e219` |
-| ChatGPT (`codex`) | `openai-blossom-white.svg` | Blossom, white: dark backgrounds (site dark theme, all cards and films) | OpenAI brand page `https://openai.com/brand/` → "Download logos": `https://cdn.openai.com/brand/OpenAI-Logos-2025.zip`, `OpenAI-logos(new)/SVGs/OpenAI-white-monoblossom.svg` | `b94ea61d…0011` |
-| ChatGPT (`codex`) | `openai-blossom-black.svg` | Blossom, black: site light theme | same zip, `OpenAI-black-monoblossom.svg` | `7be72f1f…0b` |
-| Gemini (`agy`) | `gemini-sparkle.png` | The four-colour Gemini spark, 512 px (Google ships one colourway): every background | Google's own Gemini sites: the icon `gemini.google` and `gemini.google.com` declare (`<link rel="icon">`), `https://www.gstatic.com/lamda/images/gemini_sparkle_4g_512_lt_f94943af3be039176192d.png` | `5e7cfeca…a4a1` |
-| Grok (`grok`) | `grok-logomark-light.svg` | Grok logomark, light (white): dark backgrounds (site dark theme, all cards and films) | xAI brand guidelines `https://x.ai/legal/brand-guidelines` → "Download Logos". The live download (`https://data.x.ai/logos/SpaceXAI_Grok_Assets.zip`) and page return 403 to scripted clients, so the zip is the Internet Archive capture of the official URL `https://data.x.ai/logos/xAI_Grok_Assets.zip` (2025-09-10, `web.archive.org/web/20250910134422id_/…`); its SHA-1 matches the archive's recorded digest. File `Grok_Logomark_Light.svg` | `b20648e2…0491` |
-| Grok (`grok`) | `grok-logomark-dark.svg` | Grok logomark, dark (#0A0A0A): site light theme | same zip, `Grok_Logomark_Dark.svg` | `a127a7cd…3ffc` |
+| Claude (`claude`) | `claude-spark-clay.svg` | Claude Spark, Clay (the kit's only colourway of the mark): every background | Anthropic newsroom press kit, `https://www.anthropic.com/press-kit` (redirects to `https://www-cdn.anthropic.com/ae59ca4ca194dac9c9dc3bc78c5829468cb0e8af.zip`, "Anthropic media resources.zip"), `Anthropic logos/Claude logos/3 Claude Spark/SVG/Claude Spark - Clay.svg` | `6d53db4b…2560e219` |
+| ChatGPT (`codex`) | `openai-blossom-white.svg` | Blossom, white: dark backgrounds (site dark theme, all cards and films) | OpenAI brand page `https://openai.com/brand/` → "Download logos": `https://cdn.openai.com/brand/OpenAI-Logos-2025.zip`, `OpenAI-logos(new)/SVGs/OpenAI-white-monoblossom.svg` | `b94ea61d…c7560011` |
+| ChatGPT (`codex`) | `openai-blossom-black.svg` | Blossom, black: site light theme | same zip, `OpenAI-black-monoblossom.svg` | `7be72f1f…4aa1e00b` |
+| Gemini (`agy`) | `gemini-sparkle.png` | The four-colour Gemini spark, 512 px (Google ships one colourway): every background | Google's own Gemini sites: the icon `gemini.google` and `gemini.google.com` declare (`<link rel="icon">`), `https://www.gstatic.com/lamda/images/gemini_sparkle_4g_512_lt_f94943af3be039176192d.png` | `5e7cfeca…e641a4a1` |
+| Grok (`grok`) | `grok-logomark-light.svg` | Grok logomark, light (white): dark backgrounds (site dark theme, all cards and films) | xAI brand guidelines `https://x.ai/legal/brand-guidelines` → "Download Logos". The live download (`https://data.x.ai/logos/SpaceXAI_Grok_Assets.zip`) and page return 403 to scripted clients, so the zip is the Internet Archive capture of the official URL `https://data.x.ai/logos/xAI_Grok_Assets.zip` (2025-09-10, `web.archive.org/web/20250910134422id_/…`); its SHA-1 matches the archive's recorded digest. File `Grok_Logomark_Light.svg` | `b20648e2…f5840491` |
+| Grok (`grok`) | `grok-logomark-dark.svg` | Grok logomark, dark (#0A0A0A): site light theme | same zip, `Grok_Logomark_Dark.svg` | `a127a7cd…ffc83992` |
 
 Full hashes: `sha256sum agentpitbench/static/logos/*`. Do not edit these files; to update a mark, download the
 brand's current file and record the new source and hash here.
@@ -38,7 +38,7 @@ brand's current file and record the new source and hash here.
 - **Minimum size.** Smallest use is 18 px (site table rows). None of the guidelines we could read gives a pixel
   minimum; at 18 px all four marks stay recognisable.
 - **Identification only, no endorsement.** Logos identify which AI made a bet; they are never used as our
-  branding, in our name, on merchandise, or in a way that suggests sponsorship. Every site page's footer and the
+  branding, in our name, on merchandise, or in a way that suggests sponsorship. Every full site page's footer (not the compact embeds, which have no footer) and the
   agent profile card carry: "Product names and logos belong to their owners; AgentpitBench is not affiliated
   with or endorsed by them." (translated into every site language). The other cards' credibility strip has no
   room for it at the 26 px legibility minimum, so it appears only on the agent card among share images.
