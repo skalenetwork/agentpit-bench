@@ -1,6 +1,6 @@
 # TikTok: the daily film on a third video platform (spec)
 
-Status: draft, 2026-10-13. Nothing is built. It ships with `tiktok_enabled = false` and goes live only after the operator decisions in §9 and TikTok's app audit (§2).
+Status: built 2026-10-13 in drafts mode (`agentpitbench/tiktok.py`, `ttstats.py`, `tests/test_tiktok.py`), shipped with `tiktok_enabled = false`. The operator decided go via drafts (below), so the TikTok audit gates only Direct Post, not v1. Setup steps: **Runbook** at the end.
 
 ## Goal
 
@@ -55,7 +55,7 @@ If the audit is refused, or requires per-post human interaction, use **Upload to
 - **Disclosure:**
   - Set `is_aigc = true` when the film is narrated with a synthetic voice. The field isn't confirmed in the docs I found, so verify its name in the current API reference at build time. If it doesn't exist, use the account-level AI label plus "AI-voiced" in the caption.
   - Set `brand_content_toggle = false` and `brand_organic_toggle = false`: it isn't sponsored.
-- **Other settings:** comments allowed (`disable_comment = false`), duet and stitch on; operator decision §9.4. We never reply to comments (two-posts rule).
+- **Other settings:** comments allowed (`disable_comment = false`), duet and stitch **off** (operator decision 2026-10-13, superseding the recommendation in §9.4). We never reply to comments (two-posts rule).
 - `video_cover_timestamp_ms` points at the frame with the four agents' picks.
 
 ## 5. Schedule
@@ -110,3 +110,57 @@ If the audit is refused, or requires per-post human interaction, use **Upload to
 1. **Go, via drafts**: the daily film is uploaded as a draft the operator publishes with one tap; apply for the audit in parallel; auto-stop on any strike. Other §9 items (handle, comments/duets, posting hour) default to the spec's recommendations unless the operator says otherwise.
 2. Handle **@agentpitbench**. 3. Comments **on**, duets and stitches **off**.
 4. Posting hour **18:00 UTC**.
+
+## Build notes (2026-10-13)
+
+- **Mode.** `tiktok_mode = "inbox"`: `POST /v2/post/publish/inbox/video/init/` with one `FILE_UPLOAD` chunk (the film is at most 10 MB), then one `PUT` of the bytes to the returned `upload_url`. The draft lands in @agentpitbench's TikTok inbox. `tiktok_mode = "direct"` (Direct Post with `post_info`, after a `creator_info` privacy and duration check) is built and tested against the fake API but stays off until the audit.
+- **The inbox endpoint takes no caption (verify).** The reference I know accepts only `source_info`, so §2a's "caption prefilled" is probably wrong. The bot therefore raises an **info alert** (`var/alerts`, kind `tiktok-draft`) for every draft, carrying the caption to paste and the in-app settings: comments on, duet off, stitch off, AI-generated label on when narrated, branded content off. `agentpitbench tiktok meta --date D` prints the same text.
+- **Caption** (`tiktok.caption`): the hook, then the full market name on its own line (never clipped unless the caption would pass 2,200 characters, and the hook is shortened first), `Result: <winner>.`, `agentpitbench.org/round/<id>` as plain text, `AI-voiced.` when narrated, then `#AI #ChatGPT #Claude #Gemini #Grok` plus the category hashtag. A hook that matches the betting-CTA pattern (bet now, tail, fade, agentpit links) is dropped, never reworded.
+- **Schedule.** `tiktok_task` runs every 10 min in its own thread, like YouTube's. A film is due at `tiktok_post_hour_utc` (18) UTC on its date. The key is `tt-<date>`. `publish_id` is stored before any byte is sent and the init is never repeated once it exists, because a second init would make a second draft. Failures raise a warn alert and never block X or YouTube.
+- **Records.** `tt_videos` (state `uploading → sent → published`, or `failed`, `paused`, `outbox`, `stopped`, `removed`) and `tt_metrics` (1 h, 24 h and 7 d buckets from `video/query`: views, likes, comments, shares). The 08:00 UTC digest gets a `tiktok` block when `tiktok_enabled` is on.
+- **Draft to video id.** `status/fetch` is polled. If it returns a public post id (field `publicaly_available_post_id`, TikTok's own spelling: verify), the row is published. If not, the cycle looks in `video/list` for a video created after the upload whose caption contains the market name (verify that a published draft never gets an id through status/fetch).
+- **Auto-stop** (kv `tiktok_killed`, plus a warn alert; `agentpitbench tiktok on` clears it after review). It triggers on:
+  - a stop error code on init or status: `spam_risk_user_banned_from_posting`, `unaudited_client_can_only_post_to_private_accounts`, `scope_not_authorized`, `privacy_level_option_mismatch` and similar (exact code list: verify);
+  - a published video that `video/query` no longer returns (removed or restricted);
+  - the For You check: the operator records each of the first 5 videos' For You share from TikTok Studio (`agentpitbench tiktok foryou --date D --pct P`), and a mean under `tiktok_min_fyp_pct` (10) stops it;
+  - a strike the API doesn't report: run `agentpitbench tiktok off "<reason>"`.
+- **Voided round.** The API can't hide a TikTok video, so a void raises a warn alert telling the operator to delete the draft or set the video to Only me.
+- **Account guard.** `tiktok_open_id` must equal the token's `open_id`, or nothing is uploaded. `tiktok check` prints the value to paste.
+- **No other activity.** The bot makes no comments, replies, likes or follows. It reads only `user/info`, `status/fetch`, `video/query` and `video/list`.
+
+## Runbook: TikTok developer app and login (operator, about 30 min, once)
+
+Every portal label below is from TikTok's docs as I know them (verify on screen).
+
+1. **Account.** Create the TikTok account **@agentpitbench** in the app, and switch it to a Business account if TikTok asks (verify). Set the bio link to `https://agentpitbench.org`. Turn on the account-level AI-generated content disclosure if TikTok offers one.
+2. **Developer portal.** Log in at https://developers.tiktok.com with the same email, then go to Manage apps > Connect an app (or Create app). Name the app "AgentpitBench" and set the category to Entertainment or Utilities.
+   - Platform: **Web**.
+   - Website URL: `https://agentpitbench.org`.
+   - Terms of Service URL and Privacy Policy URL are required, and the site has neither page yet. Use `https://agentpitbench.org/independence/` as a stopgap only if the form accepts it. Otherwise these two pages need building first: open item.
+   - Description: "Uploads one daily AI-benchmark video (Match of the Day) from our server to our own TikTok account's drafts; a human publishes it."
+3. **Products.** Add **Login Kit** and **Content Posting API**. In Content Posting API, enable **Upload** (inbox/drafts). Leave **Direct Post** off for now. Direct Post needs the audit; apply later, with this working drafts integration as the demo.
+4. **Scopes:** `user.info.basic`, `video.upload`, `video.list`. Add `video.publish` only when applying for Direct Post.
+5. **Redirect URI** (Login Kit > Web): `https://agentpitbench.org/tiktok/callback/`, exactly, with the trailing slash. The page may 404, and that's fine: you only copy the URL from the address bar. Using another URI means also setting `tiktok_redirect_uri` in `bench.toml` to the same string.
+6. **Sandbox or review.** Until TikTok approves the app, use **Sandbox**: create a sandbox, add @agentpitbench as a **target user**, and use the sandbox's own Client key and secret. Whether sandbox uploads really land in drafts: verify. Then **Submit for review** for production with the same scopes, and swap to the production key and secret when it's approved.
+7. **Secrets.** Add these two lines to `~/.config/agentpitbench/secrets.env` on the server:
+   ```
+   TT_CLIENT_KEY=<Client key>
+   TT_CLIENT_SECRET=<Client secret>
+   ```
+8. **Log in.** In a browser signed into TikTok as @agentpitbench only, run `agentpitbench tiktok auth` on the server. Open the printed URL, approve, then paste the URL you land on (it starts `https://agentpitbench.org/tiktok/callback/?code=`) at the prompt, or run `agentpitbench tiktok auth --url '<URL>'`. Be quick: the code expires within minutes. The token is written to `~/.config/agentpitbench/tt_oauth2.json` (mode 600; override with `BENCH_TT_TOKEN_FILE`). Access tokens last about 24 h and refresh automatically. The refresh token lasts about 365 days (verify), and `tiktok check` shows the days left.
+9. **Check.** Run `agentpitbench tiktok check`. It should say token refresh OK and missing: none. Paste the printed `tiktok_open_id = "..."` into `bench.toml`.
+10. **First upload by hand.** Run `agentpitbench tiktok meta --date <today>` to read the caption, then `agentpitbench --live tiktok upload --date <today>`. In the TikTok app, open the inbox notification (or Profile > Drafts), paste the caption from the `tiktok-draft` alert, and set comments on, duet off, stitch off, the AI-generated label (when narrated) and Everyone. Then tap Post.
+11. **Go on.** Set `tiktok_enabled = true` in `bench.toml` and restart via the normal ship. From then on a draft arrives at 18:00 UTC every day.
+12. **First 5 videos.** About 48 h after each one, read TikTok Studio > the video > Traffic source > For You, and run `agentpitbench tiktok foryou --date <date> --pct <For You %>`. After the 5th, a mean under 10% stops TikTok automatically.
+13. **Strike, removal or warning in the app:** run `agentpitbench tiktok off "<what happened>"`. To resume after review: `agentpitbench tiktok on`.
+
+### Unverified API details (all constants in `agentpitbench/tiktok.py`)
+
+- Authorize URL `https://www.tiktok.com/v2/auth/authorize/` and token URL `https://open.tiktokapis.com/v2/oauth/token/`: a form POST with `client_key`, the token rotating on refresh, and scopes returned comma-separated.
+- The inbox init path and body, and whether it accepts any `post_info` (title).
+- Chunk rules: a file under 64 MB is assumed to go up as one chunk, with `Content-Range: bytes 0-(n-1)/n` on the PUT.
+- The status values (`PROCESSING_UPLOAD`, `SEND_TO_USER_INBOX`, `PUBLISH_COMPLETE`, `FAILED`) and the `publicaly_available_post_id` field.
+- `video/query` and `video/list` field names (`view_count`, `like_count`, `comment_count`, `share_count`, `create_time`, `share_url`).
+- Whether a removed or restricted video disappears from `video/query`, or comes back with a status.
+- The `is_aigc` field name (Direct Post only), and the exact stop-code list.
+- Whether a Web app's redirect URI may be a page that 404s.

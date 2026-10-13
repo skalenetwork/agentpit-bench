@@ -176,6 +176,9 @@ class BenchPublisher:
         self.db.x("UPDATE bets SET tweet_id=NULL WHERE run_id IN (SELECT run_id FROM runs WHERE round_id=?)", round_id)
         self.db.set_round(round_id, thread_tweet_id=None)
         await self._hide_youtube(round_id)
+        if self.db.one("SELECT 1 FROM tt_videos WHERE round_id=?", round_id):   # TikTok: an operator alert
+            from . import ttstats
+            ttstats.void_round(self.s, self.db, round_id)
         exports.export(self.s, self.db)
         self.site.request()
 

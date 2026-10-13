@@ -101,6 +101,27 @@ def youtube_task(s: config.Settings, db: DB, client=None):
         await asyncio.to_thread(ytstats.pull_due, s, db, c)
     return cycle
 
+TIKTOK_INTERVAL_S = 600
+
+
+def tiktok_task(s: config.Settings, db: DB, client=None):
+    """The TikTok cycle (docs/tiktok-spec.md §5), or None unless tiktok_enabled and motd_enabled. Its own loop in a
+    thread, like YouTube's, so a failure never blocks X or YouTube."""
+    if not (s.tiktok_enabled and s.motd_enabled):
+        return None
+    from . import tiktok, ttstats
+
+    async def cycle():
+        c = client or tiktok.client_from_settings(s, db)
+        if c is None and not s.dry_run:
+            if not db.get("tt_no_token_logged"):
+                log.error("tiktok_enabled but no TikTok token: run `agentpitbench tiktok auth`")
+                db.put("tt_no_token_logged", True)
+            return
+        await asyncio.to_thread(ttstats.pull_due, s, db, c)
+    return cycle
+
+
 def rounds_paused(s: config.Settings, db: DB) -> bool:
     """New rounds (batch, High-Stakes, summons, manual) are held while an anomaly or the operator paused them.
     In-flight rounds finish; the forecast sweep is never paused."""
@@ -294,6 +315,9 @@ async def run_forever(s: config.Settings) -> None:
     yt = youtube_task(s, db)
     if yt is not None:
         tasks.append(asyncio.create_task(_every(YOUTUBE_INTERVAL_S, yt, "youtube")))
+    tt = tiktok_task(s, db)
+    if tt is not None:
+        tasks.append(asyncio.create_task(_every(TIKTOK_INTERVAL_S, tt, "tiktok")))
     await stop.wait()
     log.info("stopping; in-flight rounds will be marked crashed on next start")
     for t in tasks + list(running):
@@ -643,6 +667,114 @@ def youtube_stats(s: config.Settings, days: float) -> None:
     print("health:", json.dumps(ytstats.health(db)))
 
 
+def tiktok_redirect(s: config.Settings) -> str:
+    return s.tiktok_redirect_uri or f"{s.site_url.rstrip('/')}/tiktok/callback/"
+
+
+def tiktok_auth(s: config.Settings, redirected: str | None, direct: bool = False) -> None:
+    """One-time: authorize @agentpitbench (TikTok OAuth; paste the URL TikTok redirects to)."""
+    from . import tiktok
+    tok = tiktok.Token()
+    if not tok.configured:
+        sys.exit("need TT_CLIENT_KEY and TT_CLIENT_SECRET in the secrets file (~/.config/agentpitbench/secrets.env)")
+    if not redirected:
+        url = tok.authorize_url(tiktok_redirect(s), tiktok.DIRECT_SCOPES if direct else tiktok.SCOPES)
+        print(f"1. In a browser logged into TikTok as @{s.tiktok_handle} (and no other TikTok account), open:\n")
+        print(url)
+        print("\n2. Approve. You land on a page (it may 404) whose URL contains ?code=...&state=...")
+        if not sys.stdin.isatty():
+            print("3. Copy that whole URL and run:  agentpitbench tiktok auth --url '<that URL>'  "
+                  "(right away: the code expires in minutes)")
+            return
+        redirected = input("3. Paste that whole URL here and press Enter:\n> ")
+    print("logged in; scopes:", " ".join(sorted(tok.finish_login(redirected))))
+    print(f"open_id: {tok.open_id()}")
+    print("next: agentpitbench tiktok check")
+
+
+def tiktok_check(s: config.Settings, client=None) -> None:
+    """Token refreshes, scopes, the account behind the token vs tiktok_open_id, mode, health."""
+    from . import tiktok, ttstats
+    db = DB(s.db_path)
+    tok = client.token if client else tiktok.Token()
+    print(f"token file: {tok.path} ({'present' if tok.path.exists() else 'MISSING'})")
+    if not tok.configured:
+        sys.exit("need TT_CLIENT_KEY and TT_CLIENT_SECRET in the secrets file")
+    if not tok.ready:
+        sys.exit("no token: run `agentpitbench tiktok auth`")
+    tok.get(stale=tok._load().get("access_token"))   # force a refresh: proves the refresh token works
+    d = tok._load()
+    left = (d.get("refresh_expires_at", time.time()) - time.time()) / 86400
+    print(f"token refresh: OK (refresh token valid about {left:.0f} more days)")
+    need = set(tiktok.DIRECT_SCOPES if s.tiktok_mode == "direct" else tiktok.SCOPES)
+    print("scopes:", " ".join(sorted(tok.scopes())), "| missing:", ", ".join(sorted(need - tok.scopes())) or "none")
+    c = client or tiktok.Client(s, db, tok)
+    u = c.user()
+    oid = tok.open_id() or u.get("open_id")
+    print(f"token account: open_id {oid}  display name {u.get('display_name')!r}")
+    if not s.tiktok_open_id:
+        print(f"account guard: tiktok_open_id is empty (uploads refused). If this is @{s.tiktok_handle}, put\n"
+              f"  tiktok_open_id = \"{oid}\"\nin bench.toml")
+    elif oid == s.tiktok_open_id:
+        print("account guard: OK")
+    else:
+        print(f"account guard: MISMATCH (bench.toml has {s.tiktok_open_id}); uploads are refused. "
+              f"Re-run `tiktok auth` logged in as @{s.tiktok_handle}.")
+    if s.tiktok_mode == "direct":
+        ci = c.creator_info()
+        print("creator_info:", json.dumps({k: ci.get(k) for k in ("creator_username", "privacy_level_options",
+                                                                   "max_video_post_duration_sec")}))
+    print(f"tiktok_enabled={s.tiktok_enabled} motd_enabled={s.motd_enabled} mode={s.tiktok_mode} "
+          f"post_hour_utc={s.tiktok_post_hour_utc} dry_run={s.dry_run} posting_paused={s.posting_paused}")
+    print("stopped:", json.dumps(tiktok.killed(db)))
+    print("health:", json.dumps(ttstats.health(db)))
+
+
+def tiktok_meta(s: config.Settings, day: str) -> None:
+    from . import tiktok
+    rec, _ = _film(s, day)
+    print(tiktok.draft_note(s, rec))
+
+
+def tiktok_upload(s: config.Settings, day: str, client=None) -> None:
+    from . import tiktok
+    db = DB(s.db_path)
+    rec, d = _film(s, day)
+    cur = tiktok.row(db, tiktok.post_key(day))
+    if cur and cur.get("publish_id"):
+        sys.exit(f"already sent to TikTok (publish_id {cur['publish_id']}, state {cur['state']})")
+    if tiktok.killed(db):
+        sys.exit(f"TikTok is stopped ({tiktok.killed(db).get('reason')}); `agentpitbench tiktok on` after review")
+    c = client or tiktok.client_from_settings(s, db)
+    if c is None and not (s.dry_run or s.posting_paused):
+        sys.exit("no TikTok token: run `agentpitbench tiktok auth`")
+    print(json.dumps(tiktok.upload(s, db, c, rec, d, manual=True), indent=1))
+
+
+def tiktok_stats(s: config.Settings, days: float) -> None:
+    from . import ttstats
+    db = DB(s.db_path)
+    print(f"films from the last {days:g} day(s), X beside TikTok:")
+    print(_table(ttstats.by_film(db, time.time() - days * 86400)))
+    print("\nFor You check:", json.dumps(ttstats.foryou_check(s, db, act=False)))
+    print("health:", json.dumps(ttstats.health(db)))
+
+
+def tiktok_foryou(s: config.Settings, day: str, pct: float) -> None:
+    from . import tiktok, ttstats
+    print(json.dumps(ttstats.record_foryou(s, DB(s.db_path), tiktok.post_key(day), pct), indent=1))
+
+
+def tiktok_switch(s: config.Settings, off: str | None) -> None:
+    from . import tiktok
+    db = DB(s.db_path)
+    if off:
+        tiktok.kill(s, db, off, manual=True)
+    else:
+        tiktok.resume(db)
+    print(json.dumps({"tiktok_enabled": s.tiktok_enabled, "stopped": tiktok.killed(db)}, indent=1))
+
+
 def _probe_png() -> bytes:
     import struct, zlib
     def chunk(t, d):
@@ -735,6 +867,24 @@ def main(argv: list[str] | None = None) -> None:
     yu.add_argument("--date", required=True)
     ys = ytsub.add_parser("stats", help="X beside YouTube per film, subscribers, quota")
     ys.add_argument("--days", type=float, default=7)
+    tt = sub.add_parser("tiktok", help="TikTok drafts: auth, check, meta, upload, stats, foryou, off, on")
+    ttsub = tt.add_subparsers(dest="tt_cmd", required=True)
+    ta = ttsub.add_parser("auth", help="one-time: connect @agentpitbench (OAuth; paste the redirected URL)")
+    ta.add_argument("--url", help="the URL TikTok redirected the browser to (finishes the login)")
+    ta.add_argument("--direct", action="store_true", help="also ask for video.publish (Direct Post, after audit)")
+    ttsub.add_parser("check", help="verify the token refreshes and the account matches tiktok_open_id")
+    tm = ttsub.add_parser("meta", help="print a film's caption and the in-app settings (no network)")
+    tm.add_argument("--date", required=True)
+    tu = ttsub.add_parser("upload", help="send one film to TikTok now (respects pause, stop and dry-run)")
+    tu.add_argument("--date", required=True)
+    tst = ttsub.add_parser("stats", help="X beside TikTok per film, For You check, health")
+    tst.add_argument("--days", type=float, default=7)
+    tf = ttsub.add_parser("foryou", help="record a video's For You traffic share from TikTok Studio")
+    tf.add_argument("--date", required=True)
+    tf.add_argument("--pct", type=float, required=True)
+    to = ttsub.add_parser("off", help="stop TikTok now (alerts), e.g. after a strike")
+    to.add_argument("reason")
+    ttsub.add_parser("on", help="clear the stop (after review)")
     from . import opscli  # operator AI, methodology lock, ops/alerts/incidents (docs/ai-automation-spec.md §14)
     opscli.add_parsers(sub)
     a = p.parse_args(argv)
@@ -794,6 +944,21 @@ def main(argv: list[str] | None = None) -> None:
             youtube_upload(s, a.date)
         elif a.yt_cmd == "stats":
             youtube_stats(s, a.days)
+    elif a.cmd == "tiktok":
+        if a.tt_cmd == "auth":
+            tiktok_auth(s, a.url, a.direct)
+        elif a.tt_cmd == "check":
+            tiktok_check(s)
+        elif a.tt_cmd == "meta":
+            tiktok_meta(s, a.date)
+        elif a.tt_cmd == "upload":
+            tiktok_upload(s, a.date)
+        elif a.tt_cmd == "stats":
+            tiktok_stats(s, a.days)
+        elif a.tt_cmd == "foryou":
+            tiktok_foryou(s, a.date, a.pct)
+        elif a.tt_cmd in ("off", "on"):
+            tiktok_switch(s, a.reason if a.tt_cmd == "off" else None)
     elif a.cmd == "ab":
         ab_cli(s, a)
     elif a.cmd == "reply-back":

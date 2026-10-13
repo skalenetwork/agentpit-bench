@@ -177,6 +177,20 @@ class Settings:
     youtube_unit_costs: dict = field(default_factory=lambda: {
         "videos.insert": 1, "videos.list": 1, "channels.list": 1, "commentThreads.insert": 50,
         "videos.update": 50, "videoCategories.list": 1, "reports.query": 0})
+    # TikTok (docs/tiktok-spec.md): the daily film as a draft in @agentpitbench's TikTok inbox, published by the
+    # operator with one tap (operator decision 2026-10-13). Off until `agentpitbench tiktok auth` and `tiktok check`.
+    tiktok_enabled: bool = False
+    tiktok_open_id: str = ""             # the @agentpitbench account's open_id; empty = no uploads (account guard)
+    tiktok_handle: str = "agentpitbench"
+    tiktok_mode: str = "inbox"           # inbox = drafts (live mode); direct = Direct Post, only after TikTok's audit
+    tiktok_redirect_uri: str = ""        # registered on the TikTok app; empty = <site_url>/tiktok/callback/
+    tiktok_post_hour_utc: int = 18       # operator decision 2026-10-13
+    tiktok_privacy: str = "PUBLIC_TO_EVERYONE"   # Direct Post only; must be in creator_info's options
+    tiktok_comments: bool = True         # operator: comments on (the bot never replies)
+    tiktok_duet: bool = False            # operator: duets off
+    tiktok_stitch: bool = False          # operator: stitches off
+    tiktok_aigc: bool = False            # force the AI-generated label even on an unnarrated film
+    tiktok_min_fyp_pct: float = 10.0     # For You share across the first 5 videos under this: stop
     # operator AI ("opai", docs/ai-automation-spec.md): never a contestant, never on a round's critical path
     opai_enabled: bool = False          # master switch; false = every task uses its rule-based fallback
     opai_tasks: list[str] = field(default_factory=lambda: ["rate", "picks", "summary", "incident", "i18n",

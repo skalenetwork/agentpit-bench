@@ -313,6 +313,24 @@ CREATE TABLE IF NOT EXISTS yt_metrics (
 CREATE UNIQUE INDEX IF NOT EXISTS yt_metrics_bucket ON yt_metrics(video_id, source, bucket) WHERE bucket IS NOT NULL;
 CREATE TABLE IF NOT EXISTS yt_channel_metrics (day TEXT PRIMARY KEY, subscribers INTEGER, views INTEGER, videos INTEGER, taken_at REAL);
 CREATE TABLE IF NOT EXISTS yt_quota (day_pt TEXT NOT NULL, bucket TEXT NOT NULL, units INTEGER NOT NULL, PRIMARY KEY (day_pt, bucket));
+-- TikTok (docs/tiktok-spec.md §6): the daily film as a draft the operator publishes
+CREATE TABLE IF NOT EXISTS tt_videos (
+    post_key TEXT PRIMARY KEY,          -- tt-<date>
+    round_id INTEGER, file TEXT, question TEXT, caption TEXT,
+    mode TEXT,                          -- inbox (drafts) | direct
+    state TEXT NOT NULL,                -- uploading | sent | published | failed | outbox | paused | stopped | removed
+    publish_id TEXT,                    -- set before any byte is sent: never a second init
+    status TEXT,                        -- last status/fetch status
+    video_id TEXT, share_url TEXT,
+    uploaded_at REAL, published_at REAL,
+    fyp_pct REAL,                       -- For You traffic share, operator-reported from TikTok Studio
+    error TEXT
+);
+CREATE TABLE IF NOT EXISTS tt_metrics (
+    video_id TEXT NOT NULL, bucket TEXT NOT NULL, taken_at REAL NOT NULL, age_s REAL NOT NULL,
+    views INTEGER, likes INTEGER, comments INTEGER, shares INTEGER, raw_json TEXT,
+    PRIMARY KEY (video_id, bucket)
+);
 """
 
 MIGRATIONS = [  # (table, column, definition): added when missing, so old databases keep working
