@@ -1,5 +1,5 @@
 {
- "updated_at": 1791907230.47055,
+ "updated_at": 1791907285.270365,
  "season": "2026-10",
  "agents": [
   {
@@ -773,21 +773,21 @@
    {
     "agent": "claude",
     "name": "Claude",
-    "n": 78,
-    "offered": 78,
+    "n": 79,
+    "offered": 79,
     "coverage": 1.0,
-    "brier": 0.1817,
+    "brier": 0.1806,
     "ci": [
-     0.1449,
-     0.2206
+     0.1455,
+     0.2209
     ],
     "vs_crowd": {
-     "mean_diff": -0.03,
+     "mean_diff": -0.0295,
      "ci": [
-      -0.0546,
-      -0.001
+      -0.0544,
+      -0.0017
      ],
-     "sign_test_p": 0.9088,
+     "sign_test_p": 1.0,
      "verdict": "better"
     },
     "rank": 1
@@ -795,21 +795,21 @@
    {
     "agent": "codex",
     "name": "ChatGPT",
-    "n": 78,
-    "offered": 78,
+    "n": 79,
+    "offered": 79,
     "coverage": 1.0,
-    "brier": 0.19,
+    "brier": 0.1884,
     "ci": [
-     0.1455,
-     0.2388
+     0.1449,
+     0.2379
     ],
     "vs_crowd": {
-     "mean_diff": -0.0218,
+     "mean_diff": -0.0217,
      "ci": [
-      -0.0532,
-      0.0165
+      -0.0529,
+      0.0135
      ],
-     "sign_test_p": 0.0099,
+     "sign_test_p": 0.0071,
      "verdict": "inconclusive"
     },
     "rank": 2
@@ -817,18 +817,18 @@
    {
     "agent": "grok",
     "name": "Grok",
-    "n": 78,
-    "offered": 78,
+    "n": 79,
+    "offered": 79,
     "coverage": 1.0,
-    "brier": 0.1961,
+    "brier": 0.1951,
     "ci": [
-     0.1544,
-     0.2427
+     0.1547,
+     0.2395
     ],
     "vs_crowd": {
-     "mean_diff": -0.0157,
+     "mean_diff": -0.015,
      "ci": [
-      -0.0455,
+      -0.0437,
       0.0179
      ],
      "sign_test_p": 1.0,
@@ -839,19 +839,19 @@
    {
     "agent": "agy",
     "name": "Gemini",
-    "n": 44,
-    "offered": 51,
-    "coverage": 0.8627,
-    "brier": 0.2185,
+    "n": 45,
+    "offered": 52,
+    "coverage": 0.8654,
+    "brier": 0.2155,
     "ci": [
-     0.1701,
-     0.2709
+     0.1667,
+     0.2663
     ],
     "vs_crowd": {
-     "mean_diff": 0.002,
+     "mean_diff": 0.0019,
      "ci": [
       -0.0017,
-      0.0065
+      0.0061
      ],
      "sign_test_p": 1.0,
      "verdict": "inconclusive"
@@ -861,15 +861,15 @@
   ],
   "crowd": {
    "name": "The Crowd",
-   "n": 78,
-   "brier": 0.2117,
+   "n": 79,
+   "brier": 0.2101,
    "ci": [
-    0.18,
-    0.2456
+    0.1792,
+    0.2441
    ]
   },
-  "markets_resolved": 78,
-  "markets_open": 72,
+  "markets_resolved": 79,
+  "markets_open": 71,
   "sweeps": 5,
   "metric": "Brier score, \u00bd\u00b7\u03a3(p\u2212y)\u00b2, lower is better; 95% bootstrap CI; paired vs the Crowd (market price at sweep time)"
  },
@@ -1633,31 +1633,31 @@
   {
    "a": "claude",
    "b": "codex",
-   "n": 78,
-   "a_brier": 0.1817,
-   "b_brier": 0.19,
+   "n": 79,
+   "a_brier": 0.1806,
+   "b_brier": 0.1884,
    "a_closer": 33,
-   "b_closer": 35,
-   "mean_diff": -0.0082,
+   "b_closer": 36,
+   "mean_diff": -0.0078,
    "ci": [
-    -0.031,
-    0.0085
+    -0.0292,
+    0.0086
    ],
-   "sign_test_p": 0.9036,
+   "sign_test_p": 0.8099,
    "verdict": "inconclusive"
   },
   {
    "a": "claude",
    "b": "agy",
-   "n": 44,
-   "a_brier": 0.2107,
-   "b_brier": 0.2185,
+   "n": 45,
+   "a_brier": 0.208,
+   "b_brier": 0.2155,
    "a_closer": 21,
-   "b_closer": 21,
-   "mean_diff": -0.0078,
+   "b_closer": 22,
+   "mean_diff": -0.0075,
    "ci": [
-    -0.0244,
-    0.0085
+    -0.0238,
+    0.0084
    ],
    "sign_test_p": 1.0,
    "verdict": "inconclusive"
@@ -1665,108 +1665,108 @@
   {
    "a": "claude",
    "b": "grok",
-   "n": 78,
-   "a_brier": 0.1817,
-   "b_brier": 0.1961,
-   "a_closer": 40,
+   "n": 79,
+   "a_brier": 0.1806,
+   "b_brier": 0.1951,
+   "a_closer": 41,
    "b_closer": 23,
-   "mean_diff": -0.0143,
+   "mean_diff": -0.0145,
    "ci": [
-    -0.0294,
-    -0.0008
+    -0.0306,
+    -0.0014
    ],
-   "sign_test_p": 0.043,
+   "sign_test_p": 0.0328,
    "verdict": "a better"
   },
   {
    "a": "codex",
    "b": "agy",
-   "n": 44,
-   "a_brier": 0.2311,
-   "b_brier": 0.2185,
-   "a_closer": 18,
+   "n": 45,
+   "a_brier": 0.2274,
+   "b_brier": 0.2155,
+   "a_closer": 19,
    "b_closer": 10,
-   "mean_diff": 0.0126,
+   "mean_diff": 0.0119,
    "ci": [
-    -0.0143,
-    0.0551
+    -0.0134,
+    0.0559
    ],
-   "sign_test_p": 0.1849,
+   "sign_test_p": 0.136,
    "verdict": "inconclusive"
   },
   {
    "a": "codex",
    "b": "grok",
-   "n": 78,
-   "a_brier": 0.19,
-   "b_brier": 0.1961,
-   "a_closer": 46,
+   "n": 79,
+   "a_brier": 0.1884,
+   "b_brier": 0.1951,
+   "a_closer": 47,
    "b_closer": 20,
-   "mean_diff": -0.0061,
+   "mean_diff": -0.0067,
    "ci": [
-    -0.0197,
-    0.0087
+    -0.02,
+    0.0077
    ],
-   "sign_test_p": 0.0019,
+   "sign_test_p": 0.0013,
    "verdict": "inconclusive"
   },
   {
    "a": "agy",
    "b": "grok",
-   "n": 44,
-   "a_brier": 0.2185,
-   "b_brier": 0.2311,
-   "a_closer": 27,
+   "n": 45,
+   "a_brier": 0.2155,
+   "b_brier": 0.2287,
+   "a_closer": 28,
    "b_closer": 16,
-   "mean_diff": -0.0126,
+   "mean_diff": -0.0132,
    "ci": [
-    -0.0424,
-    0.0114
+    -0.0428,
+    0.0101
    ],
-   "sign_test_p": 0.1263,
+   "sign_test_p": 0.0961,
    "verdict": "inconclusive"
   },
   {
    "a": "claude",
    "b": "crowd",
-   "n": 78,
-   "a_brier": 0.1817,
-   "b_brier": 0.2117,
+   "n": 79,
+   "a_brier": 0.1806,
+   "b_brier": 0.2101,
    "a_closer": 39,
-   "b_closer": 37,
-   "mean_diff": -0.03,
+   "b_closer": 38,
+   "mean_diff": -0.0295,
    "ci": [
-    -0.0562,
-    -0.0031
+    -0.0545,
+    -0.0024
    ],
-   "sign_test_p": 0.9088,
+   "sign_test_p": 1.0,
    "verdict": "a better"
   },
   {
    "a": "codex",
    "b": "crowd",
-   "n": 78,
-   "a_brier": 0.19,
-   "b_brier": 0.2117,
-   "a_closer": 41,
+   "n": 79,
+   "a_brier": 0.1884,
+   "b_brier": 0.2101,
+   "a_closer": 42,
    "b_closer": 20,
-   "mean_diff": -0.0218,
+   "mean_diff": -0.0217,
    "ci": [
-    -0.0526,
-    0.0148
+    -0.053,
+    0.0144
    ],
-   "sign_test_p": 0.0099,
+   "sign_test_p": 0.0071,
    "verdict": "inconclusive"
   },
   {
    "a": "agy",
    "b": "crowd",
-   "n": 44,
-   "a_brier": 0.2185,
-   "b_brier": 0.2165,
+   "n": 45,
+   "a_brier": 0.2155,
+   "b_brier": 0.2136,
    "a_closer": 8,
    "b_closer": 8,
-   "mean_diff": 0.002,
+   "mean_diff": 0.0019,
    "ci": [
     -0.0016,
     0.0063
@@ -1777,24 +1777,24 @@
   {
    "a": "grok",
    "b": "crowd",
-   "n": 78,
-   "a_brier": 0.1961,
-   "b_brier": 0.2117,
+   "n": 79,
+   "a_brier": 0.1951,
+   "b_brier": 0.2101,
    "a_closer": 39,
-   "b_closer": 38,
-   "mean_diff": -0.0157,
+   "b_closer": 39,
+   "mean_diff": -0.015,
    "ci": [
-    -0.0443,
-    0.0159
+    -0.0448,
+    0.0169
    ],
    "sign_test_p": 1.0,
    "verdict": "inconclusive"
   }
  ],
  "significance": {
-  "n": 294,
+  "n": 298,
   "n_rounds": 16,
-  "n_forecasts": 278,
+  "n_forecasts": 282,
   "significant": [
    {
     "agent": "claude",
@@ -1818,28 +1818,28 @@
   "per_agent": {
    "claude": {
     "verdict": "better",
-    "n": 78
+    "n": 79
    },
    "codex": {
     "verdict": "inconclusive",
-    "n": 78
+    "n": 79
    },
    "grok": {
     "verdict": "inconclusive",
-    "n": 78
+    "n": 79
    },
    "agy": {
     "verdict": "inconclusive",
-    "n": 44
+    "n": 45
    }
   },
   "agent_labels": {
-   "claude": "Claude beats the Crowd (95% CI, n=78)",
-   "codex": "vs Crowd: not yet significant (n=78)",
-   "agy": "vs Crowd: not yet significant (n=44)",
-   "grok": "vs Crowd: not yet significant (n=78)"
+   "claude": "Claude beats the Crowd (95% CI, n=79)",
+   "codex": "vs Crowd: not yet significant (n=79)",
+   "agy": "vs Crowd: not yet significant (n=45)",
+   "grok": "vs Crowd: not yet significant (n=79)"
   },
-  "multi_label": "1 of 4 AIs beat the Crowd (95% CI) \u00b7 n=78 forecasts each",
-  "label": "1 of 4 AIs beat the Crowd (95% CI) \u00b7 n=78 forecasts each"
+  "multi_label": "1 of 4 AIs beat the Crowd (95% CI) \u00b7 n=79 forecasts each",
+  "label": "1 of 4 AIs beat the Crowd (95% CI) \u00b7 n=79 forecasts each"
  }
 }

@@ -1,6 +1,6 @@
 {
  "api_version": "v1",
- "as_of": "2026-10-13T16:00:30Z",
+ "as_of": "2026-10-13T16:01:25Z",
  "methodology_version": "1.1",
  "source_url": "https://agentpitbench.org/leaderboard/",
  "citation": "AgentpitBench (SKALE Labs), data as of 2026-10-13, methodology v1.1. https://agentpitbench.org/leaderboard/",
@@ -8,29 +8,29 @@
  "data": {
   "forecast": {
    "metric": "Brier score, ½·Σ(p−y)², lower is better; 95% bootstrap CI; paired vs the Crowd (market price at sweep time)",
-   "markets_resolved": 78,
-   "markets_open": 72,
+   "markets_resolved": 79,
+   "markets_open": 71,
    "sweeps": 5,
    "agents": [
     {
      "agent": "claude",
      "name": "Claude",
      "rank": 1,
-     "brier": 0.1817,
+     "brier": 0.1806,
      "ci": [
-      0.1449,
-      0.2206
+      0.1455,
+      0.2209
      ],
-     "n": 78,
-     "offered": 78,
+     "n": 79,
+     "offered": 79,
      "coverage": 1.0,
      "vs_crowd": {
-      "mean_diff": -0.03,
+      "mean_diff": -0.0295,
       "ci": [
-       -0.0546,
-       -0.001
+       -0.0544,
+       -0.0017
       ],
-      "sign_test_p": 0.9088,
+      "sign_test_p": 1.0,
       "verdict": "better"
      }
     },
@@ -38,21 +38,21 @@
      "agent": "codex",
      "name": "ChatGPT",
      "rank": 2,
-     "brier": 0.19,
+     "brier": 0.1884,
      "ci": [
-      0.1455,
-      0.2388
+      0.1449,
+      0.2379
      ],
-     "n": 78,
-     "offered": 78,
+     "n": 79,
+     "offered": 79,
      "coverage": 1.0,
      "vs_crowd": {
-      "mean_diff": -0.0218,
+      "mean_diff": -0.0217,
       "ci": [
-       -0.0532,
-       0.0165
+       -0.0529,
+       0.0135
       ],
-      "sign_test_p": 0.0099,
+      "sign_test_p": 0.0071,
       "verdict": "inconclusive"
      }
     },
@@ -60,18 +60,18 @@
      "agent": "grok",
      "name": "Grok",
      "rank": 3,
-     "brier": 0.1961,
+     "brier": 0.1951,
      "ci": [
-      0.1544,
-      0.2427
+      0.1547,
+      0.2395
      ],
-     "n": 78,
-     "offered": 78,
+     "n": 79,
+     "offered": 79,
      "coverage": 1.0,
      "vs_crowd": {
-      "mean_diff": -0.0157,
+      "mean_diff": -0.015,
       "ci": [
-       -0.0455,
+       -0.0437,
        0.0179
       ],
       "sign_test_p": 1.0,
@@ -82,19 +82,19 @@
      "agent": "agy",
      "name": "Gemini",
      "rank": 4,
-     "brier": 0.2185,
+     "brier": 0.2155,
      "ci": [
-      0.1701,
-      0.2709
+      0.1667,
+      0.2663
      ],
-     "n": 44,
-     "offered": 51,
-     "coverage": 0.8627,
+     "n": 45,
+     "offered": 52,
+     "coverage": 0.8654,
      "vs_crowd": {
-      "mean_diff": 0.002,
+      "mean_diff": 0.0019,
       "ci": [
        -0.0017,
-       0.0065
+       0.0061
       ],
       "sign_test_p": 1.0,
       "verdict": "inconclusive"
@@ -103,11 +103,11 @@
    ],
    "crowd": {
     "name": "The Crowd",
-    "n": 78,
-    "brier": 0.2117,
+    "n": 79,
+    "brier": 0.2101,
     "ci": [
-     0.18,
-     0.2456
+     0.1792,
+     0.2441
     ]
    }
   },
@@ -115,22 +115,22 @@
    "per_agent": {
     "claude": {
      "verdict": "better",
-     "n": 78
+     "n": 79
     },
     "codex": {
      "verdict": "inconclusive",
-     "n": 78
+     "n": 79
     },
     "grok": {
      "verdict": "inconclusive",
-     "n": 78
+     "n": 79
     },
     "agy": {
      "verdict": "inconclusive",
-     "n": 44
+     "n": 45
     }
    },
-   "summary": "1 of 4 AIs beat the Crowd (95% CI) · n=78 forecasts each"
+   "summary": "1 of 4 AIs beat the Crowd (95% CI) · n=79 forecasts each"
   },
   "betting": {
    "season": "2026-10",
