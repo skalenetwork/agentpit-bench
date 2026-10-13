@@ -132,6 +132,13 @@ def rounds_paused(s: config.Settings, db: DB) -> bool:
     return False
 
 
+async def announce_tick(s: config.Settings, db: DB) -> None:
+    """Every 5 min: a deploy (new git HEAD or methodology version) -> at most one X draft per UTC day, sent to
+    the operator privately on Telegram (announce.py). Blocking (git, opai, HTTP), so it runs in a thread."""
+    from . import announce
+    await asyncio.to_thread(announce.tick, s, db)
+
+
 async def ops_tick(s: config.Settings, db: DB) -> None:
     """Every 5 min: anomaly detectors (pause + draft + alert), market-title translations, summary catch-up,
     the flag-gated daily cadence decision (§9) and the Sunday selection review (§5.3)."""
@@ -196,6 +203,9 @@ async def run_forever(s: config.Settings) -> None:
 
     async def scheduled():
         """Hourly: High-Stakes Friday, the day's summoned round, weekly race + awards, banner, champion."""
+        if s.hf_dataset_refresh:  # docs/hf-borrow-spec.md A4: at most once a day, uploads only what changed
+            from . import dataset
+            await asyncio.to_thread(dataset.refresh_due, s, db)
         if engage is None:
             return
         engage.api = api
@@ -305,6 +315,7 @@ async def run_forever(s: config.Settings) -> None:
         asyncio.create_task(_every(1800, week_in_the_pit, "week in the pit")),
         asyncio.create_task(_every(s.resolution_check_s, score_forecasts, "forecast scoring")),
         asyncio.create_task(_every(300, lambda: ops_tick(s, db), "anomalies")),  # also runs once at startup
+        asyncio.create_task(_every(300, lambda: announce_tick(s, db), "announce")),  # operator's X draft per deploy
     ]
     x_metrics = metrics_task(s, db, pub)
     if x_metrics is not None:
@@ -808,6 +819,42 @@ def _probe_png() -> bytes:
             + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b""))
 
 
+def announce_cmd(s: config.Settings, a) -> None:
+    from . import announce
+    if a.backfill or a.resend:
+        db = DB(s.db_path)
+        if a.backfill:
+            only = [] if a.backfill.strip() == "-" else a.backfill.split(",")
+            rec = announce.backfill(s, db, only, since=a.since)
+        else:
+            rec = announce.resend(s, a.resend)
+        print(f"draft {rec['id']} ({rec['source']}):\n{rec['draft']}\n{announce.intent_url(rec['draft'])}")
+        ok = announce.deliver(s, rec, now=time.time())
+        print("sent to the operator on Telegram" if ok else
+              "not sent now (dry run, missing TELEGRAM_* secrets or a send error: see the log); the service retries")
+    print(announce.listing(s))
+
+
+def lab_kit(s: config.Settings, agent: str) -> str:
+    """`agentpitbench lab-kit <agent>` (docs/hf-borrow-spec.md B4): the note for a lab, from the leaderboard export
+    (written fresh when there is none yet). Returns text only: nothing is posted, mailed or tagged."""
+    from . import cite, discover
+    from .config import AGENT_NAMES
+    want = agent.strip().lower()
+    slug = next((a for a in s.agents if want in (a, AGENT_NAMES.get(a, a).lower(), cite.model_name(a).lower())), None)
+    if slug is None:
+        sys.exit(f"unknown agent {agent!r}; one of {', '.join(s.agents)}")
+    path = s.export_dir / "leaderboard.json"
+    lb = json.loads(path.read_text()) if path.exists() else exports.export(s, DB(s.db_path))["leaderboard"]
+    row = next((b for b in lb.get("agents", []) if b["agent"] == slug), None)
+    day = discover.day(discover.as_of_ts(lb))
+    c = cite.result(slug, row, s.methodology_version, day, lb.get("season") or "", s.site_url)
+    bad = cite.problems(c, s.methodology_version, day)
+    if bad:  # never hand the operator a line that breaks the honest-wording rules
+        sys.exit("lab-kit: result line fails the wording rules: " + "; ".join(bad))
+    return cite.lab_kit(c, s.hf_url)
+
+
 def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(prog="agentpitbench")
     p.add_argument("--config", default="bench.toml")
@@ -826,8 +873,12 @@ def main(argv: list[str] | None = None) -> None:
     du.add_argument("agent")
     du.add_argument("old_model")
     du.add_argument("new_model")
-    ds = sub.add_parser("dataset", help="build the monthly open dataset (and upload if HF/Kaggle creds are set)")
-    ds.add_argument("--month", required=True, help="YYYY-MM")
+    ds = sub.add_parser("dataset", help="build the monthly open dataset; upload it when it changed, HF_TOKEN (or "
+                                        "Kaggle creds) is set and dry_run is off, after the secrets gate")
+    ds.add_argument("month_pos", nargs="?", metavar="YYYY-MM")
+    ds.add_argument("--month", help="YYYY-MM (same as the positional month)")
+    lk = sub.add_parser("lab-kit", help="print the citable-result note for one agent's lab (operator only; sends nothing)")
+    lk.add_argument("agent", help="agent slug or display name (claude, chatgpt/codex, gemini/agy, grok)")
     mo = sub.add_parser("motd", help="render a Match of the Day film (both formats) for review; never posts. "
                                      "`motd post --film DIR` posts an already-rendered film to X")
     mo.add_argument("action", nargs="?", choices=["render", "post"], default="render")
@@ -929,6 +980,13 @@ def main(argv: list[str] | None = None) -> None:
     to = ttsub.add_parser("off", help="stop TikTok now (alerts), e.g. after a strike")
     to.add_argument("reason")
     ttsub.add_parser("on", help="clear the stop (after review)")
+    an = sub.add_parser("announce", help="the operator's X draft per deploy (sent privately on Telegram; never posts)")
+    ang = an.add_mutually_exclusive_group()
+    ang.add_argument("--list", action="store_true", help="state, pending and sent drafts (the default)")
+    ang.add_argument("--resend", metavar="ID", help="send a sent or failed draft again (ids from --list)")
+    ang.add_argument("--backfill", metavar="V1,V2", help="one draft for these methodology versions plus the "
+                     "reader-visible commits since --since (e.g. 1.1,1.2; '-' for none)")
+    an.add_argument("--since", help="with --backfill: a git revision or a date (default: today 00:00 UTC)")
     from . import opscli  # operator AI, methodology lock, ops/alerts/incidents (docs/ai-automation-spec.md §14)
     opscli.add_parsers(sub)
     a = p.parse_args(argv)
@@ -940,6 +998,8 @@ def main(argv: list[str] | None = None) -> None:
         opscli.dispatch(s, a)
     elif a.cmd == "run":
         asyncio.run(run_forever(s))
+    elif a.cmd == "announce":
+        announce_cmd(s, a)
     elif a.cmd == "round":
         asyncio.run(one_round(s, a.market_id, a.agents.split(",") if a.agents else None))
     elif a.cmd == "check":
@@ -951,7 +1011,17 @@ def main(argv: list[str] | None = None) -> None:
         print(json.dumps(leaderboard(DB(s.db_path), s.agents), indent=1))
     elif a.cmd == "dataset":
         from . import dataset
-        print(dataset.build(s, DB(s.db_path), a.month))
+        month = a.month or a.month_pos
+        if not month:
+            sys.exit("usage: agentpitbench dataset YYYY-MM")
+        db = DB(s.db_path)
+        print(dataset.build(s, db, month, upload=False))
+        try:
+            print(json.dumps(dataset.publish(s, db, [month])))
+        except dataset.SecretLeak as ex:
+            sys.exit(str(ex))
+    elif a.cmd == "lab-kit":
+        print(lab_kit(s, a.agent))
     elif a.cmd == "whoami":
         asyncio.run(whoami(s))
     elif a.cmd == "sweep":

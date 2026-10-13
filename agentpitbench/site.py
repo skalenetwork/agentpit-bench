@@ -32,7 +32,7 @@ from markupsafe import Markup
 
 from . import og
 from .cards import cents, is_dark, fmt_time, is_upset, payout_x, ranked, results_headline, signed, split_headline, model_eras
-from . import challenge, discover, exports, methodology
+from . import challenge, cite, discover, exports, methodology
 from .emblem import emblem_svg
 from .config import AGENT_COLORS, AGENT_NAMES, Settings, AGENT_MODELS
 from .i18n import CODES, LANGS, NAMES, Translator
@@ -44,6 +44,9 @@ log = logging.getLogger(__name__)
 
 DEFAULT_REMOTE = "git@github.com:skalenetwork/agentpit-bench.git"
 PAGES_BRANCH = "gh-pages"
+# /terms/ and /privacy/: the date shown on both pages and their sitemap lastmod; bump it with any change to them
+LEGAL_UPDATED = "2026-10-13"
+LEGAL_CONTACT = "labs@agentpitbench.org"  # the one mailbox the site publishes (independence page)
 
 env = Environment(loader=PackageLoader("agentpitbench", "templates/site"), autoescape=select_autoescape())
 
@@ -993,10 +996,22 @@ def pnl_chart(series: dict[str, list], width: int = 640, height: int = 220, crow
 
 def badge_svg(board: list[dict], crowd: dict | None = None) -> str:
     """Shields-style badge: 'AgentpitBench | Claude 12-8 · ChatGPT 10-10 · Gemini 9-11'."""
-    label = "AgentpitBench"
     value = " · ".join(f"{b['name']} {b['wins']}-{b['losses']}" for b in board) or "no results yet"
     if board and crowd and crowd.get("played"):
         value += f" · Crowd {crowd['wins']}-{crowd['losses']}"
+    return shield(value)
+
+
+def agent_badge_svg(c: dict, agent: str) -> str:
+    """/badge/<slug>.svg (docs/hf-borrow-spec.md B1): 'AgentpitBench | Grok 4.7 · #1 · +374 · season 2026-10',
+    the text of cite.result()'s badge, in the agent's colour."""
+    color = AGENT_COLORS.get(agent, "#D97757")
+    return shield(c["badge"], "#333333" if is_dark(color) else color)
+
+
+def shield(value: str, color: str = "#D97757") -> str:
+    """'AgentpitBench | <value>' in the shields style, the emblem left of the label."""
+    label = "AgentpitBench"
     lw, vw = 7 * len(label) + 12 + 18, int(6.6 * len(value)) + 14  # +18: the emblem left of the label
     w = lw + vw
     return (
@@ -1004,7 +1019,7 @@ def badge_svg(board: list[dict], crowd: dict | None = None) -> str:
         f'<title>{escape(label)}: {escape(value)}</title>'
         f'<linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>'
         f'<clipPath id="r"><rect width="{w}" height="20" rx="3" fill="#fff"/></clipPath>'
-        f'<g clip-path="url(#r)"><rect width="{lw}" height="20" fill="#0b1020"/><rect x="{lw}" width="{vw}" height="20" fill="#D97757"/>'
+        f'<g clip-path="url(#r)"><rect width="{lw}" height="20" fill="#0b1020"/><rect x="{lw}" width="{vw}" height="20" fill="{color}"/>'
         f'<rect width="{w}" height="20" fill="url(#s)"/></g>'
         f'<g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">'
         f'<text x="{(lw + 18) / 2}" y="14">{escape(label)}</text><text x="{lw + vw / 2}" y="14">{escape(value)}</text></g>'
@@ -1221,6 +1236,9 @@ def _build(s: Settings) -> Path:
             shutil.copy2(f, dst)
             evidence.add(f.stem)
     switch = headline_switch(s)  # the 2.0 evidence: who led each table when the betting record became the headline
+    # "Cite this result" and /badge/<slug>.svg (docs/hf-borrow-spec.md Part B): from the leaderboard export only
+    cites = {a: cite.result(a, next((b for b in board if b["agent"] == a), None), s.methodology_version,
+                            discover.day(as_of), lb.get("season") or "", s.site_url) for a in s.agents}
 
     base = s.site_url.rstrip("/")
     past =[r for r in rounds if r["state"] in ("resolved", "void")]
@@ -1429,7 +1447,7 @@ def _build(s: Settings) -> Path:
             row = next((b for b in board if b["agent"] == a), None)
             nm = AGENT_NAMES.get(a, a)
             page(f"agent/{a}/index.html", "agent.html", agent=a, name=nm,
-                 row=row, st=stats[a], og=previews["agents"].get(a),
+                 row=row, st=stats[a], og=previews["agents"].get(a), cite=cites[a],
                  img=share_image(previews["agent_cards"].get(a), f"agent-{a}",
                                  agent_share(lb, a, nm, row, _), f"{base}/{prefix}agent/{a}/", "agent"),
                  share_text=agent_share(lb, a, nm, row, _),
@@ -1480,13 +1498,21 @@ def _build(s: Settings) -> Path:
              title=branded(_("Press kit")),
              description=_("AgentpitBench press kit: key numbers, share cards, mascots and contacts for writing about the AI forecasting benchmark."))
         page("methodology/index.html", "methodology.html", prompt=prompt, sweep_prompt=sweep_prompt_example(s),
-             changelog=changelog, sealed=lb.get("sealed") or [], evidence=evidence, switch=switch,
+             changelog=changelog, changelog_ids=methodology.changelog_anchors(), sealed=lb.get("sealed") or [], evidence=evidence, switch=switch,
              title=branded(_("Methodology v{v}", v=s.methodology_version)),
              share_text=_("How AgentpitBench tests frontier AIs on real markets (methodology v{v}).", v=s.methodology_version),
              jsonld=discover.techarticle_ld(s, lb, f"{base}/methodology/", changelog))
         page("independence/index.html", "independence.html", title=branded(_("Independence & conflicts")),
              share_text=_("How AgentpitBench tests frontier AIs on real markets (methodology v{v}).", v=s.methodology_version),
              description=_("Who runs AgentpitBench, how it stays independent of the markets it bets on, and the conflicts we disclose."))
+        legal_ts = datetime.fromisoformat(LEGAL_UPDATED).replace(tzinfo=timezone.utc).timestamp()
+        for path, tpl, title, desc in (
+                ("terms/index.html", "terms.html", _("Terms of use"),
+                 _("AgentpitBench terms of use: an automated AI benchmark with paper money, not advice and not gambling; code AGPL-3.0, data CC BY 4.0.")),
+                ("privacy/index.html", "privacy.html", _("Privacy"),
+                 _("What AgentpitBench stores: no cookies or accounts on the site; public X handles and replies of people who play along."))):
+            page(path, tpl, title=branded(title), description=desc, lastmod=legal_ts,
+                 legal_updated=LEGAL_UPDATED, legal_contact=LEGAL_CONTACT)
         if exp_ab is not None:
             page("experiments/index.html", "experiments.html", ab=exp_ab, title=branded(_("Experiments")),
                  share_text=_("How AgentpitBench tests the wording of its posts. Facts are never varied."))
@@ -1526,6 +1552,9 @@ def _build(s: Settings) -> Path:
     if key:
         (out / f"{key}.txt").write_text(key)
     (out / "badge.svg").write_text(badge_svg(board, lb.get("crowd")))
+    (out / "badge").mkdir(exist_ok=True)
+    for a, c in cites.items():
+        (out / "badge" / f"{a}.svg").write_text(agent_badge_svg(c, a))
     kit = out / "press" / "mascots"
     kit.mkdir(parents=True, exist_ok=True)
     for a in [*s.agents, "crowd"]:

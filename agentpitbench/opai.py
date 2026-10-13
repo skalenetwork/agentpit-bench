@@ -36,7 +36,7 @@ log = logging.getLogger(__name__)
 # methodology.json (selection.rater.prompt_version), never from here.
 PROMPTS = {"rate": 1, "picks": 1, "summary": 1, "report": 2, "incident": 1, "cadence": 1, "i18n": 2,
            "proposal": 1, "translate": 1, "ab": 1, "motd_script": 1, "weekly_episode": 2,
-           "ops": 1}   # ops: the nightly agent (ops.py), not a call()
+           "ops": 1, "release_tweet": 1}   # ops: the nightly agent (ops.py), not a call()
 SYSTEM_PROMPT = "system.v1.md"
 LIGHT_TASKS = {"picks"}
 CHILD_PATH = "/usr/local/bin:/usr/bin:/bin"
@@ -137,6 +137,7 @@ SCHEMAS: dict[str, dict | Callable[[dict], dict]] = {
     "ab": lambda payload: _ab_schema(payload),
     "motd_script": lambda payload: _motd_schema(),
     "weekly_episode": lambda payload: _week_schema(payload),
+    "release_tweet": _obj({"text": _STR}),   # announce.py: the operator's X draft for a deploy
 }
 
 
