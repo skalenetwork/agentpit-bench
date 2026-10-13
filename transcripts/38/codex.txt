@@ -1,0 +1,413 @@
+$ codex exec <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Will Palantir Technologies Inc. (PLTR) hit (HIGH) $210 Week of October 12 2026?
+Outcomes: Yes / No | prices: Yes 0.800, No 0.200 | closes: 2026-10-16T20:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 16 rounds: 4-12, net P&L -885.7.
+- Will Levante UD vs. Sevilla FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Atalanta BC vs. Venezia FC end in a draw? | you picked Yes | winner No | lost | P&L -100.0
+- Will Pumas de la UNAM vs. CF Cruz Azul end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Ethereum dip to $2,400 October 5-11? | you picked Yes | winner No | lost | P&L -98.9
+- Will Beşiktaş JK win on 2026-10-11? | you picked No | winner Yes | lost | P&L -100.0
+- Will it rain in New Orleans, LA on October 10? | you picked Yes | winner No | lost | P&L -43.7
+- Will Real Sociedad de Fútbol vs. RC Deportivo A Coruña end in a draw? | you picked Yes | winner No | lost | P&L -100.0
+- Bitcoin Up or Down - October 10, 9PM ET | you picked Up | winner Up | won | P&L +31.6
+- Bitcoin Up or Down - October 10, 8PM ET | you picked Down | winner Down | won | P&L +92.2
+- Will Stockport County FC win on 2026-10-10? | you picked No | winner Yes | lost | P&L -100.0
+- Will Aston Villa FC vs. Brentford FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Virtus Entella win on 2026-10-10? | you picked No | winner No | won | P&L +85.2
+- Will Elon Musk post 65-89 tweets from October 8 to October 10, 2026? | you picked Yes | winner No | lost | P&L -100.0
+- Ducks vs. Jets | you picked Jets | winner Ducks | lost | P&L -100.0
+- Bitcoin Up or Down - October 9, 8PM ET | you picked Down | winner Down | won | P&L +47.9
+- Counter-Strike: PRIVATE vs Nuclear TigeRES (BO3) - 1win Private Club #2: Closed Qualifier  | you picked Nuclear TigeRES | winner PRIVATE | lost | P&L -100.0
+
+--- output ---
+WARNING: proceeding, even though we could not create PATH aliases: Refusing to create helper binaries under temporary dir "/tmp" (codex_home: AbsolutePathBuf("/tmp/apbh-codex-aulvtcjf/.codex"))
+Reading additional input from stdin...
+OpenAI Codex v0.161.0
+--------
+workdir: /tmp/apb-38-codex-lfz10r8l
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: max
+reasoning summaries: none
+session id: 01a136ae-99d9-7ba1-8e3b-3e874619cfed
+--------
+user
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Will Palantir Technologies Inc. (PLTR) hit (HIGH) $210 Week of October 12 2026?
+Outcomes: Yes / No | prices: Yes 0.800, No 0.200 | closes: 2026-10-16T20:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 16 rounds: 4-12, net P&L -885.7.
+- Will Levante UD vs. Sevilla FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Atalanta BC vs. Venezia FC end in a draw? | you picked Yes | winner No | lost | P&L -100.0
+- Will Pumas de la UNAM vs. CF Cruz Azul end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Ethereum dip to $2,400 October 5-11? | you picked Yes | winner No | lost | P&L -98.9
+- Will Beşiktaş JK win on 2026-10-11? | you picked No | winner Yes | lost | P&L -100.0
+- Will it rain in New Orleans, LA on October 10? | you picked Yes | winner No | lost | P&L -43.7
+- Will Real Sociedad de Fútbol vs. RC Deportivo A Coruña end in a draw? | you picked Yes | winner No | lost | P&L -100.0
+- Bitcoin Up or Down - October 10, 9PM ET | you picked Up | winner Up | won | P&L +31.6
+- Bitcoin Up or Down - October 10, 8PM ET | you picked Down | winner Down | won | P&L +92.2
+- Will Stockport County FC win on 2026-10-10? | you picked No | winner Yes | lost | P&L -100.0
+- Will Aston Villa FC vs. Brentford FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Virtus Entella win on 2026-10-10? | you picked No | winner No | won | P&L +85.2
+- Will Elon Musk post 65-89 tweets from October 8 to October 10, 2026? | you picked Yes | winner No | lost | P&L -100.0
+- Ducks vs. Jets | you picked Jets | winner Ducks | lost | P&L -100.0
+- Bitcoin Up or Down - October 9, 8PM ET | you picked Down | winner Down | won | P&L +47.9
+- Counter-Strike: PRIVATE vs Nuclear TigeRES (BO3) - 1win Private Club #2: Closed Qualifier  | you picked Nuclear TigeRES | winner PRIVATE | lost | P&L -100.0
+
+codex
+I’ll check the resolution rules and PLTR’s latest price, then place the single 100-token bet before time runs out.
+
+exec
+/usr/bin/zsh -lc 'bench --help' in /tmp/apb-38-codex-lfz10r8l
+ succeeded in 0ms:
+usage: bench [-h] {market,book,history,bet} ...
+
+Inspect the market and place your one bet.
+
+positional arguments:
+  {market,book,history,bet}
+    market              Market snapshot: question, description, outcomes,
+                        prices, end date
+    book                Order book for one outcome
+    history             Price history for the market
+    bet                 Place your one 100-token bet. Works once.
+
+options:
+  -h, --help            show this help message and exit
+
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-38-codex-lfz10r8l
+ succeeded in 0ms:
+{
+  "question": "Will Palantir Technologies Inc. (PLTR) hit (HIGH) $210 Week of October 12 2026?",
+  "description": "This market will resolve to \"Yes\" if, at any point after market creation and during the week of October 12 2026, any 1-minute candle for Palantir Technologies Inc. (PLTR) has a final \"High\" or \"Low\" price equal to or beyond (above for \u2191 High Prices, below for \u2193 Low Prices) the listed price. Otherwise, this market will resolve to \"No\".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM \u2013 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth \u2014 specifically, the Palantir Technologies Inc. (PLTR) \"High\" and \"Low\" prices available at https://pythdata.app/explore/Equity.US.PLTR%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the \"t=\" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.PLTR%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.",
+  "outcomes": [
+    "Yes",
+    "No"
+  ],
+  "prices": [
+    0.8,
+    0.2
+  ],
+  "best_bid": 0.77,
+  "best_ask": 0.83,
+  "end_date": "2026-10-16T20:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 294
+}
+
+web search: 
+exec
+/usr/bin/zsh -lc 'bench book --help' in /tmp/apb-38-codex-lfz10r8l
+ succeeded in 0ms:
+usage: bench book [-h] --outcome OUTCOME
+
+options:
+  -h, --help         show this help message and exit
+  --outcome OUTCOME
+
+exec
+/usr/bin/zsh -lc 'bench history --help' in /tmp/apb-38-codex-lfz10r8l
+exec
+/usr/bin/zsh -lc 'bench bet --help' in /tmp/apb-38-codex-lfz10r8l
+ succeeded in 0ms:
+usage: bench history [-h] --outcome OUTCOME
+
+options:
+  -h, --help         show this help message and exit
+  --outcome OUTCOME
+
+ succeeded in 0ms:
+usage: bench bet [-h] --outcome OUTCOME --rationale RATIONALE --confidence
+                 CONFIDENCE [--max-price MAX_PRICE] [--quote QUOTE]
+
+options:
+  -h, --help            show this help message and exit
+  --outcome OUTCOME
+  --rationale RATIONALE
+  --confidence CONFIDENCE
+                        0 to 1
+  --max-price MAX_PRICE
+                        worst price you accept (default: best ask + 0.05)
+  --quote QUOTE         optional one-line trash talk for your rivals, shown on
+                        your card (max 120 chars, no links)
+
+web search: PLTR stock October 13 2026 high price 210 ...
+web search: 
+exec
+/usr/bin/zsh -lc 'bench history --outcome Yes' in /tmp/apb-38-codex-lfz10r8l
+exec
+/usr/bin/zsh -lc 'bench book --outcome Yes' in /tmp/apb-38-codex-lfz10r8l
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-38-codex-lfz10r8l
+ succeeded in 249ms:
+{
+  "outcome": "Yes",
+  "bids": [
+    {
+      "price": "0.77",
+      "size": "529.83"
+    },
+    {
+      "price": "0.76",
+      "size": "70.1"
+    },
+    {
+      "price": "0.3",
+      "size": "50"
+    },
+    {
+      "price": "0.01",
+      "size": "10"
+    }
+  ],
+  "asks": [
+    {
+      "price": "0.83",
+      "size": "240"
+    },
+    {
+      "price": "0.84",
+      "size": "110.1"
+    },
+    {
+      "price": "0.85",
+      "size": "131"
+    },
+    {
+      "price": "0.99",
+      "size": "10"
+    }
+  ],
+  "last_trade_price": "0"
+}
+
+ succeeded in 254ms:
+{
+  "question": "Will Palantir Technologies Inc. (PLTR) hit (HIGH) $210 Week of October 12 2026?",
+  "description": "This market will resolve to \"Yes\" if, at any point after market creation and during the week of October 12 2026, any 1-minute candle for Palantir Technologies Inc. (PLTR) has a final \"High\" or \"Low\" price equal to or beyond (above for \u2191 High Prices, below for \u2193 Low Prices) the listed price. Otherwise, this market will resolve to \"No\".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM \u2013 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth \u2014 specifically, the Palantir Technologies Inc. (PLTR) \"High\" and \"Low\" prices available at https://pythdata.app/explore/Equity.US.PLTR%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the \"t=\" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.PLTR%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.",
+  "outcomes": [
+    "Yes",
+    "No"
+  ],
+  "prices": [
+    0.8,
+    0.2
+  ],
+  "best_bid": 0.77,
+  "best_ask": 0.83,
+  "end_date": "2026-10-16T20:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 279
+}
+
+ succeeded in 601ms:
+{
+  "history": []
+}
+
+web search: 
+web search: 
+web search: "PLTR" "210" "October 12" "2026" "Polymarket" ...
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+from datetime import datetime, timezone
+for x in ['2026-10-12T14:00:00+00:00','2026-10-13T14:00:00+00:00']:
+ print(x, int(datetime.fromisoformat(x).timestamp()))
+PY" in /tmp/apb-38-codex-lfz10r8l
+ succeeded in 0ms:
+2026-10-12T14:00:00+00:00 1791813600
+2026-10-13T14:00:00+00:00 1791900000
+
+codex
+PLTR’s reported high today is $210.88, above the target and after the market opened yesterday. That strongly favors Yes; I’m checking Pyth’s one-minute data because it controls settlement. [Price history](https://stockanalysis.com/stocks/pltr/history/), [market timing](https://polymarket.com/event/will-pltr-hit-week-of-october-12-2026/will-pltr-reach-210-by-october-12-2026-from-october-12).
+
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests
+u='https://app.pyth.com/explore/Equity.US.PLTR%2FUSD?t=1791900000'
+r=requests.get(u,timeout=20)
+print(r.status_code,r.url)
+print(r.text[:1500])
+PY" in /tmp/apb-38-codex-lfz10r8l
+web search: https://pythdata.app/explore/Equity.US.PLTR%2FUSD?t=1791900000
+ succeeded in 1771ms:
+200 https://app.pyth.com/explore/Equity.US.PLTR%2FUSD?t=1791900000
+<!DOCTYPE html><html data-dpl-id="dpl_HdBU1s2KVTp2XoPLVWBp9ZaNp8gz" class="suisseintl_8b7d04d3-module__9GgD3a__variable suisseworks_68a94bcb-module__Yzp1eq__variable jetbrains_mono_5b693260-module__gyROdq__variable" lang="en"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/_next/static/immutable/chunks/29dv2ghwfme3x.css" data-precedence="next"/><link rel="stylesheet" href="/_next/static/immutable/chunks/0s2341tsn1tze.css" data-precedence="next"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/immutable/chunks/17i-ouaox5m13.js"/><script src="/_next/static/immutable/chunks/3050-xf9ga8h8.js" async=""></script><script src="/_next/static/immutable/chunks/201pz26f3vo_5.js" async=""></script><script src="/_next/static/immutable/chunks/38yk38d79r3zo.js" async=""></script><script src="/_next/static/immutable/chunks/0rvqiy-c8wmnv.js" async=""></script><script src="/_next/static/immutable/chunks/turbopack-2u-m8zv1ck1n8.js" async=""></script><script src="/_next/static/immutable/chunks/0ds7jbgsvby5y.js" async=""></script><script src="/_next/static/immutable/chunks/3gefoj2t9gr_a.js" async=""></script><script src="/_next/static/immutable/chunks/2_1mmk_ms2ay0.js" async=""></script><script src="/_next/static/immutable/chunks/31k8_p8j-7jf0.js" async=""></script><script src="/_next/static/immutable/chunks/0iuo4r2iqa4e5.js" async=""></script><script src="/_next/static/immutable/chunks/1qc1_09s
+
+web search: 
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-38-codex-lfz10r8l
+ succeeded in 0ms:
+{
+  "question": "Will Palantir Technologies Inc. (PLTR) hit (HIGH) $210 Week of October 12 2026?",
+  "description": "This market will resolve to \"Yes\" if, at any point after market creation and during the week of October 12 2026, any 1-minute candle for Palantir Technologies Inc. (PLTR) has a final \"High\" or \"Low\" price equal to or beyond (above for \u2191 High Prices, below for \u2193 Low Prices) the listed price. Otherwise, this market will resolve to \"No\".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM \u2013 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth \u2014 specifically, the Palantir Technologies Inc. (PLTR) \"High\" and \"Low\" prices available at https://pythdata.app/explore/Equity.US.PLTR%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the \"t=\" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.PLTR%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.",
+  "outcomes": [
+    "Yes",
+    "No"
+  ],
+  "prices": [
+    0.8,
+    0.2
+  ],
+  "best_bid": 0.77,
+  "best_ask": 0.83,
+  "end_date": "2026-10-16T20:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 246
+}
+
+web search: site:pythdata.app "PLTR" "210" ...
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,re,concurrent.futures
+base='https://app.pyth.com'
+s=requests.Session()
+h=s.get(base+'/explore/Equity.US.PLTR%2FUSD?t=1791900000',timeout=15).text
+paths=re.findall(r'<script["'^>]+src="([''^"]+)"'"',h)
+def scan(p):
+ try:
+  j=requests.get(base+p,timeout=10).text
+  matches=list(re.finditer(r'candles|ohlc|history\\?|history/|benchmarks\\.pyth|api\\.pyth',j,re.I))
+  if matches:
+   return {'path':p,'matches':[j[max(0,m.start()-160):m.end()+220] for m in matches[:8]]}
+ except Exception as e:
+  return {'path':p,'error':str(e)[:80]}
+with concurrent.futures.ThreadPoolExecutor(max_workers=12) as pool:
+ for row in pool.map(scan,paths):
+  if row:print(row)
+PY" in /tmp/apb-38-codex-lfz10r8l
+ succeeded in 1290ms:
+{'path': '/_next/static/immutable/chunks/1qc1_09smdqbl.js', 'matches': ['ansition)(()=>{n.shallow||i(t);let r=function(e){let{origin:t,pathname:n,hash:i}=location;return t+n+(0,_.c)(e)+i}(t);(0,b.t)(20,"next/app",r);let s="push"===n.history?history.pushState:history.replaceState;x(0),s.call(history,null,"__nuqs__",r),n.scroll&&window.scrollTo(0,0),n.shallow||e.replace(r,{scroll:!1})})},[]),rateLimitFactor:3,autoResetQueueOnUpdate:!1}});function M(e){let{chi']}
+{'path': '/_next/static/immutable/chunks/44toxjpnhuwom.js', 'matches': ['"defaultValue"===e?void 0:t;function E(e){let i=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{},a=(0,s.useId)(),u=(0,r.i)(),l=(0,r.a)(),{history:o=u?.history??"replace",scroll:h=u?.scroll??!1,shallow:c=u?.shallow??!0,throttleMs:d=n.timeMs,limitUrlUpdates:f=u?.limitUrlUpdates,clearOnDefault:y=u?.clearOnDefault??!0,startTransition:b,urlKeys:w=A}=i,O=Object.keys(e).join(","),R=(', 'ltValue&&(i.eq??g)(t,i.defaultValue)&&(t=null);let w=null===t?null:(i.serialize??String)(t);P.emit(a,{state:t,query:w});let O={key:a,query:w,options:{history:s.history??i.history??o,shallow:s.shallow??i.shallow??c,scroll:s.scroll??i.scroll??h,startTransition:s.startTransition??i.startTransition??b}},R=s.limitUrlUpdates??i.limitUrlUpdates??f;if(R?.method==="debounce"){let e=R.timeMs??n.', '.eq??g)(t,i.defaultValue)&&(t=null);let w=null===t?null:(i.serialize??String)(t);P.emit(a,{state:t,query:w});let O={key:a,query:w,options:{history:s.history??i.history??o,shallow:s.shallow??i.shallow??c,scroll:s.scroll??i.scroll??h,startTransition:s.startTransition??i.startTransition??b}},R=s.limitUrlUpdates??i.limitUrlUpdates??f;if(R?.method==="debounce"){let e=R.timeMs??n.timeMs,t=m.']}
+{'path': '/_next/static/immutable/chunks/35xtr7zprck1u.js', 'matches': [' this.hn}un(e){this.hn=e}cn(e){return[]}dn(){return[]}It(){return!0}}(s=m||(m={}))[s.Normal=0]="Normal",s[s.Magnet=1]="Magnet",s[s.Hidden=2]="Hidden",s[s.MagnetOHLC=3]="MagnetOHLC";class em extends ep{constructor(e,t){let n,i,r,s;super(),this.yt=null,this.fn=NaN,this.pn=0,this.vn=!1,this.mn=new Map,this.wn=!1,this.Mn=new WeakMap,this.gn=new WeakMap,this.bn=NaN,this.Sn=NaN,this.xn=N', 'this.hn=e}cn(e){return[]}dn(){return[]}It(){return!0}}(s=m||(m={}))[s.Normal=0]="Normal",s[s.Magnet=1]="Magnet",s[s.Hidden=2]="Hidden",s[s.MagnetOHLC=3]="MagnetOHLC";class em extends ep{constructor(e,t){let n,i,r,s;super(),this.yt=null,this.fn=NaN,this.pn=0,this.vn=!1,this.mn=new Map,this.wn=!1,this.Mn=new WeakMap,this.gn=new WeakMap,this.bn=NaN,this.Sn=NaN,this.xn=NaN,this.Cn=NaN,', 'r(e){super(),this.sn=e}Qt(){return this.sn}}let e$={Bar:(e,t,n,i)=>{let r=t.upColor,s=t.downColor,l=N(e(n,i)),a=O(l.Wt[0])<=O(l.Wt[3]);return{sh:l.R??(a?r:s)}},Candlestick:(e,t,n,i)=>{let r=t.upColor,s=t.downColor,l=t.borderUpColor,a=t.borderDownColor,o=t.wickUpColor,u=t.wickDownColor,c=N(e(n,i)),d=O(c.Wt[0])<=O(c.Wt[3]);return{sh:c.R??(d?r:s),eh:c.Ht??(d?l:a),rh:c.hh??(d?o:u)}},Custo', 'return this.qt;let t=this.Wa(),n=this.va.get(t);return n||(this.$a(t),this.va.get(t)??this.qt)}ja(e){let t=this.qt.Mh(e);return null===t?null:"Bar"===this.wa||"Candlestick"===this.wa||"Custom"===this.wa?{jr:t.Wt[0],qr:t.Wt[1],Yr:t.Wt[2],Kr:t.Wt[3]}:t.Wt[3]}qa(e){let t=[];e7(this.fa,e9,"top",t);let n=this.ua;return null!==n&&n.It()&&(null===this.da&&n.Ve()&&(this.da=setTimeout(()=>{thi', 'customValues),e}function nN(e){return(t,n,i,r,s,l)=>(l?l(i):void 0===i.open&&void 0===i.value)?nI({wt:t,$n:n,Qr:r},i):nI(e(t,n,i,r,s),i)}function nO(e){return({Candlestick:nN(nA),Bar:nN(nT),Area:nN(nk),Baseline:nN(nR),Histogram:nN(nC),Line:nN(nC),Custom:nN(n_)})[e]}function nL(e){return{$n:0,ng:new Map,Oa:e}}function nj(e,t){if(void 0!==e&&0!==e.length)return{sg:t.key(e[0].wt),eg:t.ke', 'turn void 0!==n&&(t.color=n),void 0!==i&&(t.borderColor=i),void 0!==r&&(t.wickColor=r),t}function n3(e){return({Area:n2,Line:n1,Baseline:n8,Histogram:n1,Bar:n5,Candlestick:n4,Custom:n7})[e]}function n7(e){let t=e.Qr;return{...e.ue,time:t}}let n9={vertLine:{color:"#9598A1",width:1,style:3,visible:!0,labelVisible:!0,labelBackgroundColor:"#131722"},horzLine:{color:"#9598A1",width:1,style', 'uments[2]?arguments[2]:0;P(void 0!==e.mb),void 0===(t=n.priceFormat)||"custom"===t.type||void 0!==t.minMove&&void 0===t.precision&&(t.precision=tz(t.minMove)),"Candlestick"===e.type&&(void 0!==n.borderColor&&(n.borderUpColor=n.borderColor,n.borderDownColor=n.borderColor),void 0!==n.wickColor&&(n.wickUpColor=n.wickColor,n.wickDownColor=n.wickColor));let r=j(H(T),H(e.defaultOptions),n),', 'return{...this.fS(e,t,n),...n.Sh(e)}}Ng(){let e=this.ae.N();this.Vg.ht({Un:this.kg,ml:this.le.Et().ml(),pS:e.wickVisible,gi:e.borderVisible,lt:this.Tg})}}e.s(["CandlestickSeries",0,{type:"Candlestick",isBuiltIn:!0,defaultOptions:{upColor:"#26a69a",downColor:"#ef5350",wickVisible:!0,borderVisible:!0,borderColor:"#378658",borderUpColor:"#26a69a",borderDownColor:"#ef5350",wickColor:"#737']}
+{'path': '/_next/static/immutable/chunks/0hxde7v48g5b2.js', 'matches': ['ache_sentinel")?(u=(0,t.jsxs)(_.TabsList,{children:[c,(0,t.jsxs)(X.Tooltip,{children:[(0,t.jsx)(X.TooltipTrigger,{render:(0,t.jsx)(_.TabsTrigger,{"aria-label":"Candlestick chart",className:"px-2",value:"candlestick",children:(0,t.jsx)(D,{})})}),(0,t.jsx)(X.TooltipContent,{children:"Candlestick chart"})]})]}),H[12]=u):u=H[12],H[13]!==I||H[14]!==l?(h=(0,t.jsx)(_.Tabs,{onValueChange:l,va', 'hildren:[c,(0,t.jsxs)(X.Tooltip,{children:[(0,t.jsx)(X.TooltipTrigger,{render:(0,t.jsx)(_.TabsTrigger,{"aria-label":"Candlestick chart",className:"px-2",value:"candlestick",children:(0,t.jsx)(D,{})})}),(0,t.jsx)(X.TooltipContent,{children:"Candlestick chart"})]})]}),H[12]=u):u=H[12],H[13]!==I||H[14]!==l?(h=(0,t.jsx)(_.Tabs,{onValueChange:l,value:I,children:u}),H[13]=I,H[14]=l,H[15]=h)', ',t.jsx)(_.TabsTrigger,{"aria-label":"Candlestick chart",className:"px-2",value:"candlestick",children:(0,t.jsx)(D,{})})}),(0,t.jsx)(X.TooltipContent,{children:"Candlestick chart"})]})]}),H[12]=u):u=H[12],H[13]!==I||H[14]!==l?(h=(0,t.jsx)(_.Tabs,{onValueChange:l,value:I,children:u}),H[13]=I,H[14]=l,H[15]=h):h=H[15],H[16]!==er||H[17]!==U||H[18]!==Q?(d=U&&(0,t.jsxs)(X.Tooltip,{children:[', '{if(403===i.status)throw new eb;throw Error(`History request failed: ${i.status} ${i.statusText}`)}let s=ey.PriceFeedHistorySchema.parse(await i.json());return{candlestickData:(0,v.mapPriceFeedHistoryToCandlestickDataPoints)(s),data:(0,v.mapPriceFeedHistoryToChartDataPoints)(s)}}async function ev(e,t,r,a){let n=new URLSearchParams({from:new Date(r.from).toISOString(),resolution:t,to:n', 'r(`History request failed: ${i.status} ${i.statusText}`)}let s=ey.PriceFeedHistorySchema.parse(await i.json());return{candlestickData:(0,v.mapPriceFeedHistoryToCandlestickDataPoints)(s),data:(0,v.mapPriceFeedHistoryToChartDataPoints)(s)}}async function ev(e,t,r,a){let n=new URLSearchParams({from:new Date(r.from).toISOString(),resolution:t,to:new Date(r.to).toISOString()}),s=await (0,e', ']=await Promise.all([ex(e,t,r,a),ev(e,t,r,a).catch(e=>{if(e_(e))throw e;return ep.logger.warn("Benchmark fetch failed",{error:e}),[]})]);return{benchmarkData:i,candlestickData:n.candlestickData,data:n.data}}function e_(e){return e instanceof DOMException&&"AbortError"===e.name}function eA(e,t){return void 0===e?void 0:t-e*v.ONE_DAY_MS}var ew=e.i(877025),eS=e.i(521679),eC=e.i(524856),e', 'l([ex(e,t,r,a),ev(e,t,r,a).catch(e=>{if(e_(e))throw e;return ep.logger.warn("Benchmark fetch failed",{error:e}),[]})]);return{benchmarkData:i,candlestickData:n.candlestickData,data:n.data}}function e_(e){return e instanceof DOMException&&"AbortError"===e.name}function eA(e,t){return void 0===e?void 0:t-e*v.ONE_DAY_MS}var ew=e.i(877025),eS=e.i(521679),eC=e.i(524856),eT=e.i(929270),eL=e', 'chmark"),a=t.overlays.includes("schedule");if(r===e.showBenchmark&&a===e.showSchedule)return e;return{...e,showBenchmark:r,showSchedule:a}}}}let eP={chartType:"candlestick",showBenchmark:!0,showSchedule:!0};function eU(e){let a,n,d,f,m,p,g,b,_,A,w,k,j,M,I,R,N,F,V,D,Z,B,O,P,U,z,$,G,W,K,q,Y,X,J,ee,et,er,ea,en,ei,es,eo,el=(0,r.c)(128),{assetType:ec,feedSymbol:eu,exponent:ed,hasFullHistor']}
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,re
+j=requests.get('https://app.pyth.com/_next/static/immutable/chunks/0hxde7v48g5b2.js',timeout=10).text
+for needle in ['async function ex','async function ev','resolution:', 'history?']:
+ p=j.find(needle)
+ if p>=0:print(j[max(0,p-500):p+1700])
+PY" in /tmp/apb-38-codex-lfz10r8l
+ succeeded in 28ms:
+{children:(0,t.jsx)(f.ButtonLink,{beforeIcon:d,href:g,onClick:C,size:"xs",variant:"primary",children:L})}),v[14]=C,v[15]=g,v[16]=L,v[17]=y):y=v[17],v[18]!==y||v[19]!==h?(b=(0,t.jsxs)(ei.Alert,{icon:u,variant:"upsell",children:[h,y]}),v[18]=y,v[19]=h,v[20]=b):b=v[20],v[21]!==b||v[22]!==s?(x=(0,t.jsxs)(t.Fragment,{children:[s,b]}),v[21]=b,v[22]=s,v[23]=x):x=v[23],x}var ed=e.i(504339),ef=e.i(650909),em=e.i(569810),ep=e.i(797657),eg=e.i(407036);e.i(624356);var ey=e.i(562578);class eb extends Error{}async function ex(e,t,r,a){let n=new URLSearchParams({from:new Date(r.from).toISOString(),resolution:t,to:new Date(r.to).toISOString()}),i=await (0,ef.lazerProxyFetch)(`${eg.apiRoutes.priceFeedHistory(e)}?${n.toString()}`,{signal:a});if(!i.ok){if(403===i.status)throw new eb;throw Error(`History request failed: ${i.status} ${i.statusText}`)}let s=ey.PriceFeedHistorySchema.parse(await i.json());return{candlestickData:(0,v.mapPriceFeedHistoryToCandlestickDataPoints)(s),data:(0,v.mapPriceFeedHistoryToChartDataPoints)(s)}}async function ev(e,t,r,a){let n=new URLSearchParams({from:new Date(r.from).toISOString(),resolution:t,to:new Date(r.to).toISOString()}),s=await (0,ed.apiFetch)(`${eg.apiRoutes.priceFeedBenchmark(e)}?${n.toString()}`,{signal:a});if(!s.ok)throw Error(`Benchmark request failed: ${s.status} ${s.statusText}`);let o=ey.BenchmarkHistorySchema.parse(await s.json());return(0,i.mapBenchmarkRows)(o)}async function eE(e,t,r,a){let[n,i]=await Promise.all([ex(e,t,r,a),ev(e,t,r,a).catch(e=>{if(e_(e))throw e;return ep.logger.warn("Benchmark fetch failed",{error:e}),[]})]);return{benchmarkData:i,candlestickData:n.candlestickData,data:n.data}}function e_(e){return e instanceof DOMException&&"AbortError"===e.name}function eA(e,t){return void 0===e?void 0:t-e*v.ONE_DAY_MS}var ew=e.i(877025),eS=e.i(521679),eC=e.i(524856),eT=e.i(929270),eL=e.i(530662),ek=e.i(189007),ej=e.i(755340);let eM=(e,t)=>{let r=v.RANGES[t].resolutionMs/1e3;return Math.round(e/1e3/r)*r};var eH=e.i(291020),eI=e.i(627100),eR=e.i(91959),eN=e.i(128433),eF=e.i(394683);class eV{_points;_barWidth;constructor(e,t){this._points=e,this._barWidth=t}draw(e){e.useBitmapCoordinateSpace(e=>{let t,r=e.context,a=e.bitmapSiz
+,a){let n=new URLSearchParams({from:new Date(r.from).toISOString(),resolution:t,to:new Date(r.to).toISOString()}),i=await (0,ef.lazerProxyFetch)(`${eg.apiRoutes.priceFeedHistory(e)}?${n.toString()}`,{signal:a});if(!i.ok){if(403===i.status)throw new eb;throw Error(`History request failed: ${i.status} ${i.statusText}`)}let s=ey.PriceFeedHistorySchema.parse(await i.json());return{candlestickData:(0,v.mapPriceFeedHistoryToCandlestickDataPoints)(s),data:(0,v.mapPriceFeedHistoryToChartDataPoints)(s)}}async function ev(e,t,r,a){let n=new URLSearchParams({from:new Date(r.from).toISOString(),resolution:t,to:new Date(r.to).toISOString()}),s=await (0,ed.apiFetch)(`${eg.apiRoutes.priceFeedBenchmark(e)}?${n.toString()}`,{signal:a});if(!s.ok)throw Error(`Benchmark request failed: ${s.status} ${s.statusText}`);let o=ey.BenchmarkHistorySchema.parse(await s.json());return(0,i.mapBenchmarkRows)(o)}async function eE(e,t,r,a){let[n,i]=await Promise.all([ex(e,t,r,a),ev(e,t,r,a).catch(e=>{if(e_(e))throw e;return ep.logger.warn("Benchmark fetch failed",{error:e}),[]})]);return{benchmarkData:i,candlestickData:n.candlestickData,data:n.data}}function e_(e){return e instanceof DOMException&&"AbortError"===e.name}function eA(e,t){return void 0===e?void 0:t-e*v.ONE_DAY_MS}var ew=e.i(877025),eS=e.i(521679),eC=e.i(524856),eT=e.i(929270),eL=e.i(530662),ek=e.i(189007),ej=e.i(755340);let eM=(e,t)=>{let r=v.RANGES[t].resolutionMs/1e3;return Math.round(e/1e3/r)*r};var eH=e.i(291020),eI=e.i(627100),eR=e.i(91959),eN=e.i(128433),eF=e.i(394683);class eV{_points;_barWidth;constructor(e,t){this._points=e,this._barWidth=t}draw(e){e.useBitmapCoordinateSpace(e=>{let t,r=e.context,a=e.bitmapSize.height,n=e.horizontalPixelRatio*this._barWidth/2,i=e.bitmapSize.width,s=4*e.horizontalPixelRatio,o=Math.max(1,Math.round(e.horizontalPixelRatio));for(let l of this._points){let c=l.x*e.horizontalPixelRatio;if(c<-(n+1)){t=l.style?.fill;continue}if(!l.style){t=void 0;continue}let u=l.style.fill!==t;t=l.style.fill;let h=Math.max(0,Math.round(c-n)),d=Math.min(i,Math.round(c+n));r.fillStyle=l.style.fill,r.fillRect(h,0,d-h,a),u&&l.style.border&&h>=0&&h<=i&&(r.save(),r.strokeStyle=l.style.border,r.lineWidth=o,r.setLineDash
+H56A12,12,0,0,0,44,40v72a4,4,0,0,0,8,0V40a4,4,0,0,1,4-4h92V88a4,4,0,0,0,4,4h52ZM156,84V41.65L198.34,84Z"}))]]),K=o.forwardRef((e,t)=>o.createElement(R.default,{ref:t,...e,weights:W}));K.displayName="FilePngIcon";var q=e.i(458853),Y=e.i(221428),X=e.i(685106);function Q(e){let a,n,i,s,o,l,c,u,h,d,f,m,p,g,y,b,x,E,S,C,T,L,k,j,M,H=(0,r.c)(52),{chartType:I,isLoading:R,isResetZoomDisabled:N,onChartTypeChange:V,onExportCsv:Z,onExportPng:O,onOverlaysChange:U,onResetZoom:$,onResolutionChange:W,overlays:Q,resolution:et}=e;H[0]!==Q?(a=Q?.includes("schedule")??!1,H[0]=Q,H[1]=a):a=H[1];let er=a;return H[2]!==W?(n=e=>W(e),H[2]=W,H[3]=n):n=H[3],H[4]===Symbol.for("react.memo_cache_sentinel")?(i=(0,t.jsx)(Y.SelectTrigger,{className:"w-20",children:(0,t.jsx)(Y.SelectValue,{})}),H[4]=i):i=H[4],H[5]===Symbol.for("react.memo_cache_sentinel")?(s=(0,t.jsx)(Y.SelectContent,{children:(0,t.jsxs)(Y.SelectGroup,{children:[(0,t.jsx)(Y.SelectLabel,{children:"Resolution"}),v.RESOLUTIONS.map(ee)]})}),H[5]=s):s=H[5],H[6]!==et||H[7]!==n?(o=(0,t.jsxs)(Y.Select,{onValueChange:n,value:et,children:[i,s]}),H[6]=et,H[7]=n,H[8]=o):o=H[8],H[9]!==V?(l=e=>{V(e)},H[9]=V,H[10]=l):l=H[10],H[11]===Symbol.for("react.memo_cache_sentinel")?(c=(0,t.jsxs)(X.Tooltip,{children:[(0,t.jsx)(X.TooltipTrigger,{render:(0,t.jsx)(_.TabsTrigger,{"aria-label":"Line chart",className:"px-2",value:"line",children:(0,t.jsx)(B,{})})}),(0,t.jsx)(X.TooltipContent,{children:"Line chart"})]}),H[11]=c):c=H[11],H[12]===Symbol.for("react.memo_cache_sentinel")?(u=(0,t.jsxs)(_.TabsList,{children:[c,(0,t.jsxs)(X.Tooltip,{children:[(0,t.jsx)(X.TooltipTrigger,{render:(0,t.jsx)(_.TabsTrigger,{"aria-label":"Candlestick chart",className:"px-2",value:"candlestick",children:(0,t.jsx)(D,{})})}),(0,t.jsx)(X.TooltipContent,{children:"Candlestick chart"})]})]}),H[12]=u):u=H[12],H[13]!==I||H[14]!==l?(h=(0,t.jsx)(_.Tabs,{onValueChange:l,value:I,children:u}),H[13]=I,H[14]=l,H[15]=h):h=H[15],H[16]!==er||H[17]!==U||H[18]!==Q?(d=U&&(0,t.jsxs)(X.Tooltip,{children:[(0,t.jsx)(X.TooltipTrigger,{render:(0,t.jsx)(A.Button,{"aria-label":"Toggle Market Hours","aria-pressed":er,beforeIcon:(0,t.jsx)(P,{weight:er?"fill":"regular"}),iconOnly:!0,onClick:()=>{let e=(Q??[]
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,re,concurrent.futures
+base='https://app.pyth.com'
+h=requests.get(base+'/explore/Equity.US.PLTR%2FUSD',timeout=10).text
+paths=re.findall(r'<script["'^>]+src="([''^"]+)"'"',h)
+def scan(p):
+ try:
+  j=requests.get(base+p,timeout=8).text
+  for needle in ['priceFeedHistory:', 'lazerProxyFetch\",', 'RESOLUTIONS\",', 'mapPriceFeedHistoryToCandlestickDataPoints\",']:
+   for m in list(re.finditer(re.escape(needle),j))[:2]:
+    print(p, j[max(0,m.start()-1200):m.end()+1300], flush=True)
+ except Exception:pass
+with concurrent.futures.ThreadPoolExecutor(max_workers=12) as pool:list(pool.map(scan,paths))
+PY" in /tmp/apb-38-codex-lfz10r8l
+ succeeded in 1144ms:
+/_next/static/immutable/chunks/3_5nlb4_5dn8p.js lingCustomerDealBespokeProductCreate:()=>"/api/internal-admin/billing/customer-deal/bespoke-product/create",internalAdminBillingCustomerDealBespokeProductUpdate:()=>"/api/internal-admin/billing/customer-deal/bespoke-product/update",internalAdminBillingCustomerDealCatalog:()=>"/api/internal-admin/billing/customer-deal/catalog",internalAdminBillingCustomerDealCurrent:t=>`/api/internal-admin/billing/customer-deal/current?targetPythUserId=${encodeURIComponent(t)}`,internalAdminBillingCustomerDealPreview:()=>"/api/internal-admin/billing/customer-deal/preview",internalAdminBillingPortalSession:()=>"/api/internal-admin/billing/portal-session",internalAdminKycLink:()=>"/api/internal-admin/kyc/link",internalAdminSignalsRefresh:()=>"/api/internal-admin/signals/refresh",internalAdminUsers:()=>"/api/internal-admin/users",internalAdminUsersExport:()=>"/api/internal-admin/users/export",lazerToken:()=>"/api/lazer/token",playgroundHistory:()=>"/api/playground/history",postMagicLinkSigninCallbackBase:()=>"/api/auth/magic-link-signin-callback",postSocialSignin:()=>"/api/auth/post-social-signin",priceFeedBenchmark:t=>`${e(t)}/benchmark`,priceFeedDetail:e,priceFeedFacets:()=>"/api/price-feeds/facets",priceFeedHistory:t=>`${e(t)}/history`,priceFeedMetrics:t=>`${e(t)}/metrics`,priceFeedPrice:t=>`${e(t)}/price`,priceFeeds:()=>"/api/price-feeds",priceFeedsCategoryCounts:()=>"/api/price-feeds/category-counts",priceFeedsExport:()=>"/api/price-feeds/export",sealSignupCallback:()=>"/api/auth/seal-signup-callback",socialAuthProviders:()=>"/api/auth/providers",updateKYC:()=>"/api/kyc",userDelete:()=>"/api/user/delete",userEntitledFeeds:()=>"/api/user/entitled-feeds",userMe:()=>"/api/user/me",userSettings:()=>"/api/user/settings",userWatchlist:()=>"/api/user/watchlist",userWatchlistEntry:t=>`/api/user/watchlist/${t}`}])},329765,t=>{"use strict";var e=t.i(382474);t.s(["isServer",0,()=>e.isServer])},107732,t=>{"use strict";var e=t.i(551864);let i=new class extends e.Subscribable{#t;#e;#i;constructor(){super(),this.#i=t=>{if("u">typeof window&&window.addEventListener){let e=()=>t();return window.addEventListener("visibilitychange",e,!1),()=>{window.removeEventListener("visibilitychange",e)}}}}onSubscribe(){this.#e||this.setEventListener(this.#i)}onUnsubscribe(){this.hasListeners()||(this.#e?.(),this.#e=void 0)}setEventListener(t){this.#i=t,this.#e?.(),this.#e=t(t=>{"boolean"==typeof t?this.setFocused(t):this.onFocus()})}setFocused(t){this.#t!==t&&(this.#t=t,this.onFocus())}onFocus(){let t=this.isFocused();
+/_next/static/immutable/chunks/0hxde7v48g5b2.js slice();r[r.length-1]={...u,value:c};let a=t.slice(),n=a.at(-1);return n&&(a[a.length-1]={...n,close:c,high:Math.max(n.high,c),low:Math.min(n.low,c)}),{bars:r,candles:a}}}return{bars:[...e,{time:l,value:c}],candles:[...t,{close:c,high:c,low:c,open:c,time:l}]}}(e.data,e.candlestickData,s.tick,r.RESOLUTION_MS[e.resolution]);if(t===e.data&&n===e.candlestickData)return e;let i=t.length>e.data.length?t.at(-1):void 0,l=void 0===i?void 0:o(i.time),c=void 0===l?e.range:{...e.range,to:1e3*l};return{...e,candlestickData:n,data:t,dataChangeKind:"stream",range:c}}}},"tickToPrice",0,a,"timeToSeconds",0,o],542147);var l=e.i(403761),c=e.i(504339),u=e.i(345273);async function h(e){let t=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{},r=arguments.length>2&&void 0!==arguments[2]?arguments[2]:{},a=r.controller??u.LazerTokenController,n=r.fetchImpl??c.apiFetch,i=async()=>{let r=await a.getTokensForRequest(),i=new Headers(t.headers);return r.fallbackToken&&i.set(l.LAZER_FALLBACK_TOKEN_HEADER,r.fallbackToken),r.userToken&&i.set(l.LAZER_USER_TOKEN_HEADER,r.userToken),n(e,{...t,headers:i})},s=await i();return s.status!==l.LAZER_TOKEN_EXPIRED_STATUS?s:(await a.ensureTokens({force:!0}),i())}e.s(["lazerProxyFetch",0,h],650909);var d=e.i(585734),f=e.i(888786);function m(){return Date.now()}e.s(["useNow",0,function(e){let t,r,a=(0,d.c)(3),[n,i]=(0,f.useState)(m);return a[0]!==e?(t=()=>{let t=setInterval(()=>{i(Date.now())},e);return()=>{clearInterval(t)}},r=[e],a[0]=e,a[1]=t,a[2]=r):(t=a[1],r=a[2]),(0,f.useEffect)(t,r),n}],128433),e.i(924856);var p=e.i(779087),g=e.i(382474),y=e.i(172158),b=e.i(842553),x=e.i(599259),v=e.i(407036);let E=b.z.object({price:b.z.number(),publishTime:b.z.number()});e.s(["useTimestampPrice",0,function(e,t){let r,a,n,i,s=(0,d.c)(10);s[0]!==t?(r=(0,p.isNumber)(t),s[0]=t,s[1]=r):r=s[1],s[2]!==e||s[3]!==t?(a=async r=>{let{signal:a}=r,n=(t??0)*1e3,i=`${v.apiRoutes.priceFeedPrice(e)}?timestamp=${String(n)}`,s=await h(i,{signal:a});if(!s.ok)throw Error(`Timestamp price request failed: ${String(s.status)}`);return E.parse(await s.json()).price},n=["useTimestampPrice",e,t],s[2]=e,s[3]=t,s[4]=a,s[5]=n):(a=s[4],n=s[5]);let o=n;s[6]!==r||s[7]!==a||s[8]!==o?(i={enabled:r,placeholderData:g.keepPreviousData,queryFn:a,queryKey:o,staleTime:x.CATALOGUE_STALE_TIME_MS},s[6]=r,s[7]=a,s[8]=o,s[9]=i):i=s[9];let{data:l}=(0,y.useQuery)(i);return l}],394683)},40141,e=>{"use strict";var t=e.i(825585),r=e.i(585734),a=e.i(888786),n=e.i(525169);let i=new Map([["bold",a.createElement(a.Fragment,n
+/_next/static/immutable/chunks/0hxde7v48g5b2.js timestampUs)}}(e,a,r);t&&i(t)}),e.subscribe({channel:"fixed_rate@1000ms",deliveryFormat:"json",formats:[],ignoreInvalidFeedIds:!0,parsed:!0,priceFeedIds:[a],properties:["price","feedUpdateTimestamp"],subscriptionId:1,type:"subscribe"}))}).catch(e=>{c||e instanceof DOMException&&"AbortError"===e.name||T.logger.error("Failed to open Lazer live price stream",e)}),h}({exponent:l,feedId:c,onTick:u,streamUrls:h,token:d})},r=[o,l,c,u,h,d],i[0]=o,i[1]=l,i[2]=c,i[3]=u,i[4]=h,i[5]=d,i[6]=t,i[7]=r):(t=i[6],r=i[7]),(0,s.useEffect)(t,r)}(u),d[14]!==f||d[15]!==b?(h=(0,r.jsx)(H.Provider,{value:b,children:f}),d[14]=f,d[15]=b,d[16]=h):h=d[16],h},"useLiveTick",0,function(){return(0,s.useContext)(H)}],541904)},660654,542147,650909,128433,394683,e=>{"use strict";let t={"1D":{ms:864e5,resolution:"5m",resolutionMs:3e5},"1H":{ms:36e5,resolution:"1m",resolutionMs:6e4},"1M":{ms:2592e6,resolution:"2h",resolutionMs:72e5},"1W":{ms:6048e5,resolution:"30m",resolutionMs:18e5},"1Y":{ms:31104e6,resolution:"1d",resolutionMs:864e5},"3M":{ms:7776e6,resolution:"6h",resolutionMs:216e5}};e.s(["EXTEND_BARS",0,500,"MIN_INITIAL_BARS",0,100,"ONE_DAY_MS",0,864e5,"ONE_DAY_SEC",0,86400,"OVERFETCH_MULTIPLIER",0,3,"RANGES",0,t,"RESOLUTIONS",0,["1m","5m","15m","30m","2h","4h","6h","1d"],"TIME_RANGES",0,["1H","1D","1W","1M","3M","1Y"],"mapPriceFeedHistoryToCandlestickDataPoints",0,function(e){return e.map(e=>({close:e.close,high:e.high,low:e.low,open:e.open,time:Math.floor(new Date(e.timestamp).getTime()/1e3)}))},"mapPriceFeedHistoryToChartDataPoints",0,function(e){return e.map(e=>({time:Math.floor(new Date(e.timestamp).getTime()/1e3),value:e.close}))}],660654);var r=e.i(459596);function a(e){return Number(e.priceE)*10**e.exponent}function n(e,t,r){let a=new Set(t.map(e=>e.time)),n=e.filter(e=>!a.has(e.time));return"older"===r?[...t,...n]:[...n,...t]}function i(e,t){return{...e,dataChangeKind:t,fetchToken:e.fetchToken+1,forbidden:!1,loading:{initial:!0,newer:!1,older:!1},lookbackLimitReachedTime:void 0,noMore:{newer:!1,older:!1},range:{from:0,to:0}}}function s(e,t,a,n,i){let s=r.RESOLUTION_MS[a],o=Math.min(t,i),l=Math.min(Math.max(e,n??-1/0),o-s);return{from:(0,r.roundToResolution)(l,s,"floor"),to:(0,r.roundToResolution)(o,s,"floor")}}function o(e){if("number"==typeof e)return e;if("string"==typeof e){let t=Date.parse(e);if(Number.isFinite(t))return Math.floor(t/1e3)}}e.s(["computeLookbackReached",0,function(e,t,r){if(void 0!==r&&void 0!==t&&!(e>r))return t},"computeRangeFromHistory",0,function(e){let t=e.at(0),r=e.at
+/_next/static/immutable/chunks/0hxde7v48g5b2.js noreInvalidFeedIds:!0,parsed:!0,priceFeedIds:[a],properties:["price","feedUpdateTimestamp"],subscriptionId:1,type:"subscribe"}))}).catch(e=>{c||e instanceof DOMException&&"AbortError"===e.name||T.logger.error("Failed to open Lazer live price stream",e)}),h}({exponent:l,feedId:c,onTick:u,streamUrls:h,token:d})},r=[o,l,c,u,h,d],i[0]=o,i[1]=l,i[2]=c,i[3]=u,i[4]=h,i[5]=d,i[6]=t,i[7]=r):(t=i[6],r=i[7]),(0,s.useEffect)(t,r)}(u),d[14]!==f||d[15]!==b?(h=(0,r.jsx)(H.Provider,{value:b,children:f}),d[14]=f,d[15]=b,d[16]=h):h=d[16],h},"useLiveTick",0,function(){return(0,s.useContext)(H)}],541904)},660654,542147,650909,128433,394683,e=>{"use strict";let t={"1D":{ms:864e5,resolution:"5m",resolutionMs:3e5},"1H":{ms:36e5,resolution:"1m",resolutionMs:6e4},"1M":{ms:2592e6,resolution:"2h",resolutionMs:72e5},"1W":{ms:6048e5,resolution:"30m",resolutionMs:18e5},"1Y":{ms:31104e6,resolution:"1d",resolutionMs:864e5},"3M":{ms:7776e6,resolution:"6h",resolutionMs:216e5}};e.s(["EXTEND_BARS",0,500,"MIN_INITIAL_BARS",0,100,"ONE_DAY_MS",0,864e5,"ONE_DAY_SEC",0,86400,"OVERFETCH_MULTIPLIER",0,3,"RANGES",0,t,"RESOLUTIONS",0,["1m","5m","15m","30m","2h","4h","6h","1d"],"TIME_RANGES",0,["1H","1D","1W","1M","3M","1Y"],"mapPriceFeedHistoryToCandlestickDataPoints",0,function(e){return e.map(e=>({close:e.close,high:e.high,low:e.low,open:e.open,time:Math.floor(new Date(e.timestamp).getTime()/1e3)}))},"mapPriceFeedHistoryToChartDataPoints",0,function(e){return e.map(e=>({time:Math.floor(new Date(e.timestamp).getTime()/1e3),value:e.close}))}],660654);var r=e.i(459596);function a(e){return Number(e.priceE)*10**e.exponent}function n(e,t,r){let a=new Set(t.map(e=>e.time)),n=e.filter(e=>!a.has(e.time));return"older"===r?[...t,...n]:[...n,...t]}function i(e,t){return{...e,dataChangeKind:t,fetchToken:e.fetchToken+1,forbidden:!1,loading:{initial:!0,newer:!1,older:!1},lookbackLimitReachedTime:void 0,noMore:{newer:!1,older:!1},range:{from:0,to:0}}}function s(e,t,a,n,i){let s=r.RESOLUTION_MS[a],o=Math.min(t,i),l=Math.min(Math.max(e,n??-1/0),o-s);return{from:(0,r.roundToResolution)(l,s,"floor"),to:(0,r.roundToResolution)(o,s,"floor")}}function o(e){if("number"==typeof e)return e;if("string"==typeof e){let t=Date.parse(e);if(Number.isFinite(t))return Math.floor(t/1e3)}}e.s(["computeLookbackReached",0,function(e,t,r){if(void 0!==r&&void 0!==t&&!(e>r))return t},"computeRangeFromHistory",0,function(e){let t=e.at(0),r=e.at(-1);if(!t||!r)return{from:0,to:0};let a=o(t.time),n=o(r.time);return void 0===a||void 0===n?{from:0,to:0}:{from:1e3*a,to:1e3*n}},"extendWi
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests
+j=requests.get('https://app.pyth.com/_next/static/immutable/chunks/3_5nlb4_5dn8p.js',timeout=10).text
+for needle in ['407036', '650909', '/api/price-feeds/']:
+ p=j.find(needle)
+ print(j[max(0,p-100):p+750])
+PY" in /tmp/apb-38-codex-lfz10r8l
+ succeeded in 62ms:
+.responseBody:t instanceof i.FetchBodyError?(0,e.errorToString)(t.cause):(0,e.errorToString)(t)}])},407036,t=>{"use strict";let e=t=>`/api/price-feeds/${encodeURIComponent(t)}`;t.s(["apiRoutes",0,{billingCardCaptureCallback:()=>"/api/billing/card-capture-callback",billingItemsChangeApply:()=>"/api/billing/items-change/apply",billingItemsChangePreview:()=>"/api/billing/items-change/preview",billingReactivate:()=>"/api/billing/reactivate",billingSelectPlan:()=>"/api/billing/select-plan",billingUpdatePaymentMethod:()=>"/api/billing/update-payment-method",completeOnboarding:()=>"/api/auth/complete-onboarding",contactSales:()=>"/api/stripe/contact-sales",currentSubscription:()=>"/api/stripe/subscriptions/current",finalizeKYC:()=>"/api/kyc/finalize",internalAdminBillingAdminCatalogArchive:()=>"/api/internal-admin/billing/admin-catalog/archive",
+!function(){try{var e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof self?self:{};e._posthogReleaseId=e._posthogReleaseId||"01a13547-27e3-0000-f432-7c15c926d140";var n=(new e.Error).stack;n&&(e._posthogChunkIds=e._posthogChunkIds||{},e._posthogChunkIds[n]="54438c7e-cd67-5812-babf-0c4dc1f55603")}catch(e){}}();(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,504339,806570,t=>{"use strict";t.i(840596);var e,i,n=t.i(877025);(e=i||(i={}))[e.CONTINUE=100]="CONTINUE",e[e.SWITCHING_PROTOCOLS=101]="SWITCHING_PROTOCOLS",e[e.PROCESSING=102]="PROCESSING",e[e.EARLY_HINTS=103]="EARLY_HINTS",e[e.OK=200]="OK",e[
+BodyError?(0,e.errorToString)(t.cause):(0,e.errorToString)(t)}])},407036,t=>{"use strict";let e=t=>`/api/price-feeds/${encodeURIComponent(t)}`;t.s(["apiRoutes",0,{billingCardCaptureCallback:()=>"/api/billing/card-capture-callback",billingItemsChangeApply:()=>"/api/billing/items-change/apply",billingItemsChangePreview:()=>"/api/billing/items-change/preview",billingReactivate:()=>"/api/billing/reactivate",billingSelectPlan:()=>"/api/billing/select-plan",billingUpdatePaymentMethod:()=>"/api/billing/update-payment-method",completeOnboarding:()=>"/api/auth/complete-onboarding",contactSales:()=>"/api/stripe/contact-sales",currentSubscription:()=>"/api/stripe/subscriptions/current",finalizeKYC:()=>"/api/kyc/finalize",internalAdminBillingAdminCatalogArchive:()=>"/api/internal-admin/billing/admin-catalog/archive",internalAdminBillingAdminCatalogCr
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,json
+u='https://app.pyth.com/api/price-feeds/Equity.US.PLTR%2FUSD/history'
+r=requests.get(u,params={'from':'2026-10-13T13:30:00.000Z','to':'2026-10-13T19:00:00.000Z','resolution':'1m'},timeout=15)
+print('status',r.status_code)
+try:
+ data=r.json()
+ if isinstance(data,list):
+  print('candles',len(data))
+  print(json.dumps(sorted(data,key=lambda c:float(c.get('high',0)),reverse=True)[:5]))
+ else:print(str(data)[:2000])
+except:print(r.text[:1500])
+PY" in /tmp/apb-38-codex-lfz10r8l
+ succeeded in 92ms:
+status 419
+lazer token has expired
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests
+r=requests.get('https://app.pyth.com/api/lazer/token',timeout=10)
+print('status',r.status_code)
+try:
+ d=r.json()
+ print('keys',list(d.keys()) if isinstance(d,dict) else type(d).__name__)
+except:print('non-JSON response')
+PY" in /tmp/apb-38-codex-lfz10r8l
+ succeeded in 75ms:
+status 405
+non-JSON response
+
+codex
+Today’s reported high supports Yes even after accounting for the market’s creation time. I couldn’t retrieve Pyth’s historical candles, so I’m allowing for that uncertainty and placing the bet on Yes with 97% confidence.
+
+exec
+/usr/bin/zsh -lc "bench bet --outcome Yes --confidence 0.97 --rationale 'Stock Analysis, Investing.com, and ChartExchange report October 13 highs above "'$210, after the market opened October 12 at 12:37 PM ET, strongly indicating the touch condition has already occurred. Pyth candle verification remains unconfirmed, but Yes at the 0.83 ask offers strong expected value given the corroborated price evidence.'"' --quote 'I checked the timestamp. Your thesis should try it.'" in /tmp/apb-38-codex-lfz10r8l
+ succeeded in 4040ms:
+{
+  "placed": true,
+  "outcome": "Yes",
+  "avg_price": 0.8333,
+  "shares": 120.0,
+  "stake_filled": 100.0,
+  "unspent": 0.0,
+  "quote": "I checked the timestamp. Your thesis should try it."
+}
+
+codex
+Placed **100 tokens on Yes** at **0.8333**, with **97% confidence**.
+
+[Reported October 13 high: $210.88](https://stockanalysis.com/stocks/pltr/history/), above the target. Pyth candle verification remains unconfirmed.
+tokens used
+57,577
+Placed **100 tokens on Yes** at **0.8333**, with **97% confidence**.
+
+[Reported October 13 high: $210.88](https://stockanalysis.com/stocks/pltr/history/), above the target. Pyth candle verification remains unconfirmed.
