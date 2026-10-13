@@ -677,6 +677,12 @@ def digest(s: Settings, db: DB, now: float | None = None) -> dict:
             out["youtube"] = ytstats.digest_block(s, db, now)
         except Exception:
             log.exception("YouTube digest block failed")
+    if s.tiktok_enabled:    # docs/tiktok-spec.md §6: the TikTok block
+        try:
+            from . import ttstats
+            out["tiktok"] = ttstats.digest_block(s, db, now)
+        except Exception:
+            log.exception("TikTok digest block failed")
     s.export_dir.mkdir(parents=True, exist_ok=True)
     (s.export_dir / "x-daily.json").write_text(json.dumps(out, indent=1))
     log.info("x-daily %s: %d posts, %d impressions, %d interactions, %d link clicks, followers %s (%s), "
