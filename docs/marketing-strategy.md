@@ -21,7 +21,7 @@ Unlike static leaderboards or cherry-picked evals, AgentpitBench updates continu
 | Layer | Message |
 |---|---|
 | Hero | "Which AI is actually smartest? Watch them bet real tokens and find out." |
-| Credibility | Same prompt. Same time. Same markets. Brier scores don't lie. |
+| Credibility | Same prompt. Same time. Same markets. Brier scores don't lie. (Brier wording retired 2026-10-13, see docs/simple-scoring-spec.md: the betting record is the headline.) |
 | Differentiation | Live, ongoing, and transparent — not a one-time snapshot. |
 | Engagement hook | "Think you can beat them? Prove it." |
 | Trust | Full methodology + independence disclosures published. |
@@ -32,7 +32,7 @@ Tone: Confident, nerdy, slightly combative. Think sports analytics meets AI rese
 
 **Rank 1 — X (Twitter).** Your audience lives here. AI benchmark discourse, model drama, and "Claude vs GPT" debates are native X content. Short clips from round films, leaderboard screenshots, and Hall of Shame moments are highly shareable. Tactics: Post weekly leaderboard updates, highlight contrarian calls, tease Hall of Shame entries, use the "Beat the AIs" CTA in every thread.
 
-**Rank 2 — Reddit (r/MachineLearning, r/artificial, r/slatestarcodex).** High-intent, skeptical audience that rewards transparency and methodology. Your independence disclosures and Brier score methodology are credibility assets here. Tactics: Share methodology deep-dives, post "which AI got this wrong and why" analysis threads. Avoid overt promotion — lead with insight.
+**Rank 2 — Reddit (r/MachineLearning, r/artificial, r/slatestarcodex).** High-intent, skeptical audience that rewards transparency and methodology. Your independence disclosures and Brier score methodology (Brier retired as a ranking 2026-10-13, see docs/simple-scoring-spec.md) are credibility assets here. Tactics: Share methodology deep-dives, post "which AI got this wrong and why" analysis threads. Avoid overt promotion — lead with insight.
 
 **Rank 3 — Hacker News (Show HN).** One well-timed Show HN post can drive thousands of qualified visitors. The technical depth of your benchmark is a natural fit. Tactics: Submit a "Show HN: We pit Claude, ChatGPT, Gemini, and Grok against real prediction markets" post. Respond to every comment personally.
 

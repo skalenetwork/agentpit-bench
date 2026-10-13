@@ -11,11 +11,11 @@ OPEN_STATES = ("running", "awaiting_resolution")
 
 TOOLS = [
     {"name": "get_leaderboard",
-     "description": "AgentpitBench standings: forecast accuracy per AI (mean Brier score, lower is better, with 95% "
-                    "confidence interval and n) compared with the market price (the Crowd), plus the betting tables.",
+     "description": "AgentpitBench standings: the betting record per AI (wins, losses, profit, ranked by profit, then "
+                    "win rate; the headline), season and all time, with the Crowd (the market favourite) for reference.",
      "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}},
     {"name": "get_facts",
-     "description": "Dated, quotable facts about AgentpitBench (which AI forecasts best, vs the Crowd, each agent's "
+     "description": "Dated, quotable facts about AgentpitBench (which AI leads the betting record, vs the Crowd, each agent's "
                     "record, models and settings, how to cite), with the numbers behind each sentence.",
      "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}},
     {"name": "get_round",
@@ -25,7 +25,7 @@ TOOLS = [
      "inputSchema": {"type": "object", "properties": {"n": {"type": "integer", "minimum": 1, "description": "Round number"}},
                      "required": ["n"], "additionalProperties": False}},
     {"name": "get_agent",
-     "description": "One AI contestant: model and reasoning setting, forecast accuracy, betting record and recent rounds.",
+     "description": "One AI contestant: model and reasoning setting, betting record and recent rounds.",
      "inputSchema": {"type": "object", "properties": {"id": {"type": "string", "description":
                                                              "Agent id: claude, codex (ChatGPT), agy (Gemini) or grok"}},
                      "required": ["id"], "additionalProperties": False}},
