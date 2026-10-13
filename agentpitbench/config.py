@@ -163,6 +163,12 @@ class Settings:
     ab_gen_max_calls_per_day: int = 2
     ab_digest_hour_utc: int = 8
     ab_public_delay_days: float = 7      # /experiments/ numbers only from posts older than this (operator decision)
+    # A/B v2 (docs/ab-algorithm-v2-plan.md): audit / simulator window start. Reach jumped ~10x on 2026-10-12
+    # (X Premium, docs/virality-2-spec.md §2b), so only post-step data is a valid baseline.
+    ab_audit_since: str = "2026-10-12"
+    # reward version (M3): 1 = v1 (live); 2 = p99 cap, cross-fitted covariate adjustment, 90-day window and
+    # half-life. Day-level slots (tone, site.round_cta) keep v1 standardisation either way.
+    ab_reward_version: int = 1
     explorer_url: str = "https://skale-base-explorer.skalenodes.com"   # agentpit settles on SKALE Base
     # YouTube Shorts (docs/youtube-shorts-spec.md): the daily film as a Short. Off until the operator has run
     # `agentpitbench youtube auth` and `youtube check`; also needs motd_enabled.

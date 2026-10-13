@@ -187,10 +187,10 @@ def choose(db: DB, s: Settings, slot: str, post_key: str, situation: str | None 
         arm = dict(db.one("SELECT * FROM ab_arms WHERE arm_id=?", row["arm_id"]))
         return _choice(arm, slot, situation, facts)
     live = arms(db, slot)
-    arm = ctl if len(live) <= 1 else _draw(db, s, slot, live, post_key, now)
-    db.x("INSERT OR IGNORE INTO ab_assignments(post_key,slot,arm_id,realized_arm_id,kind,assigned_at)"
-         " VALUES(?,?,?,?,?,?)", post_key, slot, arm["arm_id"], arm["arm_id"], kind or slot.split(".")[0],
-         now or time.time())
+    arm, prop, policy = (ctl, 1.0, "control-only") if len(live) <= 1 else _draw(db, s, slot, live, post_key, now)
+    db.x("INSERT OR IGNORE INTO ab_assignments(post_key,slot,arm_id,realized_arm_id,kind,assigned_at,propensity,"
+         "policy,situation) VALUES(?,?,?,?,?,?,?,?,?)", post_key, slot, arm["arm_id"], arm["arm_id"],
+         kind or slot.split(".")[0], now or time.time(), prop, policy, situation)
     return _choice(arm, slot, situation, facts)
 
 
@@ -198,16 +198,45 @@ def _min_n(s: Settings, slot: str) -> int:
     return s.ab_min_days_tone if slot == "tone" else s.ab_min_posts
 
 
-def _draw(db: DB, s: Settings, slot: str, live: list[dict], post_key: str, now: float | None) -> dict:
+def _draw(db: DB, s: Settings, slot: str, live: list[dict], post_key: str,
+          now: float | None) -> tuple[dict, float, str]:
+    """(arm, propensity, policy). The propensity is the chosen arm's probability under the policy at this moment
+    (A/B v2 M2): 1.0 for forced exploration (deterministic), else P(the arm's Thompson draw is the largest). It is
+    computed after the choice and takes nothing from the seeded rng, so every choice stays what v1 made."""
     counts = {a["arm_id"]: db.one("SELECT COUNT(*) c FROM ab_assignments WHERE arm_id=?", a["arm_id"])["c"]
               for a in live}
     if min(counts.values()) < _min_n(s, slot):   # exploration: the fewest-assigned arm, ties -> lowest id
-        return min(live, key=lambda a: (counts[a["arm_id"]], a["arm_id"]))
+        return min(live, key=lambda a: (counts[a["arm_id"]], a["arm_id"])), 1.0, "v1-explore"
     post = {p["arm_id"]: p for p in posterior(db, s, slot, now, draws=0)}
     rng = _rng(post_key, slot)
     samples = {a["arm_id"]: rng.gauss(post[a["arm_id"]]["mean"], post[a["arm_id"]]["sd"]) for a in live}
     best = max(samples.values())
-    return next(a for a in live if samples[a["arm_id"]] == best)
+    arm = next(a for a in live if samples[a["arm_id"]] == best)
+    params = [(post[a["arm_id"]]["mean"], post[a["arm_id"]]["sd"]) for a in live]
+    return arm, ts_propensity(params, live.index(arm)), "v1-ts"
+
+
+def _Phi(x: float) -> float:
+    return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
+
+
+def ts_propensity(params: list[tuple[float, float]], i: int, steps: int = 400) -> float:
+    """P(arm i's draw is the largest) for independent N(mean, sd) draws: closed form for two arms, else
+    ∫ φ_i(x) Π_{j≠i} Φ_j(x) dx by Simpson's rule over mean_i ± 8 sd_i (exact to ~1e-6, no sampling noise)."""
+    mi, si = params[i]
+    others = [p for j, p in enumerate(params) if j != i]
+    if len(others) == 1:
+        mj, sj = others[0]
+        return _Phi((mi - mj) / math.sqrt(si * si + sj * sj))
+    lo, h = mi - 8 * si, 16 * si / steps
+    total = 0.0
+    for k in range(steps + 1):
+        x = lo + k * h
+        f = math.exp(-0.5 * ((x - mi) / si) ** 2) / (si * math.sqrt(2 * math.pi))
+        for mj, sj in others:
+            f *= _Phi((x - mj) / sj)
+        total += f * (1 if k in (0, steps) else (4 if k % 2 else 2))
+    return min(1.0, max(0.0, total * h / 3))
 
 
 def realize(db: DB, post_key: str, slot: str, arm_id: int, rendered: str | None = None) -> None:
@@ -412,14 +441,25 @@ class _Rewards:
     def __init__(self, db: DB, s: Settings, now: float):
         self.db, self.s, self.now = db, s, now
         self._base: dict = {}
+        self.v2 = s.ab_reward_version >= 2    # A/B v2 M3: cap + covariate adjustment + 90-day window
+        self._models: dict = {}
+
+    def model(self, bucket: str):
+        if bucket not in self._models:
+            from . import ab_reward
+            self._models[bucket] = ab_reward.Model(self.db, self.s, self.now, bucket, V2_DAYS)
+        return self._models[bucket]
 
     def baseline(self, kind: str, bucket: str) -> tuple[float, float]:
         k = (kind, bucket)
         if k not in self._base:
             ys = []
-            for r in xstats.rewards(self.db, bucket, kinds=[kind], since=self.now - self.s.ab_baseline_days * 86400,
-                                    s=self.s):
-                ys.append(blend(self.s, r, *_self_counts(self.db, r["tweet_id"])))
+            if self.v2:
+                ys = self.model(bucket).kind_values(kind)
+            else:
+                for r in xstats.rewards(self.db, bucket, kinds=[kind], since=self.now - self.s.ab_baseline_days * 86400,
+                                        s=self.s):
+                    ys.append(blend(self.s, r, *_self_counts(self.db, r["tweet_id"])))
             if len(ys) < 10:
                 self._base[k] = (0.0, 1.0)
             else:
@@ -434,13 +474,18 @@ class _Rewards:
             r = xstats.reward_inputs(self.db, tweet_id, bucket, s=self.s)
             if r:
                 mu, sd = self.baseline(kind, bucket)
-                return (blend(self.s, r, *_self_counts(self.db, tweet_id)) - mu) / sd, w
+                y = (self.model(bucket).y_adj({"tweet_id": tweet_id, "kind": kind, **r}) if self.v2 else
+                     blend(self.s, r, *_self_counts(self.db, tweet_id)))
+                return (y - mu) / sd, w
         return None
+
+
+V2_DAYS = 90.0   # reward v2: standardisation window and decay half-life (v1: ab_baseline_days, ab_half_life_days)
 
 
 def _decay(s: Settings, w: float, posted_at: float, now: float) -> float:
     age_days = max(0.0, now - posted_at) / 86400
-    return w * 0.5 ** (age_days / s.ab_half_life_days)
+    return w * 0.5 ** (age_days / (V2_DAYS if s.ab_reward_version >= 2 else s.ab_half_life_days))
 
 
 def observations(db: DB, s: Settings, slot: str, now: float | None = None, until: float | None = None) -> list[dict]:

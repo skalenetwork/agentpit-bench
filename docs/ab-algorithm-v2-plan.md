@@ -218,3 +218,27 @@ change to live assignment.
 - §5.2: yes, at most 2 variants per slot and 4 slots tested at once; other variants queue.
 - §5.3: /experiments/ shows numbers for finished tests only, "running, n so far" for the rest.
 - §5.4: hostile-reply safety signal = validator failures + operator manual exclusions only.
+
+## Status: M0–M3 (2026-10-13)
+
+None of these change a live choice or a post text (`tests/fixtures/ab_golden.json` unchanged).
+
+- **M0** `agentpitbench ab audit [--since D] [--include-stale] [--json]` (`agentpitbench/ab_audit.py`), read-only.
+  Window default `ab_audit_since = "2026-10-12"` (post-Premium step). `--since 2026-10-09 --include-stale` reproduces §0
+  (85 posts, median 3, 69% zeros, y 0.68 ± 1.09, results n = 10 at 1.49 ± 0.81, decisions n = 39 at 0.75 ± 1.29). The
+  live reward rule drops 7 of those: their 24 h snapshot was taken at 41–43 h. Post-step: 34 posts, median 9.5
+  impressions, 71% zeros, only 2 results posts. Under `post_kinds = reveal, results, week, motd` with no replies,
+  **press.head is dead** and **generic.cta shrinks to motd + week** (~1.2/day). The reveal slots have no history yet
+  (no `reveal`-kind post exists). Covariates: followers covers 1 of 2 posting days, market volume is 0 in every round
+  snapshot, and the hook situation wasn't stored before M2. The digest carries a summary (`audit`).
+- **M1** `agentpitbench/ab_sim.py`, `ab sim`, `ab power [--slot]`. The table is in `docs/ab-v2-sim.md`. Gate: the
+  rule as written (P(δ>0) ≥ 0.95) gives **5.9%** false winners under daily peeking at 3 posts/day and 9.3% at 6/day:
+  **fail**. **P(δ>0) ≥ 0.975 passes** every run (worst 3.9%) and is the recommendation for M5. Expected loss < ε never
+  binds. v1's p_best ≥ 0.9 reading gives 20–28% false winners.
+- **M2** `ab_assignments.propensity / policy / situation`. Propensity: closed form (2 arms) or numerical integration
+  (3 arms) instead of 2000 seeded draws, so there's no sampling noise and the seeded rng is untouched.
+- **M3** `ab_reward_version` (default 1), `agentpitbench/ab_reward.py`. The adjustment is within kind (z is
+  standardised per kind anyway). A guard applies it only when the cross-fitted ỹ has less within-kind variance than
+  y over the window. On today's data it would add **18%** variance (two folds of ~35 posts, only hour and exhibition
+  informative), so it stays off. The digest shows `reward_v2` (variance before/after, caps, applied). Tone and
+  site.round_cta keep v1 standardisation.

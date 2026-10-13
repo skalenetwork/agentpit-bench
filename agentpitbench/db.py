@@ -349,6 +349,11 @@ MIGRATIONS = [  # (table, column, definition): added when missing, so old databa
     # the reveal's live window (docs/virality-2-spec.md F1): kickoff parsed from the event, and the held reveal's due time
     ("rounds", "event_start", "REAL"),
     ("rounds", "reveal_due_at", "REAL"),
+    # A/B v2 M2 (docs/ab-algorithm-v2-plan.md): the chosen arm's probability under the policy at assignment time,
+    # the policy that drew it, and the hook situation (a pre-treatment covariate for the reward adjustment)
+    ("ab_assignments", "propensity", "REAL"),
+    ("ab_assignments", "policy", "TEXT"),            # v1-ts / v1-explore / control-only; NULL = before M2
+    ("ab_assignments", "situation", "TEXT"),
 ]
 
 
@@ -409,6 +414,15 @@ class DB:
         for table, col, decl in MIGRATIONS:
             if col not in {r["name"] for r in self.q(f"PRAGMA table_info({table})")}:
                 self.x(f"ALTER TABLE {table} ADD COLUMN {col} {decl}")
+
+    @classmethod
+    def readonly(cls, path: str | Path) -> "DB":
+        """A read-only handle (sqlite mode=ro): no schema, no migrations, every write raises. For audits."""
+        self = cls.__new__(cls)
+        self.conn = _LockedConn(sqlite3.connect(f"file:{Path(path).resolve()}?mode=ro", uri=True,
+                                                isolation_level=None, check_same_thread=False))
+        self.conn.row_factory = sqlite3.Row
+        return self
 
     def q(self, sql: str, *args) -> list[sqlite3.Row]:
         return self.conn.execute(sql, args).fetchall()

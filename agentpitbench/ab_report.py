@@ -83,6 +83,14 @@ def digest(db: DB, s: Settings, date: str | None = None, now: float | None = Non
     out = {"date": date, "slots": slots, "ready_to_judge": ready, "generator": db.get(f"ab_gen_{date}") or
            {"status": "not run"}, "fallbacks": fallbacks, "excluded": excluded,
            "site_clicks": "measured" if db.get("cf_last_ok") else "no Cloudflare token yet: site arms earn no reward"}
+    try:   # A/B v2 M0: the data audit's headline numbers (dead slots under post_kinds, posts/day per slot)
+        from . import ab_audit
+        out["audit"] = ab_audit.summary(ab_audit.audit(db, s, until=now))
+        from . import ab_reward   # M3: how much noise reward v2 removes on the same posts (operator-only)
+        out["reward_v2"] = {"active": s.ab_reward_version >= 2,
+                            **ab_reward.variance_report(db, s, now, since=ab_audit.ts(s.ab_audit_since))}
+    except Exception as e:   # never blocks the digest
+        log.warning("A/B audit for the digest failed: %s", e)
     return out
 
 
