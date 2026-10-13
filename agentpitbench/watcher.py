@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import math
 import re
 import time
 from datetime import datetime, timedelta, timezone
@@ -9,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 from .agentpit import Agentpit, best_ask
 from .config import Settings
 from .db import DB
+from .reveal_window import start_ok
 from .virality import category, category_ok, market_priority
 
 log = logging.getLogger(__name__)
@@ -48,6 +50,12 @@ def priority(m: dict, db: DB | None = None, s: Settings | None = None) -> tuple:
 def event_key(question: str) -> str:
     """The question with its numbers blanked: one key for a ladder of thresholds on the same event."""
     return re.sub(r"\d+(?:[.,]\d+)*", "#", (question or "").lower()).strip()
+
+
+def _day0(now: float | None = None) -> float:
+    """Start of the UTC day containing now."""
+    d = datetime.fromtimestamp(time.time() if now is None else now, timezone.utc)
+    return d.replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
 
 
 class Watcher:
@@ -121,16 +129,29 @@ class Watcher:
                 self.db.x("UPDATE forecasts SET market_id='old:'||market_id WHERE market_id=?", r["market_id"])
                 self.db.x("UPDATE sweep_markets SET market_id='old:'||market_id WHERE market_id=?", r["market_id"])
 
-    def rounds_today(self) -> int:
-        day0 = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
+    def rounds_today(self, now: float | None = None) -> int:
+        day0 = _day0(now)
         # summoned rounds have their own allowance and voided rounds produced nothing; High-Stakes Friday
         # takes a regular slot even though it is outside the statistics
         return self.db.one("SELECT COUNT(*) c FROM rounds WHERE started_at>=? AND state!='void' AND"
                            " COALESCE(exclusion,'') NOT IN ('summon','infra')", day0)["c"]
 
-    async def pick(self, free_slots: int) -> list[dict]:
-        """From the pending eligible markets, pick the best ones that still fit today's cap and the free slots."""
-        budget = min(free_slots, self.s.daily_round_cap - self.rounds_today())
+    def batch_allowance(self, now: float | None = None) -> int:
+        """F1b: today's remaining cap spread evenly over the batches left today (the batch runs every
+        batch_interval_s), so the cap is not spent at 00:00 UTC. At least one a batch."""
+        now = time.time() if now is None else now
+        left = self.s.daily_round_cap - self.rounds_today(now)
+        batches = max(1, math.ceil((_day0(now) + 86400 - now) / max(1, self.s.batch_interval_s)))
+        return max(1, math.ceil(left / batches)) if left > 0 else 0
+
+    async def pick(self, free_slots: int, now: float | None = None) -> list[dict]:
+        """From the pending eligible markets, pick the best ones that still fit today's cap and the free slots.
+        With round_start_window (F1b), only markets whose event is 3-12 h away, and at most batch_allowance()."""
+        now = time.time() if now is None else now
+        budget = min(free_slots, self.s.daily_round_cap - self.rounds_today(now))
+        window = self.s.round_start_window
+        if window:
+            budget = min(budget, self.batch_allowance(now))
         if budget <= 0:
             return []
         rows = self.db.q("SELECT market_id, condition_id FROM seen_markets WHERE eligible=1 AND started=0")
@@ -143,13 +164,16 @@ class Watcher:
                 self.db.x("UPDATE seen_markets SET eligible=0 WHERE market_id=?", mid)
         chosen, held = [], []  # held: fillable, but its category is over the weekly cap
         recent = self.recent_categories()
-        per_event = self.event_counts_today()
+        per_event = self.event_counts_today(now)
         for m in sorted(cands, key=lambda m: priority(m, self.db, self.s), reverse=True):
             if len(chosen) >= budget:
                 break
             ek = event_key(m.get("question", ""))
             if self.s.max_rounds_per_event_per_day and per_event.get(ek, 0) >= self.s.max_rounds_per_event_per_day:
                 continue  # stays eligible: another day may take it
+            if window and not start_ok(m.get("question", ""), m.get("endDate"), m.get("description"), now,
+                                       self.s.round_start_min_h, self.s.round_start_max_h):
+                continue  # stays eligible: a later batch takes it once its event is close
             if not await self._books_ok(m):
                 self.db.x("UPDATE seen_markets SET eligible=0 WHERE market_id=?", str(m["id"]))
                 continue
@@ -169,8 +193,8 @@ class Watcher:
             m["nw"] = nw_of(m, self.db, self.s)  # recorded on the round: the rating used when it was picked
         return chosen
 
-    def event_counts_today(self) -> dict[str, int]:
-        day0 = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
+    def event_counts_today(self, now: float | None = None) -> dict[str, int]:
+        day0 = _day0(now)
         out: dict[str, int] = {}
         for r in self.db.q("SELECT question FROM rounds WHERE started_at>=? AND state!='void'", day0):
             k = event_key(r["question"])

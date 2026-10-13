@@ -159,6 +159,86 @@ async def test_watcher_one_round_per_event_per_day(s, db):
     assert db.one("SELECT COUNT(*) n FROM seen_markets WHERE eligible=1 AND started=0")["n"] == 1
 
 
+def _et_desc(t: float) -> str:
+    from agentpitbench.reveal_window import ET
+    d = datetime.fromtimestamp(t, ET)
+    return (f"This game is scheduled for {d:%B} {d.day}, {d.year} at {d.hour % 12 or 12}:{d:%M} "
+            f"{'PM' if d.hour >= 12 else 'AM'} ET.")
+
+
+def test_round_start_window_open_closed_and_fallback():
+    """F1b: a round starts only when its event is 3-12 h away; no-kickoff markets on weekdays 13:30-20:00 UTC."""
+    from agentpitbench.reveal_window import start_ok
+    t = datetime(2026, 10, 17, 18, 0, tzinfo=timezone.utc).timestamp()      # Saturday 14:00 ET kickoff
+    q, end, desc = "Lakers vs. Celtics", iso(datetime(2026, 10, 17, 21, tzinfo=timezone.utc)), _et_desc(t)
+    assert not start_ok(q, end, desc, t - 13 * 3600)                         # too early
+    assert start_ok(q, end, desc, t - 12 * 3600) and start_ok(q, end, desc, t - 6 * 3600)
+    assert start_ok(q, end, desc, t - 3 * 3600)
+    assert not start_ok(q, end, desc, t - 2 * 3600)                          # too late
+    noon = datetime(2026, 10, 17, 12, tzinfo=timezone.utc).timestamp()      # 'win on <date>': 12:00 UTC
+    assert start_ok("Will Lille OSC win on 2026-10-17?", None, "", noon - 5 * 3600)
+    assert not start_ok("Will Lille OSC win on 2026-10-17?", None, "", noon - 14 * 3600)
+    eth = "Will the price of Ethereum be above $2,500 on October 16?"      # no kickoff: weekday day window
+    assert start_ok(eth, None, "", datetime(2026, 10, 15, 15, tzinfo=timezone.utc).timestamp())
+    assert not start_ok(eth, None, "", datetime(2026, 10, 15, 3, tzinfo=timezone.utc).timestamp())
+    sat = datetime(2026, 10, 17, 15, tzinfo=timezone.utc).timestamp()
+    assert not start_ok(eth, "2026-10-20T16:00:00Z", "", sat)               # Saturday: waits for Monday
+    assert start_ok(eth, "2026-10-18T16:00:00Z", "", sat)                   # unless it ends before Monday
+    assert not start_ok(eth, "2026-10-18T16:00:00Z", "", sat - 6 * 3600)   # and still in daytime hours
+
+
+async def _watcher_with(s, db, markets):
+    api = FakeAPI([gamma(1)])
+    w = Watcher(s, db, api)
+    await w.poll()
+    api.markets_ += markets
+    await w.poll()
+    return w
+
+
+async def test_round_start_window_off_by_default(s, db):
+    """Off (the default until a methodology proposal switches it on), pick() ignores kickoffs entirely."""
+    assert config.Settings().round_start_window is False
+    now = time.time()
+    far = gamma(2, question="Lakers vs. Celtics", description=_et_desc(now + 30 * 3600))
+    w = await _watcher_with(s, db, [far, gamma(3)])
+    assert sorted(m["id"] for m in await w.pick(3, now=now)) == ["2", "3"]
+
+
+async def test_round_start_window_holds_until_event_close(s, db):
+    s.round_start_window, s.max_category_share = True, 1.0
+    now = time.time()
+    far = gamma(2, question="Lakers vs. Celtics", description=_et_desc(now + 30 * 3600))
+    near = gamma(3, question="Bulls vs. Knicks", description=_et_desc(now + 6 * 3600))
+    w = await _watcher_with(s, db, [far, near])
+    assert [m["id"] for m in await w.pick(3, now=now)] == ["3"]
+    assert await w.pick(3, now=now + 3600) == []                    # the far one waits, still eligible
+    row = db.one("SELECT eligible, started FROM seen_markets WHERE market_id='2'")
+    assert (row["eligible"], row["started"]) == (1, 0)
+    assert [m["id"] for m in await w.pick(3, now=now + 20 * 3600)] == ["2"]
+
+
+async def test_round_start_window_spreads_and_respects_cap(s, db):
+    """Five matches with the same kickoff (12:00 UTC, window 00:00-09:00) start one per hourly batch, not all at
+    00:00; the daily cap still applies."""
+    s.round_start_window, s.max_category_share, s.daily_round_cap = True, 1.0, 4
+    day = (datetime.now(timezone.utc) + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    teams = ["Lille OSC", "Stade Brestois", "Aston Villa", "Brentford FC", "Atalanta BC"]
+    ms = [gamma(10 + i, question=f"Will {t} win on {day:%Y-%m-%d}?", endDate=iso(day + timedelta(hours=14)))
+          for i, t in enumerate(teams)]
+    w = await _watcher_with(s, db, ms)
+    starts = {}
+    for h in range(12):
+        tick = day.timestamp() + h * 3600
+        for m in await w.pick(3, now=tick):
+            rid = db.create_round(m)
+            db.x("UPDATE rounds SET started_at=? WHERE round_id=?", tick, rid)
+            starts[m["id"]] = h
+    assert sorted(starts.values()) == [0, 1, 2, 3]                  # one a batch, and the cap of 4 holds
+    assert w.batch_allowance(day.timestamp() + 10 * 3600) == 0
+    assert w.batch_allowance(day.timestamp() + 86400) == 1          # next day: 4 left over 24 batches
+
+
 def test_event_key_blanks_numbers():
     from agentpitbench.watcher import event_key
     assert event_key("Will AMZN hit (LOW) $252 Week of October 12 2026?") == \
