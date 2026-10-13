@@ -526,6 +526,26 @@ def x_stats(s: config.Settings, days: float, by: str, bucket: str) -> None:
     drop = xstats.visibility_drop(db)
     if drop:
         print("VISIBILITY DROP:", json.dumps(drop))
+    from . import northstar
+    print()
+    print(northstar.line(northstar.status(db)))
+
+
+def north_star(s: config.Settings, live: bool, as_json: bool) -> None:
+    """The month-1 North Star (docs/marketing-strategy.md; agentpitbench/northstar.py). Completed days come from
+    the bot's daily Cloudflare read; --live adds today so far (one Cloudflare query, nothing stored)."""
+    from . import cf, northstar
+    db = DB(s.db_path)
+    today = None
+    if live:
+        today = cf.read_day(s, datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+        if today is None:
+            print("no CF_API_TOKEN / CF_ACCOUNT_TAG: completed days only", file=sys.stderr)
+    st = northstar.status(db, today=today)
+    if as_json:
+        print(json.dumps(st, indent=1))
+        return
+    print(northstar.report(st))
 
 
 def x_boosted(s: config.Settings, tweet_id: str, off: bool, check: bool) -> None:
@@ -831,6 +851,10 @@ def main(argv: list[str] | None = None) -> None:
     xs.add_argument("--days", type=float, default=7)
     xs.add_argument("--by", choices=["kind", "agent", "category"], default="kind")
     xs.add_argument("--bucket", choices=["1h", "24h", "72h", "7d"], default="24h")
+    ns = sub.add_parser("northstar", help="month-1 North Star: leaderboard visitors vs 1,000, Beat the AIs "
+                                          "attempts vs 100 (private; Cloudflare, cookie-free)")
+    ns.add_argument("--live", action="store_true", help="also read today so far from Cloudflare (stores nothing)")
+    ns.add_argument("--json", action="store_true")
     xb = sub.add_parser("x-boosted", help="mark a post as promoted (excluded from rewards)")
     xb.add_argument("tweet_id")
     g = xb.add_mutually_exclusive_group()
@@ -953,6 +977,8 @@ def main(argv: list[str] | None = None) -> None:
         x_stats(s, a.days, a.by, a.bucket)
     elif a.cmd == "x-boosted":
         x_boosted(s, a.tweet_id, a.off, a.check)
+    elif a.cmd == "northstar":
+        north_star(s, a.live, a.json)
     elif a.cmd == "youtube":
         if a.yt_cmd == "auth":
             youtube_auth(s, a.url, a.port, a.no_wait)
