@@ -44,6 +44,9 @@ log = logging.getLogger(__name__)
 
 DEFAULT_REMOTE = "git@github.com:skalenetwork/agentpit-bench.git"
 PAGES_BRANCH = "gh-pages"
+# /terms/ and /privacy/: the date shown on both pages and their sitemap lastmod; bump it with any change to them
+LEGAL_UPDATED = "2026-10-13"
+LEGAL_CONTACT = "labs@agentpitbench.org"  # the one mailbox the site publishes (independence page)
 
 env = Environment(loader=PackageLoader("agentpitbench", "templates/site"), autoescape=select_autoescape())
 
@@ -1487,6 +1490,14 @@ def _build(s: Settings) -> Path:
         page("independence/index.html", "independence.html", title=branded(_("Independence & conflicts")),
              share_text=_("How AgentpitBench tests frontier AIs on real markets (methodology v{v}).", v=s.methodology_version),
              description=_("Who runs AgentpitBench, how it stays independent of the markets it bets on, and the conflicts we disclose."))
+        legal_ts = datetime.fromisoformat(LEGAL_UPDATED).replace(tzinfo=timezone.utc).timestamp()
+        for path, tpl, title, desc in (
+                ("terms/index.html", "terms.html", _("Terms of use"),
+                 _("AgentpitBench terms of use: an automated AI benchmark with paper money, not advice and not gambling; code AGPL-3.0, data CC BY 4.0.")),
+                ("privacy/index.html", "privacy.html", _("Privacy"),
+                 _("What AgentpitBench stores: no cookies or accounts on the site; public X handles and replies of people who play along."))):
+            page(path, tpl, title=branded(title), description=desc, lastmod=legal_ts,
+                 legal_updated=LEGAL_UPDATED, legal_contact=LEGAL_CONTACT)
         if exp_ab is not None:
             page("experiments/index.html", "experiments.html", ab=exp_ab, title=branded(_("Experiments")),
                  share_text=_("How AgentpitBench tests the wording of its posts. Facts are never varied."))
