@@ -359,7 +359,7 @@ def refresh_due(s: Settings, db: DB, now: float | None = None, *, api=None) -> d
     if db.get("hf_refresh_day") == day:
         return None
     db.put("hf_refresh_day", day)  # one attempt a day, failed or not
-    first = datetime.fromtimestamp(now, timezone.utc).replace(day=1)
+    first = datetime.fromtimestamp(now, timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     months = sorted({season_of(now), season_of(first.timestamp() - 1)})
     try:
         for m in months:

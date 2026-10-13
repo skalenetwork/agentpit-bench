@@ -196,6 +196,9 @@ async def run_forever(s: config.Settings) -> None:
 
     async def scheduled():
         """Hourly: High-Stakes Friday, the day's summoned round, weekly race + awards, banner, champion."""
+        if s.hf_dataset_refresh:  # docs/hf-borrow-spec.md A4: at most once a day, uploads only what changed
+            from . import dataset
+            await asyncio.to_thread(dataset.refresh_due, s, db)
         if engage is None:
             return
         engage.api = api
@@ -213,9 +216,6 @@ async def run_forever(s: config.Settings) -> None:
                 await job()
             except Exception:
                 log.exception("%s failed", job.__name__)
-        if s.hf_dataset_refresh:  # docs/hf-borrow-spec.md A4: at most once a day, uploads only what changed
-            from . import dataset
-            await asyncio.to_thread(dataset.refresh_due, s, db)
         await ab_jobs()
 
     async def ab_jobs():

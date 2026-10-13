@@ -29,7 +29,9 @@ def model_name(agent: str) -> str:
 
 
 def bibtex(year: str, site: str, note: str) -> str:
-    """The dataset's bibtex entry (also in the Hugging Face card); `note` names the season or the agent's result."""
+    """The dataset's bibtex entry (also in the Hugging Face card); `note` names the season or the agent's result.
+    LaTeX specials in the note (the rank's #) are escaped so the entry typesets."""
+    note = re.sub(r"([#%&_$])", r"\\\1", note)
     return (f"@misc{{agentpitbench{year},\n"
             f"  title  = {{AgentpitBench: coding agents betting on live prediction markets}},\n"
             f"  author = {{SKALE Labs}},\n"
@@ -108,7 +110,7 @@ def lab_kit(c: dict, dataset_url: str) -> str:
         f"Agent page: {c['page_url']}",
         f"Open dataset (CC BY 4.0): {dataset_url}",
         "",
-        NEUTRALITY + " No lab pays for inclusion or placement.",
+        NEUTRALITY.replace("No lab pays for inclusion;", "No lab pays for inclusion or placement;"),
         "",
         "--- when it's worth sending ---",
         *(f"- {t}" for t in TRIGGERS),

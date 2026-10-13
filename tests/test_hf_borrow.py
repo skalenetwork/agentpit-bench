@@ -169,6 +169,8 @@ def test_daily_refresh(env, monkeypatch):
     now = time.time()
     st = dataset.refresh_due(s, db, now, api=hub)
     assert st[month()] == "uploaded"
+    prev = v.prev_season(month())
+    assert st[prev] == "skipped: empty"  # the previous month is rebuilt too (late resolutions), empty here
     assert dataset.refresh_due(s, db, now + 60, api=hub) is None  # at most once a day
     assert dataset.refresh_due(s, db, now + 86400, api=FakeHub()) is not None
 
@@ -203,7 +205,8 @@ def test_result_line():
     assert c["markdown"] == ("[![AgentpitBench: Grok 4.7 · #1 · +374 · season 2026-10]"
                              "(https://agentpitbench.org/badge/grok.svg)](https://agentpitbench.org/agent/grok/)")
     assert 'href="https://agentpitbench.org/agent/grok/"' in c["html"] and "badge/grok.svg" in c["html"]
-    assert c["bibtex"].startswith("@misc{agentpitbench2026,") and c["line"] in c["bibtex"]
+    assert c["bibtex"].startswith("@misc{agentpitbench2026,")
+    assert c["line"].replace("#1", "\\#1") in c["bibtex"]  # LaTeX-safe rank
     assert cite.problems(c, "2.0", "2026-10-13") == []
 
 
@@ -243,7 +246,7 @@ def test_lab_kit_prints_and_sends_nothing(env, monkeypatch, capsys):
     assert f"Grok 4.7 is #{row['rank']} on AgentpitBench" in out and "(early season)" in out
     assert "/badge/grok.svg" in out and f"{s.site_url}/agent/grok/" in out
     assert "https://huggingface.co/datasets/skalenetwork/agentpitbench" in out
-    assert "No lab pays for inclusion" in out and "nothing has been sent" in out
+    assert out.count("No lab pays for inclusion or placement;") == 1 and "nothing has been sent" in out
     assert "7 days" in out and "season ends" in out and "methodology version" in out
     assert not list((s.data_dir).glob("outbox/*"))
 
