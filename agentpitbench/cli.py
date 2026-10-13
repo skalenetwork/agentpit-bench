@@ -132,6 +132,13 @@ def rounds_paused(s: config.Settings, db: DB) -> bool:
     return False
 
 
+async def announce_tick(s: config.Settings, db: DB) -> None:
+    """Every 5 min: a deploy (new git HEAD or methodology version) -> at most one X draft per UTC day, sent to
+    the operator privately on Telegram (announce.py). Blocking (git, opai, HTTP), so it runs in a thread."""
+    from . import announce
+    await asyncio.to_thread(announce.tick, s, db)
+
+
 async def ops_tick(s: config.Settings, db: DB) -> None:
     """Every 5 min: anomaly detectors (pause + draft + alert), market-title translations, summary catch-up,
     the flag-gated daily cadence decision (§9) and the Sunday selection review (§5.3)."""
@@ -305,6 +312,7 @@ async def run_forever(s: config.Settings) -> None:
         asyncio.create_task(_every(1800, week_in_the_pit, "week in the pit")),
         asyncio.create_task(_every(s.resolution_check_s, score_forecasts, "forecast scoring")),
         asyncio.create_task(_every(300, lambda: ops_tick(s, db), "anomalies")),  # also runs once at startup
+        asyncio.create_task(_every(300, lambda: announce_tick(s, db), "announce")),  # operator's X draft per deploy
     ]
     x_metrics = metrics_task(s, db, pub)
     if x_metrics is not None:
@@ -808,6 +816,22 @@ def _probe_png() -> bytes:
             + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b""))
 
 
+def announce_cmd(s: config.Settings, a) -> None:
+    from . import announce
+    if a.backfill or a.resend:
+        db = DB(s.db_path)
+        if a.backfill:
+            only = [] if a.backfill.strip() == "-" else a.backfill.split(",")
+            rec = announce.backfill(s, db, only, since=a.since)
+        else:
+            rec = announce.resend(s, a.resend)
+        print(f"draft {rec['id']} ({rec['source']}):\n{rec['draft']}\n{announce.intent_url(rec['draft'])}")
+        ok = announce.deliver(s, rec, now=time.time())
+        print("sent to the operator on Telegram" if ok else
+              "not sent now (dry run, missing TELEGRAM_* secrets or a send error: see the log); the service retries")
+    print(announce.listing(s))
+
+
 def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(prog="agentpitbench")
     p.add_argument("--config", default="bench.toml")
@@ -929,6 +953,13 @@ def main(argv: list[str] | None = None) -> None:
     to = ttsub.add_parser("off", help="stop TikTok now (alerts), e.g. after a strike")
     to.add_argument("reason")
     ttsub.add_parser("on", help="clear the stop (after review)")
+    an = sub.add_parser("announce", help="the operator's X draft per deploy (sent privately on Telegram; never posts)")
+    ang = an.add_mutually_exclusive_group()
+    ang.add_argument("--list", action="store_true", help="state, pending and sent drafts (the default)")
+    ang.add_argument("--resend", metavar="ID", help="send a sent or failed draft again (ids from --list)")
+    ang.add_argument("--backfill", metavar="V1,V2", help="one draft for these methodology versions plus the "
+                     "reader-visible commits since --since (e.g. 1.1,1.2; '-' for none)")
+    an.add_argument("--since", help="with --backfill: a git revision or a date (default: today 00:00 UTC)")
     from . import opscli  # operator AI, methodology lock, ops/alerts/incidents (docs/ai-automation-spec.md §14)
     opscli.add_parsers(sub)
     a = p.parse_args(argv)
@@ -940,6 +971,8 @@ def main(argv: list[str] | None = None) -> None:
         opscli.dispatch(s, a)
     elif a.cmd == "run":
         asyncio.run(run_forever(s))
+    elif a.cmd == "announce":
+        announce_cmd(s, a)
     elif a.cmd == "round":
         asyncio.run(one_round(s, a.market_id, a.agents.split(",") if a.agents else None))
     elif a.cmd == "check":

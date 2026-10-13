@@ -220,7 +220,7 @@ class Settings:
     opai_task_budget: dict = field(default_factory=lambda: {
         "rate": 24, "picks": 12, "summary": 12, "incident": 4, "cadence": 1, "report": 2, "i18n": 8,
         "proposal": 1, "ab": 2, "translate": 15, "motd_script": 15,   # motd: a film per round (5/day), each with one retry
-        "weekly_episode": 1})  # Week in the Pit: one call a week (also capped per ISO week in week.py)
+        "weekly_episode": 1, "release_tweet": 2})  # Week in the Pit: one call a week (also capped per ISO week in week.py)
     opai_backoff_s: int = 21600
     opai_sweep_guard_min: int = 30
     opai_rate_batch: int = 40
