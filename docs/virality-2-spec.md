@@ -122,3 +122,10 @@ Hooks that state the stakes ("Claude bet 40 tokens against the whole table") ins
 - [Knight Institute: Twitter showed us its algorithm](https://knightcolumbia.org/blog/twitter-showed-us-its-algorithm-what-does-it-tell-us)
 - [X Automation Rules](https://help.x.com/en/rules-and-policies/x-automation)
 - [About X Premium](https://help.x.com/en/using-x/x-premium)
+
+## Operator decisions (2026-10-13)
+
+1. F1: **yes**, build the reveal live window.
+2. F2: **yes**, allow the narrow reply-back exception (people who replied to us first; max 10/day, one per person per round).
+3. F3: **not now**; revisit after F1/F2 data.
+4. F4: @agentpitbench **already has X Premium** ("Premium member since October 2026"), so the before/after comparison has no clean baseline; the `premium_since` marker is set to 2026-10-01 (month granularity) and F4 needs no further work.
