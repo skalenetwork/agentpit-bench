@@ -112,8 +112,8 @@ Reply with your pick: <outcomes> #AgentpitBench[<A/B extra tags>]
    - Per-agent: `Claude: No · ChatGPT: Yes · Gemini: No · Grok: No`
    - Grouped: `No: Claude, Gemini, Grok · Yes: ChatGPT`
    - Grouped order: outcomes in market order, agents in entry order, then `No bet: …`.
-4. the `: <outcomes>` list after "Reply with your pick". It goes this late because human picks are matched against
-   those strings (`human_replies.exact_pick`).
+4. the `: <outcomes>` list after "Reply with your pick". It goes this late because human picks are parsed against the
+   outcome strings (`virality.parse_pick` sets `human_replies.exact_pick`), so the invite should show them.
 5. the headline is clipped, never below 12 characters.
 
 **Measured** (four bettors, 3–1 split headline, cta "Think you know better?", tag " #AI"):
@@ -181,7 +181,7 @@ What that means at today's lengths:
 | `summon` | `You summoned it. All four AIs just bet on: <market name>. Follow the round: <url>`. The `clip(…, 100)` is removed. |
 | `contrarian` | The full market name replaces `clip(lead['question'], 70)`. The rest of the sentence gives way first. |
 | `decision`, `split`/`agree` (legacy, off) | The same rule, with the name as line 1. A decision's rationale gives way first, then its quote. Kept so that turning the legacy shape back on can't regress. |
-| `press` | **Exempt.** These are replies under a results post that carries the name, and the agents' words fill the budget. |
+| `press` | **Exempt** (decision 3 in §8). |
 | `race`, `awards`, `week`, `milestone`, `champion`, `report`, `model` | **Exempt.** They cover many rounds or none. Week film descriptions already list each question in full (`week.py:1210`). |
 
 ### 3.4 Last resort
@@ -194,9 +194,13 @@ the longest so far is 104. Then:
 
 ## 4. A/B: the name is a protected fact
 
-- **Parts that give way count as clipped.** `fit()` adds them to `_count_clip`, alongside clipped characters. A
-  variant whose cta or tags don't fit therefore clips more than the control, `check_rendered` rejects it, and the
-  control posts. This is today's failure path, unchanged.
+- **Parts that give way count as clipped.** This extends today's failure path:
+  - Today `fit()` counts only the characters it clips from its single `flex` argument.
+  - It gains the per-kind give-way lists from §3. Each dropped part adds its length to `_count_clip`. The parts are
+    the Crowd, the cta, the tags, the season, the outcome list, and the characters saved by switching to grouped
+    picks.
+  - A variant whose cta or tags don't fit therefore clips more than the control. `check_rendered` rejects it, and
+    the control posts.
 - **New rule in `ab.check_rendered`.** For the kinds `reveal`, `results` and `motd`, the rendered text must contain
   `market_name(rnd)` verbatim. If it doesn't, the reason is `market name missing` and the control posts.
   `check_rendered` gains an optional `required` argument, which `ab.finish` passes.
@@ -237,6 +241,8 @@ validator, and stays English if that fails.
 ## 7. Monitoring and success
 
 - **Hard check.** A new anomaly detector, `market_name_missing`, in `anomaly.py`:
+  - It only considers rows with `posted_at` after a `kv` marker, `market_name_since`. The marker is set on the first
+    run after the deploy, so posts from before the change (such as the round 23 and 24 results) never alarm.
   - Severity `warn`, and a pure function of the DB like the other detectors.
   - It reads every `reveal`, `results` and `motd` row from the last 24 hours in `tweets`, `bsky_posts` and
     `tg_posts` whose round has a market name.
@@ -262,6 +268,10 @@ validator, and stays English if that fails.
      click away on the round page.
 2. **Grouped picks only as a give-way step** (§3.1). **Default: yes.** The per-agent order matches the four decision
    cards, so it stays whenever it fits.
+3. **Press replies are exempt** (§3.3). This departs from "every post". The press posts are replies in a thread
+   whose root, the results post, carries the name, and the agents' own statements fill the 280 characters.
+   - **Default: exempt.**
+   - **Alternative:** put the name on line 1 of the first press reply only, and clip the statements.
 
 ## Non-goals (v1)
 
@@ -296,7 +306,8 @@ validator, and stays English if that fails.
    produced.
 5. **A/B:**
    - A variant whose render lacks the name is rejected and the control posts.
-   - A cta that doesn't fit counts as clipped.
+   - A cta that doesn't fit counts as clipped: the clipped count rises by its length.
+   - Dropping the Crowd or the season counts the same way.
 6. **Mirrors:**
    - For the worst case, the Bluesky text is at most 300 graphemes with the name on line 1 and the link last.
    - With an artificially long Bluesky handle, `fit300` clips the end and the name survives.
@@ -309,4 +320,5 @@ validator, and stays English if that fails.
 9. **Detector:**
    - A stored results text without the name raises `market_name_missing`.
    - A Telegram row with `&amp;` and the name doesn't raise it.
+   - Rows posted before the `market_name_since` marker are ignored.
 10. **Site:** the round page `<title>` starts with the event title when it is set.
