@@ -6,6 +6,8 @@ Status: draft, 2026-10-13. Nothing here is built. Every feature ships **off** an
 
 Over the first 83 posts, the median impressions at 24 h were **3**, and **70%** of posts got no outside engagement. The posts are not failing on wording. Almost nobody is shown them. So wording, A/B tests (`ab-algorithm-v2-plan.md`) and long-tail names (`longtail-search-spec.md`) only pay off once posts reach a feed. This spec is about **distribution**: getting each market's two posts in front of people who don't follow us yet.
 
+**Update after the deeper data pass (2026-10-13, §2b).** "Median 3" describes the account **before 2026-10-12 00:00 UTC** only. Between 10-11 20:16 and 10-12 00:26 UTC, identical posts jumped about **10×**, most likely when X Premium became active. Since then, top-level posts reach **71–161** impressions at night and **~340** in the daytime. So the problem is no longer "nobody sees us". It is now "we post when our audience is asleep". That makes **F1 (daytime/live-window timing) the critical improvement**: it's the only lever our own data supports and the two-posts rule allows.
+
 Constraint in force (operator, 2026-10-13): **two posts per market** on X, the opening (reveal) and the closing (results). Nothing else is posted and no replies are made (`post_kinds = ["reveal", "results"]`, enforced in `Poster.post`). Each feature below is marked with whether it fits that rule (**fits**) or needs the operator to relax it (**needs exception**).
 
 ## 2. Evidence (research, 2026-10-13)
@@ -37,6 +39,32 @@ Constraint in force (operator, 2026-10-13): **two posts per market** on X, the o
 - **Cause.** The daily round cap (`daily_round_cap`, counted from 00:00 UTC in `Watcher.rounds_today`) resets at midnight UTC. The watcher fills the whole day's quota within the first minutes, then starts nothing for 23 hours.
 - **Day vs night.** Opening posts made 06–22 UTC had a median of **35** impressions (n = 7). Night posts had a median of **2** (n = 74). This is confounded: all 7 daytime posts were on launch day, 10-09, when the launch drew extra attention. So it is suggestive, not proof. F1's measurement (M2) is what decides.
 
+### 2b. Deeper data pass (2026-10-13): what actually moved reach
+
+Method: all posts in `tweets` with their maximum impressions from `tweet_metrics`. Thread replies are excluded: rows from before the `reply_to` migration count as replies when they aren't their round's `thread_tweet_id`, which the openers' `reply_count` in the X payload confirms. **12 followers** (account_metrics, 10-13), so in-network reach is nil and every impression is out-of-network.
+
+**1. An account-level step change, about 10×, between 10-11 20:16 and 10-12 00:26 UTC.** The same post type, in the same position and slot (round openers, image card, the 00:2x UTC burst):
+
+| Day | Round openers' impressions |
+|---|---|
+| 10-10 | 11 / 9 / 11 |
+| 10-11 | 14 / 6 / 9 |
+| **10-12** | **108 / 91 / 161** |
+
+Results posts went from 1–8 (all 13 before the step) to 71–98 (all 4 after). The most likely cause is X Premium becoming active. The account shows "Premium member since October 2026", and Buffer's study of 18.8 M posts from 71 k accounts (Aug 2024 – Aug 2025) finds about 10× reach per post for Premium (observational). The alternative is a new-account throttle lifting about 72 h after the first post. Only the billing date decides it (§7 Q8). **Consequence:** every before/after baseline in this spec (F1's included) must use **post-step data only**. The 83-post "median 3" is no longer the baseline.
+
+**2. After the step, daytime beats night about 2–4× (small n, confounded).**
+- Daytime (14:14 and 16:34 UTC): 346 and 339. These were standalone films, posted alone.
+- Night or early morning (00:26–06:42 UTC): 71–161 for openers and results.
+
+Time of day is confounded with post type, because the two daytime posts were narrative films. **Video length does not explain it**: the same 6-second split clip got 432/341 at 15:3x on launch day and 2–4 at 00:2x on later days, and the 7-second race chart got 444 at 18:19. Before the step, daytime alone did not help: results posted at 16:35–20:05 UTC still got 2–8. So timing matters **once posts are distributed at all**, which they now are. That is why F1 is the critical improvement now, and why it wasn't before 10-12.
+
+**3. Same-minute bursts: weaker than first thought.** Spacing did not produce reach before the step (isolated results posts got 3–8). It did not suppress it after either: three openers posted in the same minute on 10-12 got 91/108/161. Position within a burst still shows: the race chart got 444 while the five posts in the same minute got ≤11, and the 04:17 results got 98 while its same-minute milestone, replay and press posts got 3–19. That matches X's **AuthorDiversityScorer**: within one feed response, later posts by the same author are multiplied by `(1 − floor) · decay^position + floor` (xai-org/x-algorithm home-mixer; the constants aren't confirmed). The two-posts rule already removes most trailing posts. F1 adds a minimum spacing for what remains.
+
+**4. Link penalty: none visible.** On rounds 22–24 the results posts (film + link) got 71–98, in the same range as their link-free openers (91–161).
+
+**5. Outside amplification: never happened.** No post has ever been reposted or quoted by another account; every `quote_count = 1` is our own results post quoting its opener. Seeding from the operator's own accounts is postponed (operator decision 6), so it stays untested.
+
 ## 3. Features, in priority order
 
 ### F1. Reveal timed to the live moment (**fits**)
@@ -57,8 +85,11 @@ Constraint in force (operator, 2026-10-13): **two posts per market** on X, the o
 - If the window has passed (a late market), post immediately, as today.
 - The public round page keeps showing picks as soon as they are sealed. Only the X post waits.
 - A held reveal survives a restart: the due time is stored on the round, and the publisher resumes due reveals at start-up.
+- **Minimum spacing (2b.3).** Never two of our top-level posts within **90 minutes** (the 80-minute impression half-life). When two reveals or results fall due together, for example five Saturday 14:00 UTC kickoffs, the later ones are staggered by 90 minutes inside their own windows. A post whose window can't fit the spacing goes at the window's end. Results posts never wait more than 2 hours for spacing.
+- **Daytime floor for markets with no event time.** Never post between 23:00 and 06:00 UTC unless `T` falls inside that range: a late kickoff, or a US evening market.
+- **Measured variant: the reveal carries a short round film instead of the image card.** Every post that ever passed 300 impressions was a video, and it gets 2.6 impressions per video view across all five. This runs as **one A/B v2 challenger** in the `reveal.media` slot, after F1's first 14 days, so it never overlaps the timing measurement.
 
-**Measure.** Impressions at 24 h for windowed reveals vs the night-posted reveals from 10-10 to 10-12 (n = 74, median 2). Keep the A/B v2 rule of one changed variable at a time, so no wording tests run on reveals during the first 14 days of F1.
+**Measure.** Impressions at 24 h for windowed reveals vs the **post-step** night-posted openers and results (10-12 00:26 to F1's launch: n = 7, 71–161). Pre-step posts are not a valid baseline (§2b.1). Keep the A/B v2 rule of one changed variable at a time, so no wording tests run on reveals during the first 14 days of F1.
 
 ### F1b. Start rounds close to the event (**fits**, methodology decision)
 
@@ -153,8 +184,13 @@ Hooks that state the stakes ("Claude bet 40 tokens against the whole table") ins
 6. **F2 label:** turn on X's "Automated" label for @agentpitbench (account settings → "Automation", linked to the operator's account). Required before F2.
 7. **F2 AI replies:** templates only (default), or apply to X for AI-reply approval? Without approval, AI-written replies are a violation, and X purged 42k such accounts in July 2026.
 
+8. **Premium start date** (§2b.1): on which day did X Premium become active for @agentpitbench (X → Settings → Premium, or the billing email)? If it was 10-11/10-12, the 10× step is Premium and F1's baseline is the post-step data. If it was earlier, the step is the account leaving a new-account throttle. Either way the baseline rule is the same, but the spec's explanation changes.
+9. **Film on the reveal** (F1 variant): allow a short round film in the reveal as one A/B v2 challenger after F1's first 14 days? It costs one render per round, and the two-posts rule is unchanged.
+
 ## Sources
 
+- [Buffer: Does X Premium really boost your reach? 18.8 M posts](https://buffer.com/resources/x-premium-review/)
+- [xai-org/x-algorithm home-mixer scorers (AuthorDiversityScorer)](https://www.mintlify.com/xai-org/x-algorithm/api/home-mixer/scorers)
 - [Goel et al., Structural Virality, Management Science 2016](https://pubsonline.informs.org/doi/fpi/10.1287/mnsc.2015.2158)
 - [Bakshy et al., Everyone's an Influencer, WSDM 2011](https://microsoft.com/en-us/research/wp-content/uploads/2016/02/b_h_m_w_WSDM_11.pdf)
 - [Twitter heavy-ranker README (2023 weights)](https://raw.githubusercontent.com/twitter/the-algorithm-ml/main/projects/home/recap/README.md)
