@@ -155,3 +155,10 @@ The total is about 5 days. **Order:** this should land after the simple-scoring 
 3. **Chance number on cards.** For live rounds, show the market chance now (it needs a price refresh at each site build), or the chance at round start (always available)?
 4. **Category pages** `/c/<category>/`: yes, which helps long-tail search, or a filter-only bar?
 5. **Ship as one big switch, or page by page** (home → round → leaderboard)?
+
+## Operator decisions (2026-10-13)
+
+1. Colours: **also Polymarket's colours** (operator chose this over the patterns-only recommendation). Mitigations stay mandatory: never Polymarket's name (except the footer disclaimer), logo, wordmark, icons or fonts; the AgentpitBench wordmark stays prominent; footer says "Not affiliated with Polymarket".
+2. Theme: **dark by default**; the Auto/Light/Dark switch stays (Auto no longer the default).
+3. Live cards: **current chance**, refreshed at each site build.
+5. Rollout: **page by page** (home, round pages, leaderboard, agent pages).
