@@ -234,7 +234,7 @@ async def run_forever(s: config.Settings) -> None:
 
     async def match_of_the_day():
         """Hourly; does nothing unless motd_enabled: at motd_hour_utc, yesterday's most dramatic round as a film."""
-        if not s.motd_enabled or not hasattr(pub, "cards"):
+        if not s.motd_enabled or not s.motd_daily or not hasattr(pub, "cards"):
             return
         from . import motd
         if await motd.daily(s, db, pub.cards, pub.poster):

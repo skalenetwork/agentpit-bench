@@ -58,6 +58,7 @@ class Settings:
     motd_min_score: float = 20
     motd_fps: int = 15
     motd_exhibition_factor: float = 0.5
+    motd_daily: bool = True           # the daily standalone film (off: only the per-round films below)
     motd_per_round: bool = True       # v0.6: every resolved round's square film replaces the plain results clip
     motd_round_deadline_s: int = 1500  # the results post waits at most this long for the film, then the plain clip
     motd_writer_wait_s: int = 480      # at resolution, wait this long for running rounds to finish before writing
