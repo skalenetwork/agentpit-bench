@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% import "_grid.html" as g with context %}{% import "_share.html" as sh with context %}{% import "_best_at.html" as ba with context %}
+{% extends "base.html" %}{% import "_grid.html" as g with context %}{% import "_share.html" as sh with context %}{% import "_best_at.html" as ba with context %}{% import "_backend.html" as bkm with context %}
 {% set wide = true %}
 {% block main %}
 {#- The market grid (docs/polymarket-layout-spec.md §4): hero, the standings strip, then one grid of round cards,
@@ -8,7 +8,9 @@
 <p class="mut small">{{ _("{roster} each get 5 minutes and 100 tokens to bet on every new agentpit market. Frontier vs frontier: each lab's top model at maximum reasoning, same prompt, no help.", roster=roster) }}</p>
 {{ g.standings_strip(standings) }}
 {{ sh.row(share) }}
+{% if bk and upcoming %}{{ bkm.style() }}{{ bkm.coming_up(upcoming) }}{% endif %}
 {% if grid or film %}{{ g.grid(grid, film, today) }}{% else %}<p class="mut">{{ _("No results yet. The first round is live or on its way.") }}</p>{% endif %}
 {{ ba.fire(fire) }}
 <div class="btns"><a class="btn" href="{{ home }}leaderboard/">{{ _("Full leaderboard") }}</a></div>
+{% if bk and upcoming %}{{ bkm.script() }}{% endif %}
 {% endblock %}

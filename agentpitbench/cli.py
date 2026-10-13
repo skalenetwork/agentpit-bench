@@ -329,6 +329,11 @@ async def run_forever(s: config.Settings) -> None:
     tt = tiktok_task(s, db)
     if tt is not None:
         tasks.append(asyncio.create_task(_every(TIKTOK_INTERVAL_S, tt, "tiktok")))
+    if s.backend_enabled:  # docs/backend-api.md: upcoming markets, started rounds and results to the Worker
+        from . import backend
+        site_dep = getattr(pub, "site", None)
+        pusher = backend.Pusher(s, db, api, on_change=site_dep.request if site_dep else None)
+        tasks.append(asyncio.create_task(_every(60, pusher.tick, "backend")))
     await stop.wait()
     log.info("stopping; in-flight rounds will be marked crashed on next start")
     for t in tasks + list(running):

@@ -12,7 +12,7 @@ if(w)location.replace({{ root|tojson }}+w+"/"+{{ rel|tojson }}+location.search+l
 <title>{{ title }}</title>
 {% set desc = description or _("{vs}, each on its lab's top model at maximum reasoning, bet 100 tokens on live prediction markets. Every bet, rationale and result is public.", vs=vs) %}
 <meta name="description" content="{{ desc }}">
-<link rel="canonical" href="{{ canonical }}">
+<link rel="canonical" href="{{ canonical }}">{% if noindex %}<meta name="robots" content="noindex">{% endif %}
 {% if s.google_site_verification and not s.google_site_verification.endswith('.html') %}<meta name="google-site-verification" content="{{ s.google_site_verification }}">
 {% endif %}{% if s.bing_site_verification %}<meta name="msvalidate.01" content="{{ s.bing_site_verification }}">
 {% endif %}

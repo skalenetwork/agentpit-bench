@@ -95,6 +95,16 @@ class Settings:
     # independent-standard layer
     methodology_version: str = "1.0"
     cf_analytics_token: str = "7f12b95829f74ed488cdf4008a176a57"  # Cloudflare Web Analytics (public by design)
+    # The backend (docs/backend-api.md): Google sign-in, human picks before the AIs, comments, the "Humans vs the
+    # AIs" scoreboard. Off until the Worker is deployed: gates the bot's pushes, the digest block and every piece
+    # of the site that talks to it. The bot's key is BENCH_INGEST_KEY in secrets.env. google_client_id is the
+    # public OAuth client id the sign-in button needs (the Worker's GOOGLE_CLIENT_ID secret, same value).
+    backend_enabled: bool = False
+    backend_url: str = "https://api.agentpitbench.org/v1"
+    google_client_id: str = ""
+    backend_push_s: int = 600              # upcoming markets and results, every 10 min
+    backend_upcoming_horizon_h: float = 48  # "Coming up": markets whose picks lock within this many hours
+    backend_upcoming_max: int = 12
     season_start: str = "2026-10-09T00:00:00Z"   # rounds started before this are pre-season exhibitions
     sweep_markets: int = 30             # daily forecast sweep: markets per agent per day
     # launch-day duels (a new model vs the previous one on the sweep): off since the Brier competitions were
