@@ -155,7 +155,14 @@ def _share_hook(db: DB, round_id: int) -> dict:
     row = db.one("SELECT t.text FROM ab_assignments a JOIN ab_arms m ON m.arm_id=a.realized_arm_id"
                  " JOIN tweets t ON t.post_key=a.post_key WHERE a.post_key=? AND a.slot='results.hook'"
                  " AND m.is_control=0", f"r{round_id}-results")
-    return {"share_hook": row["text"].split("\n")[0]} if row and row["text"] else {}
+    if not (row and row["text"]):
+        return {}
+    r = db.round(round_id)
+    lines = row["text"].split("\n")
+    name = market_name({"question": r["question"], "event_title": r["event_title"]}) if r else None
+    if len(lines) > 1 and name and lines[0].startswith(name.rstrip("…")[:20]):
+        lines = lines[1:]   # line 1 is the market name since the long-tail change; the hook follows it
+    return {"share_hook": lines[0]}
 
 
 def all_rounds(s: Settings, db: DB) -> list[dict]:

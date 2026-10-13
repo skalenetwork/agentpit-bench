@@ -174,13 +174,14 @@ async def test_publish_with_arms_keeps_invariants(env):
                 for i in range(50):
                     db.x("INSERT INTO ab_assignments(post_key,slot,arm_id,realized_arm_id,kind,assigned_at)"
                          " VALUES(?,?,?,?,?,?)", f"x-{a['arm_id']}-{i}", slot, a["arm_id"], a["arm_id"], "x", 0)
-    rid = make_round(db, PICKS)
+    # a short market name: every arm fits (long names drop the results cta by design, longtail spec §3.2)
+    rid = make_round(db, PICKS, question="CS2: CYBERSHOKE vs Nexus")
     tw = await _publish(s, db, rid, fail_video=False)
     rev, res = tw[f"r{rid}-reveal"]["text"], tw[f"r{rid}-results"]["text"]
-    assert rev.startswith("3–1: Grok stands apart.\n") and "\nYour call\nReply with your pick: CYBERSHOKE / Nexus" in rev
+    assert rev.startswith("CS2: CYBERSHOKE vs Nexus\n3–1: Grok stands apart.\n") and "\nYour call\nReply with your pick: CYBERSHOKE / Nexus" in rev
     assert "#AgentpitBench #AI" in rev or "#AgentpitBench #PredictionMarkets" in rev
     assert "Claude: CYBERSHOKE · ChatGPT: CYBERSHOKE · Gemini: CYBERSHOKE · Grok: Nexus" in rev and "http" not in rev
-    assert res.startswith("Final: Nexus, 1-3 for Grok\n") and "@xai" in res
+    assert res.startswith("CS2: CYBERSHOKE vs Nexus\nFinal: Nexus, 1-3 for Grok\n") and "@xai" in res
     assert res.count("https://") == 1 and f"/round/{rid}/" in res and "\nEvery pick and price\nhttps://" in res
     assert not (tw[f"r{rid}-results"]["image"] or "").endswith(".mp4")     # the still arm: no clip posted
     real = {r["slot"]: r for r in db.q("SELECT * FROM ab_assignments WHERE post_key=?", f"r{rid}-results")}
