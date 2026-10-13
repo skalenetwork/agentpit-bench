@@ -71,3 +71,119 @@ def test_digest_carries_the_audit(env):
     s, db = env
     out = ab_report.digest(db, s, "2026-10-13", now=T0 + 2 * DAY)
     assert out["audit"]["dead_slots"] == ["press.head"]
+
+
+# ---------- M1: simulator and power calculator
+
+def test_power_reproduces_plan_table():
+    from agentpitbench import ab_sim
+    assert round(ab_sim.n_per_arm(0.5)) == 63 and round(ab_sim.n_per_arm(0.8)) == 25
+    assert round(ab_sim.n_per_arm(0.2)) == 392                       # the plan rounds 15.7/d² to 393
+    assert round(ab_sim.days_to_detect(5, 0.5, arms=2)) == 25 and round(ab_sim.days_to_detect(5, 0.3, arms=3)) == 105
+    assert ab_sim.days_to_detect(0, 0.5) is None
+    assert any("don't start" in x for x in ab_sim.power_lines("tags", 2.4))
+
+
+def test_sim_posterior_and_allocation():
+    from agentpitbench import ab_sim
+    p = ab_sim.Params()
+    mu, C = ab_sim.v2_posterior([0.0, 0.0], [0.0, 0.0], p)
+    assert C[0][0] == pytest.approx(1 / p.kappa0) and C[1][1] == pytest.approx(p.tau ** 2)   # the prior
+    mu, C = ab_sim.v2_posterior([1e6, 1e6], [0.0, 0.3e6], p)
+    assert mu[1] == pytest.approx(0.3, abs=1e-3)                     # data overwhelm the prior
+    for pol in ("ttts", "es", "uniform"):                            # two arms: all 50/50 (plan §2.3)
+        assert ab_sim.allocation(pol, [0.9, 0.1], p) == pytest.approx([0.5, 0.5])
+    a = ab_sim.allocation("ts", [0.98, 0.01, 0.01], p)
+    assert min(a) >= p.floor - 1e-12 and sum(a) == pytest.approx(1.0)
+
+
+def test_sim_runs_and_v1_peeks_more_than_v2():
+    from agentpitbench import ab_sim
+    pool = ab_sim.gaussian_pool(500)
+    v1 = ab_sim.scenario(pool, ab_sim.Params(rule="v1", policy="v1"), 0.0, reps=150)
+    v2 = ab_sim.scenario(pool, ab_sim.Params(p_win=0.99), 0.0, reps=150)
+    big = ab_sim.scenario(pool, ab_sim.Params(p_win=0.99), 0.8, reps=60)
+    assert v1["winner"] > v2["winner"] and v2["winner"] <= 0.05
+    assert big["winner"] > 0.8 and big["median_days"] < 45
+    three = ab_sim.scenario(pool, ab_sim.Params(policy="ttts"), 0.5, k=3, reps=20)
+    assert three["reps"] == 20
+
+
+# ---------- M2: propensity logging
+
+def _three_arm_posterior(s, db, monkeypatch):
+    """tags: 3 live arms, 3 observed posts each, overlapping posteriors; exploration over."""
+    from agentpitbench import xstats
+    s.ab_min_posts = 0
+    table, now = {}, time.time()
+    for arm, replies in zip(ab.arms(db, "tags"), (1, 2, 0)):
+        for i in range(3):
+            key = f"seed-{arm['arm_id']}-{i}"
+            db.x("INSERT INTO ab_assignments(post_key,slot,arm_id,realized_arm_id,kind,assigned_at) VALUES(?,?,?,?,?,?)",
+                 key, "tags", arm["arm_id"], arm["arm_id"], "results", now)
+            tid = tweet(db, key, at=now - 2 * DAY)
+            table[(tid, "24h")] = {"replies": replies}
+    monkeypatch.setattr(xstats, "reward_inputs", lambda db, tid, bucket, s=None: table.get((tid, bucket)))
+    monkeypatch.setattr(xstats, "rewards", lambda *a, **k: [])
+    return now
+
+
+def test_propensity_control_only_and_exploration(env):
+    s, db = env
+    s.ab_min_posts = 20
+    ab.choose(db, s, "tags", "r1-results", kind="results")
+    r = db.one("SELECT propensity, policy FROM ab_assignments WHERE slot='tags'")
+    assert (r["propensity"], r["policy"]) == (1.0, "v1-explore")
+    db.x("UPDATE ab_arms SET status='retired' WHERE slot='press.head' AND is_control=0")
+    ab.choose(db, s, "press.head", "r1-press", kind="press")
+    r = db.one("SELECT propensity, policy FROM ab_assignments WHERE slot='press.head'")
+    assert (r["propensity"], r["policy"]) == (1.0, "control-only")
+
+
+def test_propensity_matches_monte_carlo(env, monkeypatch):
+    import random
+    s, db = env
+    now = _three_arm_posterior(s, db, monkeypatch)
+    post = {p["arm_id"]: p for p in ab.posterior(db, s, "tags", now, draws=0)}
+    live = ab.arms(db, "tags")
+    rng = random.Random(1)
+    wins = {a["arm_id"]: 0 for a in live}
+    for _ in range(20_000):
+        d = {k: rng.gauss(post[k]["mean"], post[k]["sd"]) for k in wins}
+        wins[max(d, key=d.get)] += 1
+    for key in ("p-a", "p-b"):
+        c = ab.choose(db, s, "tags", key, now=now, kind="results")
+        r = db.one("SELECT propensity, policy FROM ab_assignments WHERE post_key=? AND slot='tags'", key)
+        assert r["policy"] == "v1-ts"
+        assert r["propensity"] == pytest.approx(wins[c.arm_id] / 20_000, abs=0.01)
+        assert 0.0 < r["propensity"] < 1.0
+    params = [(post[a["arm_id"]]["mean"], post[a["arm_id"]]["sd"]) for a in live]
+    for i in range(3):   # every arm's closed-form / integrated propensity against the Monte Carlo
+        assert ab.ts_propensity(params, i) == pytest.approx(wins[live[i]["arm_id"]] / 20_000, abs=0.01)
+    assert sum(ab.ts_propensity(params, i) for i in range(3)) == pytest.approx(1.0, abs=1e-4)
+    assert ab.ts_propensity(params[:2], 0) + ab.ts_propensity(params[:2], 1) == pytest.approx(1.0)
+
+
+def test_propensity_logging_leaves_choices_unchanged(env, monkeypatch):
+    """The arm is the v1 Thompson draw from the seeded rng, exactly as before M2."""
+    s, db = env
+    now = _three_arm_posterior(s, db, monkeypatch)
+    post = {p["arm_id"]: p for p in ab.posterior(db, s, "tags", now, draws=0)}
+    live = ab.arms(db, "tags")
+    picked = set()
+    for i in range(40):
+        key = f"k{i}"
+        rng = ab._rng(key, "tags")
+        samples = {a["arm_id"]: rng.gauss(post[a["arm_id"]]["mean"], post[a["arm_id"]]["sd"]) for a in live}
+        want = max(samples, key=samples.get)
+        got = ab.choose(db, s, "tags", key, now=now, kind="results").arm_id
+        db.x("DELETE FROM ab_assignments WHERE post_key=?", key)     # keep the posterior fixed
+        assert got == want
+        picked.add(got)
+    assert len(picked) >= 2
+
+
+def test_situation_stored_for_hooks(env):
+    s, db = env
+    ab.choose(db, s, "results.hook", "r1-results", "sweep", {"winner": "Claude", "record": "3-0"}, kind="results")
+    assert db.one("SELECT situation FROM ab_assignments WHERE slot='results.hook'")["situation"] == "sweep"

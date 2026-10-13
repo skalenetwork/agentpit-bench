@@ -344,6 +344,11 @@ MIGRATIONS = [  # (table, column, definition): added when missing, so old databa
     ("rounds", "methodology_version", "TEXT"),
     # the agentpit wallet the run bet from (agentpit re-issued every account on 2026-10-13; NULL: the agent's old wallet)
     ("runs", "wallet", "TEXT"),
+    # A/B v2 M2 (docs/ab-algorithm-v2-plan.md): the chosen arm's probability under the policy at assignment time,
+    # the policy that drew it, and the hook situation (a pre-treatment covariate for the reward adjustment)
+    ("ab_assignments", "propensity", "REAL"),
+    ("ab_assignments", "policy", "TEXT"),            # v1-ts / v1-explore / control-only; NULL = before M2
+    ("ab_assignments", "situation", "TEXT"),
 ]
 
 
