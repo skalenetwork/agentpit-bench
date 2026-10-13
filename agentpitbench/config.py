@@ -96,6 +96,14 @@ class Settings:
     posting_paused: bool = False
     # the only post kinds that go out (empty: every kind). Replies are never posted while this is set.
     post_kinds: list[str] = field(default_factory=list)
+    # F2 reply-back (docs/virality-2-spec.md): on only when "reply-back" is in post_kinds
+    reply_back_daily_cap: int = 10          # answers per UTC day
+    reply_back_window_h: float = 48         # poll a reveal/results post for this long after posting
+    reply_back_max_age_h: float = 2         # never answer a reply older than this (the ~1 h promise)
+    reply_back_min_account_days: float = 7  # skip accounts younger than this
+    reply_back_poll_s: int = 900
+    reply_back_read_budget_usd: float = 0.50   # per UTC day, reply-back reads only: hard stop
+    reply_back_exclude: list[str] = field(default_factory=list)   # operator exclusions: user ids or @handles
     agents: list[str] = field(default_factory=lambda: ["claude", "codex", "agy", "grok"])
     excluded_keywords: list[str] = field(default_factory=list)
     # engagement extras

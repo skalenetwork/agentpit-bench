@@ -69,6 +69,17 @@ def metrics_task(s: config.Settings, db: DB, pub):
     return x_metrics
 
 
+def reply_back_task(s: config.Settings, db: DB, pub):
+    """F2 reply-back (docs/virality-2-spec.md), or None unless "reply-back" is in post_kinds and there is a
+    poster. replyback.poll itself skips while killed, without can_read, or over its daily read budget."""
+    poster = getattr(pub, "poster", None)
+    from . import replyback
+    if poster is None or not replyback.enabled(s):
+        return None
+    replyback.ensure_schema(db)
+    return lambda: replyback.poll(s, db, poster)
+
+
 YOUTUBE_INTERVAL_S = 600
 
 
@@ -271,6 +282,9 @@ async def run_forever(s: config.Settings) -> None:
     x_metrics = metrics_task(s, db, pub)
     if x_metrics is not None:
         tasks.append(asyncio.create_task(_every(X_METRICS_INTERVAL_S, x_metrics, "x-metrics")))
+    rb = reply_back_task(s, db, pub)
+    if rb is not None:
+        tasks.append(asyncio.create_task(_every(s.reply_back_poll_s, rb, "reply-back")))
     yt = youtube_task(s, db)
     if yt is not None:
         tasks.append(asyncio.create_task(_every(YOUTUBE_INTERVAL_S, yt, "youtube")))
@@ -695,6 +709,10 @@ def main(argv: list[str] | None = None) -> None:
     ad.add_argument("file")
     dg = absub.add_parser("digest", help="print the A/B digest")
     dg.add_argument("--date")
+    rbp = sub.add_parser("reply-back", help="F2 reply-back kill switch: --off (manual flag, alerts), --on, status")
+    g = rbp.add_mutually_exclusive_group()
+    g.add_argument("--off", metavar="REASON", help="switch reply-back off now")
+    g.add_argument("--on", action="store_true", help="clear the kill switch (after review)")
     xl = sub.add_parser("x-login", help="authorize the X account with every scope the bench needs")
     xl.add_argument("--url", help="the URL X redirected you to (step 2)")
     xl.add_argument("--redirect-uri", help="callback URL registered on the X app (default: site_url)")
@@ -772,6 +790,21 @@ def main(argv: list[str] | None = None) -> None:
             youtube_stats(s, a.days)
     elif a.cmd == "ab":
         ab_cli(s, a)
+    elif a.cmd == "reply-back":
+        reply_back_cli(s, a.off, a.on)
+
+
+def reply_back_cli(s: config.Settings, off: str | None, on: bool) -> None:
+    from . import replyback
+    db = DB(s.db_path)
+    if off:
+        replyback.kill(s, db, off, manual=True)
+    elif on:
+        replyback.resume(db)
+    replyback.ensure_schema(db)
+    print(json.dumps({"listed_in_post_kinds": replyback.enabled(s), "killed": replyback.killed(db),
+                      "answered_today": replyback.answered_today(db, time.time()),
+                      "optouts": db.one("SELECT COUNT(*) n FROM reply_optouts")["n"]}, indent=1))
 
 
 def _round_running(db: DB) -> bool:
