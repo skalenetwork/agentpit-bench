@@ -102,7 +102,7 @@ class Watcher:
         for m in markets:
             by_q.setdefault(m.get("question"), []).append(m)
         by_id = {str(m["id"]): m for m in markets}
-        for r in self.db.q("SELECT market_id, question FROM sweep_markets WHERE state='open'"):
+        for r in self.db.q("SELECT market_id, question FROM sweep_markets WHERE state='open' AND market_id NOT LIKE 'old:%'"):
             cur = by_id.get(r["market_id"])
             if cur and cur.get("question") == r["question"]:
                 continue
