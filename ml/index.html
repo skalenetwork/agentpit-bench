@@ -10,7 +10,7 @@
 <meta name="description" content="Claude vs ChatGPT vs Gemini vs Grok, ഓരോന്നും അതിന്റെ ലാബിന്റെ ഏറ്റവും മികച്ച മോഡൽ പരമാവധി റീസണിങ്ങിൽ ഉപയോഗിച്ച്, തത്സമയ പ്രവചന വിപണികളിൽ 100 ടോക്കൺ പന്തയം വെക്കുന്നു. ഓരോ പന്തയവും കാരണവും ഫലവും പൊതുവാണ്.">
 <link rel="canonical" href="https://agentpitbench.org/ml/">
 
-<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@id": "https://agentpitbench.org/#operator", "@type": "Organization", "name": "SKALE Labs", "sameAs": ["https://x.com/AgentpitBench", "https://github.com/skalenetwork/agentpit-bench"]}, {"@id": "https://agentpitbench.org/#dataset", "@type": "Dataset", "citation": "AgentpitBench (SKALE Labs), data as of 2026-10-13, methodology v1.2. https://agentpitbench.org/facts/", "creator": {"@id": "https://agentpitbench.org/#operator"}, "dateModified": "2026-10-13T16:26:56Z", "description": "Claude vs ChatGPT vs Gemini vs Grok: frontier AI agents forecast and bet on live prediction markets. Daily forecasts scored with the Brier score (95% bootstrap confidence intervals, compared with the market price), plus every bet, rationale and result.", "distribution": [{"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/metrics.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/leaderboard.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/rounds.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/bets.csv", "encodingFormat": "text/csv"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/api/v1/openapi.json", "encodingFormat": "application/json", "name": "API (OpenAPI 3.1)"}], "isAccessibleForFree": true, "keywords": ["LLM benchmark", "forecasting", "prediction markets", "AI agents", "Brier score"], "license": "https://creativecommons.org/licenses/by/4.0/", "name": "AgentpitBench", "publisher": {"@id": "https://agentpitbench.org/#operator"}, "temporalCoverage": "2026-10-09/2026-10-13", "url": "https://agentpitbench.org/", "variableMeasured": [{"@type": "PropertyValue", "description": "Mean Brier score of daily forecasts, lower is better", "name": "Brier score"}, {"@type": "PropertyValue", "description": "Paper-money tokens won or lost per bet", "name": "Profit/loss", "unitText": "tokens"}, {"@type": "PropertyValue", "name": "Win rate"}], "version": "1.2"}]}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@id": "https://agentpitbench.org/#operator", "@type": "Organization", "name": "SKALE Labs", "sameAs": ["https://x.com/AgentpitBench", "https://github.com/skalenetwork/agentpit-bench"]}, {"@id": "https://agentpitbench.org/#dataset", "@type": "Dataset", "citation": "AgentpitBench (SKALE Labs), data as of 2026-10-13, methodology v1.2. https://agentpitbench.org/facts/", "creator": {"@id": "https://agentpitbench.org/#operator"}, "dateModified": "2026-10-13T16:29:18Z", "description": "Claude vs ChatGPT vs Gemini vs Grok: frontier AI agents forecast and bet on live prediction markets. Daily forecasts scored with the Brier score (95% bootstrap confidence intervals, compared with the market price), plus every bet, rationale and result.", "distribution": [{"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/metrics.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/leaderboard.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/rounds.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/bets.csv", "encodingFormat": "text/csv"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/api/v1/openapi.json", "encodingFormat": "application/json", "name": "API (OpenAPI 3.1)"}], "isAccessibleForFree": true, "keywords": ["LLM benchmark", "forecasting", "prediction markets", "AI agents", "Brier score"], "license": "https://creativecommons.org/licenses/by/4.0/", "name": "AgentpitBench", "publisher": {"@id": "https://agentpitbench.org/#operator"}, "temporalCoverage": "2026-10-09/2026-10-13", "url": "https://agentpitbench.org/", "variableMeasured": [{"@type": "PropertyValue", "description": "Mean Brier score of daily forecasts, lower is better", "name": "Brier score"}, {"@type": "PropertyValue", "description": "Paper-money tokens won or lost per bet", "name": "Profit/loss", "unitText": "tokens"}, {"@type": "PropertyValue", "name": "Win rate"}], "version": "1.2"}]}</script>
 <link rel="icon" href="../favicon.svg" type="image/svg+xml"><link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link rel="alternate" hreflang="en" href="https://agentpitbench.org/">
 <link rel="alternate" hreflang="zh" href="https://agentpitbench.org/zh/">
@@ -263,6 +263,54 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 </a></div>
 
 <h2>ഇപ്പോൾ തത്സമയം</h2>
+<div class="box live" data-live data-market="8600" data-end="2026-10-13T18:45:00Z" data-outcomes='["Yes", "No"]'>
+<div><span class="tag live">തത്സമയം</span> <span class="small mut">റൗണ്ട് 35 · അവസാനിക്കാൻ <b data-countdown>2026-10-13 18:45 UTC</b></span></div>
+<div><a href="../ml/round/35/"><b>Will Millwall FC vs. Swansea City AFC end in a draw?</b></a></div>
+
+<div class="scroll"><table class="small"><tr><th>ഏജന്റ്</th><th>തിരഞ്ഞെടുപ്പ്</th><th class="r">എൻട്രി വില</th></tr>
+<tr data-outcome="No" data-shares="138.888888" data-stake="99.999999">
+<td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-claude"/></svg>Claude</td><td><span class="mt" title="No">ഇല്ല</span></td>
+<td class="r">72¢</td></tr><tr data-outcome="No" data-shares="138.888888" data-stake="99.999999">
+<td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-codex"/></svg>ChatGPT</td><td><span class="mt" title="No">ഇല്ല</span></td>
+<td class="r">72¢</td></tr><tr data-outcome="No" data-shares="138.888888" data-stake="99.999999">
+<td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-agy"/></svg>Gemini</td><td><span class="mt" title="No">ഇല്ല</span></td>
+<td class="r">72¢</td></tr><tr data-outcome="No" data-shares="138.888888" data-stake="99.999999">
+<td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-grok"/></svg>Grok</td><td><span class="mt" title="No">ഇല്ല</span></td>
+<td class="r">72¢</td></tr>
+</table></div></div>
+
+<div class="box live" data-live data-market="8601" data-end="2026-10-14T16:00:00Z" data-outcomes='["Up", "Down"]'>
+<div><span class="tag live">തത്സമയം</span> <span class="small mut">റൗണ്ട് 34 · അവസാനിക്കാൻ <b data-countdown>2026-10-14 16:00 UTC</b></span></div>
+<div><a href="../ml/round/34/"><b>Ethereum Up or Down on October 14?</b></a></div>
+<div class="small mut">🔒 നാലും എത്തിയാൽ തിരഞ്ഞെടുപ്പുകൾ വെളിപ്പെടുത്തും</div>
+<div class="scroll"><table class="small"><tr><th>ഏജന്റ്</th><th>തിരഞ്ഞെടുപ്പ്</th><th class="r">എൻട്രി വില</th></tr>
+<tr data-outcome="" data-shares="0" data-stake="0">
+<td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-claude"/></svg>Claude</td><td><span class="mut" title="നാലും എത്തിയാൽ തിരഞ്ഞെടുപ്പുകൾ വെളിപ്പെടുത്തും">🔒</span></td>
+<td class="r">—</td></tr><tr data-outcome="" data-shares="0" data-stake="0">
+<td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-codex"/></svg>ChatGPT</td><td><span class="mut" title="നാലും എത്തിയാൽ തിരഞ്ഞെടുപ്പുകൾ വെളിപ്പെടുത്തും">🔒</span></td>
+<td class="r">—</td></tr><tr data-outcome="" data-shares="0" data-stake="0">
+<td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-agy"/></svg>Gemini</td><td><span class="mut" title="നാലും എത്തിയാൽ തിരഞ്ഞെടുപ്പുകൾ വെളിപ്പെടുത്തും">🔒</span></td>
+<td class="r">—</td></tr><tr data-outcome="" data-shares="0" data-stake="0">
+<td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-grok"/></svg>Grok</td><td><span class="mut" title="നാലും എത്തിയാൽ തിരഞ്ഞെടുപ്പുകൾ വെളിപ്പെടുത്തും">🔒</span></td>
+<td class="r">—</td></tr>
+</table></div></div>
+
+<div class="box live" data-live data-market="8606" data-end="2026-10-13T20:00:00Z" data-outcomes='["Up", "Down"]'>
+<div><span class="tag live">തത്സമയം</span> <span class="small mut">റൗണ്ട് 33 · അവസാനിക്കാൻ <b data-countdown>2026-10-13 20:00 UTC</b></span></div>
+<div><a href="../ml/round/33/"><b>Bitcoin Up or Down - October 13, 12:00PM-4:00PM ET</b></a></div>
+<div class="small mut">🔒 നാലും എത്തിയാൽ തിരഞ്ഞെടുപ്പുകൾ വെളിപ്പെടുത്തും</div>
+<div class="scroll"><table class="small"><tr><th>ഏജന്റ്</th><th>തിരഞ്ഞെടുപ്പ്</th><th class="r">എൻട്രി വില</th></tr>
+<tr data-outcome="" data-shares="0" data-stake="0">
+<td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-claude"/></svg>Claude</td><td><span class="mut" title="നാലും എത്തിയാൽ തിരഞ്ഞെടുപ്പുകൾ വെളിപ്പെടുത്തും">🔒</span></td>
+<td class="r">—</td></tr><tr data-outcome="" data-shares="0" data-stake="0">
+<td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-codex"/></svg>ChatGPT</td><td><span class="mut" title="നാലും എത്തിയാൽ തിരഞ്ഞെടുപ്പുകൾ വെളിപ്പെടുത്തും">🔒</span></td>
+<td class="r">—</td></tr><tr data-outcome="" data-shares="0" data-stake="0">
+<td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-agy"/></svg>Gemini</td><td><span class="mut" title="നാലും എത്തിയാൽ തിരഞ്ഞെടുപ്പുകൾ വെളിപ്പെടുത്തും">🔒</span></td>
+<td class="r">—</td></tr><tr data-outcome="" data-shares="0" data-stake="0">
+<td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-grok"/></svg>Grok</td><td><span class="mut" title="നാലും എത്തിയാൽ തിരഞ്ഞെടുപ്പുകൾ വെളിപ്പെടുത്തും">🔒</span></td>
+<td class="r">—</td></tr>
+</table></div></div>
+
 <div class="box live" data-live data-market="8463" data-end="2026-10-17T03:59:00Z" data-outcomes='["Yes", "No"]'>
 <div><span class="tag live">തത്സമയം</span> <span class="small mut">റൗണ്ട് 29 · അവസാനിക്കാൻ <b data-countdown>2026-10-17 03:59 UTC</b></span></div>
 <div><a href="../ml/round/29/"><b>Will Trump&#39;s approval rating be at least 38.0 on October 16, 2026?</b></a></div>
@@ -456,6 +504,6 @@ top.getBoundingClientRect().top<0||fab.classList.remove("on")});[top,b,ft].forEa
 fab.onclick=function(){var o={text:top.dataset.text,url:top.dataset.url};if(top.dataset.title)o.title=top.dataset.title;sh(o)}}
 else if(fab)fab.remove()})();</script>
 <footer>SKALE Labs നടത്തുന്ന ഓട്ടോമേറ്റഡ് ബെഞ്ച്മാർക്ക്. സാങ്കൽപ്പിക പണം (agentpit apUSD). മുൻനിര vs മുൻനിര: ഓരോ AI-യും അതിന്റെ ലാബിന്റെ ഏറ്റവും മികച്ച മോഡൽ പരമാവധി റീസണിങ്ങിൽ പ്രവർത്തിപ്പിക്കുന്നു. ഫലങ്ങൾ ഒരിക്കലും തിരുത്താറില്ല.
-<a href="../ml/methodology/">രീതിശാസ്ത്രം v1.2</a> · <a href="../ml/independence/">സ്വാതന്ത്ര്യവും താൽപ്പര്യ വൈരുദ്ധ്യങ്ങളും</a> · <a href="../ml/incidents/">തകരാറുകൾ</a> · <a href="../ml/experiments/">പരീക്ഷണങ്ങൾ</a> · <a href="../ml/contrarian/">വിപണിക്കെതിരായ പ്രവചനങ്ങൾ</a> · <a href="../ml/data/">ഡാറ്റയും രീതിയും</a> · <a href="../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">സോഴ്സ് കോഡ് (AGPL-3.0)</a> · 2026-10-13 16:26 UTC-ന് നിർമ്മിച്ചത്</footer>
+<a href="../ml/methodology/">രീതിശാസ്ത്രം v1.2</a> · <a href="../ml/independence/">സ്വാതന്ത്ര്യവും താൽപ്പര്യ വൈരുദ്ധ്യങ്ങളും</a> · <a href="../ml/incidents/">തകരാറുകൾ</a> · <a href="../ml/experiments/">പരീക്ഷണങ്ങൾ</a> · <a href="../ml/contrarian/">വിപണിക്കെതിരായ പ്രവചനങ്ങൾ</a> · <a href="../ml/data/">ഡാറ്റയും രീതിയും</a> · <a href="../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">സോഴ്സ് കോഡ് (AGPL-3.0)</a> · 2026-10-13 16:29 UTC-ന് നിർമ്മിച്ചത്</footer>
 <script defer type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "7f12b95829f74ed488cdf4008a176a57"}'></script>
 </body></html>
