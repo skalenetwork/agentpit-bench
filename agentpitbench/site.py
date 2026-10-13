@@ -32,9 +32,9 @@ from markupsafe import Markup
 
 from . import og
 from .cards import cents, is_dark, fmt_time, is_upset, payout_x, ranked, results_headline, signed, split_headline, model_eras
-from . import challenge, discover, methodology
+from . import challenge, discover, exports, methodology
 from .emblem import emblem_svg
-from .config import AGENT_COLORS, AGENT_NAMES, AGENT_SLUGS, Settings, AGENT_MODELS
+from .config import AGENT_COLORS, AGENT_NAMES, Settings, AGENT_MODELS
 from .i18n import CODES, LANGS, NAMES, Translator
 from .mascots import sprite, svg_file, use as mascot_use
 from .twitter import TAG, clip, fit, market_name, results_hook
@@ -375,32 +375,26 @@ def win_share(r: dict, url: str, _) -> list[dict]:
     return out
 
 
+def betting_leader(lb: dict) -> dict | None:
+    """The season's #1 on the betting record (the headline: profit, then win rate), once it has played."""
+    return next((b for b in lb.get("agents") or [] if b.get("rank") == 1 and b.get("played")), None)
+
+
 def leaderboard_share(lb: dict, _) -> str:
-    fc = lb.get("forecast") or {}
-    scored = [a for a in fc.get("agents") or [] if a.get("brier") is not None]
-    if scored and fc.get("markets_resolved"):
-        lead = min(scored, key=lambda a: a["brier"])
-        return _("Which AI forecasts best? {leader} leads on accuracy after {n} markets.", leader=lead["name"],
-                 n=fc["markets_resolved"])
+    b = betting_leader(lb)
+    if b:
+        return _("Which AI is smartest with money? {leader} leads: {wins}-{losses}, {profit} tokens.",
+                 leader=b["name"], wins=b["wins"], losses=b["losses"], profit=signed(b["net_pnl"]))
     return _("Which AI is smartest with money?")
 
 
 def agent_share(lb: dict, agent: str, name: str, row: dict | None, _) -> str:
-    fc = next((a for a in (lb.get("forecast") or {}).get("agents") or [] if a["agent"] == agent), None)
     w, l, p = (row or {}).get("wins", 0), (row or {}).get("losses", 0), signed((row or {}).get("net_pnl", 0))
-    if fc and fc.get("brier") is not None:
-        return _("{name} on AgentpitBench: {wins}-{losses}, {profit} tokens, forecast accuracy {score}.",
-                 name=name, wins=w, losses=l, profit=p, score=f"{fc['brier']:.3f}")
     return _("{name} on AgentpitBench: {wins}-{losses}, {profit} tokens.", name=name, wins=w, losses=l, profit=p)
 
 
 def report_headline(rep: dict, _) -> str | None:
-    """A weekly report's headline, from its numbers: the best forecaster, else the best bettor."""
-    fc = [a for a in rep.get("forecast") or [] if a.get("brier") is not None]
-    if fc:
-        a = min(fc, key=lambda x: x["brier"])
-        return _("State of the AIs, {week}: {name} forecast best (Brier {score}).", week=rep["week"], name=a["name"],
-                 score=f"{a['brier']:.3f}")
+    """A weekly report's headline, from its numbers: the week's best bettor."""
     if rep.get("rounds") and rep.get("betting"):
         b = max(rep["betting"], key=lambda x: x["profit"])
         return _("State of the AIs, {week}: {name} led the betting, {wins}-{losses}, {profit} tokens.",
@@ -494,44 +488,35 @@ def card_alt(r: dict, _, names: str) -> str:
 
 
 def leaderboard_description(lb: dict, _, names: str, as_of: float) -> str:
-    fc = lb.get("forecast") or {}
-    scored = [a for a in fc.get("agents") or [] if a.get("brier") is not None and a.get("ci")]
-    if scored and fc.get("markets_resolved"):
-        a = min(scored, key=lambda x: x["brier"])
-        return _("{leader} leads on forecast accuracy after {n} markets (Brier {score}, 95% CI {lo}–{hi}). Updated {date}.",
-                 leader=a["name"], n=fc["markets_resolved"], score=f"{a['brier']:.3f}", lo=f"{a['ci'][0]:.3f}",
-                 hi=f"{a['ci'][1]:.3f}", date=discover.day(as_of))
-    return _("Forecast accuracy and betting record of {names} on real prediction markets, with confidence intervals.",
-             names=names)
+    b = betting_leader(lb)
+    if b:
+        return _("{leader} leads the betting record after {n} rounds: {wins}-{losses}, {profit} tokens. Updated {date}.",
+                 leader=b["name"], n=lb.get("rounds_counted") or b["played"], wins=b["wins"], losses=b["losses"],
+                 profit=signed(b["net_pnl"]), date=discover.day(as_of))
+    return _("Betting record of {names} on real prediction markets: wins, losses and profit.", names=names)
 
 
-VS_MIN_N = 20  # no thin pages: a head-to-head page exists only with at least this many shared resolved markets
+# The retired head-to-head pages (docs/simple-scoring-spec.md §3.8): every /vs/<slug>/ that could ever have been
+# published, frozen on 2026-10-13 from config's slug table (claude, chatgpt, gemini, grok, crowd). Every ordered pair
+# of agents plus each agent against the Crowd: deliberately wider than what ever reached a page. Each one is now a
+# redirect stub to the leaderboard, in every language, kept indefinitely.
+RETIRED_VS_SLUGS = (
+    "claude-vs-chatgpt", "claude-vs-gemini", "claude-vs-grok", "chatgpt-vs-claude", "chatgpt-vs-gemini",
+    "chatgpt-vs-grok", "gemini-vs-claude", "gemini-vs-chatgpt", "gemini-vs-grok", "grok-vs-claude",
+    "grok-vs-chatgpt", "grok-vs-gemini", "claude-vs-crowd", "chatgpt-vs-crowd", "gemini-vs-crowd", "grok-vs-crowd",
+)
+
+REDIRECT_HTML = """<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>AgentpitBench</title>
+<link rel="canonical" href="{dest}"><meta http-equiv="refresh" content="0;url={dest}"></head>
+<body style="font:16px system-ui;background:#0b1020;color:#e8ecf8;padding:24px"><p><a style="color:#9ecbff" href="{dest}">{label}</a></p></body></html>
+"""
 
 
-def vs_slug(a: str, b: str) -> str:
-    return f"{AGENT_SLUGS.get(a, a)}-vs-{AGENT_SLUGS.get(b, b)}"
-
-
-def vs_pairs(lb: dict, agents: list[str]) -> list[dict]:
-    """The head-to-head pairs with a page: n >= VS_MIN_N, both sides still in the contest."""
-    return [p for p in lb.get("pairs") or [] if p.get("n", 0) >= VS_MIN_N and p["a"] in agents
-            and (p["b"] in agents or p["b"] == CROWD)]
-
-
-def side_name(x: str, _) -> str:
-    return _("the Crowd") if x == CROWD else AGENT_NAMES.get(x, x)
-
-
-def vs_title(p: dict, _) -> str:
-    if p["b"] == CROWD:
-        return _("{a} vs the Crowd: who forecasts better?", a=AGENT_NAMES.get(p["a"], p["a"]))
-    return _("{a} vs {b}: who forecasts better?", a=AGENT_NAMES.get(p["a"], p["a"]), b=AGENT_NAMES.get(p["b"], p["b"]))
-
-
-def vs_description(p: dict, _, as_of: float) -> str:
-    return _("{a} vs {b} on the same {n} markets: Brier {x} vs {y} (lower is better); {a} closer on {w}, {b} on {l}. Updated {date}.",
-             a=AGENT_NAMES.get(p["a"], p["a"]), b=side_name(p["b"], _), n=p["n"], x=f"{p['a_brier']:.3f}",
-             y=f"{p['b_brier']:.3f}", w=p["a_closer"], l=p["b_closer"], date=discover.day(as_of))
+def redirect_stub(dest: str, lang: str, label: str) -> str:
+    """A retired page: noindex, canonical and an instant meta refresh to `dest`, and a visible link. No beacon."""
+    from html import escape as h
+    return REDIRECT_HTML.format(lang=h(lang), dest=h(dest, quote=True), label=h(label))
 
 
 def home_poster(s: Settings, film: dict) -> str | None:
@@ -561,29 +546,6 @@ def _jpeg_poster(s: Settings, film: dict, name: str, box: int, quality: int) -> 
     except Exception:
         log.exception("%s for %s skipped", name, film.get("date") or film.get("week"))
         return film["dir"] + film["poster"]
-
-
-def home_pairs(vsp: list[dict], n: int = 4) -> list[dict]:
-    """The front page's head-to-head strip: AI-vs-AI pairs first (most shared markets first), then vs the Crowd."""
-    return sorted(vsp, key=lambda p: (p["b"] == CROWD, -p["n"]))[:n]
-
-
-def vs_rounds(rounds: list[dict], a: str, b: str) -> dict:
-    """Betting rounds where a and b (an agent or the Crowd's favourite) took opposite sides: W-L and the latest 10."""
-    out, aw, bw = [], 0, 0
-    for r in sorted(rounds, key=lambda r: -(r.get("started_at") or 0)):
-        if discover.seal(r) or r.get("exhibition"):
-            continue
-        ea = next((e for e in r["entries"] if e["agent"] == a), None)
-        pb = ((r.get("crowd") or {}).get("outcome") if b == CROWD
-              else next((e["outcome"] for e in r["entries"] if e["agent"] == b), None))
-        if not (ea and ea.get("outcome") and pb) or ea["outcome"] == pb:
-            continue
-        if r["state"] == "resolved":
-            aw += ea["outcome"] == r["winner"]
-            bw += pb == r["winner"]
-        out.append({"r": r, "a": ea["outcome"], "b": pb})
-    return {"a_wins": aw, "b_wins": bw, "latest": out[:10]}
 
 
 def check_seo(seen: list[tuple[str, str, str, str]]) -> None:
@@ -636,9 +598,15 @@ def indexnow_changes(s: Settings) -> list[str]:
         old = {}
     now = {str(r["round_id"]): r["state"] for r in rounds if not (s.site_hide_void and r["state"] == "void")}
     fresh = [f"round/{rid}/" for rid, st in sorted(now.items(), key=lambda x: -int(x[0])) if old.get(rid) != st]
+    # the retired head-to-head pages are announced once (docs/simple-scoring-spec.md §3.8)
+    retired = [] if old.get(VS_RETIRED_KEY) else ["vs/", *(f"vs/{x}/" for x in RETIRED_VS_SLUGS)]
+    now[VS_RETIRED_KEY] = True
     state_f.parent.mkdir(parents=True, exist_ok=True)
     state_f.write_text(json.dumps(now))
-    return ["", "leaderboard/", *fresh] if fresh else []
+    return ["", "leaderboard/", *fresh, *retired] if fresh or retired else []
+
+
+VS_RETIRED_KEY = "vs-retired"   # indexnow-state.json: the retired /vs/ pages were announced
 
 
 def indexnow_payload(s: Settings, key: str, rels: list[str]) -> dict | None:
@@ -670,7 +638,7 @@ def indexnow_ping(s: Settings, rels: list[str]) -> bool:
 SHARE_BAR = 'data-share-bar'  # every public page carries it (checked at build)
 OG_REQUIRED = ('property="og:title"', 'property="og:description"', 'property="og:image"', SHARE_BAR,
                'data-share-top')  # share UX v2: a share control in the first screen
-NO_SHARE = ("widget/", "embed/", "404.html", "go/")  # embedded elsewhere, the not-found page, or the A/B redirect hop: no bar, no preview
+NO_SHARE = ("widget/", "embed/", "404.html", "go/", "vs/")  # embedded elsewhere, the not-found page, the A/B redirect hop, or a retired page's redirect stub: no bar, no preview
 
 
 GO_HTML = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
@@ -756,25 +724,6 @@ def card_for(s: Settings, r: dict) -> str | None:
         if (d / name).exists():
             return f"cards/{r['round_id']}/{name}"
     return None
-
-
-def head_to_head(rounds: list[dict], agents: list[str]) -> list[dict]:
-    """For each pair: resolved rounds where both bet on different sides, and who was right."""
-    out = []
-    for i, a in enumerate(agents):
-        for b in agents[i + 1:]:
-            aw = bw = 0
-            for r in rounds:
-                if r["state"] != "resolved":
-                    continue
-                ea = next((e for e in r["entries"] if e["agent"] == a), None)
-                eb = next((e for e in r["entries"] if e["agent"] == b), None)
-                if ea and eb and ea["outcome"] and eb["outcome"] and ea["outcome"] != eb["outcome"]:
-                    aw += bool(ea["won"])
-                    bw += bool(eb["won"])
-            out.append({"a": a, "b": b, "a_name": AGENT_NAMES.get(a, a), "b_name": AGENT_NAMES.get(b, b),
-                        "a_wins": aw, "b_wins": bw})
-    return out
 
 
 def biggest_upset(rounds: list[dict]) -> tuple[dict, dict] | None:
@@ -900,14 +849,12 @@ def pnl_chart(series: dict[str, list], width: int = 640, height: int = 220, crow
     return "".join(parts)
 
 
-def badge_svg(board: list[dict], crowd: dict | None = None, sig: str | None = None) -> str:
+def badge_svg(board: list[dict], crowd: dict | None = None) -> str:
     """Shields-style badge: 'AgentpitBench | Claude 12-8 · ChatGPT 10-10 · Gemini 9-11'."""
     label = "AgentpitBench"
     value = " · ".join(f"{b['name']} {b['wins']}-{b['losses']}" for b in board) or "no results yet"
     if board and crowd and crowd.get("played"):
         value += f" · Crowd {crowd['wins']}-{crowd['losses']}"
-    if sig:
-        value += f" · {sig}"
     lw, vw = 7 * len(label) + 12 + 18, int(6.6 * len(value)) + 14  # +18: the emblem left of the label
     w = lw + vw
     return (
@@ -964,6 +911,35 @@ CHANGELOG_TEMPLATES = (
     _("Market selection: {param} {old} → {new} (operator revert of v{v}; evidence: {link})"),
 )
 assert CHANGELOG_TEMPLATES == (methodology.AUTO_TEXT, methodology.REVERT_TEXT)
+SWITCH_TEXT = _("At the switch, the forecast leader was {a}; the betting leader was {b}.")
+assert SWITCH_TEXT == exports.SWITCH_TEXT
+
+
+def headline_switch(s: Settings) -> dict | None:
+    """The evidence file of the switch to the betting record as the headline (`method approve
+    --snapshot-standings`, docs/simple-scoring-spec.md §2), found by its kind rather than a version number:
+    {version, date (YYYY-MM-DD), forecast_leader, betting_leader}. None before the switch."""
+    d = methodology.changes_dir(s)
+    for f in sorted(d.glob("*.json")) if d.exists() else []:
+        try:
+            ev = json.loads(f.read_text("utf-8"))
+        except (OSError, ValueError):
+            continue
+        if ev.get("kind") == exports.SNAPSHOT_KIND:
+            return {"version": f.stem, "date": datetime.fromtimestamp(ev.get("taken_at") or 0, timezone.utc).strftime("%Y-%m-%d"),
+                    "forecast_leader": ev.get("forecast_leader") or "—", "betting_leader": ev.get("betting_leader") or "—"}
+    return None
+
+
+def archived_report(rep: dict, switch: dict | None) -> bool:
+    """A weekly report whose week began before the switch: its stored prose is a dated archive (§3.5)."""
+    if not switch:
+        return False
+    try:
+        monday = datetime.strptime(rep["week"] + "-1", "%G-W%V-%u").strftime("%Y-%m-%d")
+    except (KeyError, ValueError):
+        return False
+    return monday < switch["date"]
 
 # Public incident log: (date, title id, what happened id, resolution id). Newest first.
 INCIDENTS = [
@@ -985,7 +961,7 @@ BRANDED = {"methodology": _("Methodology"), "independence": _("Independence & co
            "hall-of-shame": _("Hall of shame"), "reports": _("Weekly reports"), "contrarian": _("Contrarian calls"),
            "experiments": _("Experiments"), "challenge": _("Beat the AIs"), "best-at": _("Which AI is best at what?")}
 
-# Extra top-nav links, after Films and Head to head: (path under the language root, English label passed
+# Extra top-nav links, after Films: (path under the language root, English label passed
 # through _()). The slot for sections that land later, e.g. ("challenge/", "Beat the AIs"); the label must be a
 # message id with translations (i18n.message_ids reads this list) before it goes in.
 NAV_EXTRA: list[tuple[str, str]] = [("challenge/", "Beat the AIs")]
@@ -1012,35 +988,6 @@ def model_line(agent: str, _, eras: dict | None = None) -> str:
             note = _("(not played yet; rounds so far on {models})", models=others)
         line += f" {note}"
     return line
-
-
-def ci_bar(rows: list[dict], crowd: dict | None, width: int = 640) -> str:
-    """Inline SVG: each agent's mean Brier score with its 95% CI, the Crowd as a dashed reference line.
-    Lower is better, so better forecasters sit further left."""
-    pts = [r for r in rows if r.get("brier") is not None and r.get("ci")]
-    if not pts:
-        return ""
-    vals = [v for r in pts for v in r["ci"]] + ([crowd["brier"]] if crowd and crowd.get("brier") is not None else [])
-    lo, hi = max(0.0, min(vals) - 0.02), min(1.0, max(vals) + 0.02)
-    pad_l, pad_r, row_h = 110, 16, 30
-    h = len(pts) * row_h + 34
-
-    def x(v):
-        return pad_l + (v - lo) / ((hi - lo) or 1) * (width - pad_l - pad_r)
-    parts = [f'<svg viewBox="0 0 {width} {h}" class="chart" role="img" aria-label="Brier score with 95% CI">']
-    if crowd and crowd.get("brier") is not None:
-        cx = x(crowd["brier"])
-        parts.append(f'<line x1="{cx:.1f}" x2="{cx:.1f}" y1="4" y2="{h - 24}" stroke="#8a93a8" stroke-dasharray="5 4"/>')
-    for i, r in enumerate(pts):
-        y = 18 + i * row_h
-        c = AGENT_COLORS.get(r["agent"], "#888")
-        cls = ' class="dkl"' if is_dark(c) else ""
-        parts.append(f'<text x="4" y="{y + 4}" class="lbl" style="font-size:13px">{escape(r["name"])}</text>')
-        parts.append(f'<line{cls} x1="{x(r["ci"][0]):.1f}" x2="{x(r["ci"][1]):.1f}" y1="{y}" y2="{y}" stroke="{c}" stroke-width="3"/>')
-        parts.append(f'<circle{cls} cx="{x(r["brier"]):.1f}" cy="{y}" r="5" fill="{c}"/>')
-    parts.append(f'<text x="{pad_l}" y="{h - 6}" class="lbl">{lo:.2f}</text>'
-                 f'<text x="{width - pad_r}" y="{h - 6}" class="lbl" text-anchor="end">{hi:.2f}</text></svg>')
-    return "".join(parts)
 
 
 def sweep_prompt_example(s: Settings) -> str:
@@ -1124,11 +1071,14 @@ def _build(s: Settings) -> Path:
     out.mkdir(parents=True)
     changelog = methodology.changelog()
     # the evidence behind every generated methodology change (/methodology/changes/<version>.json)
+    evidence: set[str] = set()
     if methodology.changes_dir(s).exists():
         for f in methodology.changes_dir(s).glob("*.json"):
             dst = out / "methodology" / "changes" / f.name
             dst.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(f, dst)
+            evidence.add(f.stem)
+    switch = headline_switch(s)  # the 2.0 evidence: who led each table when the betting record became the headline
 
     base = s.site_url.rstrip("/")
     live = [r for r in rounds if r["state"] in ("running", "awaiting_resolution")]
@@ -1138,7 +1088,6 @@ def _build(s: Settings) -> Path:
     vs = " vs ".join(names)
     counted = [r for r in rounds if not r.get("exhibition")]  # neutral tables never use excluded rounds
     best, worst = best_worst(counted)
-    h2h = head_to_head(counted, s.agents)
     splits = [r for r in rounds if r["split"]]
     prompt = (Path(__file__).parent / "prompt.txt").read_text()
     upset, wrong = biggest_upset(counted), shame(counted)
@@ -1163,8 +1112,6 @@ def _build(s: Settings) -> Path:
     extra = _db_extras(s)
     cta = site_cta(s)                # A/B: the day's round-page CTA arm (English pages only)
     exp_ab = experiments_data(s)     # A/B: the public /experiments/ numbers (posts older than 7 days)
-    vsp = vs_pairs(lb, s.agents)
-    vs_links = {(p["a"], p["b"]): f"vs/{vs_slug(p['a'], p['b'])}/" for p in vsp}
     seo: list[tuple[str, str, str, str]] = []  # (lang, page, title, description), checked after the build
     from .motd import films as _films  # Match of the Day: cards/motd/<date>/film.json
     films = _films(s)
@@ -1202,9 +1149,7 @@ def _build(s: Settings) -> Path:
                   "lang_name": NAMES[lang], "mascot_sprite": sprite(s.agents), "mi": mascot_use,
                   "commentary": commentary, "model_line": lambda a, _=_: model_line(a, _, eras.get(a)),
                   "models": AGENT_MODELS, "reasoning": REASONING, "exclusions": EXCLUSION_REASONS,
-                  "fc": lb.get("forecast") or {}, "sig": lb.get("significance") or {},
                   "tq": tq, "mq": mq}
-        common["vs_links"] = vs_links
         common["cat_links"] = {c["category"]: f"best-at/{c['slug']}/" for c in cat_live}
         common["cat_min"] = CATEGORY_MIN
         common.update(nav_extra=NAV_EXTRA, has_experiments=exp_ab is not None)
@@ -1267,15 +1212,14 @@ def _build(s: Settings) -> Path:
                          state_sig=discover.iso(as_of), every=300000)
 
         page("index.html", "index.html", live=live, past=past[:30], upset=upset, description=None,
-             film=films[0] if films else None, h2h_strip=home_pairs(vsp), fire=fire,
+             film=films[0] if films else None, fire=fire,
              today=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
              share_text=_("Four frontier AIs bet on real prediction markets. Live scoreboard:"),
              jsonld=discover.dataset_ld(s, lb, f"{base}/"),
              title=_("AgentpitBench: {vs} on real prediction markets", vs=vs))
-        page("leaderboard/index.html", "leaderboard.html", ci_chart=ci_bar((lb.get("forecast") or {}).get("agents", []),
-                                                                          (lb.get("forecast") or {}).get("crowd")),
+        page("leaderboard/index.html", "leaderboard.html",
              chart=pnl_chart(lb.get("series", {}), crowd=(lb.get("crowd") or {}).get("series"), _=_),
-             best=best, worst=worst, h2h=h2h, weekly=weekly, seasons=seasons, fire=fire,
+             best=best, worst=worst, weekly=weekly, seasons=seasons, fire=fire,
              title=branded(_("AI forecasting leaderboard: {names}", names=", ".join(names))),
              description=leaderboard_description(lb, _, ", ".join(names), as_of),
              share_text=leaderboard_share(lb, _), og=previews["standings"],
@@ -1286,7 +1230,7 @@ def _build(s: Settings) -> Path:
              jsonld=discover.dataset_ld(s, lb, f"{base}/leaderboard/"))
         page("facts/index.html", "facts.html", sections=discover.fact_sections(s, lb, metrics, _),
              bibtex=discover.bibtex(s, as_of), as_of=discover.stamp(as_of),
-             description=_("Dated, quotable facts about AgentpitBench: forecast accuracy, betting record and methodology, regenerated on every update."),
+             description=_("Dated, quotable facts about AgentpitBench: the betting record and the methodology, regenerated on every update."),
              jsonld=discover.dataset_ld(s, lb, f"{base}/facts/"), title=branded(_("Facts")))
         by_id = sorted(rounds, key=lambda r: r["round_id"])
         for i, r in enumerate(by_id):
@@ -1329,17 +1273,15 @@ def _build(s: Settings) -> Path:
                                  agent_share(lb, a, nm, row, _), f"{base}/{prefix}agent/{a}/", "agent"),
                  share_text=agent_share(lb, a, nm, row, _),
                  cats=(lb.get("by_category") or {}).get(a, []),
-                 vs_mine=[p for p in vsp if a in (p["a"], p["b"])],
                  jsonld=crumbs(None, (_("Leaderboard"), "leaderboard/"), (nm, f"agent/{a}/")),
                  title=branded(_("{name} ({model}) forecasting record", name=nm,
                                  model=AGENT_MODELS[a][1] if a in AGENT_MODELS else a)))
-        for p in vsp:
-            rel = f"vs/{vs_slug(p['a'], p['b'])}/"
-            page(rel + "index.html", "vs.html", p=p, a_name=AGENT_NAMES.get(p["a"], p["a"]), b_name=side_name(p["b"], _),
-                 bets=vs_rounds(counted, p["a"], p["b"]), as_of_day=discover.day(as_of),
-                 heading=vs_title(p, _), title=branded(vs_title(p, _)), description=vs_description(p, _, as_of),
-                 jsonld=crumbs(discover.dataset_ld(s, lb, f"{base}/{rel}"), (_("Leaderboard"), "leaderboard/"),
-                               (vs_title(p, _), rel)))
+        # the retired head-to-head pages: redirect stubs to this language's leaderboard (never in a sitemap)
+        lb_url = f"{base}/{prefix}leaderboard/"
+        for rel in ["vs/", *(f"vs/{x}/" for x in RETIRED_VS_SLUGS)]:
+            f = out / prefix / rel / "index.html"
+            f.parent.mkdir(parents=True, exist_ok=True)
+            f.write_text(redirect_stub(lb_url, lang, _("Leaderboard")))
         bt = _("Which AI is best at what?")
         page("best-at/index.html", "best_at_index.html", cats=cat_pages, as_of_day=discover.day(as_of),
              heading=bt, title=branded(bt),
@@ -1360,14 +1302,9 @@ def _build(s: Settings) -> Path:
              title=branded(_("Beat the AIs")),
              description=_("One market a day. Lock in your pick before you see how the AIs bet, then compare once it resolves."),
              share_text=_("Can you beat the AIs? Today's AgentpitBench challenge:"))
-        if vsp:
-            page("vs/index.html", "vs_index.html", pairs=vsp, as_of_day=discover.day(as_of),
-                 title=branded(_("Head to head")),
-                 description=_("Who forecasts better, pair by pair: each side's Brier score on the same markets (lower is better), with a 95% confidence interval on the difference."),
-                 jsonld=crumbs(None, (_("Leaderboard"), "leaderboard/"), (_("Head to head"), "vs/")))
         page("films/index.html", "films.html", films=films, episodes=episodes, title=branded("Match of the Day"),
              description=_("Match of the Day: a short film of the most dramatic AgentpitBench round each day."))
-        page("splits/index.html", "splits.html", splits=splits, h2h=h2h, title=branded(_("Split decisions")),
+        page("splits/index.html", "splits.html", splits=splits, title=branded(_("Split decisions")),
              share_text=_("When {roster} disagree, who's right?", roster=roster))
         page("hall-of-shame/index.html", "shame.html", wrong=wrong, title=branded(_("Hall of shame")),
              share_text=_("The AI hall of shame: most confident wrong calls on AgentpitBench."))
@@ -1377,7 +1314,8 @@ def _build(s: Settings) -> Path:
              title=branded(_("Press kit")),
              description=_("AgentpitBench press kit: key numbers, share cards, mascots and contacts for writing about the AI forecasting benchmark."))
         page("methodology/index.html", "methodology.html", prompt=prompt, sweep_prompt=sweep_prompt_example(s),
-             changelog=changelog, sealed=lb.get("sealed") or [], title=branded(_("Methodology v{v}", v=s.methodology_version)),
+             changelog=changelog, sealed=lb.get("sealed") or [], evidence=evidence, switch=switch,
+             title=branded(_("Methodology v{v}", v=s.methodology_version)),
              share_text=_("How AgentpitBench tests frontier AIs on real markets (methodology v{v}).", v=s.methodology_version),
              jsonld=discover.techarticle_ld(s, lb, f"{base}/methodology/", changelog))
         page("independence/index.html", "independence.html", title=branded(_("Independence & conflicts")),
@@ -1399,9 +1337,7 @@ def _build(s: Settings) -> Path:
         for rep in reports:
             page(f"reports/{rep['week']}/index.html", "report.html", rep=rep, share_text=report_headline(rep, _),
                  description=report_headline(rep, _) or _("State of the AIs, {week}.", week=rep["week"]),
-                 og=previews["weeks"].get(rep["week"]),
-                 chart=ci_bar([dict(a, ci=[a["brier"], a["brier"]]) for a in rep["forecast"]],
-                              {"brier": rep["crowd_brier"]} if rep.get("crowd_brier") is not None else None),
+                 og=previews["weeks"].get(rep["week"]), archived=archived_report(rep, switch),
                  title=branded(_("State of the AIs") + f" · {rep['week']}"))
         if lang == "en":  # embedded elsewhere; one shared copy
             page("widget/index.html", "widget.html", title="AgentpitBench standings")
@@ -1413,7 +1349,7 @@ def _build(s: Settings) -> Path:
                 f.parent.mkdir(parents=True, exist_ok=True)
                 f.write_text(go_page(s, r["market_link"]))
     check_seo(seo)  # an empty or duplicate title/description on a fixed page type is a template bug
-    (out / "404.html").write_text(not_found_page(s, rounds, vsp))
+    (out / "404.html").write_text(not_found_page(s, rounds))
     if s.google_site_verification.endswith(".html"):  # Search Console's file method
         name = Path(s.google_site_verification).name
         (out / name).write_text(f"google-site-verification: {name}")
@@ -1423,7 +1359,7 @@ def _build(s: Settings) -> Path:
     key = indexnow_key(s)
     if key:
         (out / f"{key}.txt").write_text(key)
-    (out / "badge.svg").write_text(badge_svg(board, lb.get("crowd"), (lb.get("significance") or {}).get("label")))
+    (out / "badge.svg").write_text(badge_svg(board, lb.get("crowd")))
     kit = out / "press" / "mascots"
     kit.mkdir(parents=True, exist_ok=True)
     for a in [*s.agents, "crowd"]:
@@ -1494,7 +1430,7 @@ def _build(s: Settings) -> Path:
     return s.site_dir
 
 
-def not_found_page(s: Settings, rounds: list[dict], vsp: list[dict]) -> str:
+def not_found_page(s: Settings, rounds: list[dict]) -> str:
     """The one 404.html GitHub Pages serves for every missing path: absolute links, no share bar, noindex, and
     its own language check (the path's language folder, else the browser's) over strings for every language."""
     strings = {}
@@ -1502,12 +1438,10 @@ def not_found_page(s: Settings, rounds: list[dict], vsp: list[dict]) -> str:
         _ = Translator(code)
         strings[code] = {"title": _("Page not found"), "lead": _("This page doesn't exist, or it has moved."),
                          "home": _("Home"), "leaderboard": _("Leaderboard"), "latest": _("Latest round"),
-                         "h2h": _("Head to head"), "dir": "rtl" if _.rtl else "ltr",
-                         "vs": [vs_title(p, _) for p in vsp]}
+                         "dir": "rtl" if _.rtl else "ltr"}
     latest = max(rounds, key=lambda r: r["round_id"], default=None)
     return env.get_template("404.html").render(
-        base=s.site_url.rstrip("/"), strings=strings, latest=latest, s=s, t=strings["en"],
-        vs=[f"vs/{vs_slug(p['a'], p['b'])}/" for p in vsp])
+        base=s.site_url.rstrip("/"), strings=strings, latest=latest, s=s, t=strings["en"])
 
 
 def _previews(s: Settings, lb: dict, rounds: list[dict], cards: dict, reports: list[dict]) -> dict:

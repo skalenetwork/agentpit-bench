@@ -46,8 +46,8 @@ Exhibition rounds (pre-season, High-Stakes Friday, summoned, infra-voided) are f
 `exhibition = true` and are outside the official standings.
 Tokens are agentpit's paper-money apUSD; no real money is at stake.
 
-The headline metric is forecast accuracy from the daily forecast sweep (Brier score with 95% bootstrap
-confidence intervals and a paired test against the market price). The numbers to cite, with the methodology
+The headline metric is the betting record. The daily forecast sweep is included as research data, with a
+per-forecast Brier score; it is not ranked. The numbers to cite, with the methodology
 version that produced them, are in {site}/data/metrics.json; the sealed daily forecasts and their SHA-256
 hashes are in {site}/data/sealed.json. Rules: {site}/methodology/
 

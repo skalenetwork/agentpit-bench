@@ -75,7 +75,7 @@ the on-screen line written by code with numbers from data; `setup` tells the mis
 | own_odds_against | losers rated their own pick under 50% (bet for the price) | 72 |
 | last_seconds | a bet placed in the last 30 s of the decision limit | 65 won / 50 lost |
 | fastest_beat_slowest | the fastest decider won and the slowest lost, ≥ 60 s apart | 60 |
-| grudge_flipped | a grudge pair (virality.grudge) where the rivalry's trailing side won this one | 55 |
+| grudge_flipped (retired 2026-10-13, see docs/simple-scoring-spec.md) | a grudge pair (virality.grudge) where the rivalry's trailing side won this one | 55 |
 | streak_ended | a ≥ 3 win (or loss) streak ended (low-tier fallback) | 40 + 2/streak, max 55 |
 | unanimous | everyone on one outcome and right | 20 |
 
@@ -239,7 +239,7 @@ of which only resolved, non-exhibition rounds resolved before this one count.
 | Lone wolf won | exactly one entry has `won == True`, and ≥ 2 other entries bet a losing outcome (no-bet entries don't count toward the 2) | 40 |
 | Upset | some entry with `won == True` has `avg_price <= 0.25` | 35 |
 | Wipeout | ≥ 3 entries bet, all on the same outcome, and `won == False` for all | 30 |
-| Grudge match | `virality.grudge(round, history)` is not None | 20 |
+| Grudge match (retired 2026-10-13, see docs/simple-scoring-spec.md) | `virality.grudge(round, history)` is not None | 20 |
 | Streak flip | an agent with win streak ≥ 3 before this round lost, or loss streak ≥ 3 won (streak over its earlier rounds in `history` by `resolved_at`; a no-bet counts as a loss, as on the leaderboard) | 15 |
 | Humans beat the AIs | `humans_collected == 1`, ≥ 5 human pickers, the human majority pick won, and fewer than half of the AI bettors won | 15 |
 | Unanimous and right | all bettors on the same outcome and it won | 5 |

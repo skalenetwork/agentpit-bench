@@ -8,7 +8,7 @@ import pytest
 
 from agentpitbench import cards, site
 from agentpitbench.cards import (CardRenderer, card_state, cents_fine, headline_variant, model_line, results_headline,
-                                 round_banner, short_sig, start_price)
+                                 round_banner, rounds_note, start_price)
 from agentpitbench.emblem import emblem_svg
 from agentpitbench.publish import BenchPublisher
 
@@ -62,7 +62,9 @@ def test_market_vs_agent_helpers():
     assert start_price(r, "No") == 0.785 and start_price(r, "Maybe") is None
     assert cents_fine(0.215) == "21.5¢" and cents_fine(0.62) == "62¢" and cents_fine(None) == "—"
     assert model_line("claude") == "Fable 5.1 · max" and model_line(None) == "frontier models · max"
-    assert short_sig("n=9 · significant vs the Crowd (p<0.05)") == "n=9 · significant vs Crowd p<.05"
+    # the strip's sample line: counted rounds and the season, no significance claim (simple-scoring-spec §4)
+    assert rounds_note({"rounds_counted": 9, "season": "2026-10"}) == "9 rounds · season 2026-10"
+    assert rounds_note({}) is None and rounds_note(None) is None
 
 
 async def test_decision_card_flags_betting_against_own_odds(env, monkeypatch):
@@ -102,7 +104,7 @@ async def test_decision_card_flags_betting_against_own_odds(env, monkeypatch):
 def test_strip_drops_model_detail_only_when_too_long(env):
     s, _ = env
     cr = CardRenderer(s)
-    cr.significance = "n=212 · significant vs the Crowd (p<0.05)"
+    cr.rounds_note = "212 rounds · season 2026-10"
     assert cr._strip("round/25")["model_line"] == "frontier models · max"
     long_path = "reports/2026-W41/state-of-the-ais/"
     assert cr._strip(long_path)["model_line"] is None               # multi-agent card, line too long: dropped
@@ -112,7 +114,7 @@ def test_strip_drops_model_detail_only_when_too_long(env):
 def test_emblem_favicon_and_badge(env):
     s, db = env
     ET.fromstring(str(emblem_svg(64, True)))
-    badge = site.badge_svg([{"name": "Claude", "wins": 3, "losses": 1}], None, "n=4 · not yet significant")
+    badge = site.badge_svg([{"name": "Claude", "wins": 3, "losses": 1}], None)
     ET.fromstring(badge)
     assert badge.count("<svg") == 2                                     # the emblem nested in the badge
     make_round(db, PICKS)

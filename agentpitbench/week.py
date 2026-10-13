@@ -1,11 +1,11 @@
 """Week in the Pit: the ~5-minute narrated weekly episode, Sundays (docs/week-in-the-pit-spec.md).
 
-Credibility as in Match of the Day: every fact is data (standings, P&L, Brier, awards, counts, handles, questions,
+Credibility as in Match of the Day: every fact is data (standings, P&L, awards, counts, handles, questions,
 prices), filled by code; the operator AI (opai task "weekly_episode") only writes the host's words around slots, and
 `validate` is the only gate. A missing or rejected script uses the templated host lines (code-written), so the
 episode never waits on the writer.
 
-Pure parts (unit-tested directly): the week window, the P&L and forecast races, the top films, the best human, the
+Pure parts (unit-tested directly): the week window, the P&L race, the top films, the best human, the
 next-week teaser, the twist of the week, slots, the payload, the validator, the templated lines, the host scenes and
 the film re-cut spans. I/O parts: `make_episode` (narrate, render, cut and assemble both formats and the trailer),
 `post` (X with the square episode, Bluesky with the trailer, the link as a self-reply), `weekly` (the scheduler
@@ -29,7 +29,7 @@ from .config import AGENT_COLORS, AGENT_NAMES, Settings
 log = logging.getLogger(__name__)
 
 TASK = "weekly_episode"
-PROMPT_VERSION = "weekly_episode.v1"
+PROMPT_VERSION = "weekly_episode.v2"   # v2: no forecast race (docs/simple-scoring-spec.md §4)
 FORMATS = {"wide": (1920, 1080), "square": (1080, 1080)}
 SHOW = "Week in the Pit"
 CTA = "Pick against the AIs: reply to the next round's reveal post on @agentpitbench."
@@ -46,14 +46,14 @@ NARR_CPS = 10.5         # narrator speed (measured on the films)
 LEAD_S, TAIL_S = 0.3, 0.45
 
 # segment line keys -> max characters (slots filled). Present only when the segment has data.
-CAPS = {"cold_open": 120, "welcome": 120, "race_pnl": 160, "race_forecast": 160,
+CAPS = {"cold_open": 120, "welcome": 120, "race_pnl": 160,
         "film_1": 140, "film_2": 140, "film_3": 140, "awards": 90,
         "award_1": 100, "award_2": 100, "award_3": 100, "award_4": 100,
         "human": 110, "teaser": 160, "signoff": 110}
 TITLE_MAX = 40
 BUDGET_CHARS = 1700     # all host lines together: ~2.7 min of narration inside a ~5 min episode
 # base seconds per host scene (longer when the voiced line needs it)
-BASE_S = {"w_cold": 7.0, "w_title": 4.0, "w_race_pnl": 16.0, "w_race_fc": 14.0, "w_film": 5.0, "w_awards": 4.5,
+BASE_S = {"w_cold": 7.0, "w_title": 4.0, "w_race_pnl": 16.0, "w_film": 5.0, "w_awards": 4.5,
           "w_award": 5.5, "w_human": 7.0, "w_teaser": 10.0, "w_signoff": 8.0, "w_end": 6.0}
 
 
@@ -97,43 +97,6 @@ def pnl_race(rounds: list[dict], agents: list[str]) -> dict:
               for a in agents}
     return {"keys": keys, "steps": steps, "labels": [r["round_id"] for r in rounds], "leader": leader,
             "final": final, "record": record}
-
-
-def forecast_race(db, agents: list[str], lo: float, hi: float) -> dict | None:
-    """Cumulative mean Brier per agent and the Crowd over the week's resolved sweep markets, by sweep date (lower
-    is better). None when no market of the week has resolved yet."""
-    from .forecast import brier, crowd_probs
-    d_lo = datetime.fromtimestamp(lo, timezone.utc).strftime("%Y-%m-%d")
-    d_hi = datetime.fromtimestamp(hi, timezone.utc).strftime("%Y-%m-%d")
-    rows = db.q("SELECT market_id, sweep_date, outcomes, prices, winner FROM sweep_markets WHERE state='resolved' "
-                "AND sweep_date>=? AND sweep_date<? ORDER BY sweep_date", d_lo, d_hi)
-    if not rows:
-        return None
-    by_day: dict[str, dict[str, list[float]]] = {}
-    for m in rows:
-        day = by_day.setdefault(m["sweep_date"], {})
-        try:
-            day.setdefault("crowd", []).append(brier(crowd_probs(json.loads(m["outcomes"]), json.loads(m["prices"])),
-                                                     m["winner"]))
-        except Exception:
-            pass
-        for f in db.q("SELECT agent, brier FROM forecasts WHERE market_id=? AND brier IS NOT NULL", m["market_id"]):
-            if f["agent"] in agents:
-                day.setdefault(f["agent"], []).append(f["brier"])
-    keys = list(agents) + ["crowd"]
-    acc: dict[str, list[float]] = {k: [] for k in keys}
-    steps, days = [], []
-    for d in sorted(by_day):
-        for k in keys:
-            acc[k] += by_day[d].get(k, [])
-        steps.append({k: (round(sum(acc[k]) / len(acc[k]), 4) if acc[k] else None) for k in keys})
-        days.append(d)
-    final = steps[-1]
-    ranked = sorted((a for a in agents if final.get(a) is not None), key=lambda a: (final[a], a))
-    if not ranked:
-        return None
-    return {"keys": keys, "steps": steps, "days": days, "final": final, "leader": ranked[0],
-            "n": {k: len(acc[k]) for k in keys}}
 
 
 # ---------- top films, best human, teaser, twist ----------
@@ -249,15 +212,6 @@ def slots(data: dict) -> dict[str, str]:
         if race.get("leader"):
             out["pnl_leader"] = AGENT_NAMES.get(race["leader"], race["leader"])
             out["pnl_leader_pnl"] = _signed(race["final"][race["leader"]])
-    fc = data.get("forecast")
-    if fc:
-        for a in fc["keys"]:
-            if fc["final"].get(a) is not None:
-                k = "crowd" if a == "crowd" else ms.slot_key(AGENT_NAMES.get(a, a))
-                out[f"{k}_brier"] = f"{fc['final'][a]:.3f}"
-        out["brier_leader"] = AGENT_NAMES.get(fc["leader"], fc["leader"])
-        out["brier_leader_brier"] = f"{fc['final'][fc['leader']]:.3f}"
-        out["n_markets"] = str(fc["n"].get(fc["leader"], 0))
     tw = data.get("twist")
     if tw:
         out["twist_fact"] = tw["fact"]
@@ -294,8 +248,6 @@ def keys_for(data: dict) -> list[str]:
     k.append("welcome")
     if data.get("pnl") and data["rounds"]:
         k.append("race_pnl")
-    if data.get("forecast"):
-        k.append("race_forecast")
     k += [f"film_{i}" for i in range(1, len(data.get("films") or []) + 1)]
     if data.get("awards"):
         k.append("awards")
@@ -336,9 +288,6 @@ def payload(data: dict) -> dict:
         "money_race": ({"leader": data["slots"].get("pnl_leader"),
                         "final": {AGENT_NAMES.get(k, "The Crowd"): v for k, v in data["pnl"]["final"].items()}}
                        if data.get("pnl") and data["rounds"] else None),
-        "forecast_race": ({"leader": data["slots"].get("brier_leader"), "lower_is_better": True,
-                           "final": {AGENT_NAMES.get(k, "The Crowd"): v for k, v in data["forecast"]["final"].items()}}
-                          if data.get("forecast") else None),
         "films": films,
         "awards": [{"slot": f"a{i}_name", "award": a["title"], "winner": a["name"], "detail": a["detail"]}
                    for i, a in enumerate(data.get("awards") or [], 1)],
@@ -451,8 +400,8 @@ def _facts(k: str, filled: str, pl: dict) -> str | None:
         a = pl["awards"][int(k.split("_")[1]) - 1]
         if not re.search(r"\b" + re.escape(a["winner"]) + r"\b", filled):
             return f"{k}: the line must name the award's winner, {a['winner']}"
-    elif k in ("race_pnl", "race_forecast"):
-        race = pl["money_race"] if k == "race_pnl" else pl["forecast_race"]
+    elif k == "race_pnl":
+        race = pl["money_race"]
         for sent in _sentences(filled):
             who = _names_in(sent)
             if _LEAD.search(sent) and len(who) == 1 and race and who[0] != race["leader"]:
@@ -504,9 +453,6 @@ def templated(data: dict) -> dict:
             L[k] = "This is Week in the Pit: the AIs, real prediction markets, and {n_rounds} rounds settled this week."
         elif k == "race_pnl":
             L[k] = "The money race. {pnl_leader} finished the week on top at {pnl_leader_pnl} tokens."
-        elif k == "race_forecast":
-            L[k] = ("The forecast race, where lower is better: {brier_leader} leads with a Brier score of "
-                    "{brier_leader_brier}.")
         elif k.startswith("film_"):
             i = k.split("_")[1]
             L[k] = f"From {{f{i}_date}}: {{f{i}_n_right}} of {{f{i}_n_ai}} AIs called it. Here is how it went."
@@ -568,11 +514,6 @@ def build_scenes(script: dict, data: dict, lb: dict, site: str) -> list[dict]:
         head.append(sc("w_race_pnl", "race_pnl", race=_race_rows(data["pnl"], "signed"),
                        labels=[f"Round {x}" for x in data["pnl"]["labels"]], heading="The money race",
                        sub="Profit and loss this week, round by round (tokens)"))
-    if data.get("forecast"):
-        head.append(sc("w_race_fc", "race_forecast", race=_race_rows(data["forecast"], "brier"),
-                       labels=data["forecast"]["days"], heading="The forecast race",
-                       sub="Forecast accuracy this week: mean Brier score, lower is better",
-                       n=data["forecast"]["n"]))
     segs: list[dict] = [{"type": "host", "scenes": head}]
     for i, f in enumerate(data.get("films") or [], 1):
         rec, r = f.get("film") or {}, f["round"]
@@ -841,7 +782,7 @@ def gather(s: Settings, db, data: dict, week: str, now: float, ctx_for=None) -> 
             return motd.story_context(s, r, rounds_all)
     twist_pool = wr   # as the race and awards: no exhibition round on the badge-less cold open
     out = {"week": week, "lo": lo, "cut": cut, "rounds": wr, "pnl": pnl_race(wr, s.agents),
-           "forecast": forecast_race(db, s.agents, lo, cut), "films": top, "awards": weekly_awards(wr),
+           "films": top, "awards": weekly_awards(wr),
            "human": best_human(picks), "teaser": teaser(rounds_all, now),
            "twist": week_twist(twist_pool, ctx_for)}
     out["slots"] = slots(out)
@@ -1040,7 +981,7 @@ async def make_episode(s: Settings, db, cards, week: str, out_dir: Path | None =
                       "dir": (f.get("film") or {}).get("dir"), "rendered_here": bool(f.get("film_rendered"))}
                      for f in data["films"]],
            "twist": ({k: data["twist"][k] for k in ("type", "fact", "names", "round_id")} if data["twist"] else None),
-           "pnl_leader": data["slots"].get("pnl_leader"), "brier_leader": data["slots"].get("brier_leader"),
+           "pnl_leader": data["slots"].get("pnl_leader"),
            "awards": data["awards"], "human": data["human"],
            "teaser": [{"round_id": r["round_id"], "question": r["question"]} for r in data["teaser"]],
            "music": mrec.get("engine"), "audio": audio or None, "narrated": bool((audio or {}).get("voiced_lines")),
@@ -1204,8 +1145,6 @@ def yt_description(s: Settings, rec: dict) -> str:
              f"markets, the week in about five minutes. Every number is from the round records."]
     if rec.get("pnl_leader"):
         lines.append(f"Money race leader: {rec['pnl_leader']}.")
-    if rec.get("brier_leader"):
-        lines.append(f"Forecast accuracy leader (Brier, lower is better): {rec['brier_leader']}.")
     for i, f in enumerate(rec.get("films") or [], 1):
         lines.append(f"Film {i}: {_clean(f['question'])} {site}/round/{f['round_id']}/{utm}")
     for a in rec.get("awards") or []:

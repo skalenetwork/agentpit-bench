@@ -12,7 +12,7 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from . import ab, exports, forecast, media
+from . import ab, exports, media
 from .agentpit import Agentpit
 from .cards import CardRenderer
 from .config import AGENT_NAMES, Settings
@@ -299,9 +299,7 @@ class Engage:
         awards = weekly_awards(rounds)
         if awards:
             png = await self._card(self.cards.awards(week, awards))
-            best = next((a for a in lb.get("forecast", {}).get("agents", []) if a.get("rank") == 1 and a.get("n")), None)
-            acc = f"Forecast accuracy leader: {best['name']} (Brier {best['brier']:.3f}, n={best['n']}). " if best else ""
-            text = fit(f"Weekly awards ({week}): " + ", ".join(f"{a['title']} {a['name']}" for a in awards) + ". " + acc, TAG)
+            text = fit(f"Weekly awards ({week}): " + ", ".join(f"{a['title']} {a['name']}" for a in awards) + ". ", TAG)
             await self._post(f"awards-{week}", "awards", text, png, reply_to=tid)
         self.db.put(f"race_{week}", tid or "posted")
 
@@ -344,25 +342,6 @@ class Engage:
             (drafts / f"{week}.txt").write_text(personal_draft(report, f"{self.s.site_url.rstrip('/')}/reports/{week}/"))
             log.info("weekly report draft for the operator written to %s (not posted)", drafts / f"{week}.txt")
         self.db.put(f"report_{week}", True)
-
-    async def duel_results(self) -> None:
-        """Post one paired comparison per launch-day duel, once all its markets have settled."""
-        for d in forecast.duels(self.db):
-            r = d["result"]
-            if d["status"] != "run" or r is None:
-                continue
-            tid = None
-            if r.get("n"):
-                verdict = {"new better": f"{d['new_model']} is better calibrated",
-                           "old better": f"{d['old_model']} was better calibrated",
-                           "inconclusive": "no significant difference yet"}[r["verdict"]]
-                text = fit(f"Launch-day duel: {d['name']} {d['new_model']} vs {d['old_model']} on the same {r['n']} "
-                           f"markets. Brier {r['new']:.3f} vs {r['old']:.3f} (lower is better), difference "
-                           f"{r['diff']:+.3f}, 95% CI [{r['ci'][0]:+.3f}, {r['ci'][1]:+.3f}]: {verdict}. ", TAG)
-                tid = await self._post(f"duel-{d['duel_id']}", "duel", text)
-                if not tid:
-                    continue
-            self.db.x("UPDATE duels SET status='posted', tweet_id=? WHERE duel_id=?", tid, d["duel_id"])
 
     async def daily_banner(self, now: float | None = None) -> None:
         day = datetime.fromtimestamp(now or time.time(), timezone.utc).strftime("%Y-%m-%d")
@@ -508,37 +487,36 @@ class Engage:
 
 
 def report_thread(report: dict, url: str) -> list[str]:
-    """The Sunday 'State of the AIs' thread: three link-free-but-the-last posts, neutral voice."""
-    fc = [a for a in report["forecast"] if a.get("n")]
-    if fc:
-        acc = ", ".join(f"{a['name']} {a['brier']:.3f}" for a in fc)
-        crowd = report.get("crowd_brier")
-        p1 = (f"State of the AIs, {report['week']}. Forecast accuracy (Brier score, lower is better) on "
-              f"{report['markets']} resolved markets: {acc}" + (f"; the market itself {crowd:.3f}" if crowd is not None else "") + ".")
-    else:
-        p1 = f"State of the AIs, {report['week']}. No forecast markets resolved this week."
+    """The Sunday 'State of the AIs' thread: three link-free-but-the-last posts, neutral voice, from the betting
+    record (the headline; docs/simple-scoring-spec.md §5)."""
     bets = report["betting"]
+    crowd = report.get("crowd")
+    if report["rounds"] and bets:
+        lead = bets[0]
+        p1 = (f"State of the AIs, {report['week']}. {lead['name']} led the week's betting: {lead['wins']}-{lead['losses']}, "
+              f"{lead['profit']:+.0f} tokens over {report['rounds']} rounds.")
+        if crowd and (crowd.get("wins") or crowd.get("losses")):
+            p1 += f" The Crowd (always the favourite): {crowd['wins']}-{crowd['losses']}."
+    else:
+        p1 = f"State of the AIs, {report['week']}. No betting rounds resolved this week."
     p2 = ("Betting this week: " + ", ".join(f"{b['name']} {b['wins']}-{b['losses']} ({b['profit']:+.0f})" for b in bets)
-          + f" over {report['rounds']} rounds." if report["rounds"] else "No betting rounds resolved this week.")
+          + "." if report["rounds"] and bets else "")
     if report.get("contrarian"):
         c = report["contrarian"]
         p2 += f" Big disagreements with the market (30+ points): {c['right']} of {c['total']} right."
-    p3 = f"Full report with confidence intervals and every forecast: {url}"
+    p2 = p2.strip() or "More rounds next week."
+    p3 = f"Full report with every bet: {url}"
     return [fit(p1 + " ", TAG), fit(p2 + " ", ""), p3]
 
 
 def personal_draft(report: dict, url: str) -> str:
     """A ready-to-paste post for the operator's own account (personal voice). Written to a file, never posted."""
-    fc = [a for a in report["forecast"] if a.get("n")]
     lines = [f"Week {report['week']} in the pit:"]
-    if fc:
-        top = fc[0]
-        lines.append(f"{top['name']} is the best-calibrated AI this week (Brier {top['brier']:.3f}).")
-        if report.get("crowd_brier") is not None:
-            beat = [a["name"] for a in fc if a["brier"] < report["crowd_brier"]]
-            lines.append(("Beat the market: " + ", ".join(beat) + ".") if beat else "None of them beat the market yet.")
+    if report["rounds"] and report["betting"]:
+        top = report["betting"][0]
+        lines.append(f"{top['name']} led the betting this week: {top['wins']}-{top['losses']}, {top['profit']:+.0f} tokens.")
     if report.get("contrarian"):
         c = report["contrarian"]
         lines.append(f"When they disagreed with the market by 30+ points they were right {c['right']} of {c['total']} times.")
-    lines.append(f"My take: still early, the error bars are wide. Full report: {url}")
+    lines.append(f"My take: still early, a handful of rounds. Full report: {url}")
     return "\n".join(lines) + "\n"

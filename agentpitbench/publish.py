@@ -16,14 +16,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import ab, exports, press
-from .cards import CardRenderer, headline_variant, split_headline, split_shape
+from .cards import CardRenderer, headline_variant, rounds_note, split_headline, split_shape
 from .config import Settings
 from .db import DB
 from .engage import Engage
 from .site import SiteDeployer
 from .twitter import (Poster, clip, decision_text, market_name, price_str, results_shape, results_text, split_text,
                       reveal_text)
-from .virality import commentary, grudge, grudge_headline
+from .virality import commentary
 
 log = logging.getLogger(__name__)
 
@@ -199,14 +199,11 @@ class BenchPublisher:
         data = exports.export(self.s, self.db)
         rnd = next(r for r in data["rounds"] if r["round_id"] == round_id)
         board = data["leaderboard"]["agents"]
-        self.cards.significance = data["leaderboard"]["significance"]["label"]
+        self.cards.rounds_note = rounds_note(data["leaderboard"])
         if sum(1 for e in rnd["entries"] if e["outcome"]) >= 2:
             kind, headline = split_headline(rnd)
-            g = grudge(rnd, data["rounds"]) if kind == "split" else None
-            if g:
-                headline = grudge_headline(g)
-            png = await self._card(self.cards.split(rnd, board, headline=headline, grudge=g))
-            video = await self._clip(self.cards.split_clip(rnd, board, headline=headline, grudge=g))
+            png = await self._card(self.cards.split(rnd, board, headline=headline))
+            video = await self._clip(self.cards.split_clip(rnd, board, headline=headline))
             if self.s.post_decisions:  # legacy shape: the split is its own post, quoting the decision thread
                 async with self._lock(round_id):
                     await self._standalone(round_id, f"r{round_id}-split", kind,
@@ -255,7 +252,7 @@ class BenchPublisher:
             data = exports.export(self.s, self.db)
             rnd = next((r for r in data["rounds"] if r["round_id"] == rid), None)
             if rnd and rnd["entries"]:
-                self.cards.significance = data["leaderboard"]["significance"]["label"]
+                self.cards.rounds_note = rounds_note(data["leaderboard"])
                 await self._reveal(rid, rnd)
                 done.append(rid)
         return done
@@ -318,7 +315,7 @@ class BenchPublisher:
         rnd = next(r for r in data["rounds"] if r["round_id"] == round_id)
         lb = data["leaderboard"]
         board, crowd = lb["agents"], lb["crowd"]
-        self.cards.significance = lb["significance"]["label"]
+        self.cards.rounds_note = rounds_note(lb)
         cast = commentary(rnd)
         # tone: the day's A/B draw once the plain arm is live; until then today's per-round parity
         variant = self.db.round(round_id)["headline_variant"]

@@ -267,11 +267,8 @@ body.square .cta{font-size:40px}
   <div class="sub big" style="font-size:{{ 66 if fmt == 'tall' else 52 }}px" data-in="0" data-fx="{{ capfx }}">{{ sc.caption }}</div>
   <div class="label" data-in="0.8" data-fx="fade">Season {{ stn.season }} standings{% if sc.asof %} · {{ sc.asof }}{% endif %}</div>
   <div class="cols">
-    {% if stn.forecast %}<div class="col" data-in="1.0"><h3>Forecast accuracy (Brier, lower is better)</h3>
-      {% for a in stn.forecast %}<div class="srow"><b style="color:{{ colors.get(a.agent, '#888')|edge }}">{{ a.name }}</b><span class="v">{{ '%.3f'|format(a.brier) }} <span class="dim" style="font-weight:400">n={{ a.n }}</span></span></div>{% endfor %}
-      {% if stn.crowd_brier is not none %}<div class="srow"><b class="dim">The Crowd</b><span class="v dim">{{ '%.3f'|format(stn.crowd_brier) }}</span></div>{% endif %}</div>{% endif %}
-    {% if fmt == 'wide' or not stn.forecast %}<div class="col" data-in="1.3"><h3>Betting record</h3>
-      {% for a in stn.betting %}<div class="srow"><b style="color:{{ colors.get(a.agent, '#888')|edge }}">{{ a.name }}</b><span class="v">{{ a.wins }}–{{ a.losses }} <span class="{{ 'pos' if a.net > 0 else 'neg' if a.net < 0 else 'zero' }}">{{ a.net|signed }}</span></span></div>{% endfor %}</div>{% endif %}
+    <div class="col" data-in="1.0"><h3>Betting record</h3>
+      {% for a in stn.betting %}<div class="srow"><b style="color:{{ colors.get(a.agent, '#888')|edge }}">{{ a.name }}</b><span class="v">{{ a.wins }}–{{ a.losses }} <span class="{{ 'pos' if a.net > 0 else 'neg' if a.net < 0 else 'zero' }}">{{ a.net|signed }}</span></span></div>{% endfor %}</div>
   </div>
   {% if sc.shout %}<div class="twlabel" style="font-size:52px;text-transform:none;font-family:Oswald,sans-serif" data-in="1.5" data-fx="pop">{{ sc.shout }}</div>{% endif %}
   <div class="bigurl" data-in="1.6">{{ sc.url }}</div>

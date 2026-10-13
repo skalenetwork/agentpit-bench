@@ -20,7 +20,7 @@ from pathlib import Path
 
 from .cards import UPSET_PRICE, model_line, results_headline, headline_variant, ranked, start_price
 from .config import AGENT_NAMES, Settings
-from .virality import grudge, reasoning_lines
+from .virality import reasoning_lines
 
 log = logging.getLogger(__name__)
 
@@ -33,7 +33,6 @@ SIGNALS = {
     "lone_wolf": (40, "Lone wolf won"),
     "upset": (35, "Upset"),
     "wipeout": (30, "Wipeout"),
-    "grudge": (20, "Grudge match"),
     "streak_flip": (15, "Streak flip"),
     "humans": (15, "Humans beat the AIs"),
     "unanimous": (5, "Unanimous and right"),
@@ -102,10 +101,6 @@ def score(rnd: dict, history: list[dict], exhibition_factor: float = 0.5) -> dic
     sides = {e["outcome"] for e in bettors}
     if len(bettors) >= 3 and len(sides) == 1 and all(e.get("won") is False for e in bettors):
         add("wipeout", f"all {len(bettors)} AIs on {bettors[0]['outcome']}; it lost")
-    g = grudge(rnd, history)
-    if g:
-        add("grudge", f"{g['a_name']} vs {g['b_name']}, clash #{g['clash']}")
-        sig[-1].update(a_name=g["a_name"], b_name=g["b_name"], clash=g["clash"])
     streaks = _streaks_before(rnd, history)
     flips = []
     for e in entries:
@@ -230,9 +225,6 @@ def hook_line(rnd: dict, sc: dict) -> str:
         return f"{e['name']} took {e['outcome']} at {_cents(e['avg_price'])}."
     if top in ("wipeout", "unanimous"):
         return f"All {len(bettors)} AIs backed {bettors[0]['outcome']}."
-    if top == "grudge":
-        g = next(s for s in sc["signals"] if s["key"] == "grudge")
-        return f"{g['a_name']} vs {g['b_name']}: opposite sides, {g['clash']} rounds running."
     if top == "streak_flip":
         s = next(s for s in sc["signals"] if s["key"] == "streak_flip")
         return s["detail"].split(", then")[0] + ". Then this."
@@ -280,22 +272,16 @@ def thinking_lines(lines: list[str], n: int = 6, max_len: int = 150) -> list[str
 
 
 def _sig(lb: dict, agent: str | None) -> str | None:
-    sig = lb.get("significance") or {}
-    if agent and (sig.get("agent_labels") or {}).get(agent):
-        return sig["agent_labels"][agent]
-    return sig.get("multi_label") or sig.get("label")
+    """The strip's sample line, the same for every agent: '{n} rounds · season {s}'."""
+    from .cards import rounds_note
+    return rounds_note(lb)
 
 
 def standings(lb: dict) -> dict:
-    """Close-scene standings: forecast accuracy first (Brier, lower is better), betting record second."""
-    fc = [{"agent": a["agent"], "name": a.get("name") or AGENT_NAMES.get(a["agent"], a["agent"]),
-           "brier": a.get("brier"), "n": a.get("n")} for a in (lb.get("forecast") or {}).get("agents", [])
-          if a.get("brier") is not None]
-    fc.sort(key=lambda a: a["brier"])
-    crowd = (lb.get("forecast") or {}).get("crowd") or {}
+    """Close-scene standings: the betting record (the headline), in leaderboard order."""
     bet = [{"agent": a["agent"], "name": a.get("name") or AGENT_NAMES.get(a["agent"], a["agent"]),
             "wins": a["wins"], "losses": a["losses"], "net": a["net_pnl"]} for a in lb.get("agents", [])]
-    return {"forecast": fc, "crowd_brier": crowd.get("brier"), "betting": bet, "season": lb.get("season")}
+    return {"betting": bet, "season": lb.get("season")}
 
 
 def script(rnd: dict, sc: dict, lb: dict, transcript: list[str] | None = None, site: str = "agentpitbench.org",

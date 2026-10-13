@@ -126,19 +126,17 @@ async def test_sweep_score_seal_and_metrics(env):
     assert again["claude"] == "done"                                 # idempotent per agent per day
 
 
-def test_sign_test_and_significance():
+def test_sign_test():
     assert forecast._sign_test([-1] * 10) < 0.01 and forecast._sign_test([1, -1]) == 1.0
-    m = {"agents": [{"agent": "claude", "n": 40, "vs_crowd": {"verdict": "better", "sign_test_p": 0.01}}]}
-    sig = forecast.significance([], m, ["claude"])
-    assert sig["label"] == "1 of 1 AIs beat the Crowd (95% CI) · n=40 forecasts each"
-    assert sig["agent_labels"]["claude"] == "Claude beats the Crowd (95% CI, n=40)"
-    m["agents"][0]["vs_crowd"]["verdict"] = "worse"           # direction is always stated
-    sig = forecast.significance([], m, ["claude"])
-    assert sig["agent_labels"]["claude"] == "Claude trails the Crowd (95% CI, n=40)" and "trail" in sig["label"]
-    m["agents"][0]["vs_crowd"]["verdict"] = "inconclusive"
-    sig = forecast.significance([], m, ["claude"])
-    assert sig["label"] == "vs Crowd: not yet significant · n=40 forecasts each"
-    assert sig["agent_labels"]["claude"] == "vs Crowd: not yet significant (n=40)"
+
+
+def test_significance_and_pair_metrics_are_gone():
+    """docs/simple-scoring-spec.md §6: the Brier competitions (significance labels, head-to-head pairs, duel
+    results) have no public surface left, so the code that computed them is gone; metrics() stays for the
+    switch's evidence snapshot."""
+    for name in ("significance", "pair_metrics", "duel_result", "duels", "sign_test_rounds"):
+        assert not hasattr(forecast, name), name
+    assert callable(forecast.metrics)
 
 
 def test_contrarian_calls(env):
@@ -167,13 +165,10 @@ async def test_launch_day_duel(env, monkeypatch):
     done = await forecast.duels_due(s, db, api, runner=runner)
     assert done and done[0]["old"] == 2 and done[0]["new"] == 2
     assert any("claude-old-1" in a for a in seen) and any(forecast.AGENT_MODELS["claude"][0] in a for a in seen)
-    d = forecast.duels(db)[0]
-    assert d["status"] == "run" and d["result"] is None               # waits for resolution
+    assert db.one("SELECT status FROM duels")["status"] == "run"      # the row stays in the data export
     db.x("UPDATE sweep_markets SET end_date=?", iso(-1))
     api.winners = {"1": "Yes", "2": "No"}
     await forecast.score_due(s, db, api)
-    r = forecast.duels(db)[0]["result"]
-    assert r["n"] == 2 and r["new"] < r["old"]
     m = forecast.metrics(db, s.agents, b=100)
     assert all(not a["agent"].startswith("duel") for a in m["agents"])  # never in the season tables
 
@@ -279,16 +274,19 @@ def test_musk_tweet_brackets_are_excluded():
 def test_report_thread_and_personal_draft():
     from agentpitbench.engage import personal_draft, report_thread
     from agentpitbench.twitter import tweet_len
-    rep = {"week": "2026-W41", "markets": 40, "rounds": 5, "crowd_brier": 0.25,
-           "forecast": [{"agent": a, "name": a.title(), "n": 40, "brier": b} for a, b in
-                        (("claude", 0.11), ("codex", 0.19), ("agy", 0.21), ("grok", 0.27))],
-           "betting": [{"agent": a, "name": a.title(), "wins": 3, "losses": 2, "profit": 41.5} for a in ("claude", "codex", "agy", "grok")],
+    rep = {"week": "2026-W41", "rounds": 5, "crowd": {"wins": 3, "losses": 2},
+           "betting": [{"agent": a, "name": a.title(), "wins": w, "losses": 5 - w, "profit": p}
+                       for a, w, p in (("claude", 4, 80.0), ("codex", 3, 41.5), ("agy", 2, -10.0), ("grok", 1, -60.0))],
            "contrarian": {"total": 7, "right": 4}}
     posts = report_thread(rep, "https://agentpitbench.org/reports/2026-W41/")
     assert len(posts) == 3 and all(tweet_len(p) <= 280 for p in posts)
     assert "http" not in posts[0] + posts[1] and "agentpitbench.org/reports/2026-W41/" in posts[2]
     draft = personal_draft(rep, "https://agentpitbench.org/reports/2026-W41/")
-    assert "Claude" in draft and "Beat the market" in draft and draft.endswith("\n")
+    assert "Claude" in draft and draft.endswith("\n")
+    assert "Claude led the week's betting: 4-1" in posts[0] and "The Crowd (always the favourite): 3-2" in posts[0]
+    for text in posts + [draft]:   # the betting record is the headline (docs/simple-scoring-spec.md §5)
+        low = text.lower()
+        assert "brier" not in low and "calibrat" not in low and "head to head" not in low, text
 
 
 def test_forecasts_stay_private_until_markets_resolve(tmp_path):

@@ -16,17 +16,14 @@ log = logging.getLogger(__name__)
 
 PH = re.compile(r"\{([a-z_]+)(?:\.([a-z_]+))?\}")
 BANNED = ("significant", "statistically", "proves")
-SUPERLATIVE = re.compile(r"\b(best|most accurate)\b", re.I)
+SUPERLATIVE = re.compile(r"\b(best|most accurate|top)\b", re.I)
 
 
 def flat(report: dict) -> dict[str, str]:
-    m: dict[str, str] = {"markets": str(report.get("markets", 0)), "rounds": str(report.get("rounds", 0))}
-    if report.get("crowd_brier") is not None:
-        m["crowd_brier"] = f"{report['crowd_brier']:.3f}"
-    for a in report.get("forecast") or []:
-        m[f"brier.{a['agent']}"] = f"{a['brier']:.3f}"
-        m[f"forecasts.{a['agent']}"] = str(a["n"])
-        m[f"name.{a['agent']}"] = a["name"]
+    m: dict[str, str] = {"rounds": str(report.get("rounds", 0))}
+    crowd = report.get("crowd") or {}
+    if crowd.get("wins") or crowd.get("losses"):
+        m["crowd.wins"], m["crowd.losses"] = str(crowd["wins"]), str(crowd["losses"])
     for b in report.get("betting") or []:
         m[f"wins.{b['agent']}"] = str(b["wins"])
         m[f"losses.{b['agent']}"] = str(b["losses"])
@@ -36,6 +33,12 @@ def flat(report: dict) -> dict[str, str]:
         m["contrarian.right"] = str(report["contrarian"]["right"])
         m["contrarian.total"] = str(report["contrarian"]["total"])
     return m
+
+
+def betting_leader(report: dict) -> str | None:
+    """The week's betting leader: most profit, then most wins (the headline's order)."""
+    bets = [b for b in report.get("betting") or [] if b.get("wins") or b.get("losses")]
+    return max(bets, key=lambda b: (b["profit"], b["wins"]))["agent"] if bets else None
 
 
 def _key(mt: re.Match) -> str:
@@ -49,7 +52,7 @@ def validate(prose: dict, report: dict) -> str | None:
         return "too long"
     if not 2 <= len(prose["paragraphs"]) <= 4:
         return "paragraph count"
-    best = (report.get("forecast") or [{}])[0].get("agent")
+    best = betting_leader(report)
     for t in texts:
         if re.search(r"\d", PH.sub("", t)):
             return "digit outside a placeholder"
@@ -63,10 +66,11 @@ def validate(prose: dict, report: dict) -> str | None:
             return "banned word"
         for sentence in re.split(r"(?<=[.!?])\s+", t):
             if SUPERLATIVE.search(sentence):
-                named = {mt.group(2) for mt in PH.finditer(sentence) if mt.group(1) in ("name", "brier")}
+                named = {mt.group(2) for mt in PH.finditer(sentence)
+                         if mt.group(1) in ("name", "wins", "losses", "profit")}
                 named |= {a for a, n in AGENT_NAMES.items() if re.search(rf"\b{re.escape(n)}\b", sentence)}
                 if named and named != {best}:
-                    return "superlative for an agent without the lowest Brier"
+                    return "superlative for an agent other than the betting leader"
     return None
 
 

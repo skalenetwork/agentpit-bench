@@ -307,47 +307,42 @@ async def _letterbox_browser(png: bytes) -> bytes:
 # ---------- card contexts ----------
 
 def _plain_ctx(s: Settings, url_path: str, sig: str | None, agent: str | None = None) -> dict:
+    """sig: the strip's sample line (cards.rounds_note)."""
     host = s.site_url.replace("https://", "").replace("http://", "").rstrip("/")
     return {"r": None, "board": [], "colors": AGENT_COLORS, "names": AGENT_NAMES, "models": AGENT_MODELS,
             "site": host, "state": None, "banner": None, "url": f"{host}/{url_path}".rstrip("/"),
-            "model_line": cards.model_line(agent) if agent else None, "sig": cards.short_sig(sig),
+            "model_line": cards.model_line(agent) if agent else None, "sig": sig,
             "mver": s.methodology_version}
 
 
 def standings_html(s: Settings, lb: dict) -> str | None:
-    """Rank, mascot, name, forecast accuracy with its CI, betting record; the Crowd row; n and significance."""
-    fc = lb.get("forecast") or {}
-    board = {b["agent"]: b for b in lb.get("agents") or []}
-    acc = {a["agent"]: a for a in fc.get("agents") or []}
-    if not board and not acc:
+    """Rank, mascot, name, W-L, win rate, profit: the betting record in its own order (profit, then win rate);
+    the Crowd row; the '{n} rounds · season' strip."""
+    board = [b for b in lb.get("agents") or [] if b["agent"] in s.agents]
+    if not board:
         return None
-    agents = [a for a in s.agents if a in board or a in acc]
-    # ranked by forecast accuracy (the headline metric); agents without a scored forecast after, by profit
-    agents.sort(key=lambda a: (acc.get(a, {}).get("brier") is None, acc.get(a, {}).get("brier") or 0,
-                               -(board.get(a, {}).get("net_pnl") or 0)))
-    rows = [{"agent": a, "name": AGENT_NAMES.get(a, a), "color": AGENT_COLORS.get(a, "#888"),
-             "rank": i + 1, "fc": acc.get(a), "bet": board.get(a)} for i, a in enumerate(agents)]
-    sig = lb.get("significance") or {}
-    ctx = _plain_ctx(s, "leaderboard/", sig.get("multi_label") or sig.get("label"))
+    board = sorted(board, key=lambda b: (b.get("rank") or 99, -(b.get("net_pnl") or 0), -(b.get("win_rate") or 0)))
+    rows = [{"agent": b["agent"], "name": AGENT_NAMES.get(b["agent"], b["agent"]),
+             "color": AGENT_COLORS.get(b["agent"], "#888"), "rank": b.get("rank") or i + 1, "bet": b}
+            for i, b in enumerate(board)]
+    ctx = _plain_ctx(s, "leaderboard/", cards.rounds_note(lb))
     return env.get_template("standings.html").render(
-        **ctx, rows=rows, crowd_fc=fc.get("crowd"), crowd_bet=lb.get("crowd"), season=lb.get("season") or "",
-        markets=fc.get("markets_resolved") or 0)
+        **ctx, rows=rows, crowd_bet=lb.get("crowd"), season=lb.get("season") or "",
+        n_rounds=lb.get("rounds_counted") or 0)
 
 
 def agent_html(s: Settings, lb: dict, agent: str, eras: dict | None = None) -> str | None:
-    """Mascot, name, model and reasoning setting, forecast accuracy with its CI, W-L, profit, current streak."""
-    fc = next((a for a in (lb.get("forecast") or {}).get("agents") or [] if a["agent"] == agent), None)
+    """Mascot, name, model and reasoning setting, win rate, W-L, profit, current streak."""
     row = next((b for b in lb.get("agents") or [] if b["agent"] == agent), None)
-    sig = lb.get("significance") or {}
-    ctx = _plain_ctx(s, f"agent/{agent}/", (sig.get("agent_labels") or {}).get(agent) or sig.get("label"), agent)
-    ctx["model_line"] = None  # the model is the card's own subtitle; the strip keeps the n and significance
+    ctx = _plain_ctx(s, f"agent/{agent}/", cards.rounds_note(lb), agent)
+    ctx["model_line"] = None  # the model is the card's own subtitle; the strip keeps the rounds and season
     model = AGENT_MODELS.get(agent)
     effort = {"max": "max reasoning", "xhigh": "extra-high reasoning", "high": "high reasoning"}
     return env.get_template("agent.html").render(
         **ctx, agent=agent, name=AGENT_NAMES.get(agent, agent), color=AGENT_COLORS.get(agent, "#888"),
         model=(f"{model[1]} · {effort.get(model[2], model[2])}" if model else "")
-        + (f" (earlier rounds on {', '.join(eras['earlier'])})" if eras and eras.get("earlier") else ""), fc=fc, row=row,
-        n_agents=len((lb.get("forecast") or {}).get("agents") or []))
+        + (f" (earlier rounds on {', '.join(eras['earlier'])})" if eras and eras.get("earlier") else ""), row=row,
+        n_agents=len(lb.get("agents") or []))
 
 
 def render_default(out: Path = STATIC / DEFAULT) -> Path:

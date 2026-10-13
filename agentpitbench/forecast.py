@@ -376,41 +376,6 @@ def metrics(db: DB, agents: list[str], b: int = 2000, seed: int = 20261009) -> d
             "metric": "Brier score, ½·Σ(p−y)², lower is better; 95% bootstrap CI; paired vs the Crowd (market price at sweep time)"}
 
 
-CROWD = "crowd"
-
-
-def pair_metrics(db: DB, agents: list[str], b: int = 2000, seed: int = 20261010) -> list[dict]:
-    """Head-to-head forecast comparisons (docs/seo-spec.md §3): every agent pair and every agent against the Crowd,
-    on the resolved markets both forecast. Per pair: n, each side's mean Brier, how often each was closer, and the
-    paired mean difference (a − b; negative = a better) with its bootstrap 95% CI and an exact sign test."""
-    rng = random.Random(seed)
-    resolved = {r["market_id"]: r for r in db.q("SELECT * FROM sweep_markets WHERE state='resolved'")}
-    scores: dict[str, dict[str, float]] = {
-        CROWD: {mid: brier(crowd_probs(json.loads(r["outcomes"]), json.loads(r["prices"])), r["winner"])
-                for mid, r in resolved.items()}}
-    for a in agents:
-        scores[a] = {f["market_id"]: f["brier"] for f in
-                     db.q("SELECT market_id, brier FROM forecasts WHERE agent=? AND brier IS NOT NULL", a)
-                     if f["market_id"] in resolved}
-    pairs = [(a, x) for i, a in enumerate(agents) for x in agents[i + 1:]] + [(a, CROWD) for a in agents]
-    out = []
-    for a, x in pairs:
-        shared = sorted(set(scores[a]) & set(scores[x]))
-        diffs = [scores[a][m] - scores[x][m] for m in shared]
-        row = {"a": a, "b": x, "n": len(shared), "a_brier": None, "b_brier": None, "a_closer": 0, "b_closer": 0,
-               "mean_diff": None, "ci": None, "sign_test_p": None, "verdict": "inconclusive"}
-        if shared:
-            lo, hi = _bootstrap_ci(diffs, rng, b)
-            row.update(a_brier=round(sum(scores[a][m] for m in shared) / len(shared), 4),
-                       b_brier=round(sum(scores[x][m] for m in shared) / len(shared), 4),
-                       a_closer=sum(1 for d in diffs if d < 0), b_closer=sum(1 for d in diffs if d > 0),
-                       mean_diff=round(sum(diffs) / len(diffs), 4), ci=[round(lo, 4), round(hi, 4)],
-                       sign_test_p=_sign_test(diffs),
-                       verdict="a better" if hi < 0 else ("b better" if lo > 0 else "inconclusive"))
-        out.append(row)
-    return out
-
-
 def sweeps(db: DB) -> list[dict]:
     """Per-day sweep log for the site: who ran, status, how many forecasts, transcript path."""
     out: dict[str, dict] = {}
@@ -519,35 +484,6 @@ async def duels_due(s: Settings, db: DB, api: Agentpit, runner=None) -> list[dic
     return done
 
 
-def duel_result(db: DB, duel: dict, b: int = 2000) -> dict | None:
-    """Paired comparison once every duel market has settled: mean Brier per side, CI of the difference, n."""
-    open_left = db.one("SELECT COUNT(*) c FROM sweep_markets WHERE sweep_date=? AND state='open'", duel["sweep_date"])["c"]
-    if open_left:
-        return None
-    old = {f["market_id"]: f["brier"] for f in db.q("SELECT market_id, brier FROM forecasts WHERE agent=? AND brier IS NOT NULL",
-                                                      f"duel{duel['duel_id']}-old")}
-    new = {f["market_id"]: f["brier"] for f in db.q("SELECT market_id, brier FROM forecasts WHERE agent=? AND brier IS NOT NULL",
-                                                      f"duel{duel['duel_id']}-new")}
-    both = sorted(old.keys() & new.keys())
-    if not both:
-        return {"n": 0}
-    diffs = [new[m] - old[m] for m in both]
-    lo, hi = _bootstrap_ci(diffs, random.Random(duel["duel_id"]), b)
-    return {"n": len(both), "old": round(sum(old[m] for m in both) / len(both), 4),
-            "new": round(sum(new[m] for m in both) / len(both), 4), "diff": round(sum(diffs) / len(both), 4),
-            "ci": [round(lo, 4), round(hi, 4)], "sign_test_p": _sign_test(diffs),
-            "verdict": "new better" if hi < 0 else ("old better" if lo > 0 else "inconclusive")}
-
-
-def duels(db: DB) -> list[dict]:
-    out = []
-    for d in _duels(db):
-        out.append({"duel_id": d["duel_id"], "agent": d["agent"], "name": AGENT_NAMES.get(d["agent"], d["agent"]),
-                    "old_model": d["old_model"], "new_model": d["new_model"], "date": d["sweep_date"],
-                    "status": d["status"], "result": duel_result(db, dict(d)) if d["status"] != "pending" else None})
-    return out
-
-
 # ---------- contrarian calls ----------
 
 def contrarian(db: DB, agents: list[str], threshold: float = 0.30) -> list[dict]:
@@ -585,62 +521,3 @@ def revealable_dates(db: DB, max_age_days: int = 14) -> set[str]:
         if r["n"] == r["scored"] or r["d"] <= cutoff:
             out.add(r["d"])
     return out
-
-
-# ---------- significance ----------
-
-def sign_test_rounds(rounds: list[dict], agent: str) -> tuple[int, float]:
-    """Paired sign test of an agent's per-round profit against the Crowd's, over counted resolved rounds."""
-    diffs = []
-    for r in rounds:
-        if r["state"] != "resolved" or r.get("exhibition") or r["crowd"]["pnl"] is None:
-            continue
-        e = next((e for e in r["entries"] if e["agent"] == agent), None)
-        if e is not None:
-            diffs.append((e["pnl"] or 0) - r["crowd"]["pnl"])
-    return len(diffs), _sign_test(diffs)
-
-
-def significance(rounds: list[dict], forecast_metrics: dict, agents: list[str]) -> dict:
-    """What the cards and badge may claim, from the forecast sweep only: per agent, whether the 95% bootstrap CI
-    of its paired Brier difference against the Crowd excludes zero (better / worse), with its n. Always states
-    the direction; betting rounds are too few for a public significance claim and stay on the site."""
-    from .config import AGENT_NAMES
-    per_agent = {}
-    for row in forecast_metrics.get("agents", []):
-        vs = row.get("vs_crowd") or {}
-        per_agent[row["agent"]] = {"verdict": vs.get("verdict") or "inconclusive", "n": row.get("n") or 0}
-    def agent_label(a: str) -> str:
-        v = per_agent.get(a) or {"verdict": "inconclusive", "n": 0}
-        name = AGENT_NAMES.get(a, a)
-        if v["verdict"] == "better":
-            return f"{name} beats the Crowd (95% CI, n={v['n']})"
-        if v["verdict"] == "worse":
-            return f"{name} trails the Crowd (95% CI, n={v['n']})"
-        return f"vs Crowd: not yet significant (n={v['n']})"
-    better = [a for a, v in per_agent.items() if v["verdict"] == "better"]
-    worse = [a for a, v in per_agent.items() if v["verdict"] == "worse"]
-    n_each = max((v["n"] for v in per_agent.values()), default=0)
-    if better:
-        multi = f"{len(better)} of {len(agents)} AIs beat the Crowd (95% CI)"
-    elif worse:
-        multi = f"no AI beats the Crowd yet; {len(worse)} trail it (95% CI)"
-    else:
-        multi = "vs Crowd: not yet significant"
-    multi += f" · n={n_each} forecasts each"
-    sig_new = {"per_agent": per_agent, "agent_labels": {a: agent_label(a) for a in agents}, "multi_label": multi}
-    n_rounds = sum(1 for r in rounds if r["state"] == "resolved" and not r.get("exhibition"))
-    n_forecasts = sum(r.get("n") or 0 for r in forecast_metrics.get("agents", []))
-    hits = []
-    for row in forecast_metrics.get("agents", []):
-        vs = row.get("vs_crowd")
-        if vs and vs["verdict"] != "inconclusive" and vs["sign_test_p"] < 0.05:
-            hits.append({"agent": row["agent"], "test": "forecast", "p": vs["sign_test_p"], "direction": vs["verdict"]})
-    for a in agents:
-        n, p = sign_test_rounds(rounds, a)
-        if n and p < 0.05:
-            hits.append({"agent": a, "test": "betting", "p": p, "direction": None})
-    n = n_rounds + n_forecasts
-    label = f"n={n} · significant vs the Crowd (p<0.05)" if hits else f"n={n} · not yet significant"
-    return {"n": n, "n_rounds": n_rounds, "n_forecasts": n_forecasts, "significant": hits, **sig_new,
-            "label": sig_new["multi_label"]}

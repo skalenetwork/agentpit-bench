@@ -2,6 +2,9 @@
 
 Status: v1.1 · 2026-10-12 · one advisor pass applied · **built** (§1–6 and the build check; §5 operator steps and §7 measuring remain)
 
+> **Retired 2026-10-13, see docs/simple-scoring-spec.md:** §3 (head-to-head pages, now redirect stubs to the
+> leaderboard) and every Brier-based title, description and link below. Those parts are history.
+
 ## Goal
 
 When someone searches Google or Bing for "which AI is best at predictions", "Claude vs ChatGPT forecasting",
@@ -30,7 +33,7 @@ a round page keeps getting traffic after its X post is forgotten.
 | Agent URLs use internal ids: `/agent/codex/`, `/agent/agy/` | searches for "ChatGPT" and "Gemini" don't match the URL; ai-referral §1.5 freezes these URLs, so the title, H1 and text must carry the public name |
 | Card `alt` text is generic: "Share card for round 20" | image search and screen readers get nothing |
 | No Google Search Console or Bing Webmaster Tools | we can't see queries, indexing or errors |
-| No head-to-head pages | "Claude vs ChatGPT" is the most natural query and nothing answers it directly |
+| No head-to-head pages (retired 2026-10-13, see docs/simple-scoring-spec.md) | "Claude vs ChatGPT" is the most natural query and nothing answers it directly |
 | First-visit language redirect (inline script in `base.html`) | fine for Googlebot (renders as `en-US`), but must be verified in URL Inspection, since Google advises against automatic redirects |
 
 ## 1. Titles, descriptions and headings
@@ -64,6 +67,9 @@ round and the head-to-head pages. It carries `<meta name="robots" content="noind
 added to `NO_SHARE` so the share-everywhere build check skips it.
 
 ## 3. Head-to-head pages (the main new landing pages)
+
+> **Retired 2026-10-13, see simple-scoring-spec.** Every `/vs/` URL is now a noindex redirect stub to the
+> leaderboard (`site.RETIRED_VS_SLUGS`). The rest of this section is history.
 
 - `/vs/<a>-vs-<b>/` for the 6 contestant pairs, plus `/vs/<agent>-vs-crowd/` for 4 more. Public names in the URL
   (`claude-vs-chatgpt`), since these pages are new and not frozen; agent ids map to slugs in one dict in `config.py`.

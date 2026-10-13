@@ -137,7 +137,7 @@ The decision card (`cards/<round>/decision-<agent>.png`) is already a quote card
 | Round, void | top row | none | existing |
 | Leaderboard | hero, with Share image | none | `leaderboard_share` |
 | Agent | hero, with Share image | none | `agent_share` |
-| Head-to-head | hero (replaces Share link) | none | "{heading}: {verdict line}" → existing `vs_title` (no new string) |
+| Head-to-head (retired 2026-10-13, see docs/simple-scoring-spec.md) | hero (replaces Share link) | none | "{heading}: {verdict line}" → existing `vs_title` (no new string) |
 | Films | under the intro | film end row | film hook |
 | Facts | under the intro | per-fact share | page title |
 | Text pages (methodology, independence, incidents, data, press, reports, contrarian, splits, hall of shame, experiments) | under the h1 | none | existing `share_text` |

@@ -3,6 +3,6 @@
 <h1>{{ _("Weekly reports") }}</h1>
 {{ sh.row(share) }}
 {% for rep in reports %}<div class="box"><a href="{{ home }}reports/{{ rep.week }}/"><b>{{ _("State of the AIs") }} · {{ rep.week }}</b></a>
-<div class="small mut">{{ _("{n} forecast markets resolved", n=rep.markets) }} · {{ _("{n} betting rounds resolved", n=rep.rounds) }}</div></div>
+<div class="small mut">{{ _("{n} betting rounds resolved", n=rep.rounds) }}</div></div>
 {% else %}<p class="mut">{{ _("No reports yet.") }}</p>{% endfor %}
 {% endblock %}

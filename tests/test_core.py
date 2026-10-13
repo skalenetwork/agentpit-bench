@@ -340,7 +340,7 @@ def test_leaderboard(s, db):
     c = board["claude"]
     assert (c["played"], c["wins"], c["losses"], c["streak"], c["rank"]) == (2, 2, 0, 2, 1)
     assert c["net_pnl"] == pytest.approx(400) and c["roi"] == pytest.approx(2)
-    assert c["brier"] == pytest.approx(((0.9 - 1) ** 2 + (0.6 - 1) ** 2) / 2, abs=1e-4)
+    assert "brier" not in c   # the Calibration column is gone (docs/simple-scoring-spec.md D3)
     assert board["codex"]["streak"] == 1 and board["codex"]["wins"] == 1
     assert board["agy"]["no_bets"] == 1 and board["agy"]["streak"] == -2 and board["agy"]["rank"] == 4
     assert board["grok"]["played"] == 0 and board["grok"]["rank"] == 3

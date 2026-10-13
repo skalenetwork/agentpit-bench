@@ -1,5 +1,6 @@
-"""Search engine optimisation (docs/seo-spec.md): titles and descriptions, the uniqueness check, head-to-head pages
-with the n >= 20 rule, the 404 page, breadcrumbs, verification tags and IndexNow (no network)."""
+"""Search engine optimisation (docs/seo-spec.md): titles and descriptions, the uniqueness check, the retired
+head-to-head pages (redirect stubs, docs/simple-scoring-spec.md §3.8), the 404 page, breadcrumbs, verification tags
+and IndexNow (no network)."""
 import json
 import re
 from html import unescape
@@ -32,7 +33,6 @@ def built(tmp_path):
                          question="Will Team Alpha win the grand final?")
     for d in ("2026-10-06", "2026-10-07", "2026-10-08", "2026-10-09"):
         add_sweep(db, d, scored=True)  # 24 resolved markets forecast by every agent
-    # Grok misses two sweep days: 12 shared markets, below the n >= 20 bar for its pairs
     db.x("DELETE FROM forecasts WHERE agent='grok' AND sweep_date IN ('2026-10-06','2026-10-07')")
     exports.export(s, db)
     return s, db, site.build(s), running
@@ -42,8 +42,8 @@ def test_titles_and_descriptions(built):
     s, _, out, running = built
     t, d = head(out, "leaderboard/index.html")
     assert t.startswith("AI forecasting leaderboard: Claude, ChatGPT, Gemini, Grok")
-    assert re.search(r"Claude leads on forecast accuracy after 24 markets \(Brier [\d.]+, 95% CI [\d.]+–[\d.]+\)\. "
-                     r"Updated \d{4}-\d{2}-\d{2}\.", d)
+    assert re.fullmatch(r"\w+ leads the betting record after \d+ rounds: \d+-\d+, [+−-]?[\d,.]+ tokens\. "
+                        r"Updated \d{4}-\d{2}-\d{2}\.", d), d
     t, _ = head(out, "agent/codex/index.html")
     assert t == "ChatGPT (GPT-6 Astra) forecasting record · AgentpitBench"
     t, d = head(out, "index.html")
@@ -56,7 +56,7 @@ def test_titles_and_descriptions(built):
     assert t.startswith("Will Team Alpha win the grand final?: AI predictions from Claude")
     assert "Nexus" not in t + d and "placing their bets" in d  # the sealed picks never reach a snippet
     fr_t, fr_d = head(out, "fr/leaderboard/index.html")
-    assert fr_t.startswith("Classement des prévisions d'IA") and "après 24 marchés" in fr_d
+    assert fr_t.startswith("Classement des prévisions d'IA") and fr_d
     html = (out / f"round/{running}/index.html").read_text()
     assert 'alt="Share card' not in html
     # every fixed page type has its own title and description in every language (else the build would have failed)
@@ -75,31 +75,27 @@ def test_seo_check_fails_only_on_fixed_pages():
         site.check_seo([("de", "facts/", "", "x")])
 
 
-def test_head_to_head_pages(built):
+def test_retired_head_to_head_pages_redirect(built):
+    """Every /vs/ page that could ever have been published, in every language, is a noindex stub whose canonical
+    and meta refresh point at that language's leaderboard; none is in a sitemap or linked from a page."""
     s, _, out, _ = built
-    vs = sorted(p.name for p in (out / "vs").iterdir())
-    assert "claude-vs-chatgpt" in vs and "chatgpt-vs-gemini" in vs and "claude-vs-crowd" in vs
-    assert not [v for v in vs if "grok" in v]  # n = 12 < 20: no thin pages
-    t, d = head(out, "vs/claude-vs-chatgpt/index.html")
-    assert t == "Claude vs ChatGPT: who forecasts better? · AgentpitBench"
-    assert d.startswith("Claude vs ChatGPT on the same 24 markets: Brier ")
-    html = (out / "vs/claude-vs-chatgpt/index.html").read_text()
-    assert "<h1>" in html and "Claude vs ChatGPT: who forecasts better?</h1>" in html
-    assert "95% CI" in html and "24 markets both forecast" in html and "data as of" in html
-    assert f'<link rel="canonical" href="{s.site_url}/vs/claude-vs-chatgpt/">' in html
-    graph = json.loads(LD.search(html).group(1))["@graph"]
-    assert {"Dataset", "BreadcrumbList", "Organization"} <= {n["@type"] for n in graph}
-    crumbs = next(n for n in graph if n["@type"] == "BreadcrumbList")["itemListElement"]
-    assert [c["name"] for c in crumbs] == ["Home", "Leaderboard", "Claude vs ChatGPT: who forecasts better?"]
-    assert (out / "de/vs/claude-vs-chatgpt/index.html").exists()
-    assert 'href="../../vs/claude-vs-chatgpt/"' in (out / "agent/claude/index.html").read_text()
-    assert 'href="../vs/claude-vs-chatgpt/"' in (out / "leaderboard/index.html").read_text()
-    sitemap = (out / "sitemap-en.xml").read_text()
-    assert f"{s.site_url}/vs/claude-vs-chatgpt/" in sitemap and "/vs/claude-vs-grok/" not in sitemap
-    pairs = json.loads((s.export_dir / "leaderboard.json").read_text())["pairs"]
-    cc = next(p for p in pairs if (p["a"], p["b"]) == ("claude", "codex"))
-    assert cc["n"] == 24 and cc["a_brier"] < cc["b_brier"] and cc["ci"][0] <= cc["mean_diff"] <= cc["ci"][1]
-    assert cc["verdict"] == "a better"  # Claude is sharp in the fixture: the CI excludes zero
+    assert len(site.RETIRED_VS_SLUGS) == 16 and "claude-vs-crowd" in site.RETIRED_VS_SLUGS
+    assert {"claude-vs-chatgpt", "chatgpt-vs-gemini", "gemini-vs-grok", "grok-vs-crowd"} <= set(site.RETIRED_VS_SLUGS)
+    sitemaps = "".join(p.read_text() for p in out.glob("sitemap*.xml"))
+    for code in i18n.CODES:
+        p = "" if code == "en" else f"{code}/"
+        dest = f"{s.site_url}/{p}leaderboard/"
+        for rel in ["vs/", *(f"vs/{x}/" for x in site.RETIRED_VS_SLUGS)]:
+            html = (out / p / rel / "index.html").read_text()
+            assert '<meta name="robots" content="noindex">' in html, (code, rel)
+            assert f'<link rel="canonical" href="{dest}">' in html and f'content="0;url={dest}"' in html
+            assert f'href="{dest}"' in html and "cloudflareinsights" not in html and "Brier" not in html
+            assert f"{s.site_url}/{p}{rel}" not in sitemaps
+    for f in out.rglob("*.html"):   # nothing links a retired page (the stubs themselves aside)
+        rel = f.relative_to(out).as_posix()
+        if "/vs/" in "/" + rel or rel.startswith(("cards/", "transcripts/")):
+            continue
+        assert not re.search(r'href="[^"]*/vs/', f.read_text()), rel
 
 
 def test_breadcrumbs_point_at_real_pages(built):
@@ -123,7 +119,7 @@ def test_not_found_page(built):
     s, _, out, _ = built
     html = (out / "404.html").read_text()
     assert '<meta name="robots" content="noindex">' in html and "data-share-bar" not in html
-    assert f'href="{s.site_url}/leaderboard/"' in html and f'href="{s.site_url}/vs/claude-vs-chatgpt/"' in html
+    assert f'href="{s.site_url}/leaderboard/"' in html and "/vs/" not in html and "Head to head" not in html
     assert '"fr": {' in html and "Page introuvable" in html  # its own language check, every language inline
     assert "404" not in (out / "sitemap-en.xml").read_text()
 
@@ -160,7 +156,10 @@ def test_indexnow(tmp_path, monkeypatch):
     out = site.build(s)
     assert (out / f"{key}.txt").read_text() == key
     rels = site.indexnow_changes(s)
-    assert rels == ["", "leaderboard/", "round/1/"] and site.indexnow_changes(s) == []  # nothing new since
+    # the retired /vs/ pages go out once (docs/simple-scoring-spec.md §3.8), with the first changed round
+    assert rels == ["", "leaderboard/", "round/1/", "vs/", *(f"vs/{x}/" for x in site.RETIRED_VS_SLUGS)]
+    assert site.indexnow_changes(s) == []  # nothing new since
+    rels = rels[:3]
     body = site.indexnow_payload(s, key, rels)
     assert body == {"host": "agentpitbench.org", "key": key, "keyLocation": f"https://agentpitbench.org/{key}.txt",
                     "urlList": ["https://agentpitbench.org/", "https://agentpitbench.org/leaderboard/",
