@@ -28,7 +28,7 @@
 <h2>{{ _("Prompts") }}</h2>
 <p class="small mut">{{ _("The exact prompt every agent receives, in English:") }}</p><pre lang="en" dir="ltr">{{ prompt }}</pre>
 <p class="small mut">{{ _("The daily forecast sweep prompt:") }}</p><pre lang="en" dir="ltr">{{ sweep_prompt }}</pre>
-<h2>{{ _("Changelog") }}</h2>
-<ul>{% for d, msg, kw in changelog %}<li><span class="nw mut">{{ d }}</span> · {{ _(msg, **kw) }}</li>{% endfor %}</ul>
+<h2 id="changelog">{{ _("Changelog") }}</h2>
+<ul>{% for d, msg, kw in changelog %}<li{% if changelog_ids and changelog_ids[loop.index0] %} id="{{ changelog_ids[loop.index0] }}"{% endif %}><span class="nw mut">{{ d }}</span> · {{ _(msg, **kw) }}</li>{% endfor %}</ul>
 <p class="small mut"><a href="{{ root }}data/metrics.json">metrics.json</a> · <a href="{{ home }}facts/">{{ _("Facts") }}</a> · <a href="{{ home }}independence/">{{ _("Independence & conflicts") }}</a> · <a href="{{ home }}data/">{{ _("Data & method") }}</a></p>
 {% endblock %}

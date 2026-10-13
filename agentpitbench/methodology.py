@@ -122,6 +122,26 @@ def changelog(path: Path | None = None) -> list[tuple[str, str, dict]]:
     return [(e["date"], e["text"], e.get("values") or {}) for e in reversed(load(path)["changelog"])]
 
 
+def changelog_anchor(version: str) -> str:
+    return f"v{version}"
+
+
+def changelog_anchors(path: Path | None = None) -> list[str]:
+    """The HTML id of each changelog() row, newest first: v<version> on the newest entry of each version
+    ('' on older entries that share a version, e.g. the two 1.0 lines), so /methodology/#v1.2 is unique."""
+    seen, out = set(), []
+    for e in reversed(load(path)["changelog"]):
+        v = e.get("version")
+        out.append("" if not v or v in seen else changelog_anchor(v))
+        seen.add(v)
+    return out
+
+
+def changelog_url(s: Settings, version: str | None = None) -> str:
+    """/methodology/#v<version>, or the changelog heading."""
+    return f"{s.site_url.rstrip('/')}/methodology/#{changelog_anchor(version) if version else 'changelog'}"
+
+
 # generated changelog lines: one translated template per change type (i18n ids; site.py marks them with _())
 AUTO_TEXT = "Market selection: {param} {old} → {new} (automatic weekly review; evidence: {link})"
 REVERT_TEXT = "Market selection: {param} {old} → {new} (operator revert of v{v}; evidence: {link})"

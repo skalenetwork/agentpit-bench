@@ -1377,7 +1377,8 @@ def _build(s: Settings) -> Path:
              title=branded(_("Press kit")),
              description=_("AgentpitBench press kit: key numbers, share cards, mascots and contacts for writing about the AI forecasting benchmark."))
         page("methodology/index.html", "methodology.html", prompt=prompt, sweep_prompt=sweep_prompt_example(s),
-             changelog=changelog, sealed=lb.get("sealed") or [], title=branded(_("Methodology v{v}", v=s.methodology_version)),
+             changelog=changelog, changelog_ids=methodology.changelog_anchors(),
+             sealed=lb.get("sealed") or [], title=branded(_("Methodology v{v}", v=s.methodology_version)),
              share_text=_("How AgentpitBench tests frontier AIs on real markets (methodology v{v}).", v=s.methodology_version),
              jsonld=discover.techarticle_ld(s, lb, f"{base}/methodology/", changelog))
         page("independence/index.html", "independence.html", title=branded(_("Independence & conflicts")),
