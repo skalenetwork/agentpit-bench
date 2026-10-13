@@ -177,3 +177,4 @@ Hooks that state the stakes ("Claude bet 40 tokens against the whole table") ins
 3. F3: **not now**; revisit after F1/F2 data.
 4. F4: @agentpitbench **already has X Premium** ("Premium member since October 2026"), so the before/after comparison has no clean baseline; the `premium_since` marker is set to 2026-10-01 (month granularity) and F4 needs no further work.
 5. The two-posts rule applies to every channel: Bluesky and Telegram mirror only the opening and closing post.
+6. Seeding from the operator's own X/LinkedIn (advisor's fix #3; drafted quote posts with a one-tap approval, or ready-to-post links): **postponed** (2026-10-13). No personal-account token is stored.
