@@ -162,3 +162,5 @@ The total is about 5 days. **Order:** this should land after the simple-scoring 
 2. Theme: **dark by default**; the Auto/Light/Dark switch stays (Auto no longer the default).
 3. Live cards: **current chance**, refreshed at each site build.
 5. Rollout: **page by page** (home, round pages, leaderboard, agent pages).
+4. Categories: **separate pages** (/c/<category>/ in every language).
+6. Start: now, as soon as a builder slot frees up (operator 2026-10-13).
