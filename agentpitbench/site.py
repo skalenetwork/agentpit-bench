@@ -641,11 +641,11 @@ def indexnow_ping(s: Settings, rels: list[str]) -> bool:
 SHARE_BAR = 'data-share-bar'  # every public page carries it (checked at build)
 OG_REQUIRED = ('property="og:title"', 'property="og:description"', 'property="og:image"', SHARE_BAR,
                'data-share-top')  # share UX v2: a share control in the first screen
-NO_SHARE = ("widget/", "embed/", "404.html", "go/", "vs/", "hall-of-shame/")  # embedded elsewhere, the not-found page, the A/B redirect hop, or a retired/moved page's stub: no bar, no preview
+NO_SHARE = ("widget/", "embed/", "404.html", "go/", "vs/", "hall-of-shame/", "experiments/")  # embedded elsewhere, the not-found page, the A/B redirect hop, or a retired/moved page's stub: no bar, no preview
 
 # Pages that moved: old folder -> new folder (under each language root). The old URL keeps working as a noindex
 # stub that points search engines (canonical) and visitors (instant refresh) at the new one.
-MOVED = {"hall-of-shame/": "shame/"}
+MOVED = {"hall-of-shame/": "shame/", "experiments/": ""}   # /experiments/ removed (operator 2026-10-13): home
 MOVED_HTML = """<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>AgentpitBench</title>
 <link rel="canonical" href="{url}"><meta http-equiv="refresh" content="0;url={url}"></head>
@@ -1315,7 +1315,7 @@ def _build(s: Settings) -> Path:
         common["cat_links"] = {c["category"]: f"best-at/{c['slug']}/" for c in cat_live}
         common["cat_min"] = CATEGORY_MIN
         common["grid_bar"] = [("live", _("Live")), *((slug, _(cat)) for slug, cat in grid_cats)]
-        common.update(nav_extra=NAV_EXTRA, has_experiments=exp_ab is not None)
+        common.update(nav_extra=NAV_EXTRA, has_experiments=False)
         prefix = _.prefix()
         common["film_share"] = lambda f, _=_, prefix=prefix: film_share(f, f"{base}/{prefix}round/{f['round_id']}/", _)
         suffixes = round_suffixes(rounds, _)
@@ -1513,9 +1513,6 @@ def _build(s: Settings) -> Path:
                  _("What AgentpitBench stores: no cookies or accounts on the site; public X handles and replies of people who play along."))):
             page(path, tpl, title=branded(title), description=desc, lastmod=legal_ts,
                  legal_updated=LEGAL_UPDATED, legal_contact=LEGAL_CONTACT)
-        if exp_ab is not None:
-            page("experiments/index.html", "experiments.html", ab=exp_ab, title=branded(_("Experiments")),
-                 share_text=_("How AgentpitBench tests the wording of its posts. Facts are never varied."))
         page("incidents/index.html", "incidents.html", incidents=extra["incidents"] + INCIDENTS, title=branded(_("Incidents")),
              share_text=_("AgentpitBench publishes its own incidents. Here's the log."))
         page("contrarian/index.html", "contrarian.html", calls=lb.get("contrarian") or [],

@@ -235,12 +235,11 @@ def test_site_cta_go_hop_and_experiments(env):
         assert link.replace("&", "&amp;") in hop and "noindex" in hop and "cloudflareinsights" in hop
         assert "location.replace" in hop and "setTimeout(go,300)" in hop
     assert "go/" not in (out / "sitemap.xml").read_text()
-    exp = (out / "experiments" / "index.html").read_text()
-    for banned in ("model", "prompt_version", "output_id", "sonnet"):
-        assert banned not in exp.lower().replace("og:", "") or banned == "model" and "data-model" not in exp
+    exp = (out / "experiments" / "index.html").read_text()                  # page removed 2026-10-13: a stub to home
+    assert "noindex" in exp and 'content="0;url=' in exp and "experiments" not in (out / "sitemap.xml").read_text()
     data = json.loads((out / "data" / "experiments.json").read_text())
     assert not any(k in json.dumps(data) for k in ("prompt_version", "output_id", "\"model\""))
-    assert (out / "de" / "experiments" / "index.html").exists()
+    assert "experiments/" not in (out / "index.html").read_text()
 
 
 def test_experiments_numbers_only_from_old_posts(env, monkeypatch):
