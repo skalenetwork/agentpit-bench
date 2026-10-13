@@ -1,6 +1,6 @@
 # Simple scoring: drop the Brier competitions and Head to head (spec)
 
-Status: draft v2 (advisor pass 1) · 2026-10-13 · not built. Operator decision of 2026-10-13: "competitions based on Brier score
+Status: draft v3 (advisor, two passes) · 2026-10-13 · not built. Operator decision of 2026-10-13: "competitions based on Brier score
 are to be removed from the site. They are too complex for people. Also remove Head to Head from everywhere."
 
 ## Problem
@@ -186,7 +186,8 @@ Brier figure. If it does, remove the figure.
   the stubs indefinitely; they are tiny.
 - Freeze the slug list as a constant, `site.RETIRED_VS_SLUGS`, generated once from today's `config` vs
   slugs: every pair of current and retired agents, plus each agent against the Crowd. The stubs are built
-  from that constant.
+  from that constant. It deliberately covers more than was ever published (pairs that never reached
+  `VS_MIN_N`). Don't narrow it back to the live pair list.
 - Delete these now: `VS_MIN_N`, `vs_pairs`, `home_pairs`, `vs_links`, `vs_slug`, the vs slug table in
   `config.py`, `vs.html` and `vs_index.html`.
 
@@ -225,7 +226,9 @@ The site and what AIs quote about it must say the same thing. An assistant asked
 AgentpitBench" should answer from the betting record.
 
 - `discover.py` `write_api`:
-  - remove the `forecast` and `vs_crowd` blocks from `api/leaderboard.json` and `api/agents/{id}.json`;
+  - remove the `forecast` and `vs_crowd` blocks from `api/leaderboard.json` and `api/agents/{id}.json`.
+    **Keep** `virality.py`'s `vs_crowd` (lines 231 and 258): it is betting P&L against the Crowd, not the
+    Brier verdict, despite the same name;
   - remove `ForecastRow` from `openapi.json` and update the endpoint summaries (`discover.py:457–463`);
   - **keep** `api/forecasts.json` and `api/forecasts/{date}.json`, which are the sealed raw files. Their
     summary becomes "Sealed daily forecast files (research data)".
@@ -268,7 +271,10 @@ themselves.
 
 **New tests:**
 - **Site sweep test:** build the site from the fixture DB. Assert that:
-  - no page outside the §7 exemptions contains "Brier", "Head to head", "head-to-head" or `href=".../vs/`;
+  - no page outside the §7 exemptions contains "Brier", "Head to head", "head-to-head" or `href=".../vs/`.
+    On `/methodology/`, only the changelog block and the "Daily forecast sweep (research data)" section are
+    exempt, not the whole page, so that a leftover "Headline metric: forecast accuracy" heading fails the
+    test;
   - the leaderboard's first `<h2>` is the betting record.
   - Run it in English plus one RTL language and one CJK language, so translated strings are covered too.
 - **Redirect test:** for every agent pair plus the Crowd, in every language, `/vs/<slug>/index.html` exists,
@@ -322,16 +328,26 @@ A test that asserted Brier output on a public surface now asserts its absence. I
 ## 11. Rollout
 
 1. Work on one branch, with tests while iterating. Run the full suite once, under `nice -n 15`.
-2. Merge the code to main **without** the lock change, and deploy nothing yet.
-3. At a gap between rounds, in the main checkout, run `method propose --rehash --text …` and then
-   `method approve <id> --major --snapshot-standings`.
-   - This writes `methodology.json` (checkout) and `var/methodology-changes/2.0.json` (shared `var/`, also
-     read by the live service).
-   - Commit the lock, then run `ship.sh` **immediately**.
-   - Until the live service restarts, its drift check (`anomaly.py` → `verify(s)`) can report "lock v1.0 is
-     older than generated change v2.0". At most one such alert is expected, and it clears on restart. Note it
-     in the deploy log; don't silence the detector.
-4. Deploy with `ship.sh` at a gap between rounds. Then check:
+2. Do steps 2–4 in **one sitting**, on the branch, at a gap between rounds. Never merge the code without
+   the lock: with continuous deploys, any unrelated `ship.sh` would publish a betting-headline page beside a
+   Brier-headline changelog.
+   - **Pause first:** run `agentpitbench ops pause --rounds --reason "methodology 2.0 switch"`.
+     - This is verified, not optional. `anomaly.methodology_drift` reports any `verify(s)` problem as
+       **critical**, and a critical `methodology-drift` pauses new rounds (`ROUNDS_ONLY`) and writes an
+       incident draft.
+     - Between the evidence write in shared `var/` and the live restart, the live service's `verify(s)` sees
+       "lock v1.0 is older than generated change v2.0".
+     - With the manual pause in place, a drift trip only adds an incident draft. Discard that draft after
+       the restart.
+3. Run the change on the branch, in this order:
+   - `method propose --rehash --text …`;
+   - `method approve <id> --major --snapshot-standings`. Allow for its wall time inside the gap:
+     `_fill_or_placeholder` makes one translation call per site language;
+   - commit `methodology.json` **and the `agentpitbench/i18n/*.json` files that approve wrote** (the 2.0
+     line's translations), or `test_i18n.py` fails inside `ship.sh`;
+   - merge to main.
+4. Run `ship.sh` straight away. After the restart, `agentpitbench method verify` must be clean. Then run
+   `ops resume --rounds`, which also clears a drift pause if one was taken. Then check:
    - `/leaderboard/` leads with the betting record;
    - `/vs/claude-vs-grok/` redirects;
    - `/api/v1/leaderboard.json` has no `forecast` key;
