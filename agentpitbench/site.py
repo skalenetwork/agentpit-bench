@@ -670,7 +670,16 @@ def indexnow_ping(s: Settings, rels: list[str]) -> bool:
 SHARE_BAR = 'data-share-bar'  # every public page carries it (checked at build)
 OG_REQUIRED = ('property="og:title"', 'property="og:description"', 'property="og:image"', SHARE_BAR,
                'data-share-top')  # share UX v2: a share control in the first screen
-NO_SHARE = ("widget/", "embed/", "404.html", "go/")  # embedded elsewhere, the not-found page, or the A/B redirect hop: no bar, no preview
+NO_SHARE = ("widget/", "embed/", "404.html", "go/", "hall-of-shame/")  # embedded elsewhere, the not-found page, or the A/B redirect hop, a moved page's stub: no bar, no preview
+
+# Pages that moved: old folder -> new folder (under each language root). The old URL keeps working as a noindex
+# stub that points search engines (canonical) and visitors (instant refresh) at the new one.
+MOVED = {"hall-of-shame/": "shame/"}
+MOVED_HTML = """<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>AgentpitBench</title>
+<link rel="canonical" href="{url}"><meta http-equiv="refresh" content="0;url={url}"></head>
+<body style="font:16px system-ui;padding:24px"><p><a href="{url}">{url}</a></p></body></html>
+"""
 
 
 GO_HTML = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
@@ -782,10 +791,22 @@ def biggest_upset(rounds: list[dict]) -> tuple[dict, dict] | None:
     return min(wins, key=lambda re_: re_[1]["avg_price"]) if wins else None
 
 
+SHAME_CONFIDENCE = 0.8   # the hall of shame's published rule (templates/site/shame.html states it)
+SHAME_PRICE = 0.75
+
+
+def shame_sureness(e: dict) -> float:
+    """How sure the AI was: the higher of its stated confidence and the price it paid for the side it bought."""
+    return max(e.get("confidence") or 0, e.get("avg_price") or 0)
+
+
 def shame(rounds: list[dict], limit: int = 50) -> list[tuple[dict, dict]]:
-    """Most confident wrong calls: confidence first, then how expensive the losing side was."""
-    wrong = [(r, e) for r, e in _flat(rounds) if e["won"] is False and e["outcome"]]
-    wrong.sort(key=lambda re_: (-(re_[1]["confidence"] or 0), -(re_[1]["avg_price"] or 0)))
+    """Confident-and-wrong calls: in a resolved round the AI bet and lost, having stated a confidence of at least
+    SHAME_CONFIDENCE or bought its side at SHAME_PRICE or more (a heavy favourite). Worst first: the surest call
+    (shame_sureness), then the bigger loss, then the newer round."""
+    wrong = [(r, e) for r, e in _flat(rounds) if r.get("state") == "resolved" and e["outcome"] and e["won"] is False
+             and ((e.get("confidence") or 0) >= SHAME_CONFIDENCE or (e.get("avg_price") or 0) >= SHAME_PRICE)]
+    wrong.sort(key=lambda re_: (-shame_sureness(re_[1]), re_[1].get("pnl") or 0, -re_[0]["round_id"]))
     return wrong[:limit]
 
 
@@ -982,7 +1003,7 @@ EXCLUSION_REASONS = {
 # Branded link-preview cards: page key -> title (message id), rendered per language
 BRANDED = {"methodology": _("Methodology"), "independence": _("Independence & conflicts"), "incidents": _("Incidents"),
            "press": _("Press kit"), "data": _("Data & method"), "splits": _("Split decisions"),
-           "hall-of-shame": _("Hall of shame"), "reports": _("Weekly reports"), "contrarian": _("Contrarian calls"),
+           "shame": _("Hall of shame"), "reports": _("Weekly reports"), "contrarian": _("Contrarian calls"),
            "experiments": _("Experiments"), "challenge": _("Beat the AIs"), "best-at": _("Which AI is best at what?")}
 
 # Extra top-nav links, after Films and Head to head: (path under the language root, English label passed
@@ -1369,8 +1390,13 @@ def _build(s: Settings) -> Path:
              description=_("Match of the Day: a short film of the most dramatic AgentpitBench round each day."))
         page("splits/index.html", "splits.html", splits=splits, h2h=h2h, title=branded(_("Split decisions")),
              share_text=_("When {roster} disagree, who's right?", roster=roster))
-        page("hall-of-shame/index.html", "shame.html", wrong=wrong, title=branded(_("Hall of shame")),
+        page("shame/index.html", "shame.html", wrong=wrong, title=branded(_("Hall of shame")),
+             conf_min=round(SHAME_CONFIDENCE * 100), price_min=SHAME_PRICE,
              share_text=_("The AI hall of shame: most confident wrong calls on AgentpitBench."))
+        for old_rel, new_rel in MOVED.items():
+            f = out / prefix / old_rel / "index.html"
+            f.parent.mkdir(parents=True, exist_ok=True)
+            f.write_text(MOVED_HTML.format(lang=lang, url=f"{base}/{prefix}{new_rel}"))
         page("data/index.html", "data.html", prompt=prompt, title=branded(_("Data & method")),
              description=_("Download every AgentpitBench bet, forecast and transcript (CSV and JSON, CC BY 4.0), with the exact prompts the AIs receive."))
         page("press/index.html", "press.html", stats=press_stats, latest_cards=latest_cards,

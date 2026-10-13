@@ -16,7 +16,7 @@ from test_publish import PICKS, env, make_round  # noqa: F401  (env is a fixture
 Image = pytest.importorskip("PIL.Image")  # the optional "media" extra; without it previews are letterboxed by Chromium
 
 PUBLIC = ["index.html", "leaderboard/index.html", "round/1/index.html", "agent/claude/index.html",
-          "splits/index.html", "hall-of-shame/index.html", "data/index.html", "press/index.html",
+          "splits/index.html", "shame/index.html", "data/index.html", "press/index.html",
           "methodology/index.html", "independence/index.html", "incidents/index.html",
           "contrarian/index.html", "reports/index.html"]
 NETS = ["x", "linkedin", "facebook", "reddit", "whatsapp", "telegram", "bluesky", "email"]

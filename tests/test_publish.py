@@ -169,7 +169,7 @@ def test_site_build(env):
     out = site.build(s)
     pages = ["index.html", "leaderboard/index.html", "round/1/index.html", f"round/{live}/index.html",
              *(f"agent/{a}/index.html" for a in AGENTS), "data/index.html", "splits/index.html",
-             "hall-of-shame/index.html", "widget/index.html"]
+             "shame/index.html", "hall-of-shame/index.html", "widget/index.html"]
     for p in pages:
         f = out / p
         assert f.exists(), p
@@ -180,8 +180,14 @@ def test_site_build(env):
     r1 = (out / "round/1/index.html").read_text()
     assert "Bet against the AIs" in r1 and "utm_source" in r1 and "transcripts/1/claude.txt" in r1
     assert (out / "transcripts/1/grok.txt").exists()
-    shame = (out / "hall-of-shame/index.html").read_text()
+    shame = (out / "shame/index.html").read_text()
     assert "95% sure" in shame  # Gemini's most confident wrong call leads
+    assert shame.index("was 95% sure") < shame.index("was 80% sure") and "was 70% sure" not in shame  # the rule: >= 80% or >= 75¢
+    assert "at least 80% sure" in shame and "75¢" in shame and "Brier" not in shame
+    moved = (out / "hall-of-shame/index.html").read_text()
+    assert 'rel="canonical" href="https://' in moved and "/shame/" in moved and "noindex" in moved
+    assert (out / "de/shame/index.html").exists() and "/de/shame/" in (out / "de/hall-of-shame/index.html").read_text()
+    assert 'shame/">' in home and "hall-of-shame/" not in home
     badge = (out / "badge.svg").read_text()
     ET.fromstring(badge)
     assert "Grok 1-0" in badge and "Claude 0-1" in badge
@@ -497,3 +503,15 @@ def test_press_fits_one_reply():
     sts = [{"name": n, "statement": "y" * 190} for n in ("Claude", "ChatGPT", "Gemini", "Grok")]
     t = press.texts(sts, max_replies=1)
     assert len(t) == 1 and len(t[0]) <= 280 and all(f"{n}:" in t[0] for n in ("Claude", "ChatGPT", "Gemini", "Grok"))
+
+
+def test_shame_rule():
+    def e(agent, conf, price, won, pnl=-100.0, outcome="Yes"):
+        return {"agent": agent, "outcome": outcome, "confidence": conf, "avg_price": price, "won": won, "pnl": pnl}
+    r1 = {"round_id": 1, "state": "resolved", "entries": [
+        e("a", 0.9, 0.5, False), e("b", 0.5, 0.8, False), e("c", 0.79, 0.74, False),  # c: under both bars
+        e("d", 0.95, 0.9, True, 10.0), e("e", None, None, None, None, None)]}
+    r2 = {"round_id": 2, "state": "resolved", "entries": [e("f", 0.6, 0.9, False)]}
+    r3 = {"round_id": 3, "state": "void", "entries": [e("g", 0.99, 0.99, False)]}
+    got = [(r["round_id"], x["agent"]) for r, x in site.shame([r1, r2, r3])]
+    assert got == [(2, "f"), (1, "a"), (1, "b")]  # surest (max of confidence and price) first; void never counts

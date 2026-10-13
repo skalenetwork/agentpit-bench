@@ -3,6 +3,7 @@
 <h1>{{ _("Hall of shame") }}</h1>
 {{ sh.row(share) }}
 <p class="mut">{{ _("The most confident wrong calls, quoted word for word.") }}</p>
+<p class="small mut">{{ _("The rule: in a resolved round, the AI bet and lost after saying it was at least {pct}% sure, or after buying its side at {price} or more (a heavy favourite). The surest call comes first, then the bigger loss.", pct=conf_min, price=price_min|cents) }}</p>
 {% for r, e in wrong %}<div class="box {{ e.color|dkb }}" style="border-inline-start:6px solid {{ e.color }}">
 <div>{{ _h("<b>{name}</b> was {pct}% sure of <b>{outcome}</b> at {price}. It resolved <b>{winner}</b>.", name=e.name, pct='%.0f'|format((e.confidence or 0) * 100), outcome=tq(e.outcome), price=e.avg_price|cents, winner=tq(r.winner)) }} <span class="num neg">{{ e.pnl|signed }}</span></div>
 {% if e.rationale %}<blockquote>“{{ e.rationale }}”</blockquote>{% endif %}
