@@ -278,7 +278,7 @@ CREATE TABLE IF NOT EXISTS ab_assignments (
     excluded TEXT,                    -- 'void' | NULL
     PRIMARY KEY (post_key, slot)
 );
-CREATE TABLE IF NOT EXISTS cf_clicks (       -- /go/ redirect page views per UTC day (Cloudflare GraphQL)
+CREATE TABLE IF NOT EXISTS cf_clicks (       -- /go/ hop and North Star page views per UTC day (Cloudflare GraphQL)
     day TEXT NOT NULL, path TEXT NOT NULL, views INTEGER NOT NULL, taken_at REAL NOT NULL,
     PRIMARY KEY (day, path)
 );
@@ -342,6 +342,7 @@ MIGRATIONS = [  # (table, column, definition): added when missing, so old databa
     ("tweets", "quote_of", "TEXT"),                      # A/B: our own quotes are not engagement
     # the methodology version in force when the round was created (NULL: created before this column existed)
     ("rounds", "methodology_version", "TEXT"),
+    ("cf_clicks", "visits", "INTEGER"),                  # Cloudflare visits (landings) on the path; NULL: read before
     # the agentpit wallet the run bet from (agentpit re-issued every account on 2026-10-13; NULL: the agent's old wallet)
     ("runs", "wallet", "TEXT"),
     # the sports match title ('Lille OSC vs. Stade Brestois 29') posts put in front of a one-sided question

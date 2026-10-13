@@ -17,6 +17,7 @@ import statistics
 import time
 from datetime import datetime, timedelta, timezone
 
+from . import northstar
 from .config import Settings
 from .db import DB
 
@@ -671,6 +672,10 @@ def digest(s: Settings, db: DB, now: float | None = None) -> dict:
         "cadence": db.get("cadence_last"), "selection_review": db.get("selection_review_last"),
         "ops_agent": db.get("ops_last"),
     }
+    try:   # the month-1 North Star (docs/marketing-strategy.md): running totals, private
+        out["northstar"] = northstar.status(db, now)
+    except Exception:
+        log.exception("North Star digest block failed")
     if s.youtube_enabled:   # docs/youtube-shorts-spec.md §8: the YouTube block
         try:
             from . import ytstats
@@ -683,6 +688,8 @@ def digest(s: Settings, db: DB, now: float | None = None) -> dict:
              "reads $%.3f%s, %d skipped for budget", yday, out["posts"], out["impressions"], out["interactions"],
              out["link_clicks"], f_now, out["followers_delta"], spend["usd"],
              " ABOVE ALERT" if out["read_alert"] else "", out["skipped_for_budget"])
+    if out.get("northstar"):
+        log.info("x-daily: %s", northstar.line(out["northstar"]))
     if out["visibility_drop"]:
         v = out["visibility_drop"]
         log.warning("x-daily: visibility drop on %s: last %d posts all under 20%% of the %s-impression baseline",

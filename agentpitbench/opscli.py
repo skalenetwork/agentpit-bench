@@ -203,13 +203,14 @@ def _alerts(s: Settings, db: DB, a) -> None:
 # ---------------------------------------------------------------- ops
 
 def _ops(s: Settings, db: DB, a) -> None:
-    from . import anomaly, opai
+    from . import anomaly, northstar, opai
     if a.ops_cmd == "status":
         st = opai.status(s, db)
         _print({"pause": db.get("pause") or {}, "posting_paused_flag": s.posting_paused,
                 "open_anomalies": anomaly.listing(db, include_closed=False),
                 "opai": {k: st[k] for k in ("enabled", "calls_today", "budget", "backoff_until",
-                                            "contestant_breaker")}})
+                                            "contestant_breaker")},
+                "northstar": northstar.status(db)})
     elif a.ops_cmd == "pause":
         if not (a.posting or a.rounds):
             a.posting = a.rounds = True
