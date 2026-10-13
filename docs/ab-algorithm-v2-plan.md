@@ -15,7 +15,7 @@ From the live DB (read-only), 83 posts with a 24 h snapshot, 2026-10-09 → 10-1
 | `y`, results posts (n=10) | mean 1.49, sd 0.81, 20% zeros |
 | `y`, decision posts (n=39) | mean 0.75, sd 1.29, 74% zeros |
 | results posts per day | 2–6 (rounds are paused since 10-13 06:18 UTC) |
-| live arms | 3 in most of 10 slots |
+| live arms | 3 in 8 of the 11 slots |
 
 **Power.** On the standardised `z` scale (sd 1), a two-arm comparison at 80% power and α = 0.05 needs
 `n ≈ 15.7 / d²` posts per arm for an effect of `d` sd:
@@ -30,7 +30,7 @@ From the live DB (read-only), 83 posts with a 24 h snapshot, 2026-10-09 → 10-1
 v1 leaves exploration at 20 posts per arm. That point detects only effects ≥ ~0.9 sd. Effects of reworded
 copy are usually small (Upworthy headline tests: linguistic features predict the better of two headlines only 54%
 of the time; Gligorić et al. 2023). So at today's reach, v1's p_best values mostly rank noise. The 3-arm cap and
-10 concurrent slots split thin traffic further. Nothing is broken, but the algorithm is tuned for traffic we
+11 concurrent slots split thin traffic further. Nothing is broken, but the algorithm is tuned for traffic we
 don't have.
 
 Goals of v2, in order:
@@ -177,7 +177,7 @@ change to live assignment.
 ## 5. Open questions for the operator
 
 1. **Auto-decide.** Keep "suggest only" (v1 rule), or allow `ab_auto_decide` after M8 like `selection_auto_apply`?
-2. **Fewer arms and slots.** v2 cuts live challengers from up to 20 (10 slots × 2) to 4. This is the biggest
+2. **Fewer arms and slots.** v2 cuts live challengers from up to 18 (9 copy and media slots × 2) to 4. This is the biggest
    behavioural change. Is it OK to let the slots with queued Claude-written variants wait?
 3. **/experiments/ page changes.** Your v1 page shows running tests' mean ± sd and p_best publicly (spec §11, after the
    7-day delay). §2.7 replaces that with estimates for finished tests only, and "running, n so far" for the rest. That
