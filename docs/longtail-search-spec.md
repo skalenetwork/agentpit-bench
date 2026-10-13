@@ -1,6 +1,6 @@
 # Long-tail search: every round post names its market (spec)
 
-Status: draft v2 · 2026-10-13 · not built. Measurements come from three sources:
+Status: built 2026-10-13 (branch specs-impl). v1 as below. Measurements come from three sources:
 - `var/bench.sqlite`: rounds 1–26 and 691 rated markets.
 - The live agentpit `/events` and `/markets` endpoints on 2026-10-13.
 - A prototype of the layouts below, measured with `twitter.tweet_len` and `bluesky.adapt`.
