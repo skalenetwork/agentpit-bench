@@ -1,5 +1,5 @@
 {
- "version": "1.1",
+ "version": "1.2",
  "params": {
   "decision_limit_s": 300,
   "stake": 100,
@@ -7,7 +7,7 @@
   "max_days_to_close": 7,
   "max_favourite_price": 0.85,
   "max_category_share": 0.4,
-  "daily_round_cap": 5,
+  "daily_round_cap": 10,
   "max_concurrent_rounds": 3,
   "sweep_markets": 30,
   "sweep_hour_utc": 6,
@@ -39,7 +39,8 @@
    "codex",
    "agy",
    "grok"
-  ]
+  ],
+  "max_rounds_per_event_per_day": 1
  },
  "hashes": {
   "prompt.txt": "45127fce43eb933e4135ec2fbd0b462247283e754839a6e28f65923183abc163",
@@ -126,6 +127,14 @@
    "approved_by": "operator (confirmed 'approve v1.1' in the Claude Code chat)",
    "approved_at": "2026-10-13T14:38:19Z",
    "params_sha": "4f77b213eedcde3f22753bcb443b4abc5f0384dead29ba9b8c543bb85e7f7157"
+  },
+  {
+   "date": "2026-10-13",
+   "version": "1.2",
+   "text": "Up to 10 rounds a day (was 5), and at most one round per event per day: a ladder of thresholds on the same question counts as one event.",
+   "approved_by": "operator (chose 'approve v1.2' in the Claude Code chat)",
+   "approved_at": "2026-10-13T15:59:37Z",
+   "params_sha": "b4471d0d6e54a07db4689766c6191ca47edb5f5faf7816219b57457c439d28f7"
   }
  ]
 }
