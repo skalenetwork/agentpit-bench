@@ -347,6 +347,9 @@ class Poster:
         never block X): alt is per-image alt text on Bluesky, bsky_fallback the still card either mirror posts if
         its video upload fails or the video is over its limit, bsky_media other media for Bluesky (the weekly
         episode's trailer: Bluesky caps video at 3 minutes)."""
+        if self.s.post_kinds and (kind not in self.s.post_kinds or reply_to):  # mirrors follow X: nothing either
+            log.info("[not posted] %s: only %s posts, no replies", post_key, "/".join(self.s.post_kinds))
+            return None
         tweet_id = await self._post_x(post_key, kind, text, image, reply_to, round_id, quote_of)
         if tweet_id and self.bsky.enabled:
             try:

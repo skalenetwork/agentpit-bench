@@ -289,3 +289,16 @@ def test_published_incident_renders(s, db, tmp_path, monkeypatch):
     html = (out / "incidents/index.html").read_text()
     assert "Drill incident" in html and html.index("Drill incident") < html.index("Rounds 2")
     assert "Drill incident" in (out / "de/incidents/index.html").read_text()  # English fallback
+
+
+def test_only_opening_and_closing_posts_go_out(s, db):
+    """Operator 2026-10-13: two posts per market (reveal + results), no replies and no other kinds."""
+    import asyncio
+    s.post_kinds = ["reveal", "results"]
+    p = Poster(s, db)
+    assert asyncio.run(p.post("r1-reveal", "reveal", "opening"))
+    assert asyncio.run(p.post("r1-results", "results", "closing", quote_of="1"))
+    assert asyncio.run(p.post("r1-press-0", "press", "statement", reply_to="1")) is None
+    assert asyncio.run(p.post("r1-late", "results", "a reply", reply_to="1")) is None   # a reply even of an allowed kind
+    assert asyncio.run(p.post("awards-1", "awards", "weekly")) is None
+    assert [r["kind"] for r in db.q("SELECT kind FROM tweets ORDER BY posted_at")] == ["reveal", "results"]

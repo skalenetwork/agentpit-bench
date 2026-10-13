@@ -93,6 +93,8 @@ class Settings:
     sweep_hour_utc: int = 6
     dry_run: bool = True
     posting_paused: bool = False
+    # the only post kinds that go out (empty: every kind). Replies are never posted while this is set.
+    post_kinds: list[str] = field(default_factory=list)
     agents: list[str] = field(default_factory=lambda: ["claude", "codex", "agy", "grok"])
     excluded_keywords: list[str] = field(default_factory=list)
     # engagement extras
