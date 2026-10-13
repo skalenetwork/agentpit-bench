@@ -700,6 +700,17 @@ def main(argv: list[str] | None = None) -> None:
     au.add_argument("--include-stale", action="store_true",
                     help="count 24 h snapshots taken late too (the plan's §0 table did)")
     au.add_argument("--json", action="store_true")
+    pw = absub.add_parser("power", help="A/B v2: posts/day per slot -> days to detect d = 0.8 / 0.5 / 0.3 / 0.2")
+    pw.add_argument("--slot", help="one slot (default: all)")
+    pw.add_argument("--since", help="window start for posts/day (default ab_audit_since)")
+    pw.add_argument("--arms", type=int, default=2)
+    pw.add_argument("--posts-per-day", type=float, help="override the measured rate")
+    pw.add_argument("--var-factor", type=float, default=1.0, help="variance left after covariate adjustment")
+    sm = absub.add_parser("sim", help="A/B v2 simulator (read-only): v1 vs v2 rules and policies on bootstrapped rewards")
+    sm.add_argument("--since")
+    sm.add_argument("--rate", type=float, default=3.0, help="posts per day per slot")
+    sm.add_argument("--reps", type=int, default=1000)
+    sm.add_argument("--out", help="write the markdown table here (e.g. docs/ab-v2-sim.md)")
     xl = sub.add_parser("x-login", help="authorize the X account with every scope the bench needs")
     xl.add_argument("--url", help="the URL X redirected you to (step 2)")
     xl.add_argument("--redirect-uri", help="callback URL registered on the X app (default: site_url)")
@@ -795,6 +806,22 @@ def ab_cli(s: config.Settings, a) -> None:
             print(json.dumps(r, indent=1, ensure_ascii=False))
         else:
             ab_audit.print_audit(r)
+        return
+    if a.ab_cmd == "power":
+        from . import ab_audit, ab_sim
+        rates = {x["slot"]: x["kind_posts_per_day"] for x in
+                 ab_audit.slot_report(DB.readonly(s.db_path), s, ab_audit.ts(a.since or s.ab_audit_since), time.time())}
+        for sl in ([a.slot] if a.slot else list(ab.SLOTS)):
+            rate = a.posts_per_day if a.posts_per_day is not None else rates.get(sl)
+            if rate is None:
+                print(f"{sl}: no X posts/day measured (dead, or not an X slot); pass --posts-per-day")
+                continue
+            print("\n".join(ab_sim.power_lines(sl, rate, a.arms, a.var_factor)))
+        return
+    if a.ab_cmd == "sim":
+        from . import ab_sim
+        ab_sim.main(["--rate", str(a.rate), "--reps", str(a.reps)] + (["--since", a.since] if a.since else [])
+                    + (["--out", a.out] if a.out else []) + (["--config", a.config] if a.config else []))
         return
     db = DB(s.db_path)
     ab.seed(db)
