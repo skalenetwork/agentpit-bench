@@ -32,7 +32,7 @@ from markupsafe import Markup
 
 from . import og
 from .cards import cents, is_dark, fmt_time, is_upset, payout_x, ranked, results_headline, signed, split_headline, model_eras
-from . import challenge, discover, exports, methodology
+from . import challenge, cite, discover, exports, methodology
 from .emblem import emblem_svg
 from .config import AGENT_COLORS, AGENT_NAMES, Settings, AGENT_MODELS
 from .i18n import CODES, LANGS, NAMES, Translator
@@ -993,10 +993,22 @@ def pnl_chart(series: dict[str, list], width: int = 640, height: int = 220, crow
 
 def badge_svg(board: list[dict], crowd: dict | None = None) -> str:
     """Shields-style badge: 'AgentpitBench | Claude 12-8 · ChatGPT 10-10 · Gemini 9-11'."""
-    label = "AgentpitBench"
     value = " · ".join(f"{b['name']} {b['wins']}-{b['losses']}" for b in board) or "no results yet"
     if board and crowd and crowd.get("played"):
         value += f" · Crowd {crowd['wins']}-{crowd['losses']}"
+    return shield(value)
+
+
+def agent_badge_svg(c: dict, agent: str) -> str:
+    """/badge/<slug>.svg (docs/hf-borrow-spec.md B1): 'AgentpitBench | Grok 4.7 · #1 · +374 · season 2026-10',
+    the text of cite.result()'s badge, in the agent's colour."""
+    color = AGENT_COLORS.get(agent, "#D97757")
+    return shield(c["badge"], "#333333" if is_dark(color) else color)
+
+
+def shield(value: str, color: str = "#D97757") -> str:
+    """'AgentpitBench | <value>' in the shields style, the emblem left of the label."""
+    label = "AgentpitBench"
     lw, vw = 7 * len(label) + 12 + 18, int(6.6 * len(value)) + 14  # +18: the emblem left of the label
     w = lw + vw
     return (
@@ -1004,7 +1016,7 @@ def badge_svg(board: list[dict], crowd: dict | None = None) -> str:
         f'<title>{escape(label)}: {escape(value)}</title>'
         f'<linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>'
         f'<clipPath id="r"><rect width="{w}" height="20" rx="3" fill="#fff"/></clipPath>'
-        f'<g clip-path="url(#r)"><rect width="{lw}" height="20" fill="#0b1020"/><rect x="{lw}" width="{vw}" height="20" fill="#D97757"/>'
+        f'<g clip-path="url(#r)"><rect width="{lw}" height="20" fill="#0b1020"/><rect x="{lw}" width="{vw}" height="20" fill="{color}"/>'
         f'<rect width="{w}" height="20" fill="url(#s)"/></g>'
         f'<g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">'
         f'<text x="{(lw + 18) / 2}" y="14">{escape(label)}</text><text x="{lw + vw / 2}" y="14">{escape(value)}</text></g>'
@@ -1221,6 +1233,9 @@ def _build(s: Settings) -> Path:
             shutil.copy2(f, dst)
             evidence.add(f.stem)
     switch = headline_switch(s)  # the 2.0 evidence: who led each table when the betting record became the headline
+    # "Cite this result" and /badge/<slug>.svg (docs/hf-borrow-spec.md Part B): from the leaderboard export only
+    cites = {a: cite.result(a, next((b for b in board if b["agent"] == a), None), s.methodology_version,
+                            discover.day(as_of), lb.get("season") or "", s.site_url) for a in s.agents}
 
     base = s.site_url.rstrip("/")
     past =[r for r in rounds if r["state"] in ("resolved", "void")]
@@ -1429,7 +1444,7 @@ def _build(s: Settings) -> Path:
             row = next((b for b in board if b["agent"] == a), None)
             nm = AGENT_NAMES.get(a, a)
             page(f"agent/{a}/index.html", "agent.html", agent=a, name=nm,
-                 row=row, st=stats[a], og=previews["agents"].get(a),
+                 row=row, st=stats[a], og=previews["agents"].get(a), cite=cites[a],
                  img=share_image(previews["agent_cards"].get(a), f"agent-{a}",
                                  agent_share(lb, a, nm, row, _), f"{base}/{prefix}agent/{a}/", "agent"),
                  share_text=agent_share(lb, a, nm, row, _),
@@ -1526,6 +1541,9 @@ def _build(s: Settings) -> Path:
     if key:
         (out / f"{key}.txt").write_text(key)
     (out / "badge.svg").write_text(badge_svg(board, lb.get("crowd")))
+    (out / "badge").mkdir(exist_ok=True)
+    for a, c in cites.items():
+        (out / "badge" / f"{a}.svg").write_text(agent_badge_svg(c, a))
     kit = out / "press" / "mascots"
     kit.mkdir(parents=True, exist_ok=True)
     for a in [*s.agents, "crowd"]:
