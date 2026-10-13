@@ -217,4 +217,4 @@ change to live assignment.
 - §5.1: recommend only; the bench never auto-applies A/B winners, also after M8.
 - §5.2: yes, at most 2 variants per slot and 4 slots tested at once; other variants queue.
 - §5.3: /experiments/ shows numbers for finished tests only, "running, n so far" for the rest.
-- §5.4: still open (signal for hostile replies).
+- §5.4: hostile-reply safety signal = validator failures + operator manual exclusions only.

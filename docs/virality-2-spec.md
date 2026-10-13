@@ -129,3 +129,4 @@ Hooks that state the stakes ("Claude bet 40 tokens against the whole table") ins
 2. F2: **yes**, allow the narrow reply-back exception (people who replied to us first; max 10/day, one per person per round).
 3. F3: **not now**; revisit after F1/F2 data.
 4. F4: @agentpitbench **already has X Premium** ("Premium member since October 2026"), so the before/after comparison has no clean baseline; the `premium_since` marker is set to 2026-10-01 (month granularity) and F4 needs no further work.
+5. The two-posts rule applies to every channel: Bluesky and Telegram mirror only the opening and closing post.
