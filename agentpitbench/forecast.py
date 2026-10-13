@@ -279,7 +279,8 @@ async def score_due(s: Settings, db: DB, api: Agentpit) -> int:
     """Settle sweep markets that have closed: score every forecast with the Brier score. Returns how many."""
     now = datetime.now(timezone.utc)
     n = 0
-    for r in db.q("SELECT * FROM sweep_markets WHERE state='open'"):
+    # 'old:' ids were retired when agentpit renumbered its markets: there is nothing left to fetch them by
+    for r in db.q("SELECT * FROM sweep_markets WHERE state='open' AND market_id NOT LIKE 'old:%'"):
         try:
             if datetime.fromisoformat((r["end_date"] or "").replace("Z", "+00:00")) > now:
                 continue

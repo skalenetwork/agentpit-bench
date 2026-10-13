@@ -299,3 +299,17 @@ def test_forecasts_stay_private_until_markets_resolve(tmp_path):
     db.x("INSERT INTO forecasts(sweep_date, agent, market_id, probs, brier) VALUES('2026-10-10','claude','m3','{}',0.2)")
     assert forecast.revealable_dates(db) == {"2026-10-10"}          # one open market keeps the whole day sealed
     assert forecast.revealable_dates(db, max_age_days=0) >= {"2026-10-10"}
+
+
+async def test_retired_sweep_ids_are_never_fetched(env):
+    """Sweep markets retired by agentpit's renumbering ('old:' ids) can't be looked up; scoring skips them
+    instead of logging a traceback every cycle (which also failed the deploy health check, 2026-10-13)."""
+    s, db = env
+    s.agents = ["claude"]
+    api = FakeAPI([market(1, prices=(0.6, 0.4))])
+    await forecast.sweep(s, db, api, "2026-10-10", runner=fake_runner({"claude": ans(0.9, 0.1)}))
+    db.x("UPDATE sweep_markets SET end_date=?, market_id='old:old:'||market_id", iso(-1))
+    asked = []
+    orig = api.market
+    api.market = lambda mid: asked.append(mid) or orig(mid)
+    assert await forecast.score_due(s, db, api) == 0 and asked == []
