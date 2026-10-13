@@ -15,6 +15,14 @@ def _no_preview_renders(monkeypatch):
     monkeypatch.setattr(og, "ENABLED", False)
 
 
+@pytest.fixture(autouse=True)
+def _no_live_price_refresh(monkeypatch):
+    """The deployer refreshes live market prices before a build (polymarket-layout-spec, decision 3); tests stay
+    offline. test_grid exercises the refresh with a fake API."""
+    from agentpitbench import site
+    monkeypatch.setattr(site, "LIVE_PRICES", False)
+
+
 FAKE = r'''#!{python}
 import json, os, sys, time
 from pathlib import Path

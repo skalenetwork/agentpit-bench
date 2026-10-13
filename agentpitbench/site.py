@@ -785,6 +785,127 @@ def category_pages(rounds: list[dict], lb: dict, agents: list[str]) -> list[dict
     return out
 
 
+# The market grid (docs/polymarket-layout-spec.md §3-4): the category bar's pages /c/<slug>/, in bar order.
+# "Live" is a state, not a category; every other slug is a virality.category name. The spec's "Stocks" tab is
+# the Economy category (stocks, rates, inflation), whose name the site already translates.
+GRID_SLUGS = {"Sports": "sports", "Crypto": "crypto", "Economy": "economy", "Politics": "politics",
+              "Esports": "esports", "Other": "other"}
+GRID_MAX = 30          # cards on a grid page (home and /c/), live ones first
+LIVE_STATES = ("running", "awaiting_resolution")
+LIVE_PRICES = True     # refresh the live rounds' prices before each deploy build (tests turn it off: offline)
+LIVE_PRICES_FILE = "live-prices.json"
+
+
+def live_prices(s: Settings) -> dict[str, list[float]]:
+    """{market_id: current prices} written by refresh_live_prices before the build; {} when absent or unreadable.
+    The build itself never touches the network."""
+    try:
+        data = json.loads((s.export_dir / LIVE_PRICES_FILE).read_text())
+        return {str(k): [float(p) for p in v["prices"]] for k, v in data.items()}
+    except (OSError, ValueError, TypeError, KeyError):
+        return {}
+
+
+async def refresh_live_prices(s: Settings, api=None) -> int:
+    """Fetches the current prices of the live rounds' markets (docs/polymarket-layout-spec.md, operator decision 3:
+    the live cards show the chance now, refreshed at each site build). A market that fails keeps no entry, so its
+    card falls back to the chance at round start. Returns the number of markets refreshed."""
+    try:
+        rounds = json.loads((s.export_dir / "rounds.json").read_text())
+    except (OSError, ValueError):
+        return 0
+    ids = sorted({str(r["market_id"]) for r in rounds if r.get("state") in LIVE_STATES and r.get("market_id")})
+    from .agentpit import Agentpit
+    own = api is None
+    api = api or Agentpit(s.api_url, timeout=10)
+    out: dict[str, dict] = {}
+    try:
+        for mid in ids:
+            try:
+                m = await api.market(mid)
+            except Exception as e:  # noqa: BLE001 (one market's failure never blocks the build)
+                log.info("live price for market %s unavailable: %s", mid, e)
+                continue
+            if m and m.get("prices_list"):
+                out[mid] = {"prices": m["prices_list"], "at": time.time()}
+    finally:
+        if own:
+            await api.close()
+    tmp = s.export_dir / (LIVE_PRICES_FILE + ".tmp")
+    tmp.write_text(json.dumps(out))
+    tmp.replace(s.export_dir / LIVE_PRICES_FILE)
+    return len(out)
+
+
+def grid_category(r: dict) -> str:
+    """The card's category: virality.category over the match title and the question, so 'Will Lille OSC win on …?'
+    of 'Lille OSC vs. Stade Brestois 29' files under Sports."""
+    return category(" · ".join(x for x in (r.get("event_title"), r["question"]) if x))
+
+
+def _pill_kind(outcomes: list[str], outcome: str | None) -> str:
+    """Outcome colour of a pick pill: the first outcome (Yes) green, No (or a binary market's second side) red,
+    anything else neutral. The pill always carries the outcome text too (colour is never the only signal)."""
+    if outcome not in outcomes:
+        return "nt"
+    i = outcomes.index(outcome)
+    if i == 0:
+        return "yes"
+    return "no" if outcome == "No" or len(outcomes) == 2 else "nt"
+
+
+def round_card(r: dict, now_prices: dict[str, list[float]] | None = None) -> dict:
+    """One market card of the grid (spec §4), from the exported round record only: the chance (now for a live
+    round when the build fetched it, else at round start), the AIs' picks as pills, and the status line.
+    A running round's picks are already stripped by the export; they stay sealed here."""
+    outs = list(r.get("outcomes") or [])
+    state = r["state"]
+    live = state in LIVE_STATES
+    now = (now_prices or {}).get(str(r.get("market_id"))) if live else None
+    prices = now if now and len(now) == len(outs) else (r.get("prices_at_start") or [])
+    chance = []
+    if len(prices) == len(outs) and outs:
+        pairs = list(zip(outs, prices))
+        top = pairs if len(outs) == 2 else sorted(pairs, key=lambda x: -x[1])[:2]  # binary: the first is the big one
+        chance = [{"outcome": o, "pct": round(p * 100), "kind": _pill_kind(outs, o)} for o, p in top]
+    name = r.get("market_name") or market_name(r)
+    picks, bettors, right = [], 0, 0
+    for e in r.get("entries") or []:
+        sealed = bool(e.get("sealed"))
+        picks.append({"agent": e["agent"], "name": e.get("name") or AGENT_NAMES.get(e["agent"], e["agent"]),
+                      "outcome": None if sealed else e.get("outcome"), "sealed": sealed,
+                      "price": e.get("avg_price") if not sealed else None, "won": e.get("won"),
+                      "kind": _pill_kind(outs, e.get("outcome")), "thinking": live and not sealed and not e.get("outcome")
+                      and not e.get("exit_reason")})
+        if not sealed and e.get("outcome"):
+            bettors += 1
+            right += bool(e.get("won"))
+    return {"id": r["round_id"], "state": "live" if live else state, "sealed": bool(r.get("sealed")),
+            "category": grid_category(r), "event": r.get("event_title") if name != r["question"] else None,
+            "question": r["question"], "chance": chance, "chance_now": bool(now and prices is now),
+            "picks": picks, "winner": r.get("winner"), "right": right, "bettors": bettors,
+            "end_date": r.get("end_date"), "resolved_at": r.get("resolved_at"), "market_id": r.get("market_id"),
+            "outcomes": outs, "exhibition": bool(r.get("exhibition"))}
+
+
+def grid_rounds(rounds: list[dict], cat: str | None = None, live_only: bool = False) -> list[dict]:
+    """A grid's rounds: live first (newest started first), then the most recently resolved; void rounds last."""
+    rs = [r for r in rounds if (cat is None or grid_category(r) == cat)
+          and (not live_only or r["state"] in LIVE_STATES)]
+    live = sorted((r for r in rs if r["state"] in LIVE_STATES), key=lambda r: -(r.get("started_at") or 0))
+    done = sorted((r for r in rs if r["state"] in ("resolved", "void")),
+                  key=lambda r: (r["state"] == "void", -(r.get("resolved_at") or 0)))
+    return (live + done)[:GRID_MAX]
+
+
+def rounds_index(rounds: list[dict]) -> list[dict]:
+    """data/rounds-index.json, the header search's index (spec §3): id, question, event title, category, state.
+    Never a pick, so a sealed round leaks nothing."""
+    return [{"id": r["round_id"], "q": r["question"], "ev": r.get("event_title") or "",
+             "cat": grid_category(r), "state": "live" if r["state"] in LIVE_STATES else r["state"]}
+            for r in sorted(rounds, key=lambda r: -(r.get("started_at") or 0))]
+
+
 def agent_stats(rounds: list[dict], agent: str) -> dict:
     picks = [(r, e) for r, e in _flat(rounds) if e["agent"] == agent]
     resolved = sorted([(r, e) for r, e in picks if r["state"] == "resolved"], key=lambda x: x[0]["resolved_at"] or 0)
@@ -1081,8 +1202,7 @@ def _build(s: Settings) -> Path:
     switch = headline_switch(s)  # the 2.0 evidence: who led each table when the betting record became the headline
 
     base = s.site_url.rstrip("/")
-    live = [r for r in rounds if r["state"] in ("running", "awaiting_resolution")]
-    past = [r for r in rounds if r["state"] in ("resolved", "void")]
+    past =[r for r in rounds if r["state"] in ("resolved", "void")]
     past.sort(key=lambda r: -(r["resolved_at"] or 0))
     names = [AGENT_NAMES.get(a, a) for a in s.agents]
     vs = " vs ".join(names)
@@ -1095,6 +1215,9 @@ def _build(s: Settings) -> Path:
     fire = streaks(counted, s.agents)               # "Who's on fire" (docs/growth-overnight-spec.md §2)
     cat_pages = category_pages(counted, lb, s.agents)  # /best-at/ (§1)
     cat_live = [c for c in cat_pages if c["slug"] and c["n"]]  # a category gets its page once it has a round
+    now_prices = live_prices(s)  # the live cards' chance now, fetched before the build (never during it)
+    cards_of = {r["round_id"]: round_card(r, now_prices) for r in rounds}
+    grid_cats = [(slug, cat) for cat, slug in GRID_SLUGS.items() if any(grid_category(r) == cat for r in rounds)]
     # an infra-voided round's posts were taken down, so its cards are not shown either
     # nor a running round's: its cards are not published (they would reveal the sealed picks)
     cards = {r["round_id"]: (None if r.get("exclusion") == "infra" or discover.seal(r) else card_for(s, r))
@@ -1152,6 +1275,7 @@ def _build(s: Settings) -> Path:
                   "tq": tq, "mq": mq}
         common["cat_links"] = {c["category"]: f"best-at/{c['slug']}/" for c in cat_live}
         common["cat_min"] = CATEGORY_MIN
+        common["grid_bar"] = [("live", _("Live")), *((slug, _(cat)) for slug, cat in grid_cats)]
         common.update(nav_extra=NAV_EXTRA, has_experiments=exp_ab is not None)
         prefix = _.prefix()
         common["film_share"] = lambda f, _=_, prefix=prefix: film_share(f, f"{base}/{prefix}round/{f['round_id']}/", _)
@@ -1211,12 +1335,28 @@ def _build(s: Settings) -> Path:
                          poll=f"{'../' * (prefix.count('/') + 2)}{discover.API}/leaderboard.json",
                          state_sig=discover.iso(as_of), every=300000)
 
-        page("index.html", "index.html", live=live, past=past[:30], upset=upset, description=None,
-             film=films[0] if films else None, fire=fire,
+        page("index.html", "index.html", grid=[cards_of[r["round_id"]] for r in grid_rounds(rounds)],
+             standings=board[:4], description=None, film=films[0] if films else None, fire=fire, cur_cat="",
              today=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
              share_text=_("Four frontier AIs bet on real prediction markets. Live scoreboard:"),
              jsonld=discover.dataset_ld(s, lb, f"{base}/"),
              title=_("AgentpitBench: {vs} on real prediction markets", vs=vs))
+        # the category bar's pages (docs/polymarket-layout-spec.md §3): the same card grid, one category (or the
+        # live rounds) per page, in every language
+        best_slugs = {c["category"]: c["slug"] for c in cat_live}
+        for slug, cat in [("live", None), *grid_cats]:
+            rel = f"c/{slug}/"
+            if cat is None:
+                ct, cd = _("Live markets: what the AIs bet"), _("The markets the AIs are betting on right now, with the current chance and each AI's pick.")
+            else:
+                cn = _(cat)
+                ct = _("{category} markets: what the AIs bet", category=cn)
+                cd = _("Every {category} market on AgentpitBench: the market's chance, each AI's pick and who was right.", category=cn)
+            grs = grid_rounds(rounds, cat, live_only=cat is None)
+            page(rel + "index.html", "grid.html", grid=[cards_of[r["round_id"]] for r in grs], cur_cat=slug,
+                 heading=ct, title=branded(ct), description=cd, best_at=best_slugs.get(cat),
+                 lastmod=max((r.get("resolved_at") or r.get("started_at") or 0 for r in grs), default=0) or None,
+                 jsonld=crumbs(None, (ct, rel)))
         page("leaderboard/index.html", "leaderboard.html",
              chart=pnl_chart(lb.get("series", {}), crowd=(lb.get("crowd") or {}).get("series"), _=_),
              best=best, worst=worst, weekly=weekly, seasons=seasons, fire=fire,
@@ -1369,6 +1509,8 @@ def _build(s: Settings) -> Path:
         shutil.copy2(widget_src, out / "widget" / "agentpit-widget.js")
     (out / "data").mkdir(exist_ok=True)
     (out / "data" / "challenge.json").write_text(json.dumps([challenge.entry(d) for d in ch_days], indent=1))
+    (out / "data" / "rounds-index.json").write_text(json.dumps(rounds_index(rounds), ensure_ascii=False,
+                                                               separators=(",", ":")))
     rss, jf = feeds(s, rounds)
     (out / "feed.xml").write_text(rss)
     (out / "feed.json").write_text(jf)
@@ -1607,6 +1749,11 @@ class SiteDeployer:
 
     async def _once(self, retry: bool = True) -> None:
         try:
+            if LIVE_PRICES:  # the live cards' chance now (a failure keeps the chance at start)
+                try:
+                    await refresh_live_prices(self.s)
+                except Exception:
+                    log.exception("live price refresh failed")
             await asyncio.to_thread(build, self.s)
             self.builds += 1
             if await asyncio.to_thread(deploy, self.s):

@@ -1,0 +1,68 @@
+{#- The market grid (docs/polymarket-layout-spec.md §4): round cards built by site.round_card from the exported
+    round record, the standings strip and the film card. Shared by the home page and the /c/<category>/ pages. -#}
+{% macro style() %}<style>
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:12px 0 20px}
+@media (max-width:959px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:599px){.grid{grid-template-columns:minmax(0,1fr)}}
+.mk{display:flex;flex-direction:column;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;text-decoration:none;color:var(--fg);font-size:15px;min-width:0}
+.mk:hover{border-color:var(--mut)}.mk.done{opacity:.86}.mk.done:hover{opacity:1}
+.mh{display:flex;gap:10px;align-items:flex-start}.mh .ci{width:22px;height:22px;margin-top:2px;color:var(--mut)}
+.mh .t1{font-weight:700;line-height:1.3;overflow-wrap:anywhere;unicode-bidi:plaintext}.mh .t2{font-size:14px;color:var(--mut);line-height:1.35;margin-top:2px;overflow-wrap:anywhere;unicode-bidi:plaintext}
+.ch{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.ch .pc{font-size:30px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.ch .lb{font-size:13px;color:var(--mut)}
+.bar{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--no)}.bar i{display:block;background:var(--yes)}
+.bl{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}.bl .y{color:var(--yesf)}.bl .n{color:var(--nof)}
+.mo{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;font-size:14px;align-items:center}.mo .o{overflow-wrap:anywhere;unicode-bidi:plaintext}
+.mo .p{font-weight:800;font-variant-numeric:tabular-nums}.mo .mb{grid-column:1/-1;height:4px;border-radius:2px;background:var(--chip);overflow:hidden}.mo .mb i{display:block;height:100%;background:var(--mut)}
+.win{font-size:15px}.win .ck{color:var(--yesf);font-weight:800}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pl{display:inline-flex;align-items:center;gap:5px;max-width:100%;padding:3px 8px 3px 4px;border-radius:8px;font-size:13px;font-weight:700;background:var(--chip);color:var(--fg);border:1px solid transparent}
+[dir=rtl] .pl{padding:3px 4px 3px 8px}
+.pl .mi{margin:0}.pl .ot{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:14ch;unicode-bidi:plaintext}.pl .pr{font-variant-numeric:tabular-nums;font-weight:600;opacity:.85}
+.pl.yes{color:var(--yesf);border-color:color-mix(in srgb,var(--yes) 45%,transparent);background:color-mix(in srgb,var(--yes) 14%,var(--card))}
+.pl.no{color:var(--nof);border-color:color-mix(in srgb,var(--no) 45%,transparent);background:color-mix(in srgb,var(--no) 14%,var(--card))}
+.pl.off{color:var(--mut);font-weight:600}
+.mf{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin-top:auto;padding-top:10px;border-top:1px solid var(--line);font-size:13px;color:var(--mut)}
+.mf .lv{display:inline-flex;align-items:center;gap:6px;color:var(--nof);font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.mf .rid{margin-inline-start:auto}
+.mk.film{padding:0;overflow:hidden;gap:0}.mk.film video{width:100%;height:auto;display:block;background:#000}.mk.film .fb{padding:12px 14px;display:flex;flex-direction:column;gap:8px;flex:1}
+.mk.film .ft{display:inline-block;align-self:flex-start;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:8px;background:#D97757;color:#1d2b39}
+.mk.film a{color:inherit}
+.stand{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:12px 0 4px;padding-bottom:2px}.stand::-webkit-scrollbar{display:none}
+.chip{flex:none;display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:12px;background:var(--card);border:1px solid var(--line);text-decoration:none;font-size:14px;font-weight:700}
+[dir=rtl] .chip{padding:6px 6px 6px 12px}
+.chip .mi{margin:0}.chip .rk{color:var(--mut);font-weight:600;font-variant-numeric:tabular-nums}.chip .num{direction:ltr;unicode-bidi:isolate}
+.chip.more{padding:6px 12px;color:var(--mut);font-weight:600}
+.hero{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px}.hero h1{margin:.1em 0}
+.gh{font-size:16px;margin:18px 0 0;text-transform:none;letter-spacing:0}
+</style>{% endmacro %}
+
+{% macro card(c) %}{% set live = c.state == 'live' %}{% set slug = c.category|lower if c.category in ('Sports', 'Crypto', 'Economy', 'Politics', 'Esports') else 'other' %}
+<a class="mk{% if not live %} done{% endif %}" href="{{ home }}round/{{ c.id }}/"{% if live %} data-live data-market="{{ c.market_id }}" data-end="{{ c.end_date or '' }}"{% endif %}>
+<div class="mh"><svg class="ci" role="img" aria-label="{{ _(c.category) }}"><use href="#ci-{{ slug }}"/></svg><div><div class="t1">{{ mq(c.event) if c.event else mq(c.question) }}</div>{% if c.event %}<div class="t2">{{ mq(c.question) }}</div>{% endif %}</div></div>
+{% if c.state == 'resolved' and c.winner %}<div class="win"><span class="ck" aria-hidden="true">✓</span> {{ _h("Resolved <b>{winner}</b>", winner=tq(c.winner)) }}</div>
+{% elif c.chance and c.chance|length == 2 and c.outcomes|length == 2 %}{% set a, b = c.chance %}
+<div class="ch"><span class="pc">{{ a.pct }}%</span><span class="lb">{{ _("{outcome} chance", outcome=tq(a.outcome)) }} · {{ _("now") if c.chance_now else _("at start") }}</span></div>
+<div class="bar" aria-hidden="true"><i style="width:{{ a.pct }}%"></i></div>
+<div class="bl"><span class="y">{{ mq(a.outcome) }} {{ a.pct }}%</span><span class="n">{{ mq(b.outcome) }} {{ b.pct }}%</span></div>
+{% elif c.chance %}<div class="mo">{% for x in c.chance %}<span class="o">{{ mq(x.outcome) }}</span><span class="p">{{ x.pct }}%</span><span class="mb" aria-hidden="true"><i style="width:{{ x.pct }}%"></i></span>{% endfor %}</div>
+<div class="ch"><span class="lb">{{ _("Chance now") if c.chance_now else _("Chance at start") }}</span></div>{% endif %}
+<div class="pills">{% for p in c.picks %}{% set right = c.state == 'resolved' and p.won %}<span class="pl {{ 'off' if p.sealed or not p.outcome else p.kind }}"{% if live %} data-outcome="{{ p.outcome or '' }}"{% endif %} title="{{ p.name }}">{{ mi(p.agent, 20, p.name) }}{% if p.sealed %}<span aria-label="{{ _("Picks revealed when all four are in") }}">🔒</span>{% elif p.outcome %}<span class="ot">{{ mq(p.outcome) }}</span>{% if p.price is not none %} <span class="pr">{{ p.price|cents }}</span>{% endif %}{% if right %} ✓{% endif %}{% elif p.thinking %}{{ _("thinking…") }}{% else %}{{ _("No bet") }}{% endif %}</span>{% endfor %}</div>
+<div class="mf">{% if live %}<span class="lv"><span class="ldot" aria-hidden="true"></span>{{ _("Live") }}</span>{% if c.end_date %}<span>{{ _("closes {date}", date=c.end_date[:10]) }}</span>{% endif %}{% if c.sealed %}<span>🔒 {{ _("Picks revealed when all four are in") }}</span>{% endif %}
+{% elif c.state == 'void' %}<span>{{ _("Void") }}</span>{% elif c.bettors %}<span>{{ _("{n} of {k} AIs right", n=c.right, k=c.bettors) }}</span>{% endif %}<span class="rid">{{ _("Round {n}", n=c.id) }}</span></div></a>
+{% endmacro %}
+
+{% macro film_card(film, today) %}{% set fsrc = film.files.wide or film.files.square %}
+<div class="mk film">{% if fsrc %}<video controls preload="none" playsinline width="{{ 1920 if film.files.wide else 1080 }}" height="1080" style="aspect-ratio:{{ "16/9" if film.files.wide else "1/1" }}"{% if film.home_poster %} poster="{{ root }}{{ film.home_poster }}"{% endif %}><source src="{{ root }}{{ film.dir }}{{ fsrc }}" type="video/mp4"></video>{% endif %}
+<div class="fb"><span class="ft">{{ _("Film") }}</span><div><b>{{ _("Today's film") if film.date == today else _("Latest film") }}</b> <span class="small mut">· <span lang="en">Match of the Day</span> · <span style="white-space:nowrap">{{ film.date }}</span></span></div>
+<div class="small"><b lang="en" dir="ltr">{{ film.hook }}</b></div>
+<div class="mf"><a href="{{ home }}round/{{ film.round_id }}/">{{ _("Round {n}", n=film.round_id) }}</a><a class="rid" href="{{ home }}films/">{{ _("All films") }}</a></div></div></div>
+{% endmacro %}
+
+{% macro grid(cards, film=none, today='') %}<div class="grid">{% set ns = namespace(film=film) %}
+{% for c in cards %}{% if ns.film and c.state != 'live' %}{{ film_card(ns.film, today) }}{% set ns.film = none %}{% endif %}{{ card(c) }}{% endfor %}
+{% if ns.film %}{{ film_card(ns.film, today) }}{% endif %}</div>{% endmacro %}
+
+{% macro standings_strip(rows) %}{% if rows %}<div class="stand" aria-label="{{ _("Leaderboard") }}">{% for b in rows %}
+<a class="chip {{ b.color|dkb }}" href="{{ home }}agent/{{ b.agent }}/"><span class="rk">{{ loop.index }}</span>{{ mi(b.agent, 28) }}<span>{{ b.name }}</span><span class="num {{ b.net_pnl|pnl_class }}">{{ b.net_pnl|signed }}</span></a>{% endfor %}
+<a class="chip more" href="{{ home }}leaderboard/">{{ _("Full leaderboard") }} →</a></div>{% endif %}{% endmacro %}

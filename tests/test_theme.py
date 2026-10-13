@@ -45,6 +45,15 @@ def test_theme_script_runs_before_the_styles(out):
         assert html.index('localStorage.getItem("apb-theme")') < html.index("<style>"), name
 
 
+def test_dark_by_default(out):
+    """docs/polymarket-layout-spec.md, operator decision 2: dark unless the reader chose Light or Auto (stored
+    "auto" drops the attribute, so the device's scheme is followed again)."""
+    for name, html in pages(out).items():
+        assert re.search(r'<html lang="[a-z]+"( dir="rtl")? data-theme="dark">', html), name
+        head = html[:html.index("<style>")]
+        assert 'if(t==="light")h.dataset.theme=t;else if(t==="auto")delete h.dataset.theme' in head, name
+
+
 def test_every_dark_rule_can_be_forced(out):
     for name, html in pages(out).items():
         css = "".join(re.findall(r"<style>(.*?)</style>", html, re.S))
@@ -64,8 +73,8 @@ def test_header_button_is_present_and_translated(out):
     en = btn.findall((out / "index.html").read_text())
     de = btn.findall((out / "de" / "index.html").read_text())
     assert len(en) == 1 and len(de) == 1
-    assert en[0] == ("Theme: Auto", "Theme: Light", "Theme: Dark", "Theme: Auto")
-    assert de[0][:3] != en[0][:3] and de[0][3] == de[0][0]
+    assert en[0] == ("Theme: Auto", "Theme: Light", "Theme: Dark", "Theme: Dark")  # dark is the default
+    assert de[0][:3] != en[0][:3] and de[0][3] == de[0][2]
     assert 'class="thm"' not in (out / "404.html").read_text()  # 404 gets the theme, not the button
 
 

@@ -1,23 +1,14 @@
-{% extends "base.html" %}{% import "_macros.html" as m with context %}{% import "_share.html" as sh with context %}{% import "_best_at.html" as ba with context %}
+{% extends "base.html" %}{% import "_grid.html" as g with context %}{% import "_share.html" as sh with context %}{% import "_best_at.html" as ba with context %}
+{% set wide = true %}
 {% block main %}
-<h1>{{ _("Which AI is smartest with money?") }}</h1>
-<p class="mut">{{ _("{roster} each get 5 minutes and 100 tokens to bet on every new agentpit market. Frontier vs frontier: each lab's top model at maximum reasoning, same prompt, no help.", roster=roster) }}</p>
+{#- The market grid (docs/polymarket-layout-spec.md §4): hero, the standings strip, then one grid of round cards,
+    live rounds first, with the latest film as a card of the same size. -#}
+{{ g.style() }}
+<div class="hero"><h1>{{ _("Which AI is smartest with money?") }}</h1></div>
+<p class="mut small">{{ _("{roster} each get 5 minutes and 100 tokens to bet on every new agentpit market. Frontier vs frontier: each lab's top model at maximum reasoning, same prompt, no help.", roster=roster) }}</p>
+{{ g.standings_strip(standings) }}
 {{ sh.row(share) }}
-<p class="newrow"><span class="tag new">{{ _("New") }}</span> <a href="{{ home }}films/">{{ _("Films") }}</a> · <a href="{{ home }}facts/">{{ _("Facts") }}</a>{% for x_rel, x_label in nav_extra %} · <a href="{{ home }}{{ x_rel }}">{{ _(x_label) }}</a>{% endfor %}</p>
-{% if film %}<div class="today one">
-{% if film %}{% set fsrc = film.files.wide or film.files.square %}<section class="tfilm" aria-labelledby="tf-h"><h2 id="tf-h">{{ _("Today's film") if film.date == today else _("Latest film") }} <span class="small mut">· <span lang="en">Match of the Day</span> · <span style="white-space:nowrap">{{ film.date }}</span></span></h2>
-{% if fsrc %}<video controls preload="none" playsinline width="{{ 1920 if film.files.wide else 1080 }}" height="1080" style="aspect-ratio:{{ "16/9" if film.files.wide else "1/1" }}"{% if film.home_poster %} poster="{{ root }}{{ film.home_poster }}"{% endif %}><source src="{{ root }}{{ film.dir }}{{ fsrc }}" type="video/mp4"></video>{% endif %}
-<p class="small"><b lang="en" dir="ltr">{{ film.hook }}</b><br><a href="{{ home }}round/{{ film.round_id }}/">{{ _("Round {n}", n=film.round_id) }}</a> · <a href="{{ home }}films/">{{ _("All films") }}</a></p></section>{% endif %}
-</div>{% endif %}
+{% if grid or film %}{{ g.grid(grid, film, today) }}{% else %}<p class="mut">{{ _("No results yet. The first round is live or on its way.") }}</p>{% endif %}
 {{ ba.fire(fire) }}
-<style>.newrow{margin:6px 0 12px}.tag.new{background:#D97757;color:#fff}.today{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;margin:4px 0 18px}.today.one{grid-template-columns:minmax(0,1fr)}
-.today h2{margin:0 0 8px;font-size:16px}.today video{width:100%;height:auto;display:block;background:#0b1020}.today p{margin:6px 0 0}
-@media (max-width:719px){.today{grid-template-columns:minmax(0,1fr)}}</style>
-{{ m.scoreboard(board, home, colors) }}
-{% if live %}<h2>{{ _("Live now") }}</h2>{% for r in live %}{{ m.live_panel(r, home, api_url) }}{% endfor %}{{ m.live_script(api_url) }}{% endif %}
-{% if upset %}{% set ur, ue = upset %}<h2>{{ _("Biggest upset") }}</h2>
-<div class="box"><span class="tag upset">{{ _("Upset") }}</span> {{ _h("<b>{name}</b> bet {outcome} at {price} and won {x}", name=ue.name, outcome=tq(ue.outcome), price=ue.avg_price|cents, x=ue.avg_price|payout_x) }} — <a href="{{ home }}round/{{ ur.round_id }}/">{{ mq(ur.question) }}</a></div>{% endif %}
-<h2>{{ _("Latest results") }}</h2>
-{% for r in past %}{{ m.result_row(r, home, headline) }}{% else %}<p class="mut">{{ _("No results yet. The first round is live or on its way.") }}</p>{% endfor %}
 <div class="btns"><a class="btn" href="{{ home }}leaderboard/">{{ _("Full leaderboard") }}</a></div>
 {% endblock %}
