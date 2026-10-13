@@ -1,0 +1,70 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Ethereum Up or Down on October 14?
+Outcomes: Up / Down | prices: Up 0.500, Down 0.500 | closes: 2026-10-14T16:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 16 rounds: 12-4, net P&L +346.1.
+- Will Levante UD vs. Sevilla FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Atalanta BC vs. Venezia FC end in a draw? | you picked No | winner No | won | P&L +26.6
+- Will Pumas de la UNAM vs. CF Cruz Azul end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Ethereum dip to $2,400 October 5-11? | you picked No | winner No | won | P&L +18.3
+- Will Beşiktaş JK win on 2026-10-11? | you picked Yes | winner Yes | won | P&L +26.6
+- Will it rain in New Orleans, LA on October 10? | you picked Yes | winner No | lost | P&L -43.7
+- Will Real Sociedad de Fútbol vs. RC Deportivo A Coruña end in a draw? | you picked No | winner No | won | P&L +29.9
+- Bitcoin Up or Down - October 10, 9PM ET | you picked Up | winner Up | won | P&L +34.9
+- Bitcoin Up or Down - October 10, 8PM ET | you picked Down | winner Down | won | P&L +86.5
+- Will Stockport County FC win on 2026-10-10? | you picked Yes | winner Yes | won | P&L +44.9
+- Will Aston Villa FC vs. Brentford FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Virtus Entella win on 2026-10-10? | you picked No | winner No | won | P&L +85.2
+- Will Elon Musk post 65-89 tweets from October 8 to October 10, 2026? | you picked No | winner No | won | P&L +31.6
+- Ducks vs. Jets | you picked Ducks | winner Ducks | won | P&L +112.8
+- Bitcoin Up or Down - October 9, 8PM ET | you picked Down | winner Down | won | P&L +84.2
+- Counter-Strike: PRIVATE vs Nuclear TigeRES (BO3) - 1win Private Club #2: Closed Qualifier  | you picked PRIVATE | winner PRIVATE | won | P&L +108.3
+
+--- output ---
+### Bet Placed: **Down**
+
+| Parameter | Value |
+| :--- | :--- |
+| **Market** | Ethereum Up or Down on October 14? |
+| **Outcome Picked** | **Down** |
+| **Confidence** | **0.58** (58%) |
+| **Stake Filled** | 100.0 tokens |
+| **Average Fill Price** | 0.500 (200.0 shares) |
+| **Potential Payout** | 200.0 tokens (+100.0 net P&L) |
+
+---
+
+### Analysis & Key Drivers
+
+1. **High Baseline Anchor ($2,519.88):**
+   - The reference baseline candle (Oct 13, 2026, 12:00 ET / 16:00 UTC) closed at **$2,519.88**, right near the local peak of today's intraday relief bounce from the $2,409 lows. Spot price already retraced below this baseline to ~$2,518 shortly after.
+
+2. **Persistent Institutional Outflows:**
+   - Spot Ethereum ETFs have recorded 9 consecutive days of net outflows, removing substantial liquidity and leaving a demand deficit.
+   - The primary corporate treasury accumulator (BitMine) is approaching its 5% supply ceiling, tapering incremental buy-side pressure.
+   - ETH/BTC continues to break lower (down to ~0.03015).
+
+3. **Macro Catalyst Headwinds (CPI Print):**
+   - The September U.S. Consumer Price Index (CPI) releases on October 14 at 8:30 AM ET, 3.5 hours before market close.
+   - Headline inflation is projected to accelerate to 3.6%–3.7% (vs. 3.4% prior), creating hawkish Fed rate risk and downside pressure on crypto assets.
+
+---
+
+### Execution Details
+
+```bash
+bench bet --outcome Down --confidence 0.58 \
+  --rationale 'ETH faces stiff overhead resistance after rejecting $2,538 amid 9 consecutive days of ETF outflows. With the $2,519.88 baseline set near the peak of today bounce and September CPI forecast to accelerate tomorrow, downside drift remains favored.' \
+  --quote 'Betting against 9 days of ETF outflows and rising CPI? Good luck catching that knife.'
+```

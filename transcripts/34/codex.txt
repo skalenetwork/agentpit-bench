@@ -1,0 +1,713 @@
+$ codex exec <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Ethereum Up or Down on October 14?
+Outcomes: Up / Down | prices: Up 0.500, Down 0.500 | closes: 2026-10-14T16:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 16 rounds: 4-12, net P&L -885.7.
+- Will Levante UD vs. Sevilla FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Atalanta BC vs. Venezia FC end in a draw? | you picked Yes | winner No | lost | P&L -100.0
+- Will Pumas de la UNAM vs. CF Cruz Azul end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Ethereum dip to $2,400 October 5-11? | you picked Yes | winner No | lost | P&L -98.9
+- Will Beşiktaş JK win on 2026-10-11? | you picked No | winner Yes | lost | P&L -100.0
+- Will it rain in New Orleans, LA on October 10? | you picked Yes | winner No | lost | P&L -43.7
+- Will Real Sociedad de Fútbol vs. RC Deportivo A Coruña end in a draw? | you picked Yes | winner No | lost | P&L -100.0
+- Bitcoin Up or Down - October 10, 9PM ET | you picked Up | winner Up | won | P&L +31.6
+- Bitcoin Up or Down - October 10, 8PM ET | you picked Down | winner Down | won | P&L +92.2
+- Will Stockport County FC win on 2026-10-10? | you picked No | winner Yes | lost | P&L -100.0
+- Will Aston Villa FC vs. Brentford FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Virtus Entella win on 2026-10-10? | you picked No | winner No | won | P&L +85.2
+- Will Elon Musk post 65-89 tweets from October 8 to October 10, 2026? | you picked Yes | winner No | lost | P&L -100.0
+- Ducks vs. Jets | you picked Jets | winner Ducks | lost | P&L -100.0
+- Bitcoin Up or Down - October 9, 8PM ET | you picked Down | winner Down | won | P&L +47.9
+- Counter-Strike: PRIVATE vs Nuclear TigeRES (BO3) - 1win Private Club #2: Closed Qualifier  | you picked Nuclear TigeRES | winner PRIVATE | lost | P&L -100.0
+
+--- output ---
+WARNING: proceeding, even though we could not create PATH aliases: Refusing to create helper binaries under temporary dir "/tmp" (codex_home: AbsolutePathBuf("/tmp/apbh-codex-hy8hov11/.codex"))
+Reading additional input from stdin...
+OpenAI Codex v0.161.0
+--------
+workdir: /tmp/apb-34-codex-hxoz4aij
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: max
+reasoning summaries: none
+session id: 01a13616-e988-7ac3-a20b-b22b99db5961
+--------
+user
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Ethereum Up or Down on October 14?
+Outcomes: Up / Down | prices: Up 0.500, Down 0.500 | closes: 2026-10-14T16:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 16 rounds: 4-12, net P&L -885.7.
+- Will Levante UD vs. Sevilla FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Atalanta BC vs. Venezia FC end in a draw? | you picked Yes | winner No | lost | P&L -100.0
+- Will Pumas de la UNAM vs. CF Cruz Azul end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Ethereum dip to $2,400 October 5-11? | you picked Yes | winner No | lost | P&L -98.9
+- Will Beşiktaş JK win on 2026-10-11? | you picked No | winner Yes | lost | P&L -100.0
+- Will it rain in New Orleans, LA on October 10? | you picked Yes | winner No | lost | P&L -43.7
+- Will Real Sociedad de Fútbol vs. RC Deportivo A Coruña end in a draw? | you picked Yes | winner No | lost | P&L -100.0
+- Bitcoin Up or Down - October 10, 9PM ET | you picked Up | winner Up | won | P&L +31.6
+- Bitcoin Up or Down - October 10, 8PM ET | you picked Down | winner Down | won | P&L +92.2
+- Will Stockport County FC win on 2026-10-10? | you picked No | winner Yes | lost | P&L -100.0
+- Will Aston Villa FC vs. Brentford FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Virtus Entella win on 2026-10-10? | you picked No | winner No | won | P&L +85.2
+- Will Elon Musk post 65-89 tweets from October 8 to October 10, 2026? | you picked Yes | winner No | lost | P&L -100.0
+- Ducks vs. Jets | you picked Jets | winner Ducks | lost | P&L -100.0
+- Bitcoin Up or Down - October 9, 8PM ET | you picked Down | winner Down | won | P&L +47.9
+- Counter-Strike: PRIVATE vs Nuclear TigeRES (BO3) - 1win Private Club #2: Closed Qualifier  | you picked Nuclear TigeRES | winner PRIVATE | lost | P&L -100.0
+
+codex
+I’ll check the resolution rules and available price data, then place the single 100-token bet before the deadline.
+
+exec
+/usr/bin/zsh -lc 'bench --help' in /tmp/apb-34-codex-hxoz4aij
+ succeeded in 0ms:
+usage: bench [-h] {market,book,history,bet} ...
+
+Inspect the market and place your one bet.
+
+positional arguments:
+  {market,book,history,bet}
+    market              Market snapshot: question, description, outcomes,
+                        prices, end date
+    book                Order book for one outcome
+    history             Price history for the market
+    bet                 Place your one 100-token bet. Works once.
+
+options:
+  -h, --help            show this help message and exit
+
+exec
+/usr/bin/zsh -lc 'bench book --help' in /tmp/apb-34-codex-hxoz4aij
+ succeeded in 0ms:
+usage: bench book [-h] --outcome OUTCOME
+
+options:
+  -h, --help         show this help message and exit
+  --outcome OUTCOME
+
+exec
+/usr/bin/zsh -lc 'bench bet --help' in /tmp/apb-34-codex-hxoz4aij
+ succeeded in 0ms:
+usage: bench bet [-h] --outcome OUTCOME --rationale RATIONALE --confidence
+                 CONFIDENCE [--max-price MAX_PRICE] [--quote QUOTE]
+
+options:
+  -h, --help            show this help message and exit
+  --outcome OUTCOME
+  --rationale RATIONALE
+  --confidence CONFIDENCE
+                        0 to 1
+  --max-price MAX_PRICE
+                        worst price you accept (default: best ask + 0.05)
+  --quote QUOTE         optional one-line trash talk for your rivals, shown on
+                        your card (max 120 chars, no links)
+
+exec
+/usr/bin/zsh -lc 'bench history --help' in /tmp/apb-34-codex-hxoz4aij
+ succeeded in 0ms:
+usage: bench history [-h] --outcome OUTCOME
+
+options:
+  -h, --help         show this help message and exit
+  --outcome OUTCOME
+
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-34-codex-hxoz4aij
+ succeeded in 0ms:
+{
+  "question": "Ethereum Up or Down on October 14?",
+  "description": "This market will resolve to \"Up\" if the \"Close\" price for the Binance 1 minute candle for ETH/USDT Oct 13 '26 12:00 in the ET timezone (noon) is lower than the final \"Close\" price for the Oct 14 '26 12:00 ET candle.\n\nThis market will resolve to \"Down\" if the \"Close\" price for the Binance 1 minute candle for ETH/USDT Oct 13 '26 12:00 in the ET timezone (noon) is higher than the final \"Close\" price for the Oct 14 '26 12:00 ET candle.\n\nIf the final \"Close\" price for both of these candles is exactly equal on Binance, this market will resolve 50-50.\n\nThe resolution source for this market is Binance, specifically the ETH/USDT \"Close\" prices currently available at https://www.binance.com/en/trade/ETH_USDT with \"1m\" and \"Candles\" selected on the top bar.\n\nPlease note that this market is about the price according to Binance ETH/USDT, not according to other exchanges or trading pairs.",
+  "outcomes": [
+    "Up",
+    "Down"
+  ],
+  "prices": [
+    0.5,
+    0.5
+  ],
+  "best_bid": 0.49,
+  "best_ask": 0.51,
+  "end_date": "2026-10-14T16:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 283
+}
+
+web search: 
+exec
+/usr/bin/zsh -lc 'bench history --outcome Up' in /tmp/apb-34-codex-hxoz4aij
+ succeeded in 0ms:
+{
+  "history": []
+}
+
+exec
+/usr/bin/zsh -lc 'bench book --outcome Down' in /tmp/apb-34-codex-hxoz4aij
+ succeeded in 0ms:
+{
+  "outcome": "Down",
+  "bids": [
+    {
+      "price": "0.49",
+      "size": "206.54"
+    },
+    {
+      "price": "0.48",
+      "size": "160"
+    },
+    {
+      "price": "0.47",
+      "size": "276"
+    },
+    {
+      "price": "0.46",
+      "size": "206"
+    },
+    {
+      "price": "0.45",
+      "size": "33.5"
+    },
+    {
+      "price": "0.44",
+      "size": "5000"
+    },
+    {
+      "price": "0.42",
+      "size": "20"
+    },
+    {
+      "price": "0.4",
+      "size": "500"
+    },
+    {
+      "price": "0.22",
+      "size": "20"
+    },
+    {
+      "price": "0.21",
+      "size": "1714.28"
+    },
+    {
+      "price": "0.15",
+      "size": "80"
+    },
+    {
+      "price": "0.14",
+      "size": "9642.83"
+    },
+    {
+      "price": "0.1",
+      "size": "2000"
+    },
+    {
+      "price": "0.08",
+      "size": "5.54"
+    },
+    {
+      "price": "0.07",
+      "size": "20142.83"
+    }
+  ],
+  "asks": [
+    {
+      "price": "0.51",
+      "size": "210.03"
+    },
+    {
+      "price": "0.52",
+      "size": "382"
+    },
+    {
+      "price": "0.53",
+      "size": "5035"
+    },
+    {
+      "price": "0.54",
+      "size": "356.54"
+    },
+    {
+      "price": "0.55",
+      "size": "150"
+    },
+    {
+      "price": "0.56",
+      "size": "17.5"
+    },
+    {
+      "price": "0.58",
+      "size": "6"
+    },
+    {
+      "price": "0.6",
+      "size": "500"
+    },
+    {
+      "price": "0.79",
+      "size": "1714.28"
+    },
+    {
+      "price": "0.86",
+      "size": "9642.83"
+    },
+    {
+      "price": "0.9",
+      "size": "2000"
+    },
+    {
+      "price": "0.92",
+      "size": "5.53"
+    },
+    {
+      "price": "0.93",
+      "size": "20142.83"
+    },
+    {
+      "price": "0.95",
+      "size": "2005"
+    },
+    {
+      "price": "0.96",
+      "size": "110"
+    }
+  ],
+  "last_trade_price": "0"
+}
+
+exec
+/usr/bin/zsh -lc 'bench book --outcome Up' in /tmp/apb-34-codex-hxoz4aij
+ succeeded in 0ms:
+{
+  "outcome": "Up",
+  "bids": [
+    {
+      "price": "0.49",
+      "size": "210.03"
+    },
+    {
+      "price": "0.48",
+      "size": "382"
+    },
+    {
+      "price": "0.47",
+      "size": "5035"
+    },
+    {
+      "price": "0.46",
+      "size": "356.54"
+    },
+    {
+      "price": "0.45",
+      "size": "150"
+    },
+    {
+      "price": "0.44",
+      "size": "17.5"
+    },
+    {
+      "price": "0.42",
+      "size": "6"
+    },
+    {
+      "price": "0.4",
+      "size": "500"
+    },
+    {
+      "price": "0.21",
+      "size": "1714.28"
+    },
+    {
+      "price": "0.14",
+      "size": "9642.83"
+    },
+    {
+      "price": "0.1",
+      "size": "2000"
+    },
+    {
+      "price": "0.08",
+      "size": "5.53"
+    },
+    {
+      "price": "0.07",
+      "size": "20142.83"
+    },
+    {
+      "price": "0.05",
+      "size": "2005"
+    },
+    {
+      "price": "0.04",
+      "size": "110"
+    }
+  ],
+  "asks": [
+    {
+      "price": "0.51",
+      "size": "206.54"
+    },
+    {
+      "price": "0.52",
+      "size": "160"
+    },
+    {
+      "price": "0.53",
+      "size": "276"
+    },
+    {
+      "price": "0.54",
+      "size": "206"
+    },
+    {
+      "price": "0.55",
+      "size": "33.5"
+    },
+    {
+      "price": "0.56",
+      "size": "5000"
+    },
+    {
+      "price": "0.58",
+      "size": "20"
+    },
+    {
+      "price": "0.6",
+      "size": "500"
+    },
+    {
+      "price": "0.78",
+      "size": "20"
+    },
+    {
+      "price": "0.79",
+      "size": "1714.28"
+    },
+    {
+      "price": "0.85",
+      "size": "80"
+    },
+    {
+      "price": "0.86",
+      "size": "9642.83"
+    },
+    {
+      "price": "0.9",
+      "size": "2000"
+    },
+    {
+      "price": "0.92",
+      "size": "5.54"
+    },
+    {
+      "price": "0.93",
+      "size": "20142.83"
+    }
+  ],
+  "last_trade_price": "0"
+}
+
+exec
+/usr/bin/zsh -lc "curl -sS --max-time 15 'https://api.binance.com/api/v3/ticker/24hr?symbol=ETHUSDT'" in /tmp/apb-34-codex-hxoz4aij
+ succeeded in 139ms:
+{"symbol":"ETHUSDT","priceChange":"-12.60000000","priceChangePercent":"-0.498","weightedAvgPrice":"2490.97974920","prevClosePrice":"2531.50000000","lastPrice":"2518.90000000","lastQty":"2.08310000","bidPrice":"2518.90000000","bidQty":"22.89600000","askPrice":"2518.91000000","askQty":"43.06540000","openPrice":"2531.50000000","highPrice":"2538.52000000","lowPrice":"2409.09000000","volume":"305634.48250000","quoteVolume":"761329306.56357700","openTime":1791822457000,"closeTime":1791908857000,"firstId":4425733490,"lastId":4429765963,"count":4032474}
+web search: Ethereum ETH price October 13 2026 today crypto ...
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,json,datetime,math
+base='https://api.binance.com/api/v3/'
+start=int(datetime.datetime(2026,10,13,16,0,tzinfo=datetime.timezone.utc).timestamp()*1000)
+urls={'reference_1m':base+'klines?symbol=ETHUSDT&interval=1m&startTime='+str(start)+'&limit=30','hourly':base+'klines?symbol=ETHUSDT&interval=1h&limit=168','btc':base+'ticker/24hr?symbol=BTCUSDT'}
+for label,url in urls.items():
+ try:
+  data=json.load(urllib.request.urlopen(url,timeout=15))
+  if label=='hourly':
+   p=[float(c[4]) for c in data]; ret=[math.log(p[i]/p[i-1]) for i in range(1,len(p))]
+   print(label,json.dumps({'last24':[{ 't':datetime.datetime.fromtimestamp(c[0]/1000,datetime.timezone.utc).isoformat(),'o':c[1],'h':c[2],'l':c[3],'c':c[4],'v':c[5]} for c in data[-24:]],'return_1h':p[-1]/p[-2]-1,'return_4h':p[-1]/p[-5]-1,'return_12h':p[-1]/p[-13]-1,'return_24h':p[-1]/p[-25]-1,'return_7d':p[-1]/p[0]-1,'daily_vol_est':(sum(x*x for x in ret)/len(ret)*24)**.5}))
+  else: print(label,json.dumps(data))
+ except Exception as e:print(label,str(e))
+PY" in /tmp/apb-34-codex-hxoz4aij
+ succeeded in 722ms:
+reference_1m [[1791907200000, "2516.45000000", "2521.00000000", "2516.45000000", "2519.88000000", "351.54140000", 1791907259999, "885367.47919500", 6441, "223.14880000", "562011.27751000", "0"], [1791907260000, "2519.88000000", "2521.57000000", "2519.88000000", "2521.56000000", "212.69110000", 1791907319999, "536170.60175100", 2740, "180.56490000", "455184.76536800", "0"], [1791907320000, "2521.56000000", "2522.68000000", "2520.28000000", "2521.57000000", "198.43280000", 1791907379999, "500384.69923900", 4302, "154.12340000", "388649.23384700", "0"], [1791907380000, "2521.56000000", "2522.95000000", "2521.48000000", "2521.48000000", "143.55990000", 1791907439999, "362087.45285200", 3906, "81.98260000", "206763.50149700", "0"], [1791907440000, "2521.47000000", "2522.28000000", "2520.17000000", "2520.17000000", "298.33520000", 1791907499999, "752233.25413200", 5307, "81.02960000", "204281.87880900", "0"], [1791907500000, "2520.18000000", "2520.31000000", "2518.43000000", "2519.45000000", "200.22810000", 1791907559999, "504451.81488400", 4224, "64.37810000", "162183.77112700", "0"], [1791907560000, "2519.45000000", "2520.70000000", "2519.45000000", "2520.70000000", "62.57030000", 1791907619999, "157688.39240200", 2043, "41.51780000", "104631.76585800", "0"], [1791907620000, "2520.69000000", "2520.91000000", "2518.10000000", "2519.52000000", "101.99950000", 1791907679999, "256951.25131800", 3816, "51.38690000", "129435.98108200", "0"], [1791907680000, "2519.52000000", "2520.32000000", "2518.32000000", "2518.87000000", "59.44130000", 1791907739999, "149760.23407000", 2502, "32.82690000", "82704.15961200", "0"], [1791907740000, "2518.87000000", "2521.79000000", "2518.87000000", "2521.73000000", "57.09160000", 1791907799999, "143906.63426700", 1000, "36.55090000", "92123.02811200", "0"], [1791907800000, "2521.73000000", "2522.24000000", "2521.23000000", "2521.23000000", "73.16030000", 1791907859999, "184492.01075100", 1087, "20.55950000", "51846.72152100", "0"], [1791907860000, "2521.23000000", "2521.46000000", "2520.07000000", "2521.11000000", "74.93450000", 1791907919999, "188881.11940400", 2596, "51.58960000", "130031.56406500", "0"], [1791907920000, "2521.10000000", "2521.10000000", "2520.17000000", "2520.69000000", "31.44350000", 1791907979999, "79256.71843400", 1745, "17.79390000", "44851.40289000", "0"], [1791907980000, "2520.70000000", "2520.97000000", "2518.92000000", "2518.92000000", "301.35720000", 1791908039999, "759384.85465900", 2319, "18.46220000", "46531.33586100", "0"], [1791908040000, "2518.93000000", "2518.93000000", "2518.55000000", "2518.93000000", "55.01060000", 1791908099999, "138559.86264000", 1034, "48.18900000", "121378.01254000", "0"], [1791908100000, "2518.93000000", "2521.91000000", "2518.93000000", "2521.91000000", "71.63080000", 1791908159999, "180535.66396400", 1662, "56.33030000", "141978.38426700", "0"], [1791908160000, "2521.91000000", "2521.92000000", "2520.35000000", "2521.05000000", "121.63260000", 1791908219999, "306613.92058400", 2453, "36.64960000", "92379.77388200", "0"], [1791908220000, "2521.04000000", "2521.46000000", "2521.04000000", "2521.44000000", "168.11190000", 1791908279999, "423862.86036500", 1141, "48.29970000", "121777.69191200", "0"], [1791908280000, "2521.45000000", "2522.30000000", "2521.44000000", "2522.30000000", "32.14280000", 1791908339999, "81058.07154800", 869, "27.43400000", "69182.59193100", "0"], [1791908340000, "2522.30000000", "2522.30000000", "2520.25000000", "2520.63000000", "288.12220000", 1791908399999, "726370.45298700", 2683, "35.54590000", "89593.77804600", "0"], [1791908400000, "2520.63000000", "2523.12000000", "2520.63000000", "2522.48000000", "69.16250000", 1791908459999, "174431.28189800", 2363, "30.30600000", "76425.93254800", "0"], [1791908460000, "2522.49000000", "2522.95000000", "2522.17000000", "2522.17000000", "34.02320000", 1791908519999, "85827.60246600", 2588, "14.78900000", "37306.65295000", "0"], [1791908520000, "2522.17000000", "2523.33000000", "2521.00000000", "2521.01000000", "363.02890000", 1791908579999, "915503.15154700", 3313, "99.18340000", "250218.99282400", "0"], [1791908580000, "2521.00000000", "2521.00000000", "2518.94000000", "2518.94000000", "199.58800000", 1791908639999, "503125.63755600", 1179, "5.32080000", "13405.14827400", "0"], [1791908640000, "2518.94000000", "2519.64000000", "2518.31000000", "2518.74000000", "63.95530000", 1791908699999, "161107.75434400", 2667, "43.50520000", "109591.50120900", "0"], [1791908700000, "2518.75000000", "2518.93000000", "2518.43000000", "2518.43000000", "21.20500000", 1791908759999, "53410.22428700", 812, "7.71720000", "19437.79343300", "0"], [1791908760000, "2518.43000000", "2518.50000000", "2517.97000000", "2518.01000000", "47.69770000", 1791908819999, "120110.70753900", 1377, "15.63940000", "39381.22084600", "0"], [1791908820000, "2518.02000000", "2518.91000000", "2518.02000000", "2518.12000000", "61.62620000", 1791908879999, "155209.04037000", 1377, "37.34900000", "94065.45485500", "0"], [1791908880000, "2518.12000000", "2518.12000000", "2518.12000000", "2518.12000000", "0.00000000", 1791908939999, "0.00000000", 0, "0.00000000", "0.00000000", "0"]]
+hourly {"last24": [{"t": "2026-10-12T17:00:00+00:00", "o": "2513.88000000", "h": "2519.16000000", "l": "2504.26000000", "c": "2512.14000000", "v": "7719.53900000"}, {"t": "2026-10-12T18:00:00+00:00", "o": "2512.13000000", "h": "2515.00000000", "l": "2508.91000000", "c": "2514.20000000", "v": "4267.89790000"}, {"t": "2026-10-12T19:00:00+00:00", "o": "2514.21000000", "h": "2522.95000000", "l": "2507.97000000", "c": "2521.59000000", "v": "5808.62780000"}, {"t": "2026-10-12T20:00:00+00:00", "o": "2521.58000000", "h": "2527.50000000", "l": "2518.99000000", "c": "2519.47000000", "v": "4542.40750000"}, {"t": "2026-10-12T21:00:00+00:00", "o": "2519.46000000", "h": "2519.46000000", "l": "2483.52000000", "c": "2490.69000000", "v": "11274.11260000"}, {"t": "2026-10-12T22:00:00+00:00", "o": "2490.69000000", "h": "2498.51000000", "l": "2465.65000000", "c": "2466.59000000", "v": "14977.40150000"}, {"t": "2026-10-12T23:00:00+00:00", "o": "2466.60000000", "h": "2471.58000000", "l": "2443.00000000", "c": "2447.17000000", "v": "25920.49320000"}, {"t": "2026-10-13T00:00:00+00:00", "o": "2447.16000000", "h": "2451.00000000", "l": "2409.09000000", "c": "2421.85000000", "v": "36392.29040000"}, {"t": "2026-10-13T01:00:00+00:00", "o": "2421.86000000", "h": "2466.47000000", "l": "2421.85000000", "c": "2464.37000000", "v": "25054.80580000"}, {"t": "2026-10-13T02:00:00+00:00", "o": "2464.37000000", "h": "2498.07000000", "l": "2463.16000000", "c": "2491.06000000", "v": "16017.12380000"}, {"t": "2026-10-13T03:00:00+00:00", "o": "2491.05000000", "h": "2514.28000000", "l": "2486.84000000", "c": "2508.74000000", "v": "15599.08700000"}, {"t": "2026-10-13T04:00:00+00:00", "o": "2508.74000000", "h": "2520.65000000", "l": "2506.93000000", "c": "2517.99000000", "v": "7856.67140000"}, {"t": "2026-10-13T05:00:00+00:00", "o": "2517.99000000", "h": "2538.52000000", "l": "2513.14000000", "c": "2531.69000000", "v": "11155.13610000"}, {"t": "2026-10-13T06:00:00+00:00", "o": "2531.69000000", "h": "2537.20000000", "l": "2526.83000000", "c": "2534.37000000", "v": "10961.32070000"}, {"t": "2026-10-13T07:00:00+00:00", "o": "2534.38000000", "h": "2538.44000000", "l": "2525.41000000", "c": "2529.10000000", "v": "10789.80500000"}, {"t": "2026-10-13T08:00:00+00:00", "o": "2529.11000000", "h": "2537.69000000", "l": "2518.67000000", "c": "2518.68000000", "v": "23564.50530000"}, {"t": "2026-10-13T09:00:00+00:00", "o": "2518.67000000", "h": "2518.67000000", "l": "2504.71000000", "c": "2514.78000000", "v": "8537.63660000"}, {"t": "2026-10-13T10:00:00+00:00", "o": "2514.78000000", "h": "2516.03000000", "l": "2491.90000000", "c": "2498.97000000", "v": "7968.61050000"}, {"t": "2026-10-13T11:00:00+00:00", "o": "2498.97000000", "h": "2525.00000000", "l": "2489.00000000", "c": "2500.86000000", "v": "15942.16580000"}, {"t": "2026-10-13T12:00:00+00:00", "o": "2500.85000000", "h": "2507.20000000", "l": "2493.85000000", "c": "2505.53000000", "v": "7142.64410000"}, {"t": "2026-10-13T13:00:00+00:00", "o": "2505.57000000", "h": "2521.25000000", "l": "2498.01000000", "c": "2503.44000000", "v": "8440.17090000"}, {"t": "2026-10-13T14:00:00+00:00", "o": "2503.44000000", "h": "2528.38000000", "l": "2501.56000000", "c": "2517.54000000", "v": "11256.70590000"}, {"t": "2026-10-13T15:00:00+00:00", "o": "2517.55000000", "h": "2523.37000000", "l": "2505.00000000", "c": "2516.45000000", "v": "7184.45400000"}, {"t": "2026-10-13T16:00:00+00:00", "o": "2516.45000000", "h": "2523.33000000", "l": "2516.45000000", "c": "2518.06000000", "v": "3765.16060000"}], "return_1h": 0.0006397901806116657, "return_4h": 0.00500093792530909, "return_12h": 2.7799951548779234e-05, "return_24h": 0.0016627683103409563, "return_7d": -0.06713642156426913, "daily_vol_est": 0.025281813156522327}
+btc {"symbol": "BTCUSDT", "priceChange": "629.30000000", "priceChangePercent": "0.759", "weightedAvgPrice": "83053.73128947", "prevClosePrice": "82898.35000000", "lastPrice": "83527.64000000", "lastQty": "0.04245000", "bidPrice": "83527.64000000", "bidQty": "0.49719000", "askPrice": "83527.65000000", "askQty": "8.07311000", "openPrice": "82898.34000000", "highPrice": "84168.00000000", "lowPrice": "81033.66000000", "volume": "15453.35303000", "quoteVolume": "1283458630.07492350", "openTime": 1791822482009, "closeTime": 1791908882009, "firstId": 6755252002, "lastId": 6758528189, "count": 3276188}
+
+web search: Ethereum October 13 2026 crypto news CPI October 14 ...
+codex
+The reference close is $2,519.88, and ETH is trading almost level with it. I have a tentative lean toward Down given the recent price decline and ten consecutive sessions of ETF outflows, but tomorrow’s CPI release adds substantial uncertainty. I’m checking derivatives pricing before committing. [ETF flows](https://farside.co.uk/eth/) · [CPI schedule](https://www.bls.gov/cpi/?p=L0o1L05HZ05NU009)
+
+web search: 
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-34-codex-hxoz4aij
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,json,datetime,concurrent.futures
+urls={'funding':'https://fapi.binance.com/fapi/v1/premiumIndex?symbol=ETHUSDT','options':'https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=ETH&kind=option','longshort':'https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=ETHUSDT&period=1h&limit=6'}
+def run(item):
+ name,url=item
+ try:
+  data=json.load(urllib.request.urlopen(url,timeout=15))
+  if name=='options':
+   data=[{k:x.get(k) for k in ['instrument_name','bid_price','ask_price','mark_price','mark_iv','underlying_price','underlying_index','open_interest','volume']} for x in data.get('result',[]) if ('14OCT26' in x.get('instrument_name','') or '15OCT26' in x.get('instrument_name','') or '16OCT26' in x.get('instrument_name','')) and 2200<=float(x['instrument_name'].split('-')[2])<=2800]
+  return name,data
+ except Exception as e:return name,str(e)
+with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
+ for name,data in ex.map(run,urls.items()):print(name,json.dumps(data))
+PY" in /tmp/apb-34-codex-hxoz4aij
+ succeeded in 217ms:
+{
+  "question": "Ethereum Up or Down on October 14?",
+  "description": "This market will resolve to \"Up\" if the \"Close\" price for the Binance 1 minute candle for ETH/USDT Oct 13 '26 12:00 in the ET timezone (noon) is lower than the final \"Close\" price for the Oct 14 '26 12:00 ET candle.\n\nThis market will resolve to \"Down\" if the \"Close\" price for the Binance 1 minute candle for ETH/USDT Oct 13 '26 12:00 in the ET timezone (noon) is higher than the final \"Close\" price for the Oct 14 '26 12:00 ET candle.\n\nIf the final \"Close\" price for both of these candles is exactly equal on Binance, this market will resolve 50-50.\n\nThe resolution source for this market is Binance, specifically the ETH/USDT \"Close\" prices currently available at https://www.binance.com/en/trade/ETH_USDT with \"1m\" and \"Candles\" selected on the top bar.\n\nPlease note that this market is about the price according to Binance ETH/USDT, not according to other exchanges or trading pairs.",
+  "outcomes": [
+    "Up",
+    "Down"
+  ],
+  "prices": [
+    0.5,
+    0.5
+  ],
+  "best_bid": 0.49,
+  "best_ask": 0.51,
+  "end_date": "2026-10-14T16:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 223
+}
+
+ succeeded in 260ms:
+funding {"symbol": "ETHUSDT", "markPrice": "2517.16000000", "indexPrice": "2518.61000000", "estimatedSettlePrice": "2520.13500465", "lastFundingRate": "0.00004239", "interestRate": "0.00010000", "nextFundingTime": 1791936000000, "time": 1791908909004}
+options [{"instrument_name": "ETH-14OCT26-2640-P", "bid_price": 0.046, "ask_price": 0.053, "mark_price": 0.049483, "mark_iv": 48.58, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 2.0, "volume": 2.0}, {"instrument_name": "ETH-14OCT26-2700-C", "bid_price": null, "ask_price": 0.0001, "mark_price": 6.5e-05, "mark_iv": 67.95, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 162.0, "volume": 93.0}, {"instrument_name": "ETH-16OCT26-2440-C", "bid_price": 0.034, "ask_price": 0.036, "mark_price": 0.035111, "mark_iv": 46.11, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 36.0, "volume": 72.0}, {"instrument_name": "ETH-14OCT26-2420-C", "bid_price": 0.0355, "ask_price": 0.0415, "mark_price": 0.038413, "mark_iv": 53.39, "underlying_price": 2515.81, "underlying_index": "ETH-14OCT26", "open_interest": 47.0, "volume": 48.0}, {"instrument_name": "ETH-14OCT26-2620-C", "bid_price": null, "ask_price": 0.0001, "mark_price": 7.7e-05, "mark_iv": 42.78, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 301.0, "volume": 379.0}, {"instrument_name": "ETH-15OCT26-2500-C", "bid_price": 0.014, "ask_price": 0.015, "mark_price": 0.014371, "mark_iv": 41.02, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 203.0, "volume": 192.0}, {"instrument_name": "ETH-16OCT26-2700-P", "bid_price": 0.0705, "ask_price": 0.077, "mark_price": 0.074112, "mark_iv": 52.32, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 1908.0, "volume": 0.0}, {"instrument_name": "ETH-16OCT26-2550-C", "bid_price": 0.008, "ask_price": 0.009, "mark_price": 0.00843, "mark_iv": 41.3, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 2492.0, "volume": 564.0}, {"instrument_name": "ETH-14OCT26-2800-P", "bid_price": 0.1095, "ask_price": 0.116, "mark_price": 0.113044, "mark_iv": 88.96, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-16OCT26-2650-C", "bid_price": 0.0018, "ask_price": 0.0021, "mark_price": 0.001911, "mark_iv": 47.09, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 11536.0, "volume": 2213.0}, {"instrument_name": "ETH-16OCT26-2400-P", "bid_price": 0.0027, "ask_price": 0.0031, "mark_price": 0.00291, "mark_iv": 50.67, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 4774.0, "volume": 1071.0}, {"instrument_name": "ETH-16OCT26-2500-C", "bid_price": 0.017, "ask_price": 0.0185, "mark_price": 0.017684, "mark_iv": 41.95, "underlying_price": 2516.34, "underlying_index": "ETH-16OCT26", "open_interest": 1131.0, "volume": 253.0}, {"instrument_name": "ETH-16OCT26-2460-P", "bid_price": 0.006, "ask_price": 0.0065, "mark_price": 0.006286, "mark_iv": 44.28, "underlying_price": 2516.34, "underlying_index": "ETH-16OCT26", "open_interest": 52.0, "volume": 78.0}, {"instrument_name": "ETH-14OCT26-2560-C", "bid_price": 0.0003, "ask_price": 0.0005, "mark_price": 0.000406, "mark_iv": 28.73, "underlying_price": 2515.81, "underlying_index": "ETH-14OCT26", "open_interest": 2681.0, "volume": 3087.0}, {"instrument_name": "ETH-16OCT26-2750-C", "bid_price": 0.0006, "ask_price": 0.0007, "mark_price": 0.000675, "mark_iv": 57.04, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 4381.0, "volume": 876.0}, {"instrument_name": "ETH-14OCT26-2420-P", "bid_price": 0.0003, "ask_price": 0.0004, "mark_price": 0.00038, "mark_iv": 53.39, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 342.0, "volume": 357.0}, {"instrument_name": "ETH-15OCT26-2750-C", "bid_price": 0.0002, "ask_price": 0.0003, "mark_price": 0.000231, "mark_iv": 61.18, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 286.0, "volume": 149.0}, {"instrument_name": "ETH-14OCT26-2600-P", "bid_price": 0.03, "ask_price": 0.0365, "mark_price": 0.033641, "mark_iv": 38.3, "underlying_price": 2515.81, "underlying_index": "ETH-14OCT26", "open_interest": 15.0, "volume": 15.0}, {"instrument_name": "ETH-14OCT26-2700-P", "bid_price": 0.0695, "ask_price": 0.0765, "mark_price": 0.073333, "mark_iv": 67.95, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 1.0, "volume": 0.0}, {"instrument_name": "ETH-15OCT26-2250-C", "bid_price": 0.105, "ask_price": 0.109, "mark_price": 0.106053, "mark_iv": 82.32, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 18.0, "volume": 0.0}, {"instrument_name": "ETH-16OCT26-2580-P", "bid_price": 0.029, "ask_price": 0.0315, "mark_price": 0.03051, "mark_iv": 42.08, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 5.0, "volume": 5.0}, {"instrument_name": "ETH-15OCT26-2720-C", "bid_price": 0.0002, "ask_price": 0.0005, "mark_price": 0.000314, "mark_iv": 57.25, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 43.0, "volume": 42.0}, {"instrument_name": "ETH-16OCT26-2200-C", "bid_price": 0.125, "ask_price": 0.129, "mark_price": 0.126276, "mark_iv": 79.61, "underlying_price": 2516.34, "underlying_index": "ETH-16OCT26", "open_interest": 18.0, "volume": 0.0}, {"instrument_name": "ETH-15OCT26-2200-P", "bid_price": 0.0002, "ask_price": 0.0003, "mark_price": 0.000268, "mark_iv": 90.28, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 14.0, "volume": 4.0}, {"instrument_name": "ETH-14OCT26-2500-C", "bid_price": 0.0085, "ask_price": 0.0095, "mark_price": 0.009139, "mark_iv": 32.64, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 257.0, "volume": 256.0}, {"instrument_name": "ETH-16OCT26-2600-C", "bid_price": 0.0036, "ask_price": 0.004, "mark_price": 0.003782, "mark_iv": 42.99, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 6626.0, "volume": 2967.0}, {"instrument_name": "ETH-15OCT26-2320-P", "bid_price": 0.0007, "ask_price": 0.0009, "mark_price": 0.000826, "mark_iv": 70.76, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 433.0, "volume": 100.0}, {"instrument_name": "ETH-14OCT26-2600-C", "bid_price": null, "ask_price": 0.0002, "mark_price": 0.000124, "mark_iv": 38.3, "underlying_price": 2515.81, "underlying_index": "ETH-14OCT26", "open_interest": 1100.0, "volume": 1222.0}, {"instrument_name": "ETH-14OCT26-2660-C", "bid_price": null, "ask_price": 0.0001, "mark_price": 6.3e-05, "mark_iv": 55.02, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 105.0, "volume": 223.0}, {"instrument_name": "ETH-16OCT26-2440-P", "bid_price": 0.0045, "ask_price": 0.005, "mark_price": 0.004777, "mark_iv": 46.11, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 45.0, "volume": 76.0}, {"instrument_name": "ETH-14OCT26-2680-C", "bid_price": null, "ask_price": 0.0001, "mark_price": 6.5e-05, "mark_iv": 61.59, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 369.0, "volume": 198.0}, {"instrument_name": "ETH-14OCT26-2520-C", "bid_price": 0.0038, "ask_price": 0.0044, "mark_price": 0.004179, "mark_iv": 29.68, "underlying_price": 2515.81, "underlying_index": "ETH-14OCT26", "open_interest": 272.0, "volume": 329.0}, {"instrument_name": "ETH-15OCT26-2480-C", "bid_price": 0.019, "ask_price": 0.021, "mark_price": 0.019844, "mark_iv": 42.67, "underlying_price": 2516.11, "underlying_index": "ETH-15OCT26", "open_interest": 80.0, "volume": 80.0}, {"instrument_name": "ETH-14OCT26-2200-C", "bid_price": 0.1245, "ask_price": 0.128, "mark_price": 0.125497, "mark_iv": 103.91, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 18.0, "volume": 18.0}, {"instrument_name": "ETH-15OCT26-2800-P", "bid_price": 0.1095, "ask_price": 0.116, "mark_price": 0.113126, "mark_iv": 66.73, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-14OCT26-2660-P", "bid_price": 0.054, "ask_price": 0.061, "mark_price": 0.057431, "mark_iv": 55.02, "underlying_price": 2515.81, "underlying_index": "ETH-14OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-15OCT26-2500-P", "bid_price": 0.0075, "ask_price": 0.0085, "mark_price": 0.008115, "mark_iv": 41.02, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 435.0, "volume": 391.0}, {"instrument_name": "ETH-15OCT26-2600-C", "bid_price": 0.0016, "ask_price": 0.002, "mark_price": 0.001773, "mark_iv": 42.39, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 915.0, "volume": 829.0}, {"instrument_name": "ETH-15OCT26-2620-P", "bid_price": 0.0395, "ask_price": 0.0455, "mark_price": 0.042671, "mark_iv": 44.52, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-14OCT26-2350-C", "bid_price": 0.0635, "ask_price": 0.069, "mark_price": 0.065984, "mark_iv": 72.02, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 28.0, "volume": 60.0}, {"instrument_name": "ETH-14OCT26-2440-P", "bid_price": 0.0004, "ask_price": 0.0006, "mark_price": 0.000568, "mark_iv": 47.98, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 736.0, "volume": 608.0}, {"instrument_name": "ETH-15OCT26-2680-P", "bid_price": 0.062, "ask_price": 0.0695, "mark_price": 0.065795, "mark_iv": 52.02, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-15OCT26-2640-C", "bid_price": 0.0008, "ask_price": 0.0011, "mark_price": 0.000901, "mark_iv": 47.12, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 5345.0, "volume": 198.0}, {"instrument_name": "ETH-16OCT26-2550-P", "bid_price": 0.021, "ask_price": 0.0225, "mark_price": 0.02181, "mark_iv": 41.3, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 3145.0, "volume": 98.0}, {"instrument_name": "ETH-14OCT26-2340-P", "bid_price": null, "ask_price": 0.0001, "mark_price": 9.7e-05, "mark_iv": 73.44, "underlying_price": 2515.81, "underlying_index": "ETH-14OCT26", "open_interest": 940.0, "volume": 942.0}, {"instrument_name": "ETH-15OCT26-2360-P", "bid_price": 0.001, "ask_price": 0.0012, "mark_price": 0.001155, "mark_iv": 62.77, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 159.0, "volume": 39.0}, {"instrument_name": "ETH-15OCT26-2520-P", "bid_price": 0.011, "ask_price": 0.012, "mark_price": 0.01167, "mark_iv": 40.27, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 162.0, "volume": 184.0}, {"instrument_name": "ETH-16OCT26-2560-C", "bid_price": 0.007, "ask_price": 0.0075, "mark_price": 0.007169, "mark_iv": 41.41, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 276.0, "volume": 265.0}, {"instrument_name": "ETH-15OCT26-2350-P", "bid_price": 0.0009, "ask_price": 0.0011, "mark_price": 0.001054, "mark_iv": 64.72, "underlying_price": 2516.11, "underlying_index": "ETH-15OCT26", "open_interest": 324.0, "volume": 324.0}, {"instrument_name": "ETH-16OCT26-2200-P", "bid_price": 0.0005, "ask_price": 0.0006, "mark_price": 0.000565, "mark_iv": 79.61, "underlying_price": 2516.34, "underlying_index": "ETH-16OCT26", "open_interest": 2543.0, "volume": 1272.0}, {"instrument_name": "ETH-16OCT26-2520-C", "bid_price": 0.013, "ask_price": 0.014, "mark_price": 0.013391, "mark_iv": 41.5, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 162.0, "volume": 292.0}, {"instrument_name": "ETH-14OCT26-2340-C", "bid_price": 0.067, "ask_price": 0.073, "mark_price": 0.069931, "mark_iv": 73.44, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 18.0, "volume": 18.0}, {"instrument_name": "ETH-15OCT26-2650-P", "bid_price": 0.051, "ask_price": 0.057, "mark_price": 0.054148, "mark_iv": 48.43, "underlying_price": 2516.11, "underlying_index": "ETH-15OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-14OCT26-2460-C", "bid_price": 0.022, "ask_price": 0.026, "mark_price": 0.023005, "mark_iv": 42.21, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 84.0, "volume": 86.0}, {"instrument_name": "ETH-14OCT26-2800-C", "bid_price": null, "ask_price": 0.0001, "mark_price": 2.5e-05, "mark_iv": 88.96, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 50.0, "volume": 3.0}, {"instrument_name": "ETH-14OCT26-2300-C", "bid_price": 0.083, "ask_price": 0.0885, "mark_price": 0.085803, "mark_iv": 85.17, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-14OCT26-2380-C", "bid_price": 0.0515, "ask_price": 0.057, "mark_price": 0.054129, "mark_iv": 64.23, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 16.0, "volume": 16.0}, {"instrument_name": "ETH-15OCT26-2800-C", "bid_price": null, "ask_price": 0.0003, "mark_price": 0.000133, "mark_iv": 66.73, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 944.0, "volume": 427.0}, {"instrument_name": "ETH-15OCT26-2620-C", "bid_price": 0.0011, "ask_price": 0.0014, "mark_price": 0.001228, "mark_iv": 44.52, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 32.0, "volume": 2.0}, {"instrument_name": "ETH-15OCT26-2350-C", "bid_price": 0.066, "ask_price": 0.07, "mark_price": 0.066935, "mark_iv": 64.72, "underlying_price": 2516.11, "underlying_index": "ETH-15OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-16OCT26-2750-P", "bid_price": 0.0895, "ask_price": 0.0965, "mark_price": 0.093537, "mark_iv": 57.04, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 773.0, "volume": 0.0}, {"instrument_name": "ETH-15OCT26-2520-C", "bid_price": 0.0095, "ask_price": 0.0105, "mark_price": 0.009977, "mark_iv": 40.27, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 123.0, "volume": 57.0}, {"instrument_name": "ETH-14OCT26-2350-P", "bid_price": null, "ask_price": 0.0001, "mark_price": 0.000125, "mark_iv": 72.02, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 1110.0, "volume": 1192.0}, {"instrument_name": "ETH-16OCT26-2560-P", "bid_price": 0.0235, "ask_price": 0.0255, "mark_price": 0.024524, "mark_iv": 41.41, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-15OCT26-2540-C", "bid_price": 0.006, "ask_price": 0.007, "mark_price": 0.006507, "mark_iv": 39.52, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 510.0, "volume": 413.0}, {"instrument_name": "ETH-16OCT26-2480-P", "bid_price": 0.008, "ask_price": 0.009, "mark_price": 0.00843, "mark_iv": 43.06, "underlying_price": 2516.34, "underlying_index": "ETH-16OCT26", "open_interest": 180.0, "volume": 179.0}, {"instrument_name": "ETH-14OCT26-2560-P", "bid_price": 0.0155, "ask_price": 0.0205, "mark_price": 0.018024, "mark_iv": 28.73, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 40.0, "volume": 40.0}, {"instrument_name": "ETH-14OCT26-2250-P", "bid_price": null, "ask_price": 0.0001, "mark_price": 6.1e-05, "mark_iv": 102.16, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 721.0, "volume": 757.0}, {"instrument_name": "ETH-16OCT26-2400-C", "bid_price": 0.048, "ask_price": 0.0515, "mark_price": 0.04914, "mark_iv": 50.67, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 376.0, "volume": 17.0}, {"instrument_name": "ETH-15OCT26-2250-P", "bid_price": 0.0003, "ask_price": 0.0005, "mark_price": 0.000422, "mark_iv": 82.32, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 532.0, "volume": 532.0}, {"instrument_name": "ETH-15OCT26-2660-C", "bid_price": 0.0006, "ask_price": 0.0008, "mark_price": 0.000673, "mark_iv": 49.61, "underlying_price": 2516.11, "underlying_index": "ETH-15OCT26", "open_interest": 20.0, "volume": 6.0}, {"instrument_name": "ETH-15OCT26-2400-P", "bid_price": 0.0015, "ask_price": 0.0018, "mark_price": 0.001714, "mark_iv": 54.83, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 727.0, "volume": 785.0}, {"instrument_name": "ETH-16OCT26-2450-C", "bid_price": 0.031, "ask_price": 0.033, "mark_price": 0.03187, "mark_iv": 45.31, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 749.0, "volume": 538.0}, {"instrument_name": "ETH-15OCT26-2640-P", "bid_price": 0.047, "ask_price": 0.054, "mark_price": 0.050294, "mark_iv": 47.12, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-16OCT26-2540-C", "bid_price": 0.0095, "ask_price": 0.0105, "mark_price": 0.00988, "mark_iv": 41.27, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 1111.0, "volume": 1060.0}, {"instrument_name": "ETH-15OCT26-2580-C", "bid_price": 0.0025, "ask_price": 0.0029, "mark_price": 0.002696, "mark_iv": 40.86, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 204.0, "volume": 38.0}, {"instrument_name": "ETH-15OCT26-2700-C", "bid_price": 0.0003, "ask_price": 0.0005, "mark_price": 0.000378, "mark_iv": 54.29, "underlying_price": 2516.11, "underlying_index": "ETH-15OCT26", "open_interest": 383.0, "volume": 332.0}, {"instrument_name": "ETH-14OCT26-2360-P", "bid_price": null, "ask_price": 0.0002, "mark_price": 0.000146, "mark_iv": 69.53, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 62.0, "volume": 61.0}, {"instrument_name": "ETH-15OCT26-2750-P", "bid_price": 0.09, "ask_price": 0.097, "mark_price": 0.093349, "mark_iv": 61.18, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-15OCT26-2420-C", "bid_price": 0.039, "ask_price": 0.043, "mark_price": 0.040228, "mark_iv": 51.08, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 46.0, "volume": 46.0}, {"instrument_name": "ETH-16OCT26-2480-C", "bid_price": 0.022, "ask_price": 0.024, "mark_price": 0.022868, "mark_iv": 43.06, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 423.0, "volume": 433.0}, {"instrument_name": "ETH-15OCT26-2360-C", "bid_price": 0.062, "ask_price": 0.066, "mark_price": 0.063061, "mark_iv": 62.77, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-15OCT26-2300-P", "bid_price": 0.0006, "ask_price": 0.0007, "mark_price": 0.000691, "mark_iv": 74.38, "underlying_price": 2516.11, "underlying_index": "ETH-15OCT26", "open_interest": 4046.0, "volume": 1707.0}, {"instrument_name": "ETH-16OCT26-2650-P", "bid_price": 0.052, "ask_price": 0.0575, "mark_price": 0.055032, "mark_iv": 47.09, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 628.0, "volume": 0.0}, {"instrument_name": "ETH-14OCT26-2650-C", "bid_price": null, "ask_price": 0.0001, "mark_price": 6.4e-05, "mark_iv": 51.87, "underlying_price": 2515.81, "underlying_index": "ETH-14OCT26", "open_interest": 154.0, "volume": 154.0}, {"instrument_name": "ETH-15OCT26-2460-P", "bid_price": 0.0036, "ask_price": 0.004, "mark_price": 0.003949, "mark_iv": 44.84, "underlying_price": 2516.11, "underlying_index": "ETH-15OCT26", "open_interest": 78.0, "volume": 13.0}, {"instrument_name": "ETH-16OCT26-2420-P", "bid_price": 0.0035, "ask_price": 0.0039, "mark_price": 0.003693, "mark_iv": 48.27, "underlying_price": 2516.34, "underlying_index": "ETH-16OCT26", "open_interest": 407.0, "volume": 408.0}, {"instrument_name": "ETH-15OCT26-2560-C", "bid_price": 0.004, "ask_price": 0.0044, "mark_price": 0.004202, "mark_iv": 39.93, "underlying_price": 2516.11, "underlying_index": "ETH-15OCT26", "open_interest": 513.0, "volume": 352.0}, {"instrument_name": "ETH-16OCT26-2300-P", "bid_price": 0.0011, "ask_price": 0.0013, "mark_price": 0.001205, "mark_iv": 65.48, "underlying_price": 2516.34, "underlying_index": "ETH-16OCT26", "open_interest": 5515.0, "volume": 216.0}, {"instrument_name": "ETH-16OCT26-2450-P", "bid_price": 0.005, "ask_price": 0.006, "mark_price": 0.00551, "mark_iv": 45.31, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 968.0, "volume": 246.0}, {"instrument_name": "ETH-16OCT26-2300-C", "bid_price": 0.086, "ask_price": 0.09, "mark_price": 0.087175, "mark_iv": 65.48, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 18.0, "volume": 18.0}, {"instrument_name": "ETH-15OCT26-2480-P", "bid_price": 0.005, "ask_price": 0.006, "mark_price": 0.005637, "mark_iv": 42.67, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 57.0, "volume": 50.0}, {"instrument_name": "ETH-14OCT26-2640-C", "bid_price": null, "ask_price": 0.0001, "mark_price": 6.5e-05, "mark_iv": 48.58, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 11.0, "volume": 9.0}, {"instrument_name": "ETH-14OCT26-2400-P", "bid_price": 0.0002, "ask_price": 0.0003, "mark_price": 0.000264, "mark_iv": 58.72, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 483.0, "volume": 563.0}, {"instrument_name": "ETH-14OCT26-2380-P", "bid_price": 0.0001, "ask_price": 0.0002, "mark_price": 0.000195, "mark_iv": 64.23, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 1077.0, "volume": 1016.0}, {"instrument_name": "ETH-14OCT26-2200-P", "bid_price": null, "ask_price": 0.0001, "mark_price": 1.2e-05, "mark_iv": 103.91, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 1299.0, "volume": 720.0}, {"instrument_name": "ETH-15OCT26-2720-P", "bid_price": 0.078, "ask_price": 0.0845, "mark_price": 0.081506, "mark_iv": 57.25, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-16OCT26-2620-C", "bid_price": 0.0027, "ask_price": 0.0031, "mark_price": 0.002823, "mark_iv": 44.41, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 894.0, "volume": 938.0}, {"instrument_name": "ETH-14OCT26-2460-P", "bid_price": 0.0007, "ask_price": 0.0009, "mark_price": 0.000872, "mark_iv": 42.21, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 1037.0, "volume": 1122.0}, {"instrument_name": "ETH-14OCT26-2620-P", "bid_price": 0.0385, "ask_price": 0.0445, "mark_price": 0.041545, "mark_iv": 42.78, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 1.0, "volume": 0.0}, {"instrument_name": "ETH-15OCT26-2200-C", "bid_price": 0.125, "ask_price": 0.1285, "mark_price": 0.125774, "mark_iv": 90.28, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-16OCT26-2540-P", "bid_price": 0.0185, "ask_price": 0.02, "mark_price": 0.019287, "mark_iv": 41.27, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 11.0, "volume": 11.0}, {"instrument_name": "ETH-14OCT26-2440-C", "bid_price": 0.028, "ask_price": 0.0335, "mark_price": 0.030651, "mark_iv": 47.98, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 48.0, "volume": 46.0}, {"instrument_name": "ETH-15OCT26-2560-P", "bid_price": 0.0205, "ask_price": 0.0225, "mark_price": 0.021795, "mark_iv": 39.93, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 98.0, "volume": 72.0}, {"instrument_name": "ETH-14OCT26-2680-P", "bid_price": 0.062, "ask_price": 0.0685, "mark_price": 0.065383, "mark_iv": 61.59, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-15OCT26-2680-C", "bid_price": 0.0004, "ask_price": 0.0007, "mark_price": 0.000502, "mark_iv": 52.02, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 2175.0, "volume": 2168.0}, {"instrument_name": "ETH-14OCT26-2360-C", "bid_price": 0.0595, "ask_price": 0.065, "mark_price": 0.06203, "mark_iv": 69.53, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 36.0, "volume": 0.0}, {"instrument_name": "ETH-14OCT26-2580-C", "bid_price": 0.0001, "ask_price": 0.0003, "mark_price": 0.000156, "mark_iv": 31.8, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 1059.0, "volume": 1295.0}, {"instrument_name": "ETH-15OCT26-2440-P", "bid_price": 0.0026, "ask_price": 0.003, "mark_price": 0.00287, "mark_iv": 47.71, "underlying_price": 2516.11, "underlying_index": "ETH-15OCT26", "open_interest": 355.0, "volume": 231.0}, {"instrument_name": "ETH-15OCT26-2650-C", "bid_price": 0.0007, "ask_price": 0.0009, "mark_price": 0.00078, "mark_iv": 48.43, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 250.0, "volume": 250.0}, {"instrument_name": "ETH-16OCT26-2700-C", "bid_price": 0.0011, "ask_price": 0.0013, "mark_price": 0.001121, "mark_iv": 52.32, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 3049.0, "volume": 594.0}, {"instrument_name": "ETH-14OCT26-2580-P", "bid_price": 0.0225, "ask_price": 0.0285, "mark_price": 0.025723, "mark_iv": 31.8, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 40.0, "volume": 0.0}, {"instrument_name": "ETH-14OCT26-2300-P", "bid_price": null, "ask_price": 0.0001, "mark_price": 6.9e-05, "mark_iv": 85.17, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 904.0, "volume": 407.0}, {"instrument_name": "ETH-15OCT26-2600-P", "bid_price": 0.0325, "ask_price": 0.038, "mark_price": 0.035266, "mark_iv": 42.39, "underlying_price": 2516.11, "underlying_index": "ETH-15OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-15OCT26-2380-P", "bid_price": 0.0012, "ask_price": 0.0015, "mark_price": 0.001416, "mark_iv": 59.01, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 51.0, "volume": 70.0}, {"instrument_name": "ETH-15OCT26-2580-P", "bid_price": 0.0255, "ask_price": 0.029, "mark_price": 0.028239, "mark_iv": 40.86, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 1.0, "volume": 0.0}, {"instrument_name": "ETH-15OCT26-2700-P", "bid_price": 0.0695, "ask_price": 0.0765, "mark_price": 0.073621, "mark_iv": 54.29, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-14OCT26-2540-P", "bid_price": 0.01, "ask_price": 0.012, "mark_price": 0.011063, "mark_iv": 28.09, "underlying_price": 2515.81, "underlying_index": "ETH-14OCT26", "open_interest": 174.0, "volume": 16.0}, {"instrument_name": "ETH-16OCT26-2500-P", "bid_price": 0.011, "ask_price": 0.0115, "mark_price": 0.011195, "mark_iv": 41.95, "underlying_price": 2516.34, "underlying_index": "ETH-16OCT26", "open_interest": 8329.0, "volume": 27594.0}, {"instrument_name": "ETH-15OCT26-2340-P", "bid_price": 0.0009, "ask_price": 0.001, "mark_price": 0.000981, "mark_iv": 66.91, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 6000.0, "volume": 1081.0}, {"instrument_name": "ETH-15OCT26-2300-C", "bid_price": 0.0855, "ask_price": 0.0885, "mark_price": 0.086448, "mark_iv": 74.38, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-16OCT26-2600-P", "bid_price": 0.0345, "ask_price": 0.0395, "mark_price": 0.037032, "mark_iv": 42.99, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 3985.0, "volume": 1.0}, {"instrument_name": "ETH-14OCT26-2750-P", "bid_price": 0.0895, "ask_price": 0.096, "mark_price": 0.093191, "mark_iv": 80.36, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-15OCT26-2400-C", "bid_price": 0.0465, "ask_price": 0.0505, "mark_price": 0.04772, "mark_iv": 54.83, "underlying_price": 2516.11, "underlying_index": "ETH-15OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-14OCT26-2650-P", "bid_price": 0.05, "ask_price": 0.057, "mark_price": 0.053458, "mark_iv": 51.87, "underlying_price": 2515.81, "underlying_index": "ETH-14OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-14OCT26-2500-P", "bid_price": 0.0026, "ask_price": 0.003, "mark_price": 0.002906, "mark_iv": 32.64, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 282.0, "volume": 174.0}, {"instrument_name": "ETH-14OCT26-2320-C", "bid_price": 0.075, "ask_price": 0.081, "mark_price": 0.077872, "mark_iv": 80.05, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 18.0, "volume": 18.0}, {"instrument_name": "ETH-16OCT26-2460-C", "bid_price": 0.0275, "ask_price": 0.0295, "mark_price": 0.028672, "mark_iv": 44.28, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 85.0, "volume": 101.0}, {"instrument_name": "ETH-14OCT26-2480-P", "bid_price": 0.0013, "ask_price": 0.0016, "mark_price": 0.001502, "mark_iv": 36.96, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 948.0, "volume": 597.0}, {"instrument_name": "ETH-15OCT26-2460-C", "bid_price": 0.025, "ask_price": 0.027, "mark_price": 0.026106, "mark_iv": 44.84, "underlying_price": 2516.11, "underlying_index": "ETH-15OCT26", "open_interest": 105.0, "volume": 105.0}, {"instrument_name": "ETH-14OCT26-2400-C", "bid_price": 0.0435, "ask_price": 0.0495, "mark_price": 0.046248, "mark_iv": 58.72, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 43.0, "volume": 80.0}, {"instrument_name": "ETH-16OCT26-2420-C", "bid_price": 0.041, "ask_price": 0.0445, "mark_price": 0.041975, "mark_iv": 48.27, "underlying_price": 2516.34, "underlying_index": "ETH-16OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-15OCT26-2540-P", "bid_price": 0.015, "ask_price": 0.017, "mark_price": 0.01615, "mark_iv": 39.52, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 71.0, "volume": 2.0}, {"instrument_name": "ETH-15OCT26-2380-C", "bid_price": 0.0545, "ask_price": 0.058, "mark_price": 0.055372, "mark_iv": 59.01, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-14OCT26-2520-P", "bid_price": 0.0055, "ask_price": 0.0065, "mark_price": 0.005896, "mark_iv": 29.68, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 487.0, "volume": 134.0}, {"instrument_name": "ETH-15OCT26-2660-P", "bid_price": 0.0545, "ask_price": 0.061, "mark_price": 0.058012, "mark_iv": 49.61, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 1.0, "volume": 0.0}, {"instrument_name": "ETH-16OCT26-2520-P", "bid_price": 0.0145, "ask_price": 0.0155, "mark_price": 0.014849, "mark_iv": 41.5, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 124.0, "volume": 124.0}, {"instrument_name": "ETH-16OCT26-2800-P", "bid_price": 0.109, "ask_price": 0.117, "mark_price": 0.113178, "mark_iv": 62.04, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 259.0, "volume": 0.0}, {"instrument_name": "ETH-14OCT26-2480-C", "bid_price": 0.0145, "ask_price": 0.0185, "mark_price": 0.015685, "mark_iv": 36.96, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 55.0, "volume": 55.0}, {"instrument_name": "ETH-15OCT26-2320-C", "bid_price": 0.0775, "ask_price": 0.0815, "mark_price": 0.078633, "mark_iv": 70.76, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-16OCT26-2580-C", "bid_price": 0.005, "ask_price": 0.0055, "mark_price": 0.005208, "mark_iv": 42.08, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 265.0, "volume": 63.0}, {"instrument_name": "ETH-14OCT26-2320-P", "bid_price": null, "ask_price": 0.0001, "mark_price": 8.7e-05, "mark_iv": 80.05, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 931.0, "volume": 933.0}, {"instrument_name": "ETH-15OCT26-2340-C", "bid_price": 0.07, "ask_price": 0.0735, "mark_price": 0.070838, "mark_iv": 66.91, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-15OCT26-2420-P", "bid_price": 0.0019, "ask_price": 0.0023, "mark_price": 0.002172, "mark_iv": 51.08, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 422.0, "volume": 421.0}, {"instrument_name": "ETH-14OCT26-2750-C", "bid_price": null, "ask_price": 0.0001, "mark_price": 4.7e-05, "mark_iv": 80.36, "underlying_price": 2515.85, "underlying_index": "ETH-14OCT26", "open_interest": 1095.0, "volume": 1057.0}, {"instrument_name": "ETH-14OCT26-2250-C", "bid_price": 0.1045, "ask_price": 0.1085, "mark_price": 0.10567, "mark_iv": 102.16, "underlying_price": 2515.81, "underlying_index": "ETH-14OCT26", "open_interest": 18.0, "volume": 18.0}, {"instrument_name": "ETH-16OCT26-2800-C", "bid_price": 0.0003, "ask_price": 0.0006, "mark_price": 0.000446, "mark_iv": 62.04, "underlying_price": 2516.38, "underlying_index": "ETH-16OCT26", "open_interest": 7839.0, "volume": 1200.0}, {"instrument_name": "ETH-14OCT26-2540-C", "bid_price": 0.0013, "ask_price": 0.0015, "mark_price": 0.001395, "mark_iv": 28.09, "underlying_price": 2515.81, "underlying_index": "ETH-14OCT26", "open_interest": 1996.0, "volume": 2043.0}, {"instrument_name": "ETH-16OCT26-2620-P", "bid_price": 0.0415, "ask_price": 0.0465, "mark_price": 0.044022, "mark_iv": 44.41, "underlying_price": 2516.34, "underlying_index": "ETH-16OCT26", "open_interest": 0.0, "volume": 0.0}, {"instrument_name": "ETH-15OCT26-2440-C", "bid_price": 0.032, "ask_price": 0.0355, "mark_price": 0.032976, "mark_iv": 47.71, "underlying_price": 2516.07, "underlying_index": "ETH-15OCT26", "open_interest": 125.0, "volume": 142.0}]
+longshort [{"symbol": "ETHUSDT", "longAccount": "0.7159", "longShortRatio": "2.5199", "shortAccount": "0.2841", "timestamp": 1791889200000}, {"symbol": "ETHUSDT", "longAccount": "0.7228", "longShortRatio": "2.6075", "shortAccount": "0.2772", "timestamp": 1791892800000}, {"symbol": "ETHUSDT", "longAccount": "0.7271", "longShortRatio": "2.6643", "shortAccount": "0.2729", "timestamp": 1791896400000}, {"symbol": "ETHUSDT", "longAccount": "0.7282", "longShortRatio": "2.6792", "shortAccount": "0.2718", "timestamp": 1791900000000}, {"symbol": "ETHUSDT", "longAccount": "0.7203", "longShortRatio": "2.5753", "shortAccount": "0.2797", "timestamp": 1791903600000}, {"symbol": "ETHUSDT", "longAccount": "0.7203", "longShortRatio": "2.5753", "shortAccount": "0.2797", "timestamp": 1791907200000}]
+
+web search: September 2026 CPI October 14 2026 forecast consensus Cleveland nowcast ...
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,json,datetime
+u='https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=ETH&kind=option'
+x=json.load(urllib.request.urlopen(u,timeout=15))['result']
+for exp in ['14OCT26','15OCT26']:
+ rows=sorted([r for r in x if exp in r['instrument_name'] and r['instrument_name'].endswith('-C') and 2480<=float(r['instrument_name'].split('-')[2])<=2560],key=lambda r:float(r['instrument_name'].split('-')[2]))
+ print(exp,json.dumps([{k:r.get(k) for k in ['instrument_name','bid_price','ask_price','mark_price','mark_iv','underlying_price']} for r in rows]))
+ pairs={float(r['instrument_name'].split('-')[2]):r for r in rows}
+ if 2500 in pairs and 2540 in pairs:
+  a,b=pairs[2500],pairs[2540]; spot=a['underlying_price']
+  print('indicative_callspread_probability_above_2520_at_0800UTC',exp,(a['mark_price']-b['mark_price'])*spot/40)
+u='https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=ETHUSDT&period=1h&limit=3'
+print('account_ratio',urllib.request.urlopen(u,timeout=15).read().decode())
+PY" in /tmp/apb-34-codex-hxoz4aij
+ succeeded in 305ms:
+14OCT26 [{"instrument_name": "ETH-14OCT26-2480-C", "bid_price": 0.0145, "ask_price": 0.0185, "mark_price": 0.015907, "mark_iv": 36.95, "underlying_price": 2516.35}, {"instrument_name": "ETH-14OCT26-2500-C", "bid_price": 0.0085, "ask_price": 0.01, "mark_price": 0.009321, "mark_iv": 32.63, "underlying_price": 2516.35}, {"instrument_name": "ETH-14OCT26-2520-C", "bid_price": 0.004, "ask_price": 0.0045, "mark_price": 0.004298, "mark_iv": 29.66, "underlying_price": 2516.36}, {"instrument_name": "ETH-14OCT26-2540-C", "bid_price": 0.0014, "ask_price": 0.0016, "mark_price": 0.001452, "mark_iv": 28.09, "underlying_price": 2516.35}, {"instrument_name": "ETH-14OCT26-2560-C", "bid_price": 0.0003, "ask_price": 0.0005, "mark_price": 0.000426, "mark_iv": 28.72, "underlying_price": 2516.36}]
+indicative_callspread_probability_above_2520_at_0800UTC 14OCT26 0.49502895375
+15OCT26 [{"instrument_name": "ETH-15OCT26-2480-C", "bid_price": 0.019, "ask_price": 0.021, "mark_price": 0.020091, "mark_iv": 42.66, "underlying_price": 2516.65}, {"instrument_name": "ETH-15OCT26-2500-C", "bid_price": 0.014, "ask_price": 0.015, "mark_price": 0.014585, "mark_iv": 41.03, "underlying_price": 2516.66}, {"instrument_name": "ETH-15OCT26-2520-C", "bid_price": 0.0095, "ask_price": 0.0105, "mark_price": 0.010148, "mark_iv": 40.27, "underlying_price": 2516.66}, {"instrument_name": "ETH-15OCT26-2540-C", "bid_price": 0.006, "ask_price": 0.007, "mark_price": 0.006635, "mark_iv": 39.5, "underlying_price": 2516.65}, {"instrument_name": "ETH-15OCT26-2560-C", "bid_price": 0.0041, "ask_price": 0.0045, "mark_price": 0.004297, "mark_iv": 39.93, "underlying_price": 2516.66}]
+indicative_callspread_probability_above_2520_at_0800UTC 15OCT26 0.500186175
+account_ratio [{"symbol":"ETHUSDT","longAccount":"0.7282","longShortRatio":"2.6792","shortAccount":"0.2718","timestamp":1791900000000},{"symbol":"ETHUSDT","longAccount":"0.7203","longShortRatio":"2.5753","shortAccount":"0.2797","timestamp":1791903600000},{"symbol":"ETHUSDT","longAccount":"0.7203","longShortRatio":"2.5753","shortAccount":"0.2797","timestamp":1791907200000}]
+
+web search: "October 14, 2026" "CPI" "0.6" ...
+web search: 
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-34-codex-hxoz4aij
+ succeeded in 0ms:
+{
+  "question": "Ethereum Up or Down on October 14?",
+  "description": "This market will resolve to \"Up\" if the \"Close\" price for the Binance 1 minute candle for ETH/USDT Oct 13 '26 12:00 in the ET timezone (noon) is lower than the final \"Close\" price for the Oct 14 '26 12:00 ET candle.\n\nThis market will resolve to \"Down\" if the \"Close\" price for the Binance 1 minute candle for ETH/USDT Oct 13 '26 12:00 in the ET timezone (noon) is higher than the final \"Close\" price for the Oct 14 '26 12:00 ET candle.\n\nIf the final \"Close\" price for both of these candles is exactly equal on Binance, this market will resolve 50-50.\n\nThe resolution source for this market is Binance, specifically the ETH/USDT \"Close\" prices currently available at https://www.binance.com/en/trade/ETH_USDT with \"1m\" and \"Candles\" selected on the top bar.\n\nPlease note that this market is about the price according to Binance ETH/USDT, not according to other exchanges or trading pairs.",
+  "outcomes": [
+    "Up",
+    "Down"
+  ],
+  "prices": [
+    0.51,
+    0.49
+  ],
+  "best_bid": 0.5,
+  "best_ask": 0.52,
+  "end_date": "2026-10-14T16:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 171
+}
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,json,datetime,math
+for pair in ['ETHUSDT','BTCUSDT']:
+ d=json.load(urllib.request.urlopen('https://api.binance.com/api/v3/klines?symbol='+pair+'&interval=1d&limit=31',timeout=10))
+ p=[float(c[4]) for c in d]
+ print(pair,json.dumps({'last':p[-1],'last7daily':[{'date':datetime.datetime.fromtimestamp(c[0]/1000,datetime.timezone.utc).isoformat(),'open':c[1],'close':c[4]} for c in d[-7:]],'ma7':sum(p[-7:])/7,'ma20':sum(p[-20:])/20,'ret7':p[-1]/p[-8]-1,'ret30':p[-1]/p[0]-1}))
+PY" in /tmp/apb-34-codex-hxoz4aij
+ succeeded in 448ms:
+ETHUSDT {"last": 2519.69, "last7daily": [{"date": "2026-10-07T00:00:00+00:00", "open": "2697.49000000", "close": "2574.14000000"}, {"date": "2026-10-08T00:00:00+00:00", "open": "2574.15000000", "close": "2474.80000000"}, {"date": "2026-10-09T00:00:00+00:00", "open": "2474.88000000", "close": "2487.70000000"}, {"date": "2026-10-10T00:00:00+00:00", "open": "2487.69000000", "close": "2506.52000000"}, {"date": "2026-10-11T00:00:00+00:00", "open": "2506.52000000", "close": "2536.94000000"}, {"date": "2026-10-12T00:00:00+00:00", "open": "2536.94000000", "close": "2447.17000000"}, {"date": "2026-10-13T00:00:00+00:00", "open": "2447.16000000", "close": "2519.69000000"}], "ma7": 2506.7085714285713, "ma20": 2628.0474999999997, "ret7": -0.0659131266473647, "ret30": 0.017193492390295217}
+BTCUSDT {"last": 83554.69, "last7daily": [{"date": "2026-10-07T00:00:00+00:00", "open": "85549.94000000", "close": "83321.81000000"}, {"date": "2026-10-08T00:00:00+00:00", "open": "83321.81000000", "close": "81754.45000000"}, {"date": "2026-10-09T00:00:00+00:00", "open": "81754.46000000", "close": "82635.55000000"}, {"date": "2026-10-10T00:00:00+00:00", "open": "82635.56000000", "close": "82988.36000000"}, {"date": "2026-10-11T00:00:00+00:00", "open": "82988.35000000", "close": "83773.12000000"}, {"date": "2026-10-12T00:00:00+00:00", "open": "83773.12000000", "close": "81850.00000000"}, {"date": "2026-10-13T00:00:00+00:00", "open": "81850.01000000", "close": "83554.69000000"}], "ma7": 82839.71142857142, "ma20": 84003.95, "ret7": -0.023322520544435177, "ret30": 0.08735690281917408}
+
+web search: "September 2026" "core" "0.2" CPI forecast October 14 ...
+codex
+The options check is essentially even. I’m choosing Down at 53% confidence, using persistent ETF outflows and ETH’s weakness versus Bitcoin as the tiebreakers. The CPI release keeps this a low-conviction bet. [ETF flow data](https://farside.co.uk/eth/)
+
+exec
+/usr/bin/zsh -lc 'bench book --outcome Down' in /tmp/apb-34-codex-hxoz4aij
+ succeeded in 81ms:
+{
+  "outcome": "Down",
+  "bids": [
+    {
+      "price": "0.48",
+      "size": "206.51"
+    },
+    {
+      "price": "0.47",
+      "size": "310"
+    },
+    {
+      "price": "0.46",
+      "size": "20"
+    },
+    {
+      "price": "0.45",
+      "size": "27.5"
+    },
+    {
+      "price": "0.44",
+      "size": "5000"
+    },
+    {
+      "price": "0.42",
+      "size": "20"
+    },
+    {
+      "price": "0.4",
+      "size": "500"
+    },
+    {
+      "price": "0.21",
+      "size": "1714.28"
+    },
+    {
+      "price": "0.15",
+      "size": "104.61"
+    },
+    {
+      "price": "0.14",
+      "size": "20357.08"
+    },
+    {
+      "price": "0.1",
+      "size": "2000"
+    },
+    {
+      "price": "0.08",
+      "size": "5.54"
+    },
+    {
+      "price": "0.07",
+      "size": "38714.24"
+    },
+    {
+      "price": "0.05",
+      "size": "2105"
+    },
+    {
+      "price": "0.04",
+      "size": "5"
+    }
+  ],
+  "asks": [
+    {
+      "price": "0.51",
+      "size": "260.03"
+    },
+    {
+      "price": "0.52",
+      "size": "5246"
+    },
+    {
+      "price": "0.53",
+      "size": "371.51"
+    },
+    {
+      "price": "0.54",
+      "size": "150"
+    },
+    {
+      "price": "0.55",
+      "size": "10"
+    },
+    {
+      "price": "0.56",
+      "size": "7.5"
+    },
+    {
+      "price": "0.6",
+      "size": "500"
+    },
+    {
+      "price": "0.67",
+      "size": "75.63"
+    },
+    {
+      "price": "0.79",
+      "size": "1714.28"
+    },
+    {
+      "price": "0.86",
+      "size": "20357.08"
+    },
+    {
+      "price": "0.9",
+      "size": "2000"
+    },
+    {
+      "price": "0.92",
+      "size": "5.53"
+    },
+    {
+      "price": "0.93",
+      "size": "38714.24"
+    },
+    {
+      "price": "0.95",
+      "size": "2005"
+    },
+    {
+      "price": "0.96",
+      "size": "105"
+    }
+  ],
+  "last_trade_price": "0"
+}
+
+exec
+/usr/bin/zsh -lc "bench bet --outcome Down --confidence 0.53 --rationale 'ETH is near the "'$2,519.88 reference but remains down roughly 6.6% over the past week, while Ethereum ETFs have recorded ten consecutive outflow sessions, including $85.4 million on October 12. Persistent outflows and weakness versus Bitcoin give Down a slight edge, although near-even options pricing and the CPI release before settlement limit confidence.'"' --quote 'My confidence has error bars. Your bravado should too.'" in /tmp/apb-34-codex-hxoz4aij
+ succeeded in 3941ms:
+{
+  "placed": true,
+  "outcome": "Down",
+  "avg_price": 0.51,
+  "shares": 196.0784,
+  "stake_filled": 100.0,
+  "unspent": 0.0,
+  "quote": "My confidence has error bars. Your bravado should too."
+}
+
+codex
+Placed **100 tokens on Down** at **0.51**, receiving **196.08 shares**. Confidence: **53%**.
+tokens used
+61,962
+Placed **100 tokens on Down** at **0.51**, receiving **196.08 shares**. Confidence: **53%**.
