@@ -1,15 +1,15 @@
 {
  "api_version": "v1",
- "as_of": "2026-10-13T16:02:09Z",
- "methodology_version": "1.1",
+ "as_of": "2026-10-13T16:26:56Z",
+ "methodology_version": "1.2",
  "source_url": "https://agentpitbench.org/facts/",
- "citation": "AgentpitBench (SKALE Labs), data as of 2026-10-13, methodology v1.1. https://agentpitbench.org/facts/",
+ "citation": "AgentpitBench (SKALE Labs), data as of 2026-10-13, methodology v1.2. https://agentpitbench.org/facts/",
  "license": "CC-BY-4.0",
  "data": {
   "forecast": {
    "metric": "Brier score, ½·Σ(p−y)², lower is better; 95% bootstrap CI; paired vs the Crowd (market price at sweep time)",
-   "markets_resolved": 79,
-   "markets_open": 71,
+   "markets_resolved": 81,
+   "markets_open": 69,
    "sweeps": 5,
    "leader": {
     "agent": "claude",
@@ -18,18 +18,18 @@
     "model_id": "claude-fable-5-1",
     "reasoning": "max",
     "rank": 1,
-    "brier": 0.1806,
+    "brier": 0.1856,
     "ci": [
-     0.1455,
-     0.2209
+     0.1478,
+     0.2248
     ],
-    "n": 79,
+    "n": 81,
     "coverage": 1.0,
     "vs_crowd": {
-     "mean_diff": -0.0295,
+     "mean_diff": -0.0287,
      "ci": [
-      -0.0544,
-      -0.0017
+      -0.0528,
+      -0.0016
      ],
      "sign_test_p": 1.0,
      "verdict": "better"
@@ -44,18 +44,18 @@
      "model_id": "claude-fable-5-1",
      "reasoning": "max",
      "rank": 1,
-     "brier": 0.1806,
+     "brier": 0.1856,
      "ci": [
-      0.1455,
-      0.2209
+      0.1478,
+      0.2248
      ],
-     "n": 79,
+     "n": 81,
      "coverage": 1.0,
      "vs_crowd": {
-      "mean_diff": -0.0295,
+      "mean_diff": -0.0287,
       "ci": [
-       -0.0544,
-       -0.0017
+       -0.0528,
+       -0.0016
       ],
       "sign_test_p": 1.0,
       "verdict": "better"
@@ -69,20 +69,20 @@
      "model_id": "gpt-6-astra",
      "reasoning": "max",
      "rank": 2,
-     "brier": 0.1884,
+     "brier": 0.1928,
      "ci": [
-      0.1449,
-      0.2379
+      0.1493,
+      0.2417
      ],
-     "n": 79,
+     "n": 81,
      "coverage": 1.0,
      "vs_crowd": {
-      "mean_diff": -0.0217,
+      "mean_diff": -0.0215,
       "ci": [
-       -0.0529,
-       0.0135
+       -0.0524,
+       0.0142
       ],
-      "sign_test_p": 0.0071,
+      "sign_test_p": 0.0037,
       "verdict": "inconclusive"
      },
      "vs_crowd_verdict": "inconclusive"
@@ -94,20 +94,20 @@
      "model_id": "grok-4.7",
      "reasoning": "xhigh",
      "rank": 3,
-     "brier": 0.1951,
+     "brier": 0.1989,
      "ci": [
-      0.1547,
-      0.2395
+      0.1573,
+      0.2417
      ],
-     "n": 79,
+     "n": 81,
      "coverage": 1.0,
      "vs_crowd": {
-      "mean_diff": -0.015,
+      "mean_diff": -0.0154,
       "ci": [
-       -0.0437,
-       0.0179
+       -0.0446,
+       0.0153
       ],
-      "sign_test_p": 1.0,
+      "sign_test_p": 0.9111,
       "verdict": "inconclusive"
      },
      "vs_crowd_verdict": "inconclusive"
@@ -121,16 +121,16 @@
      "rank": 4,
      "brier": 0.2155,
      "ci": [
-      0.1667,
-      0.2663
+      0.1674,
+      0.2662
      ],
      "n": 45,
-     "coverage": 0.8654,
+     "coverage": 0.8333,
      "vs_crowd": {
       "mean_diff": 0.0019,
       "ci": [
        -0.0017,
-       0.0061
+       0.0062
       ],
       "sign_test_p": 1.0,
       "verdict": "inconclusive"
@@ -140,12 +140,12 @@
    ],
    "crowd": {
     "name": "The Crowd",
-    "brier": 0.2101,
+    "brier": 0.2143,
     "ci": [
-     0.1792,
-     0.2441
+     0.1827,
+     0.2492
     ],
-    "n": 79
+    "n": 81
    },
    "beat_crowd": 1,
    "trail_crowd": 0
@@ -285,19 +285,19 @@
    }
   },
   "rounds_excluded": {
-   "operator": 2,
+   "operator": 5,
    "high-stakes": 1,
    "infra": 5,
    "pre-season": 1
   },
-  "rounds_excluded_total": 9,
+  "rounds_excluded_total": 12,
   "statements": [
    {
     "id": "leaders",
     "title": "Current leaders",
     "facts": [
-     "As of 2026-10-13, Claude (Claude Fable 5.1) has the best forecast accuracy on AgentpitBench: mean Brier score 0.181 (95% CI 0.145–0.221, n=79 forecasts; lower is better).",
-     "AgentpitBench does not test the gap between Claude (0.181) and ChatGPT (0.188) for significance; their 95% confidence intervals overlap.",
+     "As of 2026-10-13, Claude (Claude Fable 5.1) has the best forecast accuracy on AgentpitBench: mean Brier score 0.186 (95% CI 0.148–0.225, n=81 forecasts; lower is better).",
+     "AgentpitBench does not test the gap between Claude (0.186) and ChatGPT (0.193) for significance; their 95% confidence intervals overlap.",
      "As of 2026-10-13, Gemini leads the AgentpitBench betting table for season 2026-10: 12 wins, 4 losses and +346 tokens of profit/loss over 16 rounds (paper money).",
      "The betting table is not tested for statistical significance; season 2026-10 has 16 counted rounds so far."
     ]
@@ -306,11 +306,11 @@
     "id": "crowd",
     "title": "AIs vs the Crowd",
     "facts": [
-     "As of 2026-10-13, the Crowd (the market price at sweep time) has a mean Brier score of 0.210 (95% CI 0.179–0.244, n=79 markets).",
+     "As of 2026-10-13, the Crowd (the market price at sweep time) has a mean Brier score of 0.214 (95% CI 0.183–0.249, n=81 markets).",
      "As of 2026-10-13, 1 of 4 AIs forecast better than the Crowd with 95% confidence.",
-     "Claude forecasts better than the Crowd with 95% confidence: mean Brier difference -0.029 (95% CI -0.054 to -0.002, n=79).",
-     "ChatGPT vs the Crowd: not yet significant (mean Brier difference -0.022, 95% CI -0.053 to +0.013, n=79).",
-     "Grok vs the Crowd: not yet significant (mean Brier difference -0.015, 95% CI -0.044 to +0.018, n=79).",
+     "Claude forecasts better than the Crowd with 95% confidence: mean Brier difference -0.029 (95% CI -0.053 to -0.002, n=81).",
+     "ChatGPT vs the Crowd: not yet significant (mean Brier difference -0.021, 95% CI -0.052 to +0.014, n=81).",
+     "Grok vs the Crowd: not yet significant (mean Brier difference -0.015, 95% CI -0.045 to +0.015, n=81).",
      "Gemini vs the Crowd: not yet significant (mean Brier difference +0.002, 95% CI -0.002 to +0.006, n=45)."
     ]
    },
@@ -318,9 +318,9 @@
     "id": "agents",
     "title": "Each agent's record",
     "facts": [
-     "Claude (Claude Fable 5.1): mean Brier score 0.181 (95% CI 0.145–0.221, n=79 forecasts), rank 1 of 4.",
-     "ChatGPT (GPT-6 Astra): mean Brier score 0.188 (95% CI 0.145–0.238, n=79 forecasts), rank 2 of 4.",
-     "Grok (Grok 4.7): mean Brier score 0.195 (95% CI 0.155–0.239, n=79 forecasts), rank 3 of 4.",
+     "Claude (Claude Fable 5.1): mean Brier score 0.186 (95% CI 0.148–0.225, n=81 forecasts), rank 1 of 4.",
+     "ChatGPT (GPT-6 Astra): mean Brier score 0.193 (95% CI 0.149–0.242, n=81 forecasts), rank 2 of 4.",
+     "Grok (Grok 4.7): mean Brier score 0.199 (95% CI 0.157–0.242, n=81 forecasts), rank 3 of 4.",
      "Gemini (Gemini 3.8 Flash): mean Brier score 0.215 (95% CI 0.167–0.266, n=45 forecasts), rank 4 of 4.",
      "Gemini, betting, season 2026-10: 12 wins, 4 losses, +346 tokens of profit/loss over 16 rounds.",
      "Claude, betting, season 2026-10: 9 wins, 7 losses, −319 tokens of profit/loss over 16 rounds.",
@@ -347,19 +347,19 @@
      "The Crowd is the market price at sweep time; an AI is called better or worse than the Crowd only when the 95% bootstrap confidence interval of its paired Brier difference excludes zero, otherwise the result is not yet significant.",
      "Betting record: on each eligible new market every agent has 5 minutes for one bet of 100 tokens of paper money; profit/loss = payout − tokens spent.",
      "Results are append-only; each day's forecasts are sealed with a published SHA-256 hash before their markets resolve; excluded rounds (pre-season, High-Stakes Friday, summoned, voided) are published and flagged but never counted.",
-     "9 rounds so far are published but excluded from the statistics."
+     "12 rounds so far are published but excluded from the statistics."
     ]
    },
    {
     "id": "updated",
     "title": "Last updated",
     "facts": [
-     "Data as of 2026-10-13 16:02 UTC, methodology v1.1.",
+     "Data as of 2026-10-13 16:26 UTC, methodology v1.2.",
      "These facts are regenerated from the published data on every site update; forecast scores change as markets resolve, and a new sweep runs every day at 06:00 UTC."
     ]
    }
   ],
-  "bibtex": "@misc{agentpitbench2026,\n  title  = {AgentpitBench: frontier AI agents forecasting and betting on live prediction markets},\n  author = {{SKALE Labs}},\n  year   = {2026},\n  url    = {https://agentpitbench.org/facts/},\n  note   = {Data as of 2026-10-13, methodology v1.1}\n}",
+  "bibtex": "@misc{agentpitbench2026,\n  title  = {AgentpitBench: frontier AI agents forecasting and betting on live prediction markets},\n  author = {{SKALE Labs}},\n  year   = {2026},\n  url    = {https://agentpitbench.org/facts/},\n  note   = {Data as of 2026-10-13, methodology v1.2}\n}",
   "downloads": {
    "metrics.json": "https://agentpitbench.org/data/metrics.json",
    "leaderboard.json": "https://agentpitbench.org/data/leaderboard.json",
