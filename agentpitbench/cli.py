@@ -695,6 +695,11 @@ def main(argv: list[str] | None = None) -> None:
     ad.add_argument("file")
     dg = absub.add_parser("digest", help="print the A/B digest")
     dg.add_argument("--date")
+    au = absub.add_parser("audit", help="A/B v2 data audit (read-only): slots, posts/day, rewards, covariates")
+    au.add_argument("--since", help="window start YYYY-MM-DD (default ab_audit_since)")
+    au.add_argument("--include-stale", action="store_true",
+                    help="count 24 h snapshots taken late too (the plan's §0 table did)")
+    au.add_argument("--json", action="store_true")
     xl = sub.add_parser("x-login", help="authorize the X account with every scope the bench needs")
     xl.add_argument("--url", help="the URL X redirected you to (step 2)")
     xl.add_argument("--redirect-uri", help="callback URL registered on the X app (default: site_url)")
@@ -780,6 +785,17 @@ def _round_running(db: DB) -> bool:
 
 def ab_cli(s: config.Settings, a) -> None:
     from . import ab, ab_gen, ab_report
+    if a.ab_cmd == "audit":   # read-only: never seeds or migrates
+        import dataclasses
+        from . import ab_audit
+        if a.include_stale:
+            s = dataclasses.replace(s, x_reward_max_age_ratio=1e9)
+        r = ab_audit.audit(DB.readonly(s.db_path), s, a.since)
+        if a.json:
+            print(json.dumps(r, indent=1, ensure_ascii=False))
+        else:
+            ab_audit.print_audit(r)
+        return
     db = DB(s.db_path)
     ab.seed(db)
     if a.ab_cmd == "status":

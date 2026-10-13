@@ -405,6 +405,15 @@ class DB:
             if col not in {r["name"] for r in self.q(f"PRAGMA table_info({table})")}:
                 self.x(f"ALTER TABLE {table} ADD COLUMN {col} {decl}")
 
+    @classmethod
+    def readonly(cls, path: str | Path) -> "DB":
+        """A read-only handle (sqlite mode=ro): no schema, no migrations, every write raises. For audits."""
+        self = cls.__new__(cls)
+        self.conn = _LockedConn(sqlite3.connect(f"file:{Path(path).resolve()}?mode=ro", uri=True,
+                                                isolation_level=None, check_same_thread=False))
+        self.conn.row_factory = sqlite3.Row
+        return self
+
     def q(self, sql: str, *args) -> list[sqlite3.Row]:
         return self.conn.execute(sql, args).fetchall()
 
