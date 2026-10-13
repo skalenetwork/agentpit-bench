@@ -812,7 +812,7 @@ def ab_cli(s: config.Settings, a) -> None:
         rates = {x["slot"]: x["kind_posts_per_day"] for x in
                  ab_audit.slot_report(DB.readonly(s.db_path), s, ab_audit.ts(a.since or s.ab_audit_since), time.time())}
         for sl in ([a.slot] if a.slot else list(ab.SLOTS)):
-            rate = a.posts_per_day if a.posts_per_day is not None else rates.get(sl)
+            rate = a.posts_per_day if a.posts_per_day is not None else (1.0 if sl == "tone" else rates.get(sl))  # tone: 1 obs/day
             if rate is None:
                 print(f"{sl}: no X posts/day measured (dead, or not an X slot); pass --posts-per-day")
                 continue

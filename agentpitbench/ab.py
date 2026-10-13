@@ -438,14 +438,25 @@ class _Rewards:
     def __init__(self, db: DB, s: Settings, now: float):
         self.db, self.s, self.now = db, s, now
         self._base: dict = {}
+        self.v2 = s.ab_reward_version >= 2    # A/B v2 M3: cap + covariate adjustment + 90-day window
+        self._models: dict = {}
+
+    def model(self, bucket: str):
+        if bucket not in self._models:
+            from . import ab_reward
+            self._models[bucket] = ab_reward.Model(self.db, self.s, self.now, bucket, V2_DAYS)
+        return self._models[bucket]
 
     def baseline(self, kind: str, bucket: str) -> tuple[float, float]:
         k = (kind, bucket)
         if k not in self._base:
             ys = []
-            for r in xstats.rewards(self.db, bucket, kinds=[kind], since=self.now - self.s.ab_baseline_days * 86400,
-                                    s=self.s):
-                ys.append(blend(self.s, r, *_self_counts(self.db, r["tweet_id"])))
+            if self.v2:
+                ys = self.model(bucket).kind_values(kind)
+            else:
+                for r in xstats.rewards(self.db, bucket, kinds=[kind], since=self.now - self.s.ab_baseline_days * 86400,
+                                        s=self.s):
+                    ys.append(blend(self.s, r, *_self_counts(self.db, r["tweet_id"])))
             if len(ys) < 10:
                 self._base[k] = (0.0, 1.0)
             else:
@@ -460,13 +471,18 @@ class _Rewards:
             r = xstats.reward_inputs(self.db, tweet_id, bucket, s=self.s)
             if r:
                 mu, sd = self.baseline(kind, bucket)
-                return (blend(self.s, r, *_self_counts(self.db, tweet_id)) - mu) / sd, w
+                y = (self.model(bucket).y_adj({"tweet_id": tweet_id, "kind": kind, **r}) if self.v2 else
+                     blend(self.s, r, *_self_counts(self.db, tweet_id)))
+                return (y - mu) / sd, w
         return None
+
+
+V2_DAYS = 90.0   # reward v2: standardisation window and decay half-life (v1: ab_baseline_days, ab_half_life_days)
 
 
 def _decay(s: Settings, w: float, posted_at: float, now: float) -> float:
     age_days = max(0.0, now - posted_at) / 86400
-    return w * 0.5 ** (age_days / s.ab_half_life_days)
+    return w * 0.5 ** (age_days / (V2_DAYS if s.ab_reward_version >= 2 else s.ab_half_life_days))
 
 
 def observations(db: DB, s: Settings, slot: str, now: float | None = None, until: float | None = None) -> list[dict]:

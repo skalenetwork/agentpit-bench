@@ -71,6 +71,7 @@ def test_digest_carries_the_audit(env):
     s, db = env
     out = ab_report.digest(db, s, "2026-10-13", now=T0 + 2 * DAY)
     assert out["audit"]["dead_slots"] == ["press.head"]
+    assert out["reward_v2"]["active"] is False and "reduction_pct" in out["reward_v2"]
 
 
 # ---------- M1: simulator and power calculator
@@ -187,3 +188,99 @@ def test_situation_stored_for_hooks(env):
     s, db = env
     ab.choose(db, s, "results.hook", "r1-results", "sweep", {"winner": "Claude", "record": "3-0"}, kind="results")
     assert db.one("SELECT situation FROM ab_assignments WHERE slot='results.hook'")["situation"] == "sweep"
+
+
+# ---------- M3: reward v2
+
+def _confounded(db, shift: int, now: float):
+    """96 results posts on 'tags' arms A/B with no arm effect. Evening posts (UTC 20h) get +shift replies, and arm B
+    got 3/4 of the evening posts by chance, so a raw comparison sees a fake effect."""
+    a, b = [x["arm_id"] for x in ab.arms(db, "tags")[:2]]
+    day = (now // DAY - 5) * DAY
+    n = 0
+    for hb in (0, 1):
+        for arm, cnt in ((a, 12 if hb else 36), (b, 36 if hb else 12)):
+            for j in range(cnt):
+                key = f"c{hb}-{arm}-{j}"
+                tweet(db, key, at=day + (20 if hb else 2) * 3600 + n, replies=j % 4 + (shift if hb else 0))
+                db.x("INSERT INTO ab_assignments(post_key,slot,arm_id,realized_arm_id,kind,assigned_at)"
+                     " VALUES(?,?,?,?,?,?)", key, "tags", arm, arm, "results", day)
+                n += 1
+    return a, b
+
+
+def _delta(db, s, now, a, b):
+    obs = ab.observations(db, s, "tags", now)
+    za = [o["z"] for o in obs if o["arm_id"] == a]
+    zb = [o["z"] for o in obs if o["arm_id"] == b]
+    return sum(zb) / len(zb) - sum(za) / len(za)
+
+
+def test_reward_v2_covariate_shift_does_not_move_delta(env):
+    from agentpitbench import ab_reward
+    s, db = env
+    now = time.time()
+    a, b = _confounded(db, 6, now)
+    s.ab_reward_version = 1
+    d1 = _delta(db, s, now, a, b)
+    s.ab_reward_version = 2
+    d2 = _delta(db, s, now, a, b)
+    assert d1 > 0.5                       # v1 reads the evening shift as an arm effect
+    assert abs(d2) < 0.1                  # v2 adjusts it away: no arm effect
+    rep = ab_reward.variance_report(db, s, now)
+    assert rep["adjustment_applied"] and rep["reduction_pct"] > 50
+
+
+def test_reward_v2_no_post_adjusts_itself(env):
+    from agentpitbench import ab_reward
+    s, db = env
+    now = time.time()
+    _confounded(db, 6, now)
+    m1 = ab_reward.Model(db, s, now)
+    key = f"c1-{ab.arms(db, 'tags')[1]['arm_id']}-0"
+    tid = db.one("SELECT tweet_id FROM tweets WHERE post_key=?", key)["tweet_id"]
+    i = next(i for i, r in enumerate(m1.rows) if r["tweet_id"] == tid)
+    adj1 = m1.y[i] - m1._adj[tid]
+    db.x("UPDATE tweet_metrics SET replies=40 WHERE tweet_id=?", tid)     # change only this post's outcome
+    m2 = ab_reward.Model(db, s, now)
+    i2 = next(i for i, r in enumerate(m2.rows) if r["tweet_id"] == tid)
+    assert m2.y[i2] != m1.y[i] and m1.applied and m2.applied
+    assert m2.y[i2] - m2._adj[tid] == pytest.approx(adj1, abs=1e-12)   # its own adjustment didn't move
+
+
+def test_reward_v2_covariates_are_pre_treatment(env):
+    from agentpitbench import ab_reward
+    s, db = env
+    tid = tweet(db, "r1-results", replies=3, impressions=500)
+    raw = ab_reward.Features(db).raw({"tweet_id": tid, "post_key": "r1-results", "kind": "results",
+                                      "round_id": None, "posted_at": T0 + 3600, "impressions": 500})
+    assert set(raw) == {"kind", "situation", "hour", "followers", "exhibition", "volume"}
+    assert not set(raw) & ab_reward.FORBIDDEN
+
+
+def test_reward_v2_cap_at_p99(env):
+    import math
+    from agentpitbench import ab_reward
+    s, db = env
+    now = time.time()
+    for i in range(60):
+        tweet(db, f"p{i}", at=now - 3 * DAY + i, replies=1000 if i == 0 else i % 3)
+    m = ab_reward.Model(db, s, now)
+    assert m.caps["results"] < 5000
+    i = next(i for i, r in enumerate(m.rows) if r["post_key"] == "p0")
+    assert m.y[i] == pytest.approx(math.log1p(m.caps["results"]))
+    assert ab_reward.Model(db, s, now, days=1).caps == {}       # < 50 posts of the kind in the window: no cap
+
+
+def test_reward_version_1_is_default_and_untouched(env, monkeypatch):
+    from agentpitbench import ab_reward
+    s, db = env
+    assert s.ab_reward_version == 1
+    now = time.time()
+    _confounded(db, 6, now)
+
+    def boom(*a, **k):
+        raise AssertionError("reward v2 used under ab_reward_version = 1")
+    monkeypatch.setattr(ab_reward, "Model", boom)
+    assert ab.posterior(db, s, "tags", now)
+    ab.choose(db, s, "tags", "fresh-post", now=now, kind="results")
