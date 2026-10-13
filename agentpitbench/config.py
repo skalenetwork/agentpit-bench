@@ -136,6 +136,11 @@ class Settings:
     google_site_verification: str = ""
     bing_site_verification: str = ""
     indexnow_enabled: bool = False      # after each deploy, POST the changed URLs to api.indexnow.org
+    # Open dataset on the Hugging Face Hub (docs/hf-borrow-spec.md Part A). The repo id: BENCH_HF_DATASET in
+    # secrets.env wins over hf_dataset. The daily refresh re-builds the current and previous month and uploads only
+    # what changed; it needs HF_TOKEN, dry_run off and this switch (turned on after the first manual upload).
+    hf_dataset: str = "skalenetwork/agentpitbench"
+    hf_dataset_refresh: bool = False
     # X analytics (docs/x-analytics-spec.md): read prices per resource returned, from X's pay-per-use page
     x_read_prices: dict = field(default_factory=lambda: {"post": 0.005, "user": 0.010, "owned": 0.001})
     x_metrics_budget_usd: float = 1.00   # per UTC day, metrics puller only (callers metrics + account): hard stop
@@ -274,6 +279,14 @@ class Settings:
     def outbox_dir(self) -> Path:
         """Dry-run tweets land here instead of on X."""
         return self.data_dir / "outbox"
+
+    @property
+    def hf_repo(self) -> str:
+        return os.environ.get("BENCH_HF_DATASET") or self.hf_dataset
+
+    @property
+    def hf_url(self) -> str:
+        return f"https://huggingface.co/datasets/{self.hf_repo}"
 
     def agentpit_key(self, agent: str) -> str | None:
         return os.environ.get(f"AGENTPIT_KEY_{agent.upper()}")

@@ -40,6 +40,11 @@ agentpitbench run               # watch markets, run rounds, track results
 
 `bench.toml` starts in dry-run: no orders, no posts and no site push until you set `dry_run = false`.
 
+Open dataset on the Hugging Face Hub (optional): `.venv/bin/pip install -e '.[dataset]'` (pyarrow, huggingface_hub),
+then `HF_TOKEN=` (write access to the repo) and `BENCH_HF_DATASET=<owner>/agentpitbench` in secrets.env.
+`agentpitbench dataset YYYY-MM` builds a month and uploads it when it changed, after a secrets scan that blocks the
+upload on any hit; never in dry-run. `hf_dataset_refresh = true` in bench.toml re-publishes the current month daily.
+
 ## For agentpit.dev
 
 - Market-page widget ("AIs are betting on this market"): [agentpitbench/widget/README.md](agentpitbench/widget/README.md)

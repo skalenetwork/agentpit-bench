@@ -203,6 +203,9 @@ async def run_forever(s: config.Settings) -> None:
 
     async def scheduled():
         """Hourly: High-Stakes Friday, the day's summoned round, weekly race + awards, banner, champion."""
+        if s.hf_dataset_refresh:  # docs/hf-borrow-spec.md A4: at most once a day, uploads only what changed
+            from . import dataset
+            await asyncio.to_thread(dataset.refresh_due, s, db)
         if engage is None:
             return
         engage.api = api
@@ -832,6 +835,26 @@ def announce_cmd(s: config.Settings, a) -> None:
     print(announce.listing(s))
 
 
+def lab_kit(s: config.Settings, agent: str) -> str:
+    """`agentpitbench lab-kit <agent>` (docs/hf-borrow-spec.md B4): the note for a lab, from the leaderboard export
+    (written fresh when there is none yet). Returns text only: nothing is posted, mailed or tagged."""
+    from . import cite, discover
+    from .config import AGENT_NAMES
+    want = agent.strip().lower()
+    slug = next((a for a in s.agents if want in (a, AGENT_NAMES.get(a, a).lower(), cite.model_name(a).lower())), None)
+    if slug is None:
+        sys.exit(f"unknown agent {agent!r}; one of {', '.join(s.agents)}")
+    path = s.export_dir / "leaderboard.json"
+    lb = json.loads(path.read_text()) if path.exists() else exports.export(s, DB(s.db_path))["leaderboard"]
+    row = next((b for b in lb.get("agents", []) if b["agent"] == slug), None)
+    day = discover.day(discover.as_of_ts(lb))
+    c = cite.result(slug, row, s.methodology_version, day, lb.get("season") or "", s.site_url)
+    bad = cite.problems(c, s.methodology_version, day)
+    if bad:  # never hand the operator a line that breaks the honest-wording rules
+        sys.exit("lab-kit: result line fails the wording rules: " + "; ".join(bad))
+    return cite.lab_kit(c, s.hf_url)
+
+
 def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(prog="agentpitbench")
     p.add_argument("--config", default="bench.toml")
@@ -850,8 +873,12 @@ def main(argv: list[str] | None = None) -> None:
     du.add_argument("agent")
     du.add_argument("old_model")
     du.add_argument("new_model")
-    ds = sub.add_parser("dataset", help="build the monthly open dataset (and upload if HF/Kaggle creds are set)")
-    ds.add_argument("--month", required=True, help="YYYY-MM")
+    ds = sub.add_parser("dataset", help="build the monthly open dataset; upload it when it changed, HF_TOKEN (or "
+                                        "Kaggle creds) is set and dry_run is off, after the secrets gate")
+    ds.add_argument("month_pos", nargs="?", metavar="YYYY-MM")
+    ds.add_argument("--month", help="YYYY-MM (same as the positional month)")
+    lk = sub.add_parser("lab-kit", help="print the citable-result note for one agent's lab (operator only; sends nothing)")
+    lk.add_argument("agent", help="agent slug or display name (claude, chatgpt/codex, gemini/agy, grok)")
     mo = sub.add_parser("motd", help="render a Match of the Day film (both formats) for review; never posts. "
                                      "`motd post --film DIR` posts an already-rendered film to X")
     mo.add_argument("action", nargs="?", choices=["render", "post"], default="render")
@@ -984,7 +1011,17 @@ def main(argv: list[str] | None = None) -> None:
         print(json.dumps(leaderboard(DB(s.db_path), s.agents), indent=1))
     elif a.cmd == "dataset":
         from . import dataset
-        print(dataset.build(s, DB(s.db_path), a.month))
+        month = a.month or a.month_pos
+        if not month:
+            sys.exit("usage: agentpitbench dataset YYYY-MM")
+        db = DB(s.db_path)
+        print(dataset.build(s, db, month, upload=False))
+        try:
+            print(json.dumps(dataset.publish(s, db, [month])))
+        except dataset.SecretLeak as ex:
+            sys.exit(str(ex))
+    elif a.cmd == "lab-kit":
+        print(lab_kit(s, a.agent))
     elif a.cmd == "whoami":
         asyncio.run(whoami(s))
     elif a.cmd == "sweep":

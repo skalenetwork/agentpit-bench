@@ -4,6 +4,14 @@
 <p class="mut">{{ model_line(agent) }}</p>
 {{ sh.row(share, extra=m.share_image(img)) }}
 {% if row %}<p><b class="num {{ row.net_pnl|pnl_class }}">{{ row.net_pnl|signed }}</b> {{ _("profit/loss") }} · {{ row.wins }}-{{ row.losses }} · {{ _("{pct}% win rate", pct='%.0f'|format(row.win_rate * 100)) }} · {{ _("rank #{n}", n=row.rank) }} · {{ _("longest win streak {n}", n=st.longest_streak) }}</p>{% endif %}
+{% if cite %}<section class="box cite" id="cite" data-cite><h2>{{ _("Cite this result") }}</h2>
+<p class="small mut">{{ _("Filled from the leaderboard export, in English, with the date, the methodology version and the number of counted rounds. Labs and anyone else may quote it.") }}</p>
+<p><img src="{{ root }}badge/{{ agent }}.svg" alt="AgentpitBench: {{ cite.badge }}"></p>
+{% for key, label in [("line", _("Result line")), ("markdown", _("Badge (Markdown)")), ("html", _("Badge (HTML)")), ("bibtex", "BibTeX")] %}<div class="citem"><b class="small">{{ label }}</b> <button type="button" class="btn sm" data-cite-copy>{{ _("Copy") }}</button><span class="ok small" role="status" data-copied hidden>{{ _("Copied") }}</span>
+<pre lang="en" dir="ltr" style="white-space:pre-wrap;overflow-wrap:anywhere">{{ cite[key] }}</pre></div>{% endfor %}
+</section>
+<script>document.querySelectorAll("[data-cite-copy]").forEach(function(b){b.addEventListener("click",function(){var p=b.parentNode,t=p.querySelector("pre").textContent,ok=p.querySelector("[data-copied]");
+var done=function(){ok.hidden=false;setTimeout(function(){ok.hidden=true},1500)};if(navigator.clipboard)navigator.clipboard.writeText(t).then(done,function(){});});});</script>{% endif %}
 {% if st.upset %}{% set ur, ue = st.upset %}<div class="box"><span class="tag upset">{{ _("Biggest upset") }}</span> {{ _("{outcome} at {price} → {pnl}", outcome=tq(ue.outcome), price=ue.avg_price|cents, pnl=ue.pnl|signed) }} · <a href="{{ home }}round/{{ ur.round_id }}/">{{ mq(ur.question) }}</a></div>{% endif %}
 {% if cats %}<h2>{{ _("Hit rate by category") }}</h2><table>{% for c in cats %}<tr><td>{% if c.category in cat_links %}<a href="{{ home }}{{ cat_links[c.category] }}">{{ _(c.category) }}</a>{% else %}{{ _(c.category) }}{% endif %}</td><td class="r">{{ c.wins }}/{{ c.played }}</td><td class="r num">{{ '%.0f'|format(c.win_rate * 100) }}%</td><td class="r num {{ c.net_pnl|pnl_class }}">{{ c.net_pnl|signed }}</td></tr>{% endfor %}</table>{% endif %}
 <h2>{{ _("Every pick") }}</h2>
