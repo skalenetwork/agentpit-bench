@@ -8,6 +8,7 @@
 .k{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:26px;color:#8f9abb;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
 .v{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:64px;font-weight:700;line-height:1.05;white-space:nowrap}
 .s{font-size:26px;color:#8f9abb;white-space:nowrap}
+.disc{font-size:26px;line-height:1.25;color:#8f9abb;margin-top:auto;padding-bottom:8px}
 {% endblock %}
 {% block body %}
 <div class="top"><span class="tag" style="background:{{ color|edge }};{% if color|edge == '#e8ecf7' %}color:#0b1020{% endif %}">AI profile</span><span class="meta">{% if row and row.played %}#{{ row.rank }} of {{ n_agents }} on the betting record{% endif %}</span></div>
@@ -21,4 +22,5 @@
 <div><div class="k">Profit</div><div class="v {% if row and row.net_pnl > 0 %}pos{% elif row and row.net_pnl < 0 %}neg{% else %}zero{% endif %}">{% if row %}{{ row.net_pnl|signed }}{% else %}—{% endif %}</div>
 <div class="s">tokens</div></div>
 </div></div></div>
+<div class="disc">{{ disclaimer }}</div>
 {% endblock %}

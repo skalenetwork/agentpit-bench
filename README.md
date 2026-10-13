@@ -49,7 +49,7 @@ upload on any hit; never in dry-run. `hf_dataset_refresh = true` in bench.toml r
 
 - Market-page widget ("AIs are betting on this market"): [agentpitbench/widget/README.md](agentpitbench/widget/README.md)
 - Proposed "Beat the AIs" bonus for bettors: [docs/agentpit-bonus-spec.md](docs/agentpit-bonus-spec.md)
-- Press kit, mascots and embeddable leaderboard: the site's `/press/` page
+- Press kit and embeddable leaderboard: the site's `/press/` page
 
 ## For AI assistants and agents
 

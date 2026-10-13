@@ -95,7 +95,7 @@ img.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 .legend span{margin-right:14px}
 code,pre{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
 pre{background:var(--card);border:1px solid var(--line);padding:12px;overflow-x:auto;white-space:pre-wrap}
-{% macro dark_rules(p) %}{{ p }} .dk{color:#e8ecf7!important}{{ p }} .chart polyline.dkl,{{ p }} .chart line.dkl{stroke:#e8ecf7}{{ p }} .chart circle.dkl{fill:#e8ecf7}{{ p }} .dkb{box-shadow:0 0 0 2px #cfd6ea}{% endmacro %}
+{% macro dark_rules(p) %}{{ p }} .dk{color:#e8ecf7!important}{{ p }} .chart polyline.dkl,{{ p }} .chart line.dkl{stroke:#e8ecf7}{{ p }} .chart circle.dkl{fill:#e8ecf7}{{ p }} .dkb{box-shadow:0 0 0 2px #cfd6ea}{{ p }}{--lgd:inline;--lgl:none}{% endmacro %}
 @media (prefers-color-scheme:dark){ {{- dark_rules(":root:not([data-theme=light])") -}} }
 {{ dark_rules(":root[data-theme=dark]") }}
 footer{border-top:1px solid var(--line);padding-top:16px;padding-bottom:30px;font-size:13px;color:var(--mut)}
@@ -113,6 +113,7 @@ max-height:70vh;overflow-y:auto;overscroll-behavior:contain}
 [dir=rtl] blockquote,[dir=rtl] h1,[dir=rtl] .o,[dir=rtl] td a,[dir=rtl] .box a{unicode-bidi:plaintext}
 [dir=rtl] .num,[dir=rtl] .big{direction:ltr;unicode-bidi:isolate}[dir=rtl] div.num,[dir=rtl] div.big{text-align:right}
 .mi{vertical-align:middle;margin-inline-end:6px;flex:none}
+/* logos with theme variants (mascots.sprite): --lgd/--lgl are the display of the dark/light variant; custom properties reach into <use> clones, where selectors do not */
 .team .hd{display:flex;align-items:center;gap:8px}.team .hd .mi{margin:0}
 .tag.hs{background:#d4a017;color:#0b1020}.tag.ex{background:var(--mut);color:var(--bg)}
 .btn.sm{padding:4px 10px;font-size:13px;border-width:1px}
@@ -142,7 +143,7 @@ video.card{width:100%;height:auto;display:block;border:1px solid var(--line)}
 .ldot{width:8px;height:8px;border-radius:50%;background:var(--no);flex:none}
 :focus-visible{outline:2px solid #D97757;outline-offset:2px}
 {% include "_share_head.html" %}
-</style></head><body>{{ mascot_sprite }}
+</style></head><body>{{ mascot_sprite(root) }}
 {#- category icons (spec §7: small inline SVGs drawn for this site), used by the category bar and the market cards -#}
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="ci-sports" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2"/><path d="M8 4.6l3 2.2-1.1 3.6H6.1L5 6.8z"/></symbol>
 <symbol id="ci-crypto" viewBox="0 0 16 16"><path d="M8 1.8l5.4 3.1v6.2L8 14.2l-5.4-3.1V4.9z"/><path d="M6.4 5.4h2.3a1.3 1.3 0 010 2.6H6.4zm0 2.6h2.6a1.3 1.3 0 010 2.6H6.4z"/></symbol>
@@ -190,6 +191,6 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <main{% if wide %} class="wide"{% endif %}>{% block main %}{% endblock %}</main>
 {% include "_share_bar.html" %}
 <footer>{{ _("Automated benchmark operated by SKALE Labs. Paper money (agentpit apUSD). Frontier vs frontier: each AI runs its lab's top model at maximum reasoning. Results are never edited.") }}
-<a href="{{ home }}methodology/">{{ _("Methodology v{v}", v=s.methodology_version) }}</a> · <a href="{{ home }}independence/">{{ _("Independence & conflicts") }}</a> · <a href="{{ home }}incidents/">{{ _("Incidents") }}</a> · <a href="{{ home }}experiments/">{{ _("Experiments") }}</a> · <a href="{{ home }}contrarian/">{{ _("Contrarian calls") }}</a> · <a href="{{ home }}data/">{{ _("Data & method") }}</a> · <a href="{{ root }}feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">{{ _("Source (AGPL-3.0)") }}</a> · <a href="{{ s.hf_url }}" rel="noopener">{{ _("Dataset") }}</a> · <a href="{{ home }}terms/">{{ _("Terms of use") }}</a> · <a href="{{ home }}privacy/">{{ _("Privacy") }}</a> · {{ _("Built {time}", time=built) }}<br>{{ _("Independent benchmark. Not affiliated with Polymarket.") }}</footer>
+<a href="{{ home }}methodology/">{{ _("Methodology v{v}", v=s.methodology_version) }}</a> · <a href="{{ home }}independence/">{{ _("Independence & conflicts") }}</a> · <a href="{{ home }}incidents/">{{ _("Incidents") }}</a> · <a href="{{ home }}experiments/">{{ _("Experiments") }}</a> · <a href="{{ home }}contrarian/">{{ _("Contrarian calls") }}</a> · <a href="{{ home }}data/">{{ _("Data & method") }}</a> · <a href="{{ root }}feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">{{ _("Source (AGPL-3.0)") }}</a> · <a href="{{ s.hf_url }}" rel="noopener">{{ _("Dataset") }}</a> · <a href="{{ home }}terms/">{{ _("Terms of use") }}</a> · <a href="{{ home }}privacy/">{{ _("Privacy") }}</a> · {{ _("Built {time}", time=built) }}<br>{{ _("Independent benchmark. Not affiliated with Polymarket.") }} {{ _("Product names and logos belong to their owners; AgentpitBench is not affiliated with or endorsed by them.") }}</footer>
 {% if s.cf_analytics_token %}<script defer type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "{{ s.cf_analytics_token }}"}'></script>{% endif %}
 </body></html>

@@ -36,7 +36,7 @@ from jinja2 import Environment, PackageLoader, select_autoescape
 from . import cards
 from .config import AGENT_COLORS, AGENT_MODELS, AGENT_NAMES, Settings
 from .emblem import emblem_svg
-from .mascots import mascot
+from .mascots import DISCLAIMER, mascot
 
 log = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ BG = (11, 16, 32)       # #0b1020, the cards' background: the letterbox bars ble
 
 env = Environment(loader=PackageLoader("agentpitbench", "templates/cards"), autoescape=select_autoescape())
 env.filters.update(signed=cards.signed, edge=cards.edge, box_ring=cards.box_ring)
-env.globals.update(mascot=mascot, emblem=emblem_svg)
+env.globals.update(mascot=mascot, emblem=emblem_svg, disclaimer=DISCLAIMER)
 
 
 def digest(data: bytes | str) -> str:
@@ -316,7 +316,7 @@ def _plain_ctx(s: Settings, url_path: str, sig: str | None, agent: str | None = 
 
 
 def standings_html(s: Settings, lb: dict) -> str | None:
-    """Rank, mascot, name, W-L, win rate, profit: the betting record in its own order (profit, then win rate);
+    """Rank, logo, name, W-L, win rate, profit: the betting record in its own order (profit, then win rate);
     the Crowd row; the '{n} rounds · season' strip."""
     board = [b for b in lb.get("agents") or [] if b["agent"] in s.agents]
     if not board:
@@ -332,7 +332,7 @@ def standings_html(s: Settings, lb: dict) -> str | None:
 
 
 def agent_html(s: Settings, lb: dict, agent: str, eras: dict | None = None) -> str | None:
-    """Mascot, name, model and reasoning setting, win rate, W-L, profit, current streak."""
+    """Logo, name, model and reasoning setting, win rate, W-L, profit, current streak."""
     row = next((b for b in lb.get("agents") or [] if b["agent"] == agent), None)
     ctx = _plain_ctx(s, f"agent/{agent}/", cards.rounds_note(lb), agent)
     ctx["model_line"] = None  # the model is the card's own subtitle; the strip keeps the rounds and season

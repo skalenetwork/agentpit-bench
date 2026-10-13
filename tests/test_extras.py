@@ -2,10 +2,11 @@
 import json
 import sys
 import time
+from pathlib import Path
 
 import pytest
 
-from agentpitbench import exports, press, virality as v
+from agentpitbench import exports, mascots, press, virality as v
 from agentpitbench.watcher import Watcher
 from test_core import FakeAPI, gamma
 from test_virality import AGENTS, FakePoster, NoCards, env, make_round  # noqa: F401  (env is a fixture)
@@ -178,7 +179,7 @@ def test_site_extras(env):
     out = site.build(s)
     rp = (out / f"round/{done}/index.html").read_text()
     for needle in ("Nexus is cooked.", "Variance is a cruel teacher.", "Verified on-chain", "0x85B0", "tx 0xabc123de",
-                   "Humans playing along", "2 followers replied with a pick.", "1 got it right.", "@alice", 'href="#m-claude"'):
+                   "Humans playing along", "2 followers replied with a pick.", "1 got it right.", "@alice", "logos/claude-spark-clay.svg"):
         assert needle in rp, needle
     assert "Tail Claude" not in rp                                    # resolved: no tail/fade
     live = (out / f"round/{hs}/index.html").read_text()
@@ -191,8 +192,11 @@ def test_site_extras(env):
     press_page = (out / "press/index.html").read_text()
     assert "Cite this" in press_page and "@misc{agentpitbench" in press_page and "/embed/" in press_page
     assert (out / "es/press/index.html").exists() and "Kit de prensa" in (out / "es/press/index.html").read_text()
-    for a in [*s.agents, "crowd"]:
-        assert (out / f"press/mascots/{a}.svg").read_text().startswith("<svg")
+    assert not (out / "press/mascots").exists()                       # vendor logos are not ours to hand out
+    for f in ("claude-spark-clay.svg", "openai-blossom-white.svg", "gemini-sparkle.png", "grok-logomark-dark.svg"):
+        assert (out / "logos" / f).read_bytes() == (Path(mascots.__file__).parent / "static/logos" / f).read_bytes()
+    assert '<image style="display:var(--lgd,none)" href="../logos/openai-blossom-white.svg"' in lb and 'href="#m-codex"' in lb
+    assert "not affiliated with or endorsed by them" in lb
     assert (out / "embed/index.html").exists() and (out / "widget/agentpit-widget.js").exists()
     assert "Open challenge" not in (out / "data/index.html").read_text()
     for lang in i18n.CODES:
