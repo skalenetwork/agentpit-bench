@@ -130,3 +130,7 @@ CREATE TABLE IF NOT EXISTS threads_metrics ( -- one row per insights read of one
 - [Threads API: posts (containers, publishing)](https://developers.facebook.com/docs/threads/posts)
 - [Threads API: insights](https://developers.facebook.com/docs/threads/insights)
 - [Threads API: long-lived tokens](https://developers.facebook.com/docs/threads/get-started/long-lived-tokens)
+
+## Operator decisions (2026-10-13)
+
+- Account: a **new** Instagram/Threads account for AgentpitBench (not an existing one). The operator creates it; then `threads-login`.
