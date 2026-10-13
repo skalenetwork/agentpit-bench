@@ -1,6 +1,6 @@
 # Simple scoring: drop the Brier competitions and Head to head (spec)
 
-Status: draft v1 · 2026-10-13 · not built. Operator decision of 2026-10-13: "competitions based on Brier score
+Status: draft v2 (advisor pass 1) · 2026-10-13 · not built. Operator decision of 2026-10-13: "competitions based on Brier score
 are to be removed from the site. They are too complex for people. Also remove Head to Head from everywhere."
 
 ## Problem
@@ -41,7 +41,7 @@ are to be removed from the site. They are too complex for people. Also remove He
 
 | # | Decision | Default |
 |---|----------|---------|
-| D1 | Does the daily forecast sweep keep running once nothing ranks it? | **Keep it running.** It still feeds `/contrarian/` (§3.6), the sealed forecast files and the dataset, and it costs one batched run per agent per day. Reconsider on 2026-11-10 with numbers on contrarian traffic. Stopping it later is a separate operator proposal: `sweep_markets` cannot be set to 0 through `method propose` today and needs a code change. |
+| D1 | Does the daily forecast sweep keep running once nothing ranks it? | **Keep it running.** It still feeds `/contrarian/` (§3.6), the sealed forecast files and the dataset, and it costs one batched run per agent per day. Reconsider on 2026-11-10 with numbers on contrarian traffic. Stopping it later is a separate operator proposal. `method propose sweep_markets=0` is already accepted, since operator proposals may change any lock param. What is unverified is whether the sweep runner treats 0 as "skip" (and `/contrarian/` as frozen history). Check that before such a proposal. |
 | D2 | Launch-day duels: new model against the previous one, compared by Brier on the sweep. | **Stop creating new duels**: a `duels_enabled = false` setting gates `forecast.duels` scheduling. Existing duel rows stay in the data export. They are no longer shown anywhere. |
 | D3 | The "Calibration" column (a per-round confidence Brier) in the betting table. | **Remove it.** It is the same jargon. |
 | D4 | The Match of the Day "Grudge match" signal (`motd.py`: "clash #N" between agents who split before). | **Remove it.** It is the betting head-to-head under another name. |
@@ -60,21 +60,37 @@ must be reversed the same way it was made.
 
   `_commit` bumps the version, appends the changelog line and rehashes the lock in one write, so
   `methodology.verify()` and the drift detector stay quiet. A test proves this (§8).
-- **Changelog text** (English source; translated into every site language through the i18n placeholder
-  pattern used by the generated lines in `methodology.py`):
+- **Version source.** No `bench.toml` edit is needed. `methodology_version` is not a toml key:
+  `config.load` → `methodology.apply` sets `s.methodology_version` from the lock, and `_commit` calls
+  `apply` right after writing, so `verify()`'s "settings report v…" check sees 2.0. The running service
+  picks the version up on the restart that `ship.sh` does.
+- **Changelog text.** Plain text, with **no placeholders**. Operator-approved text goes through
+  `_fill_or_placeholder` (model translation of the whole line), not through the per-change-type templates.
   > "Headline metric: the betting record (wins, losses, profit) replaces forecast accuracy (Brier score), which
   > was too hard to read. The daily forecast sweep still runs and its sealed files stay public; its scores are
-  > no longer ranked. Evidence: {link}."
-- **Evidence file**, published at `/methodology/changes/2.0.json` through `methodology.changes_dir`, like the
-  auto-apply evidence. It is a frozen snapshot taken at the moment of the switch:
-  - the full forecast-accuracy table: per agent and the Crowd, Brier, CI, n and the vs-Crowd verdict;
-  - the betting table (W-L, profit, rank);
-  - `markets_resolved`, the season and a timestamp.
+  > no longer ranked."
+- **Evidence link.** The site's changelog renderer links `methodology.change_url(s, version)` after any
+  entry whose `changes_dir(s)/<version>.json` exists. That covers this entry, the auto-applied entries and
+  later operator changes alike. Today, auto-apply entries carry the link inside their template values. Keep
+  that, but don't print a second link for them.
+- **Evidence file.** Published at `/methodology/changes/2.0.json`. It is a frozen snapshot of the standings
+  at the switch.
+  - **Mechanism:** a new `approve(..., snapshot=True)` option, reached from the CLI as
+    `method approve <id> --major --snapshot-standings`, builds the snapshot **at approve time** from the live
+    DB. It does this through a new `exports.standings_snapshot(s, db)`, which is `forecast.metrics()` plus the
+    season betting table.
+  - It writes `changes_dir(s)/<nv>.json` **before** `_commit` and deletes it if `_commit` raises. This is the
+    same write-then-commit-or-unlink pattern `_generated` uses. Reuse it; don't copy it.
+  - The snapshot contains:
+    - the full forecast-accuracy table: per agent and the Crowd, Brier, CI, n and the vs-Crowd verdict;
+    - the betting table (W-L, profit, rank);
+    - `markets_resolved`, the season and a timestamp.
 
-  Anyone can then check whether the switch changed who is #1. The page states this plainly in one sentence,
-  generated from the snapshot rather than written by hand: "At the switch, the forecast leader was {a}; the
-  betting leader was {b}."
-- **Timing.** The version bump and the code change ship in **one deploy**. The methodology page must never
+  Anyone can then check whether the switch changed who is #1. The methodology page shows one translated
+  template sentence under the 2.0 entry: "At the switch, the forecast leader was {a}; the betting leader was
+  {b}." The site fills it **at render time from the evidence file**. It is never typed into the changelog
+  text.
+- **Timing.** The version bump and the code change go live in **one deploy** (§11). The methodology page must never
   describe a headline that the leaderboard doesn't show.
 - **Season.** Season 1 keeps its start date. The betting table has been kept since the season started, so
   there is no gap and nothing is recomputed.
@@ -96,7 +112,7 @@ Remove:
 
 Then:
 - **Betting record** becomes the first section, under the H1.
-- Add one plain line in its place: "{n} rounds counted this season. That is a small sample, so the order can
+- Add one plain line in its place (`n` = `lb.rounds_counted`, §4): "{n} rounds counted this season. That is a small sample, so the order can
   still change." There is no statistical claim of any kind; the betting table makes none today.
 
 ### 3.2 Home (`index.html`, `site.home_pairs`)
@@ -132,6 +148,11 @@ When the strip goes, the "today" block falls back to its film-only layout. That 
   under methodology v1.0, when forecast accuracy was the headline metric." This applies only to reports
   dated before the 2.0 switch.
 
+### 3.5a Films page
+
+`films.html:9` says "the money and forecast races". It becomes "the money race", and any other sweep-race
+wording on that page goes too.
+
 ### 3.6 `/contrarian/` (kept)
 
 It is built from sweep forecasts (`forecast.contrarian`) but reports a plain count: "{right} of {total}
@@ -163,22 +184,24 @@ Brier figure. If it does, remove the figure.
 - Remove `/vs/` from the sitemaps and from `llms.txt`.
 - Send the removed URLs once through IndexNow (`site.indexnow_changes` already handles changed paths). Keep
   the stubs indefinitely; they are tiny.
-- Delete `VS_MIN_N`, `vs_pairs`, `home_pairs`, `vs_links` and `vs_slug`, along with their config and
-  templates `vs.html` and `vs_index.html`, once the stubs no longer need them. The stub generator keeps only
-  the slug list.
+- Freeze the slug list as a constant, `site.RETIRED_VS_SLUGS`, generated once from today's `config` vs
+  slugs: every pair of current and retired agents, plus each agent against the Crowd. The stubs are built
+  from that constant.
+- Delete these now: `VS_MIN_N`, `vs_pairs`, `home_pairs`, `vs_links`, `vs_slug`, the vs slug table in
+  `config.py`, `vs.html` and `vs_index.html`.
 
 ## 4. Cards and films
 
 | Surface | Change |
 |---|---|
 | `cards/standings.html`, `og.py` standings (`og.py:318–345`) | Drop the "Forecast accuracy · 95% CI" column and the Crowd's Brier. Sort by betting rank: profit, then win rate. Columns: rank, AI, W-L, win rate, profit. |
-| Significance strip on every card (`cards.py` `significance`, `publish.py:198,274`) | Replace it with "{n} rounds · season {s}". There is no significance label: the label was Brier-derived, and the betting table makes no significance claim. |
+| Significance strip on every card (`cards.py` `significance`/`short_sig`, `publish.py:198,274`) | Replace it with "{n} rounds · season {s}". `n` is the leaderboard export's counted-round count (`len(counted)`, the same value `exports.py:346` writes as `betting_record.rounds_counted`). Add it to `data["leaderboard"]` as `rounds_counted`, so that `publish.py` reads it there instead of `["significance"]["label"]`. There is no significance label: the label was Brier-derived, and the betting table makes no significance claim. |
 | `cards/agent.html` | Replace the "Forecast accuracy" cell with "Win rate". |
 | `cards/split.html:22` | Remove the "Head to head: A x – y B" line (`grudge`). Stop passing `grudge` through `cards.py:525,615`. |
 | `cards/motd.html`, `motd_story.html`, `motd.py:290` | The close-scene standings show the betting record only. The `stn.forecast` and `crowd_brier` columns go. |
 | `motd.py` grudge signal (D4) | Remove the `grudge` key and weight, its candidate line and its scene branch. Check whether `virality.grudge` still has any other caller; if not, delete it. |
 | `cards/week.html`, `week.py` | Remove the cumulative-Brier race (`week.py:103–122`, the `brier` format branch in `week.html`, `brier_leader`) and the "Forecast accuracy" standings column. The profit race stays and becomes the only race. |
-| `prompts/weekly_episode.v1.md`, `motd_script.v1.md` (if it mentions Brier) | Add a **new version** (`.v2.md`) with no forecast-race material, and point `week.PROMPT_VERSION` at it. Do not edit v1 in place, because outputs are tagged with their prompt version. Update `prompts/MANIFEST.json`. |
+| `prompts/weekly_episode.v1.md` | Add a **new version** (`weekly_episode.v2.md`) with no forecast-race material, and point `week.PROMPT_VERSION` at it. Do not edit v1 in place, because outputs are tagged with their prompt version. Update `prompts/MANIFEST.json`. |
 
 ## 5. Posts (X, Bluesky, Telegram: everything that goes through `engage.py`)
 
@@ -217,6 +240,8 @@ AgentpitBench" should answer from the betting record.
   - remove `pairs` (`forecast.pair_metrics`) and `significance` from the leaderboard export;
   - remove `duels` from what the site reads;
   - keep `forecast.metrics()` out of `leaderboard.json`, and fix the docstring at `exports.py:28`;
+  - in the dataset export (`exports.py:344–345`), remove the aggregates `forecast_accuracy`, `significance`
+    and `launch_day_duels`. The raw `sealed_forecasts` index stays;
   - the weekly report export stops computing `fc` and `crowd_brier` (`exports.py:283–314`).
 - `dataset.py:49`: the README line becomes "The headline metric is the betting record. The daily forecast
   sweep is included as research data, with a per-forecast Brier score; it is not ranked."
@@ -253,9 +278,13 @@ themselves.
   - `openapi.json` has no `ForecastRow`;
   - `api/forecasts.json` still lists the sealed files.
 - **Methodology test:**
-  - the rehash-only operator proposal approved with `--major` produces version 2.0 and the changelog line;
+  - the rehash-only operator proposal approved with `--major --snapshot-standings` produces version 2.0, the
+    changelog line and `changes/2.0.json`. Patch `ask` the way the existing approve tests do;
+  - a failing `_commit` leaves no `2.0.json` behind;
   - `methodology.verify()` returns `[]` (the drift detector stays quiet);
-  - the changelog line is translated, with its placeholder filled, in every site language.
+  - the 2.0 line is translated in every site language;
+  - the rendered `/methodology/` links `/methodology/changes/2.0.json` under it, and shows the "forecast
+    leader / betting leader" sentence filled from the evidence file.
 - **Evidence test:** `/methodology/changes/2.0.json` contains both tables and the "forecast leader / betting
   leader" sentence, built from the snapshot.
 - **Posts tests:** the weekly post, the daily leader line and the State-of-the-AIs text contain no "Brier",
@@ -293,10 +322,15 @@ A test that asserted Brier output on a public surface now asserts its absence. I
 ## 11. Rollout
 
 1. Work on one branch, with tests while iterating. Run the full suite once, under `nice -n 15`.
-2. On the branch, the operator runs `method propose --rehash` and then `method approve --major`. The lock
-   change is committed **with** the code. There is no separate deploy.
-3. Before approving, take the §2 snapshot from the live DB. The approve step writes it, so it reflects the
-   real standings at the switch.
+2. Merge the code to main **without** the lock change, and deploy nothing yet.
+3. At a gap between rounds, in the main checkout, run `method propose --rehash --text …` and then
+   `method approve <id> --major --snapshot-standings`.
+   - This writes `methodology.json` (checkout) and `var/methodology-changes/2.0.json` (shared `var/`, also
+     read by the live service).
+   - Commit the lock, then run `ship.sh` **immediately**.
+   - Until the live service restarts, its drift check (`anomaly.py` → `verify(s)`) can report "lock v1.0 is
+     older than generated change v2.0". At most one such alert is expected, and it clears on restart. Note it
+     in the deploy log; don't silence the detector.
 4. Deploy with `ship.sh` at a gap between rounds. Then check:
    - `/leaderboard/` leads with the betting record;
    - `/vs/claude-vs-grok/` redirects;
