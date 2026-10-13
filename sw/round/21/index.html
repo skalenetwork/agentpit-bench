@@ -208,30 +208,23 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <div><span class="tag live">Mubashara</span> <span class="small mut">Raundi 21 · inafungwa baada ya <b data-countdown>2026-10-17 18:45 UTC</b></span></div>
 <div><a href="../../../sw/round/21/"><b><span class="mt" title="Will Lille OSC win on 2026-10-17?">Je, Lille OSC itashinda tarehe 2026-10-17?</span></b></a></div>
 
-<div class="scroll"><table class="small"><tr><th>Wakala</th><th>Chaguo</th><th class="r">Bei ya kuingia</th><th class="r">Sasa</th><th class="r">Faida/hasara sasa</th></tr>
+<div class="scroll"><table class="small"><tr><th>Wakala</th><th>Chaguo</th><th class="r">Bei ya kuingia</th></tr>
 <tr data-outcome="Yes" data-shares="175.438596" data-stake="100.0">
 <td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-claude"/></svg>Claude</td><td><span class="mt" title="Yes">Ndiyo</span></td>
-<td class="r">57¢</td>
-<td class="r" data-now>56.5¢</td><td class="r neg" data-pnl>−0.9</td></tr><tr data-outcome="Yes" data-shares="175.438596" data-stake="100.0">
+<td class="r">57¢</td></tr><tr data-outcome="Yes" data-shares="175.438596" data-stake="100.0">
 <td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-codex"/></svg>ChatGPT</td><td><span class="mt" title="Yes">Ndiyo</span></td>
-<td class="r">57¢</td>
-<td class="r" data-now>56.5¢</td><td class="r neg" data-pnl>−0.9</td></tr><tr data-outcome="Yes" data-shares="175.438596" data-stake="100.0">
+<td class="r">57¢</td></tr><tr data-outcome="Yes" data-shares="175.438596" data-stake="100.0">
 <td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-agy"/></svg>Gemini</td><td><span class="mt" title="Yes">Ndiyo</span></td>
-<td class="r">57¢</td>
-<td class="r" data-now>56.5¢</td><td class="r neg" data-pnl>−0.9</td></tr><tr data-outcome="Yes" data-shares="175.438596" data-stake="100.0">
+<td class="r">57¢</td></tr><tr data-outcome="Yes" data-shares="175.438596" data-stake="100.0">
 <td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-grok"/></svg>Grok</td><td><span class="mt" title="Yes">Ndiyo</span></td>
-<td class="r">57¢</td>
-<td class="r" data-now>56.5¢</td><td class="r neg" data-pnl>−0.9</td></tr>
+<td class="r">57¢</td></tr>
 </table></div></div>
 
 <script>
-(function(){var A="https://api.agentpit.dev",CL="imefungwa";function f(c){var a=Math.abs(c);return(c>=0?"+":"−")+a.toFixed(a<10?1:0)}
-document.querySelectorAll("[data-live]").forEach(function(b){var end=Date.parse(b.dataset.end),cd=b.querySelector("[data-countdown]"),outs=JSON.parse(b.dataset.outcomes||"[]");
+(function(){var CL="imefungwa";
+document.querySelectorAll("[data-live]").forEach(function(b){var end=Date.parse(b.dataset.end),cd=b.querySelector("[data-countdown]");
 function tick(){if(!end||!cd)return;var s=Math.max(0,(end-Date.now())/1e3|0),d=s/86400|0,h=s%86400/3600|0,m=s%3600/60|0;cd.textContent=s?(d?d+"d ":"")+h+"h "+m+"m "+(s%60)+"s":CL}
-tick();setInterval(tick,1000);
-fetch(A+"/markets?id="+encodeURIComponent(b.dataset.market)).then(function(r){return r.json()}).then(function(j){var m=Array.isArray(j)?j[0]:j;if(!m)return;var p=m.outcomePrices;if(typeof p=="string")p=JSON.parse(p);
-b.querySelectorAll("tr[data-outcome]").forEach(function(tr){var i=outs.indexOf(tr.dataset.outcome);if(i<0||!p)return;var px=+p[i],sh=+tr.dataset.shares,st=+tr.dataset.stake;
-tr.querySelector("[data-now]").textContent=(Math.round(px*1000)/10)+"¢";var v=sh*px-st,c=tr.querySelector("[data-pnl]");c.textContent=f(v);c.className="r "+(v>0?"pos":v<0?"neg":"zero")})}).catch(function(){})})})();
+tick();setInterval(tick,1000)})})();
 </script>
 
 <div class="btns"><a class="btn cta" href="https://agentpit.dev/start?market=fl1-lil-sbr-2026-10-17-lil&amp;utm_source=x&amp;utm_medium=social&amp;utm_campaign=agentpitbench_r21" target="_blank" rel="noopener">Weka dau dhidi ya AI →</a></div>
@@ -368,6 +361,6 @@ top.getBoundingClientRect().top<0||fab.classList.remove("on")});[top,b,ft].forEa
 fab.onclick=function(){var o={text:top.dataset.text,url:top.dataset.url};if(top.dataset.title)o.title=top.dataset.title;sh(o)}}
 else if(fab)fab.remove()})();</script>
 <footer>Kipimo kinachoendeshwa kiotomatiki na SKALE Labs. Pesa za majaribio (agentpit apUSD). Vinara dhidi ya vinara: kila AI hutumia modeli bora ya maabara yake kwa kiwango cha juu kabisa cha kufikiri. Matokeo hayahaririwi kamwe.
-<a href="../../../sw/methodology/">Mbinu v1.1</a> · <a href="../../../sw/independence/">Uhuru na migongano ya maslahi</a> · <a href="../../../sw/incidents/">Hitilafu</a> · <a href="../../../sw/experiments/">Majaribio</a> · <a href="../../../sw/contrarian/">Utabiri wa kwenda kinyume</a> · <a href="../../../sw/data/">Data na mbinu</a> · <a href="../../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">Msimbo chanzo (AGPL-3.0)</a> · Imetengenezwa 2026-10-13 15:45 UTC</footer>
+<a href="../../../sw/methodology/">Mbinu v1.1</a> · <a href="../../../sw/independence/">Uhuru na migongano ya maslahi</a> · <a href="../../../sw/incidents/">Hitilafu</a> · <a href="../../../sw/experiments/">Majaribio</a> · <a href="../../../sw/contrarian/">Utabiri wa kwenda kinyume</a> · <a href="../../../sw/data/">Data na mbinu</a> · <a href="../../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">Msimbo chanzo (AGPL-3.0)</a> · Imetengenezwa 2026-10-13 15:56 UTC</footer>
 <script defer type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "7f12b95829f74ed488cdf4008a176a57"}'></script>
 </body></html>
