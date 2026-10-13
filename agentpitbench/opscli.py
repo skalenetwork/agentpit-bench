@@ -67,6 +67,7 @@ def add_parsers(sub) -> None:
     an = opsub.add_parser("anomalies")
     an.add_argument("--all", action="store_true")
     opsub.add_parser("check", help="run the anomaly detectors once now")
+    opsub.add_parser("backfill-event-titles", help="match titles for open rounds (longtail search spec §2)")
     opsub.add_parser("snapshot", help="write the ops agent's scrubbed 24 h snapshot (no AI) and print its path")
     ni = opsub.add_parser("nightly", help="the nightly ops agent: clone, agent in its sandbox, gate, PR or patch")
     ni.add_argument("--force", action="store_true", help="run even if it already ran today (still needs "
@@ -224,6 +225,23 @@ def _ops(s: Settings, db: DB, a) -> None:
         for r in anomaly.listing(db, include_closed=a.all):
             print(f"#{r['anomaly_id']} {_ts(r['detected_at'])} [{r['severity']}] {r['detector']} {r['state']}  "
                   f"{r['detail_json']}")
+    elif a.ops_cmd == "backfill-event-titles":
+        import asyncio
+        from .agentpit import Agentpit
+        from .orchestrator import event_title
+
+        async def run():
+            api = Agentpit(s.api_url)
+            try:
+                for r in db.q("SELECT round_id, condition_id FROM rounds WHERE event_title IS NULL AND "
+                              "state NOT IN ('resolved','void')"):
+                    title = await event_title(api, r["condition_id"])
+                    print(r["round_id"], title or "-")
+                    if title:
+                        db.set_round(r["round_id"], event_title=title)
+            finally:
+                await api.close()
+        asyncio.run(run())
     elif a.ops_cmd == "check":
         _print([x.__dict__ for x in anomaly.tick(s, db)])
     elif a.ops_cmd == "snapshot":

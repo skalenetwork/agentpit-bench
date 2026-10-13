@@ -80,7 +80,7 @@ def test_split_headlines(env):
 def test_texts_fit_and_tags(env):
     s, db = env
     rid = make_round(db, PICKS, state="resolved", winner="Nexus",
-                     question="Will " + "very long question " * 20 + "?")
+                     question="Will " + "long question " * 7 + "?")   # ~100 characters, the longest seen
     r = rec(s, db, rid)
     board = exports.export(s, db)["leaderboard"]["agents"]
     texts = [decision_text(s, r, e) for e in r["entries"]]
@@ -91,7 +91,8 @@ def test_texts_fit_and_tags(env):
     for t in texts:
         assert tweet_len(t) <= MAX_LEN, t
     claude = decision_text(s, r, r["entries"][0])
-    assert claude.count('"') == 4 and "…\"" in claude  # clipped rationale keeps its closing quote
+    assert claude.startswith(r["question"] + "\n")     # the market name, in full, is line 1
+    assert claude.count('"') % 2 == 0 and "…\"" in claude  # clipped rationale keeps its closing quote
     assert "@xai" in res and "@AnthropicAI" not in res  # only the winner's vendor
     assert not any("@" in t for t in texts[:-1])  # never tag on decisions or splits
     assert "Grok 1-0" in res and "Claude 0-1" in res
@@ -482,7 +483,8 @@ async def test_compact_round_posts_reveal_results_only(env):
     assert reveal["quote_of"] is None and reveal["reply_to"] is None
     assert "Reply with your pick: CYBERSHOKE / Nexus" in reveal["text"] and "http" not in reveal["text"]
     assert "Claude: CYBERSHOKE · ChatGPT: CYBERSHOKE · Gemini: no bet · Grok: Nexus" in reveal["text"]
-    assert reveal["text"].startswith("2–1: Grok goes alone.") and reveal["length"] <= MAX_LEN
+    assert reveal["text"].split("\n")[1] == "2–1: Grok goes alone." and reveal["length"] <= MAX_LEN
+    assert reveal["text"].split("\n")[0] == exports.round_record(s, db, db.round(rid))["market_name"]
     assert len(reveal["images"]) == 4 and all(i.endswith(".png") and "decision-" in i for i in reveal["images"])
     assert db.round(rid)["thread_tweet_id"] == f"dry-r{rid}-reveal"         # human picks read from the reveal
     assert tweets[f"r{rid}-results"]["quote_of"] == f"dry-r{rid}-reveal"

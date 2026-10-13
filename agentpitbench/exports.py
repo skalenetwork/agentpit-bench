@@ -43,6 +43,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+from .twitter import market_name
 from .config import AGENT_COLORS, AGENT_MODELS, AGENT_NAMES, Settings
 from .db import DB, leaderboard
 from .virality import category, season_bounds, season_of, tail_fade
@@ -116,6 +117,9 @@ def round_record(s: Settings, db: DB, r) -> dict:
         by_outcome[h["pick"]] = by_outcome.get(h["pick"], 0) + 1
     return {
         "round_id": r["round_id"], "market_id": r["market_id"], "slug": r["slug"], "question": r["question"],
+        "event_title": r["event_title"] if "event_title" in r.keys() else None,
+        "market_name": market_name({"question": r["question"],
+                                    "event_title": r["event_title"] if "event_title" in r.keys() else None}),
         "outcomes": outcomes, "prices_at_start": snap.get("prices_list", []),
         "end_date": r["end_date"], "started_at": r["started_at"], "state": r["state"], "winner": r["winner"],
         "resolved_at": r["resolved_at"], "revealed_at": revealed_at, "market_link": link, "exhibition": bool(r["exhibition"]),

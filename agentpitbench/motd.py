@@ -617,7 +617,9 @@ async def make_film(s: Settings, db, cards, day: str, round_id: int | None = Non
     poster = out / "poster.png"
     if "wide" in files and "wide" in formats:
         await asyncio.to_thread(media.poster_frame, out / files["wide"], poster, sum(x["dur"] for x in scenes) - 1.0)
+    from .twitter import market_name
     rec = {"date": day, "round_id": rnd["round_id"], "question": rnd["question"], "winner": rnd["winner"],
+           "market_name": market_name(rnd),
            "hook": film_hook(story, rnd, sc), "post_hook": hook_line(rnd, sc),
            "title_line": film_title(story, rnd), "score": sc, "scripted": bool(story),
            **({k: story[k] for k in ("concept_type", "twist_type", "twist", "title", "script", "model",
@@ -655,8 +657,15 @@ def film_title(story: dict | None, rnd: dict) -> str:
 
 
 def post_text(rec: dict) -> str:
-    # the X text is always the code template (ai-automation spec: no opai-written X copy)
-    return rec.get("post_hook", rec["hook"]) + " Match of the Day #AgentpitBench"
+    # the X text is always the code template (ai-automation spec: no opai-written X copy). Line 1 is the market name
+    # (longtail spec §3.3); a hook that is only the question again is not repeated. Older records have no name.
+    hook = rec.get("post_hook", rec["hook"])
+    name = rec.get("market_name")
+    if not name:
+        return hook + " Match of the Day #AgentpitBench"
+    if " ".join(hook.rstrip("…").split()) in name:
+        hook = ""
+    return f"{name}\n" + (f"{hook} " if hook else "") + "Match of the Day #AgentpitBench"
 
 
 def link_text(s: Settings, rec: dict) -> str:

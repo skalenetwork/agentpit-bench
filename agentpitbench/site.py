@@ -37,7 +37,7 @@ from .emblem import emblem_svg
 from .config import AGENT_COLORS, AGENT_NAMES, AGENT_SLUGS, Settings, AGENT_MODELS
 from .i18n import CODES, LANGS, NAMES, Translator
 from .mascots import sprite, svg_file, use as mascot_use
-from .twitter import TAG, clip, fit, results_hook
+from .twitter import TAG, clip, fit, market_name, results_hook
 from .virality import CATEGORIES, category, commentary  # noqa: F401  (CATEGORIES: category names the site translates)
 
 log = logging.getLogger(__name__)
@@ -310,11 +310,13 @@ def round_share(r: dict, _, vs: str) -> ShareText:
     """Resolved: the results tweet's own hook, so the two never drift. Open: the question and every pick
     (or, while the picks are sealed, that the AIs are still betting)."""
     if r["state"] in ("resolved", "void"):
-        return ShareText(r.get("share_hook") or results_hook(r))   # the posted A/B hook, if one posted
+        hook = r.get("share_hook") or results_hook(r)   # the posted A/B hook, if one posted
+        # the market name leads (long-tail search); on a short network it is the part clipped first, the hook survives
+        return ShareText(hook) if r["state"] == "void" else ShareText("", market_name(r), f": {hook}")
     if r.get("sealed") or not any(e.get("outcome") for e in r["entries"]):
-        return flex_text(_, _("{question}: {vs} are placing their bets. Who's right?"), "question", r["question"], vs=vs)
+        return flex_text(_, _("{question}: {vs} are placing their bets. Who's right?"), "question", market_name(r), vs=vs)
     picks = ", ".join(f"{e['name']} {e['outcome'] or _('no bet')}" for e in r["entries"])
-    return flex_text(_, _("{question}: {picks}. Who's right?"), "question", r["question"], picks=picks)
+    return flex_text(_, _("{question}: {picks}. Who's right?"), "question", market_name(r), picks=picks)
 
 
 PICK_NETS = ("x", "bluesky", "whatsapp", "telegram", "reddit")  # the networks that take a prefilled text
@@ -425,14 +427,24 @@ def branded(title: str) -> str:
     return title + BRAND if len(title + BRAND) <= TITLE_MAX else title
 
 
+def event_prefix(r: dict) -> str:
+    """'Lille OSC vs. Stade Brestois 29 · ' when posts name the match in front of the question (longtail spec §6).
+    On translated pages loc() sets it from the English record (translated like any market text)."""
+    if "event_prefix" in r:
+        return r["event_prefix"]
+    name = r.get("market_name") or market_name(r)
+    return name[: len(name) - len(" ".join((r.get("question") or "").split()))] if name != r.get("question") else ""
+
+
 def round_title(r: dict, _, names: str, suffix: str = "") -> str:
     """Resolved: '{question}: which AI got it right?'; open: '{question}: AI predictions from …'. Never a pick."""
+    q = event_prefix(r) + r["question"]
     if r["state"] == "resolved":
-        t = flex_text(_, _("{question}: which AI got it right?"), "question", r["question"])
+        t = flex_text(_, _("{question}: which AI got it right?"), "question", q)
     elif r["state"] == "void":
-        t = flex_text(_, _("{question}: market voided"), "question", r["question"])
+        t = flex_text(_, _("{question}: market voided"), "question", q)
     else:
-        t = flex_text(_, _("{question}: AI predictions from {names}"), "question", r["question"], names=names)
+        t = flex_text(_, _("{question}: AI predictions from {names}"), "question", q, names=names)
     return branded(ShareText(t.head, t.flex, t.tail + suffix).fit(ROUND_TITLE_MAX))
 
 
@@ -471,7 +483,8 @@ def round_description(r: dict, _, suffix: str = "") -> str:
     else:
         d = _("Market favourite at the start: {price}. See how {n} AIs bet before the market closes on {date}.",
               price=price, n=len(r["entries"]), date=(r.get("end_date") or "")[:10] or "—")
-    return d + suffix
+    pre = event_prefix(r)
+    return (pre.removesuffix(" · ") + ". " if pre else "") + d + suffix
 
 
 def card_alt(r: dict, _, names: str) -> str:
@@ -1058,7 +1071,9 @@ def market_text(mt: dict[str, str]):
         if not mt:
             return r
         crowd = r.get("crowd") or {}
+        pre = event_prefix(r)
         return dict(r, question=tq(r["question"]), winner=tq(r.get("winner")),
+                    event_prefix=tq(pre.removesuffix(" · ")) + " · " if pre else "",
                     outcomes=[tq(o) for o in r.get("outcomes") or []],
                     crowd=dict(crowd, outcome=tq(crowd.get("outcome"))) if crowd else crowd)
     return tq, mq, loc

@@ -108,7 +108,8 @@ def test_share_text_clipped_per_network():
     # resolved: the results tweet's own hook, so the two never drift
     from agentpitbench.twitter import results_hook
     done = {**r, "state": "resolved", "winner": "K27", "entries": [{**e, "won": e["outcome"] == "K27"} for e in r["entries"]]}
-    assert site.round_share(done, _, "x").full == results_hook(done)
+    assert site.round_share(done, _, "x").full == f"{long_q}: {results_hook(done)}"   # led by the market name
+    assert site.round_share(done, _, "x").fit(200).endswith(results_hook(done))       # the hook survives a clip
     # right to left: the clipped flex keeps its isolates around it
     ar = site.round_share(r, Translator("ar"), "x")
     assert "⁨" in ar.head and "⁩" in ar.tail

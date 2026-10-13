@@ -261,9 +261,31 @@ def opai_failing(s: Settings, db: DB, now: float) -> list[Anomaly]:
     return []
 
 
+def market_name_missing(s: Settings, db: DB, now: float) -> list[Anomaly]:
+    """Round posts (reveal, results, motd) must carry the market name in full (docs/longtail-search-spec.md §7).
+    Only posts after the kv marker market_name_since (set on the first run after the deploy) count."""
+    import html
+    from .twitter import market_name
+    since = db.get("market_name_since")
+    if since is None:
+        db.put("market_name_since", now)
+        return []
+    out = []
+    for table in ("tweets", "bsky_posts", "tg_posts"):
+        rows = db.q(f"SELECT p.post_key, p.text, r.question, r.event_title FROM {table} p JOIN rounds r USING(round_id) "
+                    "WHERE p.kind IN ('reveal','results','motd') AND p.posted_at>? AND p.posted_at>?",
+                    float(since), now - 86400)
+        for r in rows:
+            name = market_name({"question": r["question"], "event_title": r["event_title"]})
+            if name and name not in html.unescape(r["text"] or ""):
+                out.append(Anomaly(f"market-name-missing:{table}:{r['post_key']}", "market-name-missing", "warn",
+                                   {"post_key": r["post_key"], "table": table}))
+    return out
+
+
 DETECTORS = [embargo_breach, forecast_leak, result_edit, secret_in_transcript, double_post, void_burst,
              methodology_drift, all_no_bet, agent_no_bet_streak, visibility_drop, x_read_failures, x_read_spend,
-             deploy_stale, opai_failing]
+             deploy_stale, opai_failing, market_name_missing]
 
 
 def detect(s: Settings, db: DB, now: float | None = None) -> list[Anomaly]:

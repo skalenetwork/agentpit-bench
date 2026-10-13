@@ -5,6 +5,8 @@ import json
 import logging
 import math
 
+import time
+
 import httpx
 
 log = logging.getLogger(__name__)
@@ -58,6 +60,25 @@ class Agentpit:
     async def market(self, market_id: str | int) -> dict | None:
         rows = await self._get("/markets", id=int(market_id))
         return parse_market(rows[0]) if rows else None
+
+    async def event_for(self, condition_id: str, page: int = 500, max_pages: int = 8) -> dict | None:
+        """The open event listing a market (docs/longtail-search-spec.md §2). /events ignores slug=, so pages are
+        scanned for the condition id; closed events drop out of the listing, so this works while the market is open.
+        Pages are cached for 10 minutes: several rounds can start in one watcher cycle."""
+        now = time.monotonic()
+        cache = getattr(self, "_events_cache", None)
+        if cache is None or now - cache[0] > 600:
+            cache = self._events_cache = (now, {})
+        for i in range(max_pages):
+            rows = cache[1].get(i)
+            if rows is None:
+                rows = cache[1][i] = await self._get("/events", limit=page, offset=i * page)
+            for ev in rows:
+                if any(m.get("conditionId") == condition_id for m in ev.get("markets") or []):
+                    return ev
+            if len(rows) < page:
+                return None
+        return None
 
     async def market_by_condition(self, condition_id: str) -> dict | None:
         """The market for an on-chain condition id. Unlike agentpit's numeric ids (renumbered on 2026-10-12),

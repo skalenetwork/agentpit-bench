@@ -344,6 +344,8 @@ MIGRATIONS = [  # (table, column, definition): added when missing, so old databa
     ("rounds", "methodology_version", "TEXT"),
     # the agentpit wallet the run bet from (agentpit re-issued every account on 2026-10-13; NULL: the agent's old wallet)
     ("runs", "wallet", "TEXT"),
+    # the sports match title ('Lille OSC vs. Stade Brestois 29') posts put in front of a one-sided question
+    ("rounds", "event_title", "TEXT"),
 ]
 
 

@@ -91,44 +91,116 @@ def price_str(p: float | None) -> str:
     return "?" if p is None else f"{round(p * 100)}¢"
 
 
+_VS = re.compile(r"\bvs\.?(?=\s|$)", re.I)
+
+
+def market_name(rnd: dict) -> str:
+    """The text every round post carries in full (docs/longtail-search-spec.md §1): the question verbatim, with the
+    sports match title in front when the question names only one side ('Will Lille OSC win on …?')."""
+    q = " ".join((rnd.get("question") or "").split())
+    ev = " ".join((rnd.get("event_title") or "").split())
+    if ev and _VS.search(ev) and not _VS.search(q):
+        return f"{ev} · {q}"
+    return q
+
+
+def give_way(render, steps: list[str], flex: str = "", flex_min: int = 0, name: str = "") -> str:
+    """render(dropped, flex, name) -> text. Drops the optional parts in `steps` order until the post fits 280, then
+    clips flex (never below flex_min), and only then the market name (last resort, logged). Every character a
+    dropped part or a clip removed counts as clipped for the A/B check (measure)."""
+    full = render(frozenset(), flex, name)
+    dropped: frozenset = frozenset()
+    text = full
+    for step in [None, *steps]:
+        if step:
+            dropped = dropped | {step}
+        text = render(dropped, flex, name)
+        if tweet_len(text) <= MAX_LEN:
+            break
+    else:
+        if flex:
+            over = tweet_len(text) - MAX_LEN
+            keep = max(flex_min, len(" ".join(flex.split())) - over)
+            flex = clip(flex, keep) if keep > 8 or flex_min else ""   # a few characters of a quote say nothing
+            text = render(dropped, flex, name)
+        if tweet_len(text) > MAX_LEN and name:
+            log.warning("market name clipped to fit 280: %s", name)
+            name = clip(name, max(20, len(name) - (tweet_len(text) - MAX_LEN)))
+            text = render(dropped, flex, name)
+        if tweet_len(text) > MAX_LEN:
+            text = clip(text, MAX_LEN)
+    _count_clip(tweet_len(full) - tweet_len(text))
+    return text
+
+
+def grouped_picks(rnd: dict) -> str:
+    """'No: Claude, Gemini, Grok · Yes: ChatGPT · No bet: …': outcomes in market order, agents in entry order."""
+    order = list(rnd.get("outcomes") or [])
+    for e in rnd["entries"]:
+        if e.get("outcome") and e["outcome"] not in order:
+            order.append(e["outcome"])
+    parts = []
+    for o in order:
+        names = [e["name"] for e in rnd["entries"] if e.get("outcome") == o]
+        if names:
+            parts.append(f"{o}: {', '.join(names)}")
+    idle = [e["name"] for e in rnd["entries"] if not e.get("outcome")]
+    if idle:
+        parts.append(f"No bet: {', '.join(idle)}")
+    return " · ".join(parts)
+
+
 # Links only go in results tweets: X bills a post containing a URL ~13x a plain one.
 def decision_text(s: Settings, rnd: dict, e: dict, invite: bool = False) -> str:
-    """invite=True for the round's opener: followers reply with their own pick (humans play along)."""
-    q = clip(rnd["question"], 90)
+    """invite=True for the round's opener: followers reply with their own pick (humans play along).
+    Legacy shape (post_decisions = false); the market name is line 1 like every round post."""
     lead = "Exhibition round. " if rnd.get("exclusion") == "summon" else ""
     tail = f" {TAG}"
     if invite:
         tail = "\nReply with your pick: " + clip(" / ".join(rnd.get("outcomes") or []), 60) + tail
     if not e["outcome"]:
         why = "timed out and forfeited" if e.get("exit_reason") == "timeout" else "crashed and forfeited"
-        return fit(f"{lead}{e['name']} {why} — no bet on \"{q}\". ", tail)
-    head = (f"{lead}{e['name']} bets {e['stake_filled'] or 0:.0f} on {e['outcome']} — \"{q}\" at "
-            f"{price_str(e['avg_price'])}.\n")
-    if e.get("quote"):
-        with_quote = head + f"💬 \"{e['quote']}\"\n"
-        if tweet_len(with_quote + tail) <= MAX_LEN - 20:
-            head = with_quote
-    return fit(head, tail, e.get("rationale") or "", quote=True)
+        return give_way(lambda d, f, n: f"{n}\n{lead}{e['name']} {why}, no bet.{tail}", [], name=market_name(rnd))
+    rationale = " ".join((e.get("rationale") or "").split())
+
+    def render(d, f, n):
+        body = f"{n}\n{lead}{e['name']} bets {e['stake_filled'] or 0:.0f} on {e['outcome']} at {price_str(e['avg_price'])}."
+        if e.get("quote") and "quote" not in d:
+            body += f"\n💬 \"{e['quote']}\""
+        if f:
+            body += f"\n\"{f}\""
+        return body + tail
+    return give_way(render, ["quote"], flex=clip(rationale, 118), flex_min=0, name=market_name(rnd)) \
+        if rationale else give_way(render, ["quote"], name=market_name(rnd))
 
 
 def split_text(s: Settings, rnd: dict, kind: str, headline: str, invite: bool = False) -> str:
     """invite=True when the split is the round's opener: followers reply with their own pick."""
     picks = ", ".join(f"{e['name']}: {e['outcome'] or 'no bet'}" for e in rnd["entries"])
-    lead = headline + "."
     tail = f" {TAG}"
     if invite:
         tail = "\nReply with your pick: " + clip(" / ".join(rnd.get("outcomes") or []), 60) + tail
-    return fit(f"{lead} {picks}. Who's right? ", tail)
+    return give_way(lambda d, f, n: f"{n}\n{f}. {picks}. Who's right?{tail}", [], flex=headline, flex_min=12,
+                    name=market_name(rnd))
 
 
 def reveal_text(rnd: dict, headline: str, cta: str = "", extra_tags: str = "") -> str:
-    """The round's opener on X, posted once every pick is in: the split headline, every pick, and the reply
-    invite (human picks are read from its replies). No link: X bills link posts ~13x.
-    cta: an A/B lead-in line directly before the invite; extra_tags: A/B hashtags after TAG."""
-    picks = " · ".join(f"{e['name']}: {e['outcome'] or 'no bet'}" for e in rnd["entries"])
-    invite = "\nReply with your pick: " + clip(" / ".join(rnd.get("outcomes") or []), 60)
-    lead = f"\n{cta}" if cta else ""
-    return fit(f"{headline}.\n{picks}", f"{lead}{invite} {TAG}{extra_tags}")
+    """The round's opener on X, posted once every pick is in: the market name, the split headline, every pick, and
+    the reply invite (human picks are read from its replies). No link: X bills link posts ~13x.
+    cta: an A/B lead-in line directly before the invite; extra_tags: A/B hashtags after TAG.
+    Give way (longtail spec §3.1): cta, tags, grouped picks, the outcome list, then the headline is clipped."""
+    per_agent = " · ".join(f"{e['name']}: {e['outcome'] or 'no bet'}" for e in rnd["entries"])
+    grouped = grouped_picks(rnd)
+    outcomes = clip(" / ".join(rnd.get("outcomes") or []), 60)
+
+    def render(d, f, n):
+        lines = [n, f"{f}.", grouped if "picks" in d else per_agent]
+        if cta and "cta" not in d:
+            lines.append(cta)
+        invite = "Reply with your pick" + ("" if "outcomes" in d or not outcomes else f": {outcomes}")
+        lines.append(f"{invite} {TAG}{'' if 'tags' in d else extra_tags}")
+        return "\n".join(lines)
+    return give_way(render, ["cta", "tags", "picks", "outcomes"], flex=headline, flex_min=12, name=market_name(rnd))
 
 
 def results_shape(rnd: dict) -> tuple[str | None, dict[str, str]]:
@@ -158,7 +230,7 @@ def results_shape(rnd: dict) -> tuple[str | None, dict[str, str]]:
 def results_hook(rnd: dict) -> str:
     """The results tweet's first line, built from the picks: who backed what and the score."""
     if rnd["state"] == "void":
-        return f"Voided: \"{clip(rnd['question'], 100)}\". No result this round."
+        return f"Voided: {market_name(rnd)}. No result this round."
     w = rnd["winner"]
     sit, f = results_shape(rnd)
     n = int(f["n"])
@@ -182,16 +254,24 @@ def results_hook(rnd: dict) -> str:
 def results_text(s: Settings, rnd: dict, board: list[dict], round_url: str, crowd: dict | None = None,
                  cast: str | None = None, hook: str | None = None, cta: str = "", extra_tags: str = "") -> str:
     """cast is accepted for compatibility but not repeated: the commentary line is on the card already.
-    hook / cta / extra_tags are A/B variants (None / "" = today's control). Vendor handles are never varied."""
+    hook / cta / extra_tags are A/B variants (None / "" = today's control). Vendor handles are never varied.
+    Line 1 is the market name; give way (longtail spec §3.2): the Crowd, the cta, the tags, the season line, then
+    the hook is clipped. A void round's hook already carries the name in full."""
     head = results_hook(rnd) if hook is None else hook
     tags = " ".join(dict.fromkeys(VENDOR_HANDLES[e["agent"]] for e in rnd["entries"]
                                   if e["won"] and e["agent"] in VENDOR_HANDLES))
     season = ", ".join(f"{b['name']} {b['wins']}-{b['losses']}" for b in board)
-    if season and crowd and crowd.get("played"):
-        season += f" | Crowd {crowd['wins']}-{crowd['losses']}"
-    tail = ((f"\nSeason: {season}." if season else "") + f" {TAG}{extra_tags}" + (f" {tags}" if tags else "")
-            + (f"\n{cta}" if cta else "") + f"\n{round_url}")
-    return fit(head, tail)
+    crowd_part = f" | Crowd {crowd['wins']}-{crowd['losses']}" if season and crowd and crowd.get("played") else ""
+    void = rnd["state"] == "void"
+
+    def render(d, f, n):
+        line = (f"Season: {season}{'' if 'crowd' in d else crowd_part}. " if season and "season" not in d else "")
+        line += f"{TAG}{'' if 'tags' in d else extra_tags}" + (f" {tags}" if tags else "")
+        lines = ([] if void else [n]) + [f, line] + ([cta] if cta and "cta" not in d else []) + [round_url]
+        return "\n".join(lines)
+    if void:  # the hook is 'Voided: <market name>. …': protected, never clipped
+        return give_way(lambda d, f, n: render(d, head, n), ["crowd", "cta", "tags", "season"])
+    return give_way(render, ["crowd", "cta", "tags", "season"], flex=head, flex_min=30, name=market_name(rnd))
 
 
 def milestone_text(headline: str, subline: str) -> str:
@@ -211,9 +291,10 @@ def race_text(week: str, board: list[dict], crowd: dict | None) -> str:
     return fit(head, tail)
 
 
-def summon_reply_text(question: str, thread_url: str) -> str:
-    return fit(f"You summoned it. All four AIs just bet on \"{clip(question, 100)}\". Follow the round: ",
-               f"{thread_url}")
+def summon_reply_text(name: str, thread_url: str) -> str:
+    """name: market_name(round) in full."""
+    return give_way(lambda d, f, n: f"You summoned it. All four AIs just bet on: {n}. Follow the round: {thread_url}",
+                    [], name=" ".join(name.split()))
 
 
 def token_file() -> Path:

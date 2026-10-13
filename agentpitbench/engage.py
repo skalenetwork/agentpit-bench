@@ -18,7 +18,8 @@ from .cards import CardRenderer
 from .config import AGENT_NAMES, Settings
 from .db import DB
 from .twitter import TransientError
-from .twitter import (TAG, Poster, champion_text, clip, fit, milestone_text, race_text, summon_reply_text)
+from .twitter import (TAG, Poster, champion_text, clip, fit, market_name, milestone_text, race_text,
+                      summon_reply_text)
 from .virality import (UPSET_MAX, detect_milestones, human_picks, market_refs, milestone_state, prev_season,
                        reasoning_lines, season_of)
 from .watcher import basic_eligible, priority
@@ -323,9 +324,11 @@ class Engage:
             png = await self._card(self.cards.contrarian(week, calls))
             right = sum(1 for c in calls if c["right"])
             lead = calls[0]
-            text = fit(f"Contrarian calls ({week}): {lead['name']}: {lead['agent_p'] * 100:.0f}%. Market: "
-                       f"{lead['market_p'] * 100:.0f}%. On \"{clip(lead['question'], 70)}\" it {'was right' if lead['right'] else 'was wrong'}. "
-                       f"{right} of {len(calls)} big disagreements with the market paid off. ", TAG)
+            name = market_name(lead)  # in full (longtail spec §3.3); the rest of the sentence gives way first
+            verdict = "was right" if lead["right"] else "was wrong"
+            text = fit(f"{name}\nContrarian calls ({week}): {lead['name']}: {lead['agent_p'] * 100:.0f}%. Market: "
+                       f"{lead['market_p'] * 100:.0f}%. It {verdict}. ", f" {TAG}",
+                       f"{right} of {len(calls)} big disagreements with the market paid off.")
             await self._post(f"contrarian-{week}", "contrarian", text, png)
             self.db.put("contrarian_featured", sorted(featured | {f"{c['agent']}:{c['market_id']}" for c in calls}))
         report = next((r for r in data.get("reports", []) if r["week"] == week), None)
@@ -440,7 +443,7 @@ class Engage:
         if not thread:
             return
         url = f"https://x.com/{self.s.x_username}/status/{thread}"
-        tid = await self._post(f"summon-reply-{row['tweet_id']}", "summon", summon_reply_text(r["question"], url),
+        tid = await self._post(f"summon-reply-{row['tweet_id']}", "summon", summon_reply_text(market_name(dict(r)), url),
                                reply_to=row["tweet_id"])
         if tid:
             self.db.x("UPDATE summons SET reply_tweet_id=? WHERE tweet_id=?", tid, row["tweet_id"])

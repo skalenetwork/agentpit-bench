@@ -311,7 +311,7 @@ def test_commentary_deterministic(env):
         "Clean sweep for the favourite: every AI rode CYBERSHOKE home."
     t = results_text(s, r, [], "https://x.test/round/1/", None, line)
     assert line not in t and tweet_len(t) <= MAX_LEN                   # the card carries the commentary
-    assert t.startswith("Resolved: Nexus. Grok went alone and was right. 1-2.")
+    assert t.split("\n")[:2] == [r["market_name"], "Resolved: Nexus. Grok went alone and was right. 1-2."]
 
 
 # 12. high stakes
@@ -487,7 +487,7 @@ async def test_publisher_resolution_extras(env):
     finally:
         await pub.close()
     res = json.loads((s.outbox_dir / f"r{rid}-results.json").read_text())
-    assert res["text"].startswith("Resolved: Nexus. Grok went alone and was right.")   # data hook; commentary is on the card
+    assert res["text"].split("\n")[1].startswith("Resolved: Nexus. Grok went alone and was right.")   # data hook; commentary is on the card
     assert db.get("milestone_state")["rounds"] == 1
 
 

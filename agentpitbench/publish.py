@@ -18,7 +18,8 @@ from .config import Settings
 from .db import DB
 from .engage import Engage
 from .site import SiteDeployer
-from .twitter import Poster, clip, decision_text, price_str, results_shape, results_text, split_text, reveal_text
+from .twitter import (Poster, clip, decision_text, market_name, price_str, results_shape, results_text, split_text,
+                      reveal_text)
 from .virality import commentary, grudge, grudge_headline
 
 log = logging.getLogger(__name__)
@@ -26,7 +27,7 @@ log = logging.getLogger(__name__)
 
 def card_alt(rnd: dict, e: dict) -> str:
     """Alt text for one decision card (Bluesky images), from the same entry the card was drawn from."""
-    q = clip(rnd["question"], 200)
+    q = clip(market_name(rnd), 300)
     if not e.get("outcome"):
         return f"{e['name']} decision card: no bet on \"{q}\"."
     return (f"{e['name']} decision card: bets {e.get('stake_filled') or 0:.0f} on {e['outcome']} at "
@@ -250,7 +251,7 @@ class BenchPublisher:
         choices = [hook] + [ab.choose(self.db, self.s, sl, key, kind="reveal") for sl in ("reveal.cta", "tags")]
         text = ab.finish(self.db, key, choices,
                          lambda v: reveal_text(rnd, v.get("reveal.hook", headline), v.get("reveal.cta", ""),
-                                               v.get("tags", "")), "reveal")
+                                               v.get("tags", "")), "reveal", required=market_name(rnd))
         media = cards or None
         m = ab.choose(self.db, self.s, "reveal.media", key, kind="reveal")
         if m.key == "split_card":
@@ -301,7 +302,7 @@ class BenchPublisher:
             sit, facts = results_shape(rnd)
             choices = [ab.choose(self.db, self.s, "results.hook", key, sit, facts, kind="results")]
             choices += [ab.choose(self.db, self.s, sl, key, kind="results") for sl in ("results.cta", "tags")]
-            text = ab.finish(self.db, key, choices, render, "results")
+            text = ab.finish(self.db, key, choices, render, "results", required=market_name(rnd))
         except Exception:
             log.exception("A/B for %s failed; posting the control", key)
             text = render({})

@@ -243,9 +243,12 @@ def day_tone(db: DB, s: Settings, day: str | None = None, now: float | None = No
 # ---------- composing a post from several slots ----------
 
 def check_rendered(kind: str, text: str, control_text: str | None = None, clipped: int = 0,
-                   control_clipped: int = 0) -> list[str]:
-    """Invariants of a rendered post (validator rule 7, and the clipping rule of section 2)."""
+                   control_clipped: int = 0, required: str | None = None) -> list[str]:
+    """Invariants of a rendered post (validator rule 7, and the clipping rule of section 2). required: text the
+    post must carry verbatim (the market name of round posts, docs/longtail-search-spec.md §4)."""
     errs = []
+    if required and required not in text:
+        errs.append("market name missing")
     if tweet_len(text) > MAX_LEN:
         errs.append(f"too long ({tweet_len(text)} > {MAX_LEN})")
     if control_text is None:
@@ -264,7 +267,7 @@ def check_rendered(kind: str, text: str, control_text: str | None = None, clippe
 
 
 def finish(db: DB, post_key: str, choices: list[Choice], render: Callable[[dict[str, str]], str],
-           kind: str = "") -> str:
+           kind: str = "", required: str | None = None) -> str:
     """Render the control and the full combination; drop variants tags -> *.cta -> *.hook until the post passes
     check_rendered. Dropped slots are realized as the control. Returns the text to post."""
     control_text, c_clip = measure(lambda: render({}))
@@ -273,7 +276,7 @@ def finish(db: DB, post_key: str, choices: list[Choice], render: Callable[[dict[
     text, why = control_text, []
     while variants:
         text, clipped = measure(lambda: render(dict(variants)))
-        why = check_rendered(kind, text, control_text, clipped, c_clip)
+        why = check_rendered(kind, text, control_text, clipped, c_clip, required)
         if not why:
             break
         drop = next(sl for sl in DROP_ORDER if sl in variants)
