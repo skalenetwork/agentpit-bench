@@ -214,3 +214,4 @@ Hooks that state the stakes ("Claude bet 40 tokens against the whole table") ins
 4. F4: @agentpitbench **already has X Premium** ("Premium member since October 2026"), so the before/after comparison has no clean baseline; the `premium_since` marker is set to 2026-10-01 (month granularity) and F4 needs no further work.
 5. The two-posts rule applies to every channel: Bluesky and Telegram mirror only the opening and closing post.
 6. Seeding from the operator's own X/LinkedIn (advisor's fix #3; drafted quote posts with a one-tap approval, or ready-to-post links): **postponed** (2026-10-13). No personal-account token is stored.
+7. Q9: **yes**: after F1 has run 14 days, A/B test the opening post carrying a short round film instead of the card. Note: with Match of the Day off (2026-10-13), the scripted per-round film is off too (`motd_per_round` sits behind `motd_enabled`), so the film arm uses the plain animated results clip unless the per-round film is decoupled.
