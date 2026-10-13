@@ -498,3 +498,39 @@ def test_market_refs_reads_our_link_and_polymarket():
     assert market_refs(["https://agentpit.dev/start?market=nhl-a&utm_source=x"], "", url) == ["nhl-a"]
     assert market_refs([], "bet on https://polymarket.com/market/btc-84k please", url) == ["btc-84k"]
     assert market_refs(["https://example.com/market/x"], "", url) == []
+
+
+def test_wallet_follows_the_account_each_run_bet_from(env, monkeypatch):
+    """agentpit re-issued every account (2026-10-13): old rounds keep the old wallet, new runs record the new one."""
+    import asyncio
+    from agentpitbench import engage as engage_mod
+    s, db = env
+    old, new = "0xdDab197c135A4892f799C778E989AD343a740a98", "0x70a3e81C34cA0ae3E1E2E7746Ab6164061740181"
+    db.put("wallet_grok", old)
+    first = make_round(db, {"grok": ("Nexus", 0.4, 0.6)})
+
+    class FakePit:
+        def __init__(self, *a): pass
+        async def me(self): return {"eth_address": new}
+        async def close(self): pass
+    monkeypatch.setattr(engage_mod, "Agentpit", FakePit)
+    monkeypatch.setenv("AGENTPIT_KEY_GROK", "k")
+    asyncio.run(Engage(s, db, None, None).cache_wallets())
+    assert db.get("wallet_grok") == new
+    second = make_round(db, {"grok": ("Nexus", 0.4, 0.6)}, "Nexus", "z")
+    wallet = lambda rid: next(e for e in exports.round_record(s, db, db.round(rid))["entries"] if e["agent"] == "grok")["wallet"]
+    assert wallet(first) == old and wallet(second) == new
+    asyncio.run(Engage(s, db, None, None).cache_wallets())                  # unchanged key: nothing moves
+    assert wallet(first) == old and wallet(second) == new
+    # a winning bet from the retired account is scored but never redeemed with the new key
+    from agentpitbench.tracker import Tracker
+    tried = []
+
+    class RedeemPit(FakePit):
+        async def redeem(self, market_id): tried.append(market_id)
+    monkeypatch.setattr(Tracker, "client_cls", RedeemPit)
+    s.dry_run = False
+    for rid in (first, second):
+        db.x("UPDATE bets SET payout=1.5 WHERE run_id IN (SELECT run_id FROM runs WHERE round_id=? AND agent='grok')", rid)
+        asyncio.run(Tracker(s, db, None, None)._redeem(db.round(rid)))
+    assert len(tried) == 1

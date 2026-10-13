@@ -141,6 +141,10 @@ class Tracker:
             return
         for e in self.db.round_entries(r["round_id"]):
             if e["outcome"] and (e["payout"] or 0) > 0:
+                if e.get("wallet") and e["wallet"] != self.db.get(f"wallet_{e['agent']}"):
+                    # bet from an account agentpit no longer has (lost 2026-10-13): the score stands, nothing to claim
+                    log.info("round %s: %s bet from retired wallet %s; not redeeming", r["round_id"], e["agent"], e["wallet"])
+                    continue
                 await self._redeem_one(r["round_id"], r["market_id"], e["agent"], 0)
 
     async def _redeem_one(self, round_id: int, market_id, agent: str, tries: int) -> None:

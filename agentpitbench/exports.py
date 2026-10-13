@@ -93,7 +93,7 @@ def round_record(s: Settings, db: DB, r) -> dict:
             "transcript": f"transcripts/{r['round_id']}/{e['agent']}.txt" if e["transcript_path"] else None,
         })
         entries[-1]["tail_url"], entries[-1]["fade_url"] = tail_fade(link, outcomes, e["outcome"])
-        wallet = db.get(f"wallet_{e['agent']}")
+        wallet = e.get("wallet") or db.get(f"wallet_{e['agent']}")
         hashes = json.loads(e["tx_hashes"] or "[]")
         entries[-1].update(wallet=wallet, wallet_url=f"{s.explorer_url}/address/{wallet}" if wallet else None,
                            txs=[{"hash": h, "url": f"{s.explorer_url}/tx/{h}"} for h in hashes])

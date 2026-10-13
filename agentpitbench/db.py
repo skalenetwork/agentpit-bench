@@ -342,6 +342,8 @@ MIGRATIONS = [  # (table, column, definition): added when missing, so old databa
     ("tweets", "quote_of", "TEXT"),                      # A/B: our own quotes are not engagement
     # the methodology version in force when the round was created (NULL: created before this column existed)
     ("rounds", "methodology_version", "TEXT"),
+    # the agentpit wallet the run bet from (agentpit re-issued every account on 2026-10-13; NULL: the agent's old wallet)
+    ("runs", "wallet", "TEXT"),
 ]
 
 
@@ -460,8 +462,9 @@ class DB:
     # runs / bets
     def create_run(self, round_id: int, agent: str, **fields) -> int:
         return self.x(
-            "INSERT INTO runs(round_id,agent,started_at,cli_version,model_reported) VALUES(?,?,?,?,?)",
+            "INSERT INTO runs(round_id,agent,started_at,cli_version,model_reported,wallet) VALUES(?,?,?,?,?,?)",
             round_id, agent, time.time(), fields.get("cli_version"), fields.get("model_reported"),
+            self.get(f"wallet_{agent}"),
         )
 
     def finish_run(self, run_id: int, exit_reason: str, transcript_path: str | None, model: str | None) -> None:

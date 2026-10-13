@@ -130,12 +130,16 @@ class Engage:
     async def cache_wallets(self) -> None:
         for a in self.s.agents:
             key = self.s.agentpit_key(a)
-            if not key or self.db.get(f"wallet_{a}"):
+            if not key:
                 continue
             c = Agentpit(self.s.api_url, key)
             try:
                 addr = (await c.me()).get("eth_address")
-                if addr:
+                old = self.db.get(f"wallet_{a}")
+                if addr and addr != old:
+                    if old:  # a new key / account: earlier runs keep the wallet they actually bet from
+                        self.db.x("UPDATE runs SET wallet=? WHERE agent=? AND wallet IS NULL", old, a)
+                        log.warning("%s: agentpit wallet changed %s -> %s", a, old, addr)
                     self.db.put(f"wallet_{a}", addr)
             except Exception as ex:
                 log.warning("wallet lookup for %s failed: %s", a, ex)
