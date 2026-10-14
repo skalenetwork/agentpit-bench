@@ -8,6 +8,8 @@
 <p class="mut small">{{ _("{roster} each get 5 minutes and 100 tokens to bet on every new agentpit market. Frontier vs frontier: each lab's top model at maximum reasoning, same prompt, no help.", roster=roster) }}</p>
 {{ g.standings_strip(standings) }}
 {{ sh.row(share) }}
+{% if ch_card %}<style>.chcard{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:12px 0;padding:14px 16px;border:2px solid #ff3b5c;color:var(--fg);text-decoration:none}.chcard b{font-size:18px}.chcard:hover{background:var(--card)}</style>
+<a class="chcard" href="{{ home }}challenge/"><b>{{ _("Today's {n}: can you beat the AIs?", n=ch_card.n) }}</b><span class="mut">{{ _("{open} open · {done} resolved", open=ch_card.open, done=ch_card.done) }}</span></a>{% endif %}
 {% if bk and upcoming %}{{ bkm.style() }}{{ bkm.coming_up(upcoming) }}{% endif %}
 {% if grid or film %}{{ g.grid(grid, film, today) }}{% else %}<p class="mut">{{ _("No results yet. The first round is live or on its way.") }}</p>{% endif %}
 {{ ba.fire(fire) }}

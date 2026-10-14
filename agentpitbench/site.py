@@ -1293,7 +1293,20 @@ def _build(s: Settings) -> Path:
     press_stats = {"rounds": sum(1 for r in rounds if r["state"] == "resolved"),
                    "bets": sum(1 for r in rounds for e in r["entries"] if e["outcome"])}
     latest_cards = [c for c in (card_for(s, r) for r in past) if c][:6]
-    previews = _previews(s, lb, rounds, cards, reports)
+    # Beat the AIs (docs/daily-challenge-spec.md): the day's set is chosen from every round, void ones too, so a round that
+    # later voids stays in its set; a sealed round's picks never reach the page, the previews or data/challenge.json
+    today_utc = _today()
+    ch_sets = challenge.sets(all_rounds, today_utc)           # [{date, n, rounds}] newest first, >= 3 members each
+    ch_en = [challenge.day_entry(d) for d in ch_sets]         # untranslated: data/challenge.json and the previews
+    ch_cur = ch_en[0] if ch_en else None
+    ch_today = {q["round_id"]: ch_cur["date"] for q in ch_cur["questions"]} if ch_cur and ch_cur["date"] == today_utc else {}
+    ch_card = None   # the home page's top card: today's set, n open / n resolved (the set of the day only)
+    if ch_today:
+        now_ts = time.time()
+        ch_card = {"n": len(ch_cur["questions"]), "date": ch_cur["date"],
+                   "open": sum(1 for q in ch_cur["questions"] if challenge.status(q, now_ts) == "open"),
+                   "done": sum(1 for q in ch_cur["questions"] if challenge.scored(q))}
+    previews = _previews(s, lb, rounds, cards, reports, ch_en)
     extra = _db_extras(s)
     cta = site_cta(s)                # A/B: the day's round-page CTA arm (English pages only)
     exp_ab = experiments_data(s)     # A/B: the public /experiments/ numbers (posts older than 7 days)
@@ -1303,9 +1316,6 @@ def _build(s: Settings) -> Path:
     from .week import episodes as _episodes  # Week in the Pit: cards/week/<week>/episode.json
     episodes = _episodes(s)[:4]
     cap_hit = _reply_caps(s, rounds)  # "first N picks counted"
-    # Beat the AIs (docs/daily-challenge-spec.md): chosen from every round, void ones too, so a featured round that
-    # later voids stays featured; a sealed round's picks never reach the page or data/challenge.json
-    ch_days = challenge.days(all_rounds)
     page_ids = {r["round_id"] for r in rounds}
     eras = {a: model_eras(rounds, a) for a in s.agents}  # the models each record was played on
     if films:
@@ -1347,7 +1357,7 @@ def _build(s: Settings) -> Path:
         common["cat_links"] = {c["category"]: f"best-at/{c['slug']}/" for c in cat_live}
         common["cat_min"] = CATEGORY_MIN
         common["grid_bar"] = [("live", _("Live")), *((slug, _(cat)) for slug, cat in grid_cats)]
-        common.update(nav_extra=NAV_EXTRA, has_experiments=False)
+        common.update(nav_extra=NAV_EXTRA, has_experiments=False, ch_today=ch_today)
         prefix = _.prefix()
         common["film_share"] = lambda f, _=_, prefix=prefix: film_share(f, f"{base}/{prefix}round/{f['round_id']}/", _)
         suffixes = round_suffixes(rounds, _)
@@ -1408,7 +1418,7 @@ def _build(s: Settings) -> Path:
 
         page("index.html", "index.html", grid=[cards_of[r["round_id"]] for r in grid_rounds(rounds)],
              standings=board[:4], description=None, film=films[0] if films else None, fire=fire, cur_cat="",
-             upcoming=upcoming,
+             upcoming=upcoming, ch_card=ch_card,
              today=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
              share_text=_("Four frontier AIs bet on real prediction markets. Live scoreboard:"),
              jsonld=discover.dataset_ld(s, lb, f"{base}/"),
@@ -1505,13 +1515,28 @@ def _build(s: Settings) -> Path:
                  description=_("{category} markets on AgentpitBench: each AI's wins and profit/loss, and every round, as of {date}.",
                                category=cn, date=discover.day(as_of)),
                  jsonld=crumbs(None, (_("Leaderboard"), "leaderboard/"), (bt, "best-at/"), (ct, rel)))
-        ch = [challenge.entry(d, tq) for d in ch_days]
-        curl = f"{base}/{prefix}challenge/"
-        page("challenge/index.html", "challenge.html", ch=ch, feat=ch[0] if ch else None, round_pages=page_ids,
-             picks=pick_share(ch_days[0]["round"], curl, _) if ch_days else None, cap_hit=None,
-             title=branded(_("Beat the AIs")),
-             description=_("One market a day. Lock in your pick before you see how the AIs bet, then compare once it resolves."),
-             share_text=_("Can you beat the AIs? Today's AgentpitBench challenge:"))
+        # Beat the AIs v2 (docs/daily-challenge-spec.md v0.3): /challenge/ is the newest day's set, and every day of
+        # the last 30 has its own page (and preview image). One template; each page inlines only its own day.
+        ch_pages = [challenge.day_entry(d, tq) for d in ch_sets]
+        ch_dates = [d["date"] for d in ch_pages]
+        ch_title = _("Beat the AIs")
+        ch_desc = _("Up to 5 markets that close today. Lock in each pick before you see how the AIs bet, then compare as they resolve.")
+        for i, day in enumerate(ch_pages):
+            ctx = dict(day=day, day_dates=ch_dates, round_pages=page_ids, today=today_utc,
+                       ai_board=challenge.ai_scoreboard(day))
+            st = _("Beat the AIs #{n}: {date}", n=day["n"], date=day["date"])
+            share_text = _("Can you beat the AIs? AgentpitBench challenge #{n}:", n=day["n"])
+            ch_og = previews["challenge"].get((day["date"], lang))
+            page(f"challenge/{day['date']}/index.html", "challenge.html", is_index=False, title=branded(st),
+                 description=_("{n} markets that close on {date}. Lock in your picks before you see how the AIs bet.", n=len(day["questions"]), date=day["date"]),
+                 share_text=share_text, og=ch_og, lastmod=None, **ctx)
+            if i == 0:
+                page("challenge/index.html", "challenge.html", is_index=True, title=branded(ch_title), description=ch_desc,
+                     share_text=_("Can you beat the AIs? Today's AgentpitBench challenge:"), **ctx)
+        if not ch_pages:
+            page("challenge/index.html", "challenge.html", is_index=True, day=None, day_dates=[], round_pages=page_ids,
+                 today=today_utc, ai_board=[], title=branded(ch_title),
+                 description=ch_desc, share_text=_("Can you beat the AIs? Today's AgentpitBench challenge:"))
         # bookmarks (docs/polymarket-social-spec.md §3): rendered in the browser from data/rounds-index.json and
         # localStorage, so the page is the same for everyone and kept out of search
         page("saved/index.html", "saved.html", noindex=True, title=branded(_("Saved markets")),
@@ -1601,7 +1626,7 @@ def _build(s: Settings) -> Path:
     if widget_src.exists():  # the agentpit.dev market-page widget, served next to the standings widget
         shutil.copy2(widget_src, out / "widget" / "agentpit-widget.js")
     (out / "data").mkdir(exist_ok=True)
-    (out / "data" / "challenge.json").write_text(json.dumps([challenge.entry(d) for d in ch_days], indent=1))
+    (out / "data" / "challenge.json").write_text(json.dumps(ch_en, indent=1))
     (out / "data" / "rounds-index.json").write_text(json.dumps(rounds_index(rounds), ensure_ascii=False,
                                                                separators=(",", ":")))
     rss, jf = feeds(s, rounds)
@@ -1679,11 +1704,12 @@ def not_found_page(s: Settings, rounds: list[dict]) -> str:
         base=s.site_url.rstrip("/"), strings=strings, latest=latest, s=s, t=strings["en"])
 
 
-def _previews(s: Settings, lb: dict, rounds: list[dict], cards: dict, reports: list[dict]) -> dict:
+def _previews(s: Settings, lb: dict, rounds: list[dict], cards: dict, reports: list[dict],
+              ch_days: list[dict] | None = None) -> dict:
     """Queue every link preview the build needs, render the changed ones, return site-relative paths."""
     pv = og.Previews(s)
     res: dict = {"pv": pv, "rounds": {}, "agents": {}, "pages": {}, "weeks": {}, "standings": None, "contrarian": None,
-                 "standings_card": None, "agent_cards": {}}
+                 "standings_card": None, "agent_cards": {}, "challenge": {}}
 
     def safe(fn, *a):
         try:
@@ -1711,11 +1737,25 @@ def _previews(s: Settings, lb: dict, rounds: list[dict], cards: dict, reports: l
     for rep in reports:
         if (s.cards_dir / "awards" / f"{rep['week']}.png").exists():
             res["weeks"][rep["week"]] = safe(pv.letterbox, f"cards/awards/{rep['week']}.png")
+    for lang in CODES:   # one card per challenge day: the AIs' scores so far (resolved questions only)
+        tr = Translator(lang)
+        for i, day in enumerate(ch_days or []):
+            if lang == "en" or i < CHALLENGE_CARD_DAYS:   # other languages: the newest days; older ones use the branded preview
+                html = safe(og.challenge_html, s, day, tr, lang, tr.rtl)
+                if html:
+                    res["challenge"][(day["date"], lang)] = safe(lambda n=f"challenge/{day['date']}-{lang}", h=html: pv.card(n, h)[1])
     pv.run()
     # Share image needs the 1200x675 card itself; without a browser it may not exist
     res["standings_card"] = _existing(s, res["standings_card"])
     res["agent_cards"] = {a: c for a, c in res["agent_cards"].items() if _existing(s, c)}
     return res
+
+
+CHALLENGE_CARD_DAYS = 2   # days (newest first) whose preview image is made in every language
+
+
+def _today() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
 
 def _existing(s: Settings, rel: str | None) -> str | None:

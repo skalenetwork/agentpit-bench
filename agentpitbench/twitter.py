@@ -173,11 +173,13 @@ def poll_result_line(poll: dict | None, winner: str | None) -> str:
     return f"{pct}% of {total} X voters backed {o['outcome']}; they were {'right' if o['outcome'] == winner else 'wrong'}."
 
 
-def give_way(render, steps: list[str], flex: str = "", flex_min: int = 0, name: str = "") -> str:
+def give_way(render, steps: list[str], flex: str = "", flex_min: int = 0, name: str = "", free: tuple = ()) -> str:
     """render(dropped, flex, name) -> text. Drops the optional parts in `steps` order until the post fits 280, then
     clips flex (never below flex_min), and only then the market name (last resort, logged). Every character a
-    dropped part or a clip removed counts as clipped for the A/B check (measure)."""
+    dropped part or a clip removed counts as clipped for the A/B check (measure), except the parts in `free`: extras
+    that a variant must not be blamed for squeezing (the challenge link)."""
     full = render(frozenset(), flex, name)
+    free_len = tweet_len(full) - tweet_len(render(frozenset(free), flex, name)) if free else 0
     dropped: frozenset = frozenset()
     text = full
     for step in [None, *steps]:
@@ -198,7 +200,10 @@ def give_way(render, steps: list[str], flex: str = "", flex_min: int = 0, name: 
             text = render(dropped, flex, name)
         if tweet_len(text) > MAX_LEN:
             text = clip(text, MAX_LEN)
-    _count_clip(tweet_len(full) - tweet_len(text))
+    cut = tweet_len(full) - tweet_len(text)
+    if free and set(free) <= dropped:
+        cut -= free_len
+    _count_clip(cut)
     return text
 
 
@@ -321,12 +326,14 @@ def results_hook(rnd: dict) -> str:
 
 
 def results_text(s: Settings, rnd: dict, board: list[dict], round_url: str, crowd: dict | None = None,
-                 cast: str | None = None, hook: str | None = None, cta: str = "", extra_tags: str = "", poll_line: str = "") -> str:
+                 cast: str | None = None, hook: str | None = None, cta: str = "", extra_tags: str = "", poll_line: str = "", challenge_line: str = "") -> str:
     """cast is accepted for compatibility but not repeated: the commentary line is on the card already.
     hook / cta / extra_tags are A/B variants (None / "" = today's control). Vendor handles are never varied.
     Line 1 is the market name; give way (longtail spec §3.2): the Crowd, the cta, the tags, the season line, then
     the hook is clipped. A void round's hook already carries the name in full. poll_line (the reveal poll's tally)
-    is optional: it is the first part to go."""
+    is optional: it gives way early. challenge_line ('Can you beat them? → <day URL>', only for a round in a daily
+    challenge set) has the lowest priority: it is the very first part to go, and dropping it is never blamed on an
+    A/B variant (docs/daily-challenge-spec.md v0.3)."""
     head = results_hook(rnd) if hook is None else hook
     tags = " ".join(dict.fromkeys(VENDOR_HANDLES[e["agent"]] for e in rnd["entries"]
                                   if e["won"] and e["agent"] in VENDOR_HANDLES))
@@ -337,11 +344,15 @@ def results_text(s: Settings, rnd: dict, board: list[dict], round_url: str, crow
     def render(d, f, n):
         line = (f"Season: {season}{'' if 'crowd' in d else crowd_part}. " if season and "season" not in d else "")
         line += f"{TAG}{'' if 'tags' in d else extra_tags}" + (f" {tags}" if tags else "")
-        lines = ([] if void else [n]) + [f] + ([poll_line] if poll_line and "poll" not in d else []) + [line] + ([cta] if cta and "cta" not in d else []) + [round_url]
+        lines = ([] if void else [n]) + [f] + ([poll_line] if poll_line and "poll" not in d else []) + [line] + ([cta] if cta and "cta" not in d else [])
+        lines += [challenge_line] if challenge_line and "challenge" not in d else []   # the round link stays the last line
+        lines.append(round_url)
         return "\n".join(lines)
+    steps = (["challenge"] if challenge_line else []) + ["poll", "crowd", "cta", "tags", "season"]
+    free = ("challenge",) if challenge_line else ()
     if void:  # the hook is 'Voided: <market name>. …': protected, never clipped
-        return give_way(lambda d, f, n: render(d, head, n), ["poll", "crowd", "cta", "tags", "season"])
-    return give_way(render, ["poll", "crowd", "cta", "tags", "season"], flex=head, flex_min=30, name=market_name(rnd))
+        return give_way(lambda d, f, n: render(d, head, n), steps, free=free)
+    return give_way(render, steps, flex=head, flex_min=30, name=market_name(rnd), free=free)
 
 
 def milestone_text(headline: str, subline: str) -> str:

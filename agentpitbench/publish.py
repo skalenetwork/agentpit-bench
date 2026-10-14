@@ -15,7 +15,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import ab, exports, press
+from . import ab, challenge, exports, press
 from .cards import CardRenderer, headline_variant, rounds_note, split_headline, split_shape
 from .config import Settings
 from .db import DB
@@ -359,9 +359,12 @@ class BenchPublisher:
                                                                  top_humans=lb["humans"][:3], variant=variant))
         link = (f"{self.round_url(round_id)}?utm_source=x&utm_medium=social&utm_campaign=results"
                 f"&utm_content={variant}")
+        challenge_line = self.challenge_line(data["rounds"], round_id)
+
         def render(v):
             return results_text(self.s, rnd, board, link, crowd, cast, hook=v.get("results.hook"),
-                                cta=v.get("results.cta", ""), extra_tags=v.get("tags", ""), poll_line=poll_line)
+                                cta=v.get("results.cta", ""), extra_tags=v.get("tags", ""), poll_line=poll_line,
+                                challenge_line=challenge_line)
         try:
             sit, facts = results_shape(rnd)
             choices = [ab.choose(self.db, self.s, "results.hook", key, sit, facts, kind="results")]
@@ -391,6 +394,21 @@ class BenchPublisher:
             log.exception("post-resolution extras for round %s failed", round_id)
         exports.export(self.s, self.db)
         self.site.request()
+
+    def challenge_line(self, rounds: list[dict], round_id: int) -> str:
+        """'Can you beat them? → <that day's challenge URL>' for a round in a daily challenge set (the same
+        challenge.member the site uses), else ''. The X source is rewritten per mirror (bluesky.adapt, telegram)."""
+        if not self.s.challenge_link_in_results:
+            return ""
+        try:
+            m = challenge.member(rounds, round_id)
+        except Exception:
+            log.exception("challenge membership of round %s failed", round_id)
+            return ""
+        if not m:
+            return ""
+        return ("Can you beat them? → " + challenge.day_url(self.s.site_url, m["date"])
+                + "?utm_source=x&utm_medium=social&utm_campaign=challenge")
 
     async def _poll_line(self, round_id: int, rnd: dict) -> str:
         """Read the reveal poll's totals once after resolution (one X read), store them, and return the results

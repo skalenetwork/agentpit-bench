@@ -58,6 +58,9 @@ class Settings:
     void_after_days: int = 14
     deploy_debounce_s: int = 30
     animate: bool = True             # split and results posts as short MP4s (static PNG fallback)
+    # Beat the AIs (docs/daily-challenge-spec.md v0.3): a round in a day's challenge set gets "Can you beat them?" and
+    # that day's link in its results post (same post; the first part to give way when the text is too long)
+    challenge_link_in_results: bool = True
     site_hide_void: bool = True       # TEMP (2026-10-09): hide void rounds on the site until operations are stable
     infra_cooldown_s: int = 6 * 3600  # after a quota/infra failure, start no new rounds for this long
     # X volume: picks are revealed together, so one reveal post (the split) opens the round instead of four

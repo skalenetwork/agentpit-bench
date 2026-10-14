@@ -362,3 +362,19 @@ def render_default(out: Path = STATIC / DEFAULT) -> Path:
                 await b.close()
     _in_thread(go())
     return out
+
+
+def challenge_html(s: Settings, day: dict, tr, lang: str, rtl: bool) -> str:
+    """The daily challenge's preview card (docs/daily-challenge-spec.md v0.3): what each AI scored so far on the
+    day's resolved questions, and 'Can you beat them?'. Built only from resolved questions (challenge.ai_scoreboard
+    needs no pick), so a sealed round can never show up on it. Rendered at 1200x675 like the other cards."""
+    from . import challenge
+    board = challenge.ai_scoreboard(day)
+    rows = [{"name": b["name"], "color": AGENT_COLORS.get(b["agent"], "#888"), "right": b["right"]} for b in board]
+    done = board[0]["resolved"] if board else 0
+    total = len(day["questions"])
+    return env.get_template("challenge.html").render(
+        lang=lang, rtl=rtl, rows=rows, n_done=done, head=tr("Beat the AIs #{n}", n=day["n"]), date=day["date"],
+        ask=tr("Can you beat them?"),
+        sub=tr("{done} of {total} resolved", done=done, total=total) if done else tr("{total} markets close today", total=total),
+        host=s.site_url.replace("https://", "").replace("http://", "").rstrip("/"))

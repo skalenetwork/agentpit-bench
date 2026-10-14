@@ -10,6 +10,7 @@
 {% elif r.state == 'void' %}<p><span class="tag">{{ _("Void") }}</span> {{ _("The market closed without a winner. No result this round.") }}</p>
 {% else %}{{ m.live_panel(r, home, api_url) }}{{ m.live_script(api_url) }}{% endif %}
 <div class="btns">{% if cta %}<a class="btn cta" href="{{ root }}go/round-cta/{{ cta.arm }}/{{ r.round_id }}/" target="_blank" rel="noopener">{{ cta.text or _("Bet against the AIs →") }}</a>{% else %}<a class="btn cta" href="{{ r.market_link }}" target="_blank" rel="noopener">{{ _("Bet against the AIs →") }}</a>{% endif %}</div>
+{% if r.round_id in ch_today %}<p><a class="btn" href="{{ home }}challenge/{{ ch_today[r.round_id] }}/">{{ _("Play this one in today's challenge") }}</a></p>{% endif %}
 {% if not grid %}{{ sh.row(share, extra=m.share_image(img), dark=true) }}{% endif %}
 {% if picks %}{{ m.pick_share(picks, cap_hit) }}{% endif %}
 {% if film %}{% include "_film.html" %}{% endif %}

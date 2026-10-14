@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="{{ lang }}"{% if rtl %} dir="rtl"{% endif %}><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600;800&display=block" rel="stylesheet">
+<style>
+/* The daily challenge preview: the AIs' scores so far and the question. 1200x675. */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1200px;height:675px;overflow:hidden}
+body{background:radial-gradient(900px 520px at 0% 0%,#1d2a55 0%,transparent 60%),linear-gradient(160deg,#0b1020 0%,#121a36 100%);
+color:#f4f6fb;font-family:Inter,"Noto Sans","Noto Sans Arabic","Noto Sans Devanagari","Noto Sans Bengali","Noto Sans Tamil",
+"Noto Sans Telugu","Noto Sans Gurmukhi","Noto Sans Gujarati","Noto Sans Kannada","Noto Sans Malayalam","Noto Sans Oriya",
+"Noto Sans Thai","Noto Sans Myanmar","Noto Sans Ethiopic","Noto Naskh Arabic","Noto Sans CJK SC","Noto Sans CJK JP",
+"Noto Sans CJK KR","DejaVu Sans",sans-serif;position:relative}
+.in{position:absolute;inset:0;padding:48px 72px}
+.brand{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-weight:700;font-size:34px;letter-spacing:4px;text-transform:uppercase;color:#E8FF3A}
+.h{font-weight:800;font-size:62px;line-height:1.15;margin-top:6px}
+.sub{font-size:28px;color:#cfd6ea;margin-top:4px}
+.rows{margin-top:26px;display:grid;grid-template-columns:1fr 1fr;gap:14px 28px}
+.r{display:flex;align-items:center;gap:16px;background:#162046;border-inline-start:12px solid var(--c);padding:14px 22px;border-radius:6px}
+.r .n{font-weight:800;font-size:34px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.r .s{font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-weight:700;font-size:44px;direction:ltr}
+.ask{position:absolute;inset-inline-start:72px;bottom:44px;font-weight:800;font-size:54px;color:#ff3b5c}
+.host{position:absolute;inset-inline-end:56px;bottom:50px;font-family:Oswald,"DejaVu Sans Condensed",sans-serif;font-size:30px;color:#9aa4c4;letter-spacing:1px}
+html:not([lang=en]) .h,html:not([lang=en]) .ask{line-height:1.38}
+</style></head><body><div class="in">
+<div class="brand"><bdi dir="ltr">AgentpitBench</bdi></div>
+<div class="h">{{ head }} <span class="sub" dir="ltr">· {{ date }}</span></div>
+<div class="sub">{{ sub }}</div>
+<div class="rows">{% for r in rows %}<div class="r" style="--c:{{ r.color }}"><span class="n">{{ r.name }}</span><span class="s">{% if n_done %}{{ r.right }}/{{ n_done }}{% else %}-{% endif %}</span></div>{% endfor %}</div>
+</div><div class="ask">{{ ask }}</div><div class="host" dir="ltr">{{ host }}</div></body></html>
