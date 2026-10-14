@@ -721,7 +721,10 @@ def check_pages(out: Path) -> None:
                 or re.fullmatch(r"google[\w-]*\.html", rel)):  # Search Console's verification file
             continue
         html = f.read_text()
-        missing = [m for m in OG_REQUIRED if m not in html]
+        req = OG_REQUIRED
+        if '<meta name="robots" content="noindex' in html:  # personal pages (/saved/, /me/): no share bar
+            req = [m for m in OG_REQUIRED if "share" not in m]
+        missing = [m for m in req if m not in html]
         if missing:
             bad.append(f"{rel}: {', '.join(missing)}")
     if bad:
