@@ -45,6 +45,12 @@ class Settings:
     round_start_min_h: float = 3
     round_start_max_h: float = 12
     max_days_to_close: int = 7
+    # market mix (methodology v2.2; all neutral by default): per UTC day caps on crypto "Up or Down" and
+    # price-threshold markets (0: no limit; skipped markets stay eligible), and a boost, in rating points
+    # (0-100 scale; keyword tiers count 10/35/60/85), added to named-team matches when ranking
+    max_crypto_updown_per_day: int = 0
+    max_price_threshold_per_day: int = 0
+    match_priority_boost: float = 0
     max_category_share: float = 0.4     # no category above this share of the rounds started in 7 days
     max_favourite_price: float = 0.85   # skip near-certain markets: they make dead rounds
     default_slippage: float = 0.05      # a bet without --max-price may fill up to best ask + this

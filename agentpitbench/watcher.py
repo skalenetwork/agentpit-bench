@@ -11,6 +11,7 @@ from .agentpit import Agentpit, best_ask
 from .config import Settings
 from .db import DB
 from .reveal_window import start_ok
+from .market_type import market_type
 from .virality import category, category_ok, market_priority
 
 log = logging.getLogger(__name__)
@@ -165,11 +166,17 @@ class Watcher:
         chosen, held = [], []  # held: fillable, but its category is over the weekly cap
         recent = self.recent_categories()
         per_event = self.event_counts_today(now)
-        for m in sorted(cands, key=lambda m: priority(m, self.db, self.s), reverse=True):
+        type_caps = {"crypto_updown": self.s.max_crypto_updown_per_day,
+                     "price_threshold": self.s.max_price_threshold_per_day}
+        type_today = self.type_counts_today(now) if any(type_caps.values()) else {}
+        for m in sorted(cands, key=lambda m: self._rank(m), reverse=True):
             if len(chosen) >= budget:
                 break
             ek = event_key(m.get("question", ""))
             if self.s.max_rounds_per_event_per_day and per_event.get(ek, 0) >= self.s.max_rounds_per_event_per_day:
+                continue  # stays eligible: another day may take it
+            mt = market_type(m.get("question", ""), m.get("event_title"))
+            if type_caps.get(mt) and type_today.get(mt, 0) >= type_caps[mt]:
                 continue  # stays eligible: another day may take it
             if window and not start_ok(m.get("question", ""), m.get("endDate"), m.get("description"), now,
                                        self.s.round_start_min_h, self.s.round_start_max_h):
@@ -182,6 +189,7 @@ class Watcher:
                 chosen.append(m)
                 recent.append(cat)
                 per_event[ek] = per_event.get(ek, 0) + 1
+                type_today[mt] = type_today.get(mt, 0) + 1
             else:
                 held.append(m)
         if not chosen and held:  # the cap only reorders: if nothing else can run, an over-cap market still does
@@ -192,6 +200,26 @@ class Watcher:
             self.db.x("UPDATE seen_markets SET started=1 WHERE market_id=?", str(m["id"]))
             m["nw"] = nw_of(m, self.db, self.s)  # recorded on the round: the rating used when it was picked
         return chosen
+
+    def _rank(self, m: dict) -> tuple:
+        """priority(), with the named-team match boost (rating points) added to the leading score."""
+        p = priority(m, self.db, self.s)
+        boost = self.s.match_priority_boost
+        if not boost:
+            return p
+        from .rating import KEYWORD_SCORE
+        lead = p[0] if self.s.selection_scoring == "model" else KEYWORD_SCORE[p[0]]
+        if market_type(m.get("question", ""), m.get("event_title")) == "match":
+            lead += boost
+        return (lead,) + tuple(p[1:])
+
+    def type_counts_today(self, now: float | None = None) -> dict[str, int]:
+        out: dict[str, int] = {}
+        for r in self.db.q("SELECT question, event_title FROM rounds WHERE started_at>=? AND state!='void'",
+                           _day0(now)):
+            t = market_type(r["question"], r["event_title"])
+            out[t] = out.get(t, 0) + 1
+        return out
 
     def event_counts_today(self, now: float | None = None) -> dict[str, int]:
         day0 = _day0(now)
