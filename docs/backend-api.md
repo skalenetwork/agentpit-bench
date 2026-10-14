@@ -39,7 +39,7 @@ Status: contract for the 2026-10-13 evening build. Operator decisions: Google si
 
 ## X polls (A/B arm, later in the same build if time allows)
 
-- The bot may post the opening post as a native X poll (reveal.media = poll arm). After resolution it sends poll totals with `POST /v1/ingest/results` (`x_poll: {option_label: votes}`) so the "Humans vs the AIs" tally can include X voters as an aggregate (no per-user rows).
+- The bot posts the opening post as a native X poll in the `reveal.format = poll` A/B arm (the control, `card`, is the split-card image). Split rounds: one option per side naming its AIs (`YES · Claude, Grok`); unanimous rounds: `All 4 AIs: YES` / `They're wrong`. The poll runs until the market closes (5 min to 7 days). After resolution the bot reads the poll once and, when the poll was read, adds `x_poll: {option_label: votes}` (the labels as posted) to that round's item in `POST /v1/ingest/results`, so the "Humans vs the AIs" tally can include X voters as an aggregate (no per-user rows). `x_poll` is absent for rounds without a poll; the Worker must ignore it when absent. The push waits up to an hour for the poll read, then goes without `x_poll`.
 
 ## Data and privacy
 

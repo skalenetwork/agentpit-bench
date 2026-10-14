@@ -180,19 +180,30 @@ def write_upcoming(s: Settings, items: list[dict]) -> bool:
 
 # ---------------------------------------------------------------- results
 
-def results(db: DB, agents: list[str], sent: set[int]) -> list[dict]:
-    """Resolved rounds not yet sent: winner and each AI's pick (None: no bet)."""
+POLL_GRACE_S = 3600   # a resolved round with an unread X poll waits this long for the results post to read it
+
+
+def results(db: DB, agents: list[str], sent: set[int], now: float | None = None) -> list[dict]:
+    """Resolved rounds not yet sent: winner and each AI's pick (None: no bet), and x_poll {option label: votes}
+    when the round's reveal was a native X poll that has been read (the aggregate of X voters, no per-user rows)."""
     out = []
-    for r in db.q("SELECT round_id, market_id, winner FROM rounds WHERE state='resolved' AND winner IS NOT NULL "
-                  "ORDER BY round_id"):
+    now = time.time() if now is None else now
+    for r in db.q("SELECT round_id, market_id, winner, resolved_at FROM rounds WHERE state='resolved' AND "
+                  "winner IS NOT NULL ORDER BY round_id"):
         if r["round_id"] in sent:
+            continue
+        poll = db.one("SELECT votes_json, read_at FROM x_polls WHERE round_id=?", r["round_id"])
+        if poll and poll["read_at"] is None and now - (r["resolved_at"] or 0) < POLL_GRACE_S:
             continue
         picks = {a: None for a in agents}
         for b in db.q("SELECT ru.agent, b.outcome FROM runs ru LEFT JOIN bets b USING(run_id) WHERE ru.round_id=?",
                       r["round_id"]):
             picks[b["agent"]] = b["outcome"]
-        out.append({"market_id": str(r["market_id"]), "round_id": r["round_id"], "winner": r["winner"],
-                    "ai_picks": picks})
+        item = {"market_id": str(r["market_id"]), "round_id": r["round_id"], "winner": r["winner"],
+                "ai_picks": picks}
+        if poll and poll["votes_json"]:
+            item["x_poll"] = json.loads(poll["votes_json"])
+        out.append(item)
     return out
 
 
