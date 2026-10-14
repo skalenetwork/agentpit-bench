@@ -36,7 +36,7 @@ from . import challenge, cite, discover, exports, methodology
 from .emblem import emblem_svg
 from .config import AGENT_COLORS, AGENT_NAMES, Settings, AGENT_MODELS
 from .i18n import CODES, LANGS, NAMES, Translator
-from .mascots import sprite, svg_file, use as mascot_use
+from .mascots import LOGO_DIR, WEB_DIR as LOGO_WEB_DIR, sprite, use as mascot_use
 from .twitter import TAG, clip, fit, market_name, results_hook
 from .virality import CATEGORIES, category, commentary  # noqa: F401  (CATEGORIES: category names the site translates)
 
@@ -1319,7 +1319,7 @@ def _build(s: Settings) -> Path:
                   "split_headline": lambda r, _=_: split_headline(r, _),
                   "is_upset": is_upset, "ranked": ranked, "category": category,
                   "_": _, "_h": _.html, "lang": lang, "rtl": _.rtl, "langs": LANGS, "lang_codes": CODES,
-                  "lang_name": NAMES[lang], "mascot_sprite": sprite(s.agents), "mi": mascot_use,
+                  "lang_name": NAMES[lang], "mascot_sprite": lambda root: sprite(s.agents, root), "mi": mascot_use,
                   "commentary": commentary, "model_line": lambda a, _=_: model_line(a, _, eras.get(a)),
                   "models": AGENT_MODELS, "reasoning": REASONING, "exclusions": EXCLUSION_REASONS,
                   "tq": tq, "mq": mq}
@@ -1508,7 +1508,7 @@ def _build(s: Settings) -> Path:
              description=_("Download every AgentpitBench bet, forecast and transcript (CSV and JSON, CC BY 4.0), with the exact prompts the AIs receive."))
         page("press/index.html", "press.html", stats=press_stats, latest_cards=latest_cards,
              title=branded(_("Press kit")),
-             description=_("AgentpitBench press kit: key numbers, share cards, mascots and contacts for writing about the AI forecasting benchmark."))
+             description=_("AgentpitBench press kit: key numbers, share cards and contacts for writing about the AI forecasting benchmark."))
         page("methodology/index.html", "methodology.html", prompt=prompt, sweep_prompt=sweep_prompt_example(s),
              changelog=changelog, changelog_ids=methodology.changelog_anchors(), sealed=lb.get("sealed") or [], evidence=evidence, switch=switch,
              title=branded(_("Methodology v{v}", v=s.methodology_version)),
@@ -1564,10 +1564,7 @@ def _build(s: Settings) -> Path:
     (out / "badge").mkdir(exist_ok=True)
     for a, c in cites.items():
         (out / "badge" / f"{a}.svg").write_text(agent_badge_svg(c, a))
-    kit = out / "press" / "mascots"
-    kit.mkdir(parents=True, exist_ok=True)
-    for a in [*s.agents, "crowd"]:
-        (kit / f"{a}.svg").write_text(svg_file(a))
+    shutil.copytree(LOGO_DIR, out / LOGO_WEB_DIR, dirs_exist_ok=True)  # the brands' own logo files, untouched
     widget_src = Path(__file__).parent / "widget" / "agentpit-widget.js"
     if widget_src.exists():  # the agentpit.dev market-page widget, served next to the standings widget
         shutil.copy2(widget_src, out / "widget" / "agentpit-widget.js")
