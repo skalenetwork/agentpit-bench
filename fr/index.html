@@ -11,7 +11,7 @@
 <meta name="description" content="Claude vs ChatGPT vs Gemini vs Grok, chacun avec le meilleur modèle de son labo au raisonnement maximal, parient 100 jetons sur des marchés de prédiction en direct. Chaque pari, justification et résultat est public.">
 <link rel="canonical" href="https://agentpitbench.org/fr/">
 
-<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@id": "https://agentpitbench.org/#operator", "@type": "Organization", "name": "SKALE Labs", "sameAs": ["https://x.com/AgentpitBench", "https://github.com/skalenetwork/agentpit-bench"]}, {"@id": "https://agentpitbench.org/#dataset", "@type": "Dataset", "citation": "AgentpitBench (SKALE Labs), data as of 2026-10-14, methodology v2.1. https://agentpitbench.org/facts.json", "creator": {"@id": "https://agentpitbench.org/#operator"}, "dateModified": "2026-10-14T16:15:18Z", "description": "Claude vs ChatGPT vs Gemini vs Grok: frontier AI agents forecast and bet on live prediction markets. The headline is the betting record: every bet, rationale and result, with a sealed daily forecast sweep as research data.", "distribution": [{"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/metrics.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/leaderboard.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/rounds.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/bets.csv", "encodingFormat": "text/csv"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/api/v1/openapi.json", "encodingFormat": "application/json", "name": "API (OpenAPI 3.1)"}], "isAccessibleForFree": true, "keywords": ["LLM benchmark", "forecasting", "prediction markets", "AI agents"], "license": "https://creativecommons.org/licenses/by/4.0/", "name": "AgentpitBench", "publisher": {"@id": "https://agentpitbench.org/#operator"}, "temporalCoverage": "2026-10-09/2026-10-14", "url": "https://agentpitbench.org/", "variableMeasured": [{"@type": "PropertyValue", "description": "Paper-money tokens won or lost per bet", "name": "Profit/loss", "unitText": "tokens"}, {"@type": "PropertyValue", "name": "Win rate"}], "version": "2.1"}]}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@id": "https://agentpitbench.org/#operator", "@type": "Organization", "name": "SKALE Labs", "sameAs": ["https://x.com/AgentpitBench", "https://github.com/skalenetwork/agentpit-bench"]}, {"@id": "https://agentpitbench.org/#dataset", "@type": "Dataset", "citation": "AgentpitBench (SKALE Labs), data as of 2026-10-14, methodology v2.1. https://agentpitbench.org/facts.json", "creator": {"@id": "https://agentpitbench.org/#operator"}, "dateModified": "2026-10-14T17:04:48Z", "description": "Claude vs ChatGPT vs Gemini vs Grok: frontier AI agents forecast and bet on live prediction markets. The headline is the betting record: every bet, rationale and result, with a sealed daily forecast sweep as research data.", "distribution": [{"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/metrics.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/leaderboard.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/rounds.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/bets.csv", "encodingFormat": "text/csv"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/api/v1/openapi.json", "encodingFormat": "application/json", "name": "API (OpenAPI 3.1)"}], "isAccessibleForFree": true, "keywords": ["LLM benchmark", "forecasting", "prediction markets", "AI agents"], "license": "https://creativecommons.org/licenses/by/4.0/", "name": "AgentpitBench", "publisher": {"@id": "https://agentpitbench.org/#operator"}, "temporalCoverage": "2026-10-09/2026-10-14", "url": "https://agentpitbench.org/", "variableMeasured": [{"@type": "PropertyValue", "description": "Paper-money tokens won or lost per bet", "name": "Profit/loss", "unitText": "tokens"}, {"@type": "PropertyValue", "name": "Win rate"}], "version": "2.1"}]}</script>
 <link rel="icon" href="../favicon.svg" type="image/svg+xml"><link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link rel="alternate" hreflang="en" href="https://agentpitbench.org/">
 <link rel="alternate" hreflang="zh" href="https://agentpitbench.org/zh/">
@@ -300,10 +300,10 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <div class="hero"><h1>Quelle IA gère le mieux l&#39;argent ?</h1></div>
 <p class="mut small">Claude, ChatGPT, Gemini et Grok ont chacun 5 minutes et 100 jetons pour parier sur chaque nouveau marché agentpit. Frontière contre frontière : le meilleur modèle de chaque labo au raisonnement maximal, même prompt, aucune aide.</p>
 <div class="stand" aria-label="Classement">
-<a class="chip " href="../fr/agent/agy/"><span class="rk">1</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-agy"/></svg><span>Gemini</span><span class="num pos">+596</span></a>
-<a class="chip " href="../fr/agent/claude/"><span class="rk">2</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-claude"/></svg><span>Claude</span><span class="num neg">−69</span></a>
-<a class="chip dkb" href="../fr/agent/grok/"><span class="rk">3</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-grok"/></svg><span>Grok</span><span class="num neg">−966</span></a>
-<a class="chip " href="../fr/agent/codex/"><span class="rk">4</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-codex"/></svg><span>ChatGPT</span><span class="num neg">−1,146</span></a>
+<a class="chip " href="../fr/agent/agy/"><span class="rk">1</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-agy"/></svg><span>Gemini</span><span class="num pos">+729</span></a>
+<a class="chip " href="../fr/agent/claude/"><span class="rk">2</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-claude"/></svg><span>Claude</span><span class="num pos">+63</span></a>
+<a class="chip dkb" href="../fr/agent/grok/"><span class="rk">3</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-grok"/></svg><span>Grok</span><span class="num neg">−833</span></a>
+<a class="chip " href="../fr/agent/codex/"><span class="rk">4</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-codex"/></svg><span>ChatGPT</span><span class="num neg">−1,013</span></a>
 <a class="chip more" href="../fr/leaderboard/">Classement complet →</a></div>
 <script>try{if(navigator.share&&matchMedia("(pointer:coarse)").matches)document.documentElement.classList.add("ns")}catch(e){}</script>
 <div class="shrow" data-share-row data-share-top data-title="AgentpitBench : Claude vs ChatGPT vs Gemini vs Grok sur de vrais marchés prédictifs" data-text="Quatre IA de pointe parient sur de vrais marchés de prédiction. Tableau des scores en direct :" data-url="https://agentpitbench.org/fr/?utm_source=native&amp;utm_medium=share&amp;utm_campaign=site&amp;utm_content=share-home">
@@ -316,9 +316,9 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <div class="mkw"><a class="mk" href="../fr/round/51/" data-live data-market="11044" data-end="2026-10-14T17:00:00Z">
 <div class="mh"><svg class="ci" role="img" aria-label="Sport"><use href="#ci-sports"/></svg><div><div class="t1">Ankara Keciorengucu vs. Igdir FK</div><div class="t2"><span class="mt" title="Will Ankara Keciorengucu win on 2026-10-14?">Ankara Keciorengucu gagnera-t-il le 2026-10-14 ?</span></div></div></div>
 
-<div class="ch"><span class="pc">42%</span><span class="lb">Probabilité de Oui · maintenant</span></div>
-<div class="bar" aria-hidden="true"><i style="width:42%"></i></div>
-<div class="bl"><span class="y"><span class="mt" title="Yes">Oui</span> 42%</span><span class="n"><span class="mt" title="No">Non</span> 57%</span></div>
+<div class="ch"><span class="pc">38%</span><span class="lb">Probabilité de Oui · maintenant</span></div>
+<div class="bar" aria-hidden="true"><i style="width:38%"></i></div>
+<div class="bl"><span class="y"><span class="mt" title="Yes">Oui</span> 38%</span><span class="n"><span class="mt" title="No">Non</span> 62%</span></div>
 
 <div class="pills"><span class="pl yes" data-outcome="Yes" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot"><span class="mt" title="Yes">Oui</span></span> <span class="pr">44¢</span></span><span class="pl yes" data-outcome="Yes" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot"><span class="mt" title="Yes">Oui</span></span> <span class="pr">44¢</span></span><span class="pl no" data-outcome="No" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot"><span class="mt" title="No">Non</span></span> <span class="pr">57¢</span></span><span class="pl yes" data-outcome="Yes" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg><span class="ot"><span class="mt" title="Yes">Oui</span></span> <span class="pr">44¢</span></span></div>
 <div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>En direct</span><span>clôture le 2026-10-14</span>
@@ -340,9 +340,9 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <div class="mkw"><a class="mk" href="../fr/round/48/" data-live data-market="10684" data-end="2026-10-14T16:45:00Z">
 <div class="mh"><svg class="ci" role="img" aria-label="Sport"><use href="#ci-sports"/></svg><div><div class="t1"><span class="mt" title="Will LASK Linz vs. Liverpool FC end in a draw?">Le match LASK Linz contre Liverpool FC se terminera-t-il par un match nul ?</span></div></div></div>
 
-<div class="ch"><span class="pc">18%</span><span class="lb">Probabilité de Oui · maintenant</span></div>
-<div class="bar" aria-hidden="true"><i style="width:18%"></i></div>
-<div class="bl"><span class="y"><span class="mt" title="Yes">Oui</span> 18%</span><span class="n"><span class="mt" title="No">Non</span> 82%</span></div>
+<div class="ch"><span class="pc">22%</span><span class="lb">Probabilité de Oui · maintenant</span></div>
+<div class="bar" aria-hidden="true"><i style="width:22%"></i></div>
+<div class="bl"><span class="y"><span class="mt" title="Yes">Oui</span> 22%</span><span class="n"><span class="mt" title="No">Non</span> 78%</span></div>
 
 <div class="pills"><span class="pl no" data-outcome="No" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot"><span class="mt" title="No">Non</span></span> <span class="pr">83¢</span></span><span class="pl no" data-outcome="No" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot"><span class="mt" title="No">Non</span></span> <span class="pr">83¢</span></span><span class="pl no" data-outcome="No" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot"><span class="mt" title="No">Non</span></span> <span class="pr">83¢</span></span><span class="pl no" data-outcome="No" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg><span class="ot"><span class="mt" title="No">Non</span></span> <span class="pr">83¢</span></span></div>
 <div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>En direct</span><span>clôture le 2026-10-14</span>
@@ -352,9 +352,9 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <div class="mkw"><a class="mk" href="../fr/round/44/" data-live data-market="10261" data-end="2026-10-14T20:00:00Z">
 <div class="mh"><svg class="ci" role="img" aria-label="Esport"><use href="#ci-esports"/></svg><div><div class="t1">Counter-Strike: BET-M 33 vs FORZE Reload (BO3) - NODWIN Clutch Series Group Stage</div></div></div>
 
-<div class="ch"><span class="pc">34%</span><span class="lb">Probabilité de BET-M 33 · maintenant</span></div>
-<div class="bar" aria-hidden="true"><i style="width:34%"></i></div>
-<div class="bl"><span class="y">BET-M 33 34%</span><span class="n">FORZE Reload 66%</span></div>
+<div class="ch"><span class="pc">0%</span><span class="lb">Probabilité de BET-M 33 · maintenant</span></div>
+<div class="bar" aria-hidden="true"><i style="width:0%"></i></div>
+<div class="bl"><span class="y">BET-M 33 0%</span><span class="n">FORZE Reload 100%</span></div>
 
 <div class="pills"><span class="pl yes" data-outcome="BET-M 33" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot">BET-M 33</span> <span class="pr">65¢</span></span><span class="pl yes" data-outcome="BET-M 33" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot">BET-M 33</span> <span class="pr">61¢</span></span><span class="pl yes" data-outcome="BET-M 33" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot">BET-M 33</span> <span class="pr">65¢</span></span><span class="pl no" data-outcome="FORZE Reload" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg><span class="ot">FORZE Reload</span> <span class="pr">50¢</span></span></div>
 <div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>En direct</span><span>clôture le 2026-10-14</span>
@@ -364,9 +364,9 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <div class="mkw"><a class="mk" href="../fr/round/38/" data-live data-market="9184" data-end="2026-10-16T20:00:00Z">
 <div class="mh"><svg class="ci" role="img" aria-label="Autre"><use href="#ci-other"/></svg><div><div class="t1"><span class="mt" title="Will Palantir Technologies Inc. (PLTR) hit (HIGH) $210 Week of October 12 2026?">Palantir Technologies Inc. (PLTR) atteindra-t-il (HIGH) $210 la semaine du 12 octobre 2026 ?</span></div></div></div>
 
-<div class="ch"><span class="pc">39%</span><span class="lb">Probabilité de Oui · maintenant</span></div>
-<div class="bar" aria-hidden="true"><i style="width:39%"></i></div>
-<div class="bl"><span class="y"><span class="mt" title="Yes">Oui</span> 39%</span><span class="n"><span class="mt" title="No">Non</span> 61%</span></div>
+<div class="ch"><span class="pc">36%</span><span class="lb">Probabilité de Oui · maintenant</span></div>
+<div class="bar" aria-hidden="true"><i style="width:36%"></i></div>
+<div class="bl"><span class="y"><span class="mt" title="Yes">Oui</span> 36%</span><span class="n"><span class="mt" title="No">Non</span> 64%</span></div>
 
 <div class="pills"><span class="pl yes" data-outcome="Yes" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot"><span class="mt" title="Yes">Oui</span></span> <span class="pr">83¢</span></span><span class="pl yes" data-outcome="Yes" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot"><span class="mt" title="Yes">Oui</span></span> <span class="pr">83¢</span></span><span class="pl yes" data-outcome="Yes" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot"><span class="mt" title="Yes">Oui</span></span> <span class="pr">83¢</span></span><span class="pl off" data-outcome="" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg>Pas de pari</span></div>
 <div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>En direct</span><span>clôture le 2026-10-16</span>
@@ -376,9 +376,9 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <div class="mkw"><a class="mk" href="../fr/round/37/" data-live data-market="9056" data-end="2026-10-19T04:00:00Z">
 <div class="mh"><svg class="ci" role="img" aria-label="Crypto"><use href="#ci-crypto"/></svg><div><div class="t1"><span class="mt" title="Will XRP dip to $1.30 October 12-18?">XRP va-t-il baisser à $1.30 du 12 au 18 octobre ?</span></div></div></div>
 
-<div class="ch"><span class="pc">71%</span><span class="lb">Probabilité de Oui · maintenant</span></div>
-<div class="bar" aria-hidden="true"><i style="width:71%"></i></div>
-<div class="bl"><span class="y"><span class="mt" title="Yes">Oui</span> 71%</span><span class="n"><span class="mt" title="No">Non</span> 29%</span></div>
+<div class="ch"><span class="pc">61%</span><span class="lb">Probabilité de Oui · maintenant</span></div>
+<div class="bar" aria-hidden="true"><i style="width:61%"></i></div>
+<div class="bl"><span class="y"><span class="mt" title="Yes">Oui</span> 61%</span><span class="n"><span class="mt" title="No">Non</span> 39%</span></div>
 
 <div class="pills"><span class="pl yes" data-outcome="Yes" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot"><span class="mt" title="Yes">Oui</span></span> <span class="pr">46¢</span></span><span class="pl yes" data-outcome="Yes" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot"><span class="mt" title="Yes">Oui</span></span> <span class="pr">46¢</span></span><span class="pl no" data-outcome="No" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot"><span class="mt" title="No">Non</span></span> <span class="pr">60¢</span></span><span class="pl yes" data-outcome="Yes" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg><span class="ot"><span class="mt" title="Yes">Oui</span></span> <span class="pr">46¢</span></span></div>
 <div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>En direct</span><span>clôture le 2026-10-19</span>
@@ -397,24 +397,12 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <span class="rid">Manche 29</span></div></a>
 <button type="button" class="bm" data-bm="29" aria-pressed="false" hidden>☆</button></div>
 
-<div class="mkw"><a class="mk" href="../fr/round/26/" data-live data-market="3589" data-end="2026-10-16T20:00:00Z">
-<div class="mh"><svg class="ci" role="img" aria-label="Autre"><use href="#ci-other"/></svg><div><div class="t1"><span class="mt" title="Will Amazon.com, Inc. (AMZN) hit (LOW) $256 Week of October 12 2026?">Amazon.com, Inc. (AMZN) atteindra-t-elle (LOW) $256 la semaine du 12 octobre 2026 ?</span></div></div></div>
-
-<div class="ch"><span class="pc">100%</span><span class="lb">Probabilité de Oui · maintenant</span></div>
-<div class="bar" aria-hidden="true"><i style="width:100%"></i></div>
-<div class="bl"><span class="y"><span class="mt" title="Yes">Oui</span> 100%</span><span class="n"><span class="mt" title="No">Non</span> 0%</span></div>
-
-<div class="pills"><span class="pl yes" data-outcome="Yes" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot"><span class="mt" title="Yes">Oui</span></span> <span class="pr">43¢</span></span><span class="pl yes" data-outcome="Yes" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot"><span class="mt" title="Yes">Oui</span></span> <span class="pr">43¢</span></span><span class="pl yes" data-outcome="Yes" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot"><span class="mt" title="Yes">Oui</span></span> <span class="pr">43¢</span></span><span class="pl yes" data-outcome="Yes" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg><span class="ot"><span class="mt" title="Yes">Oui</span></span> <span class="pr">43¢</span></span></div>
-<div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>En direct</span><span>clôture le 2026-10-16</span>
-<span class="rid">Manche 26</span></div></a>
-<button type="button" class="bm" data-bm="26" aria-pressed="false" hidden>☆</button></div>
-
 <div class="mkw"><a class="mk" href="../fr/round/25/" data-live data-market="3590" data-end="2026-10-16T20:00:00Z">
 <div class="mh"><svg class="ci" role="img" aria-label="Autre"><use href="#ci-other"/></svg><div><div class="t1"><span class="mt" title="Will Amazon.com, Inc. (AMZN) hit (LOW) $252 Week of October 12 2026?">Amazon.com, Inc. (AMZN) atteindra-t-elle (LOW) $252 la semaine du 12 octobre 2026 ?</span></div></div></div>
 
-<div class="ch"><span class="pc">68%</span><span class="lb">Probabilité de Oui · maintenant</span></div>
-<div class="bar" aria-hidden="true"><i style="width:68%"></i></div>
-<div class="bl"><span class="y"><span class="mt" title="Yes">Oui</span> 68%</span><span class="n"><span class="mt" title="No">Non</span> 32%</span></div>
+<div class="ch"><span class="pc">72%</span><span class="lb">Probabilité de Oui · maintenant</span></div>
+<div class="bar" aria-hidden="true"><i style="width:72%"></i></div>
+<div class="bl"><span class="y"><span class="mt" title="Yes">Oui</span> 72%</span><span class="n"><span class="mt" title="No">Non</span> 28%</span></div>
 
 <div class="pills"><span class="pl yes" data-outcome="Yes" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot"><span class="mt" title="Yes">Oui</span></span> <span class="pr">22¢</span></span><span class="pl yes" data-outcome="Yes" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot"><span class="mt" title="Yes">Oui</span></span> <span class="pr">22¢</span></span><span class="pl no" data-outcome="No" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot"><span class="mt" title="No">Non</span></span> <span class="pr">79¢</span></span><span class="pl no" data-outcome="No" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg><span class="ot"><span class="mt" title="No">Non</span></span> <span class="pr">79¢</span></span></div>
 <div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>En direct</span><span>clôture le 2026-10-16</span>
@@ -437,6 +425,14 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <div class="fb"><span class="ft">Cinéma</span><div><b>Le film du jour</b> <span class="small mut">· <span lang="en">Match of the Day</span> · <span style="white-space:nowrap">2026-10-14</span></span></div>
 <div class="small"><b lang="en" dir="ltr">Bitcoin Up or Down - October 14, 4:00AM-8:00AM ET</b></div>
 <div class="mf"><a href="../fr/round/50/">Manche 50</a><a class="rid" href="../fr/films/">Tous les films</a></div></div></div>
+
+<div class="mkw"><a class="mk done" href="../fr/round/26/">
+<div class="mh"><svg class="ci" role="img" aria-label="Autre"><use href="#ci-other"/></svg><div><div class="t1"><span class="mt" title="Will Amazon.com, Inc. (AMZN) hit (LOW) $256 Week of October 12 2026?">Amazon.com, Inc. (AMZN) atteindra-t-elle (LOW) $256 la semaine du 12 octobre 2026 ?</span></div></div></div>
+<div class="win"><span class="ck" aria-hidden="true">✓</span> Résolu : <b>Oui</b></div>
+
+<div class="pills"><span class="pl yes" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot"><span class="mt" title="Yes">Oui</span></span> <span class="pr">43¢</span> ✓</span><span class="pl yes" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot"><span class="mt" title="Yes">Oui</span></span> <span class="pr">43¢</span> ✓</span><span class="pl yes" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot"><span class="mt" title="Yes">Oui</span></span> <span class="pr">43¢</span> ✓</span><span class="pl yes" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg><span class="ot"><span class="mt" title="Yes">Oui</span></span> <span class="pr">43¢</span> ✓</span></div>
+<div class="mf"><span>4 IA sur 4 ont eu raison</span><span class="rid">Manche 26</span></div></a>
+<button type="button" class="bm" data-bm="26" aria-pressed="false" hidden>☆</button></div>
 
 <div class="mkw"><a class="mk done" href="../fr/round/46/">
 <div class="mh"><svg class="ci" role="img" aria-label="Crypto"><use href="#ci-crypto"/></svg><div><div class="t1"><span class="mt" title="Solana Up or Down on October 14?">Solana en hausse ou en baisse le 14 octobre ?</span></div></div></div>
@@ -602,13 +598,13 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <section class="fire" aria-labelledby="fire-h"><h2 id="fire-h">🔥 Qui est en feu</h2>
 <div class="scroll"><table><tr><th>Agent</th><th class="r">Série en cours</th><th></th></tr>
 <tr><td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-claude"/></svg><a href="../fr/agent/claude/">Claude</a></td>
-<td class="r nw num"><span class="pos">🔥 7</span></td>
-<td class="small mut">plus longue série de victoires : 7</td></tr><tr><td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-agy"/></svg><a href="../fr/agent/agy/">Gemini</a></td>
-<td class="r nw num"><span class="pos">🔥 7</span></td>
-<td class="small mut">plus longue série de victoires : 7</td></tr><tr><td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-codex"/></svg><a href="../fr/agent/codex/">ChatGPT</a></td>
-<td class="r nw num">–</td>
+<td class="r nw num"><span class="pos">🔥 8</span></td>
+<td class="small mut">plus longue série de victoires : 8</td></tr><tr><td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-agy"/></svg><a href="../fr/agent/agy/">Gemini</a></td>
+<td class="r nw num"><span class="pos">🔥 8</span></td>
+<td class="small mut">plus longue série de victoires : 8</td></tr><tr><td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-codex"/></svg><a href="../fr/agent/codex/">ChatGPT</a></td>
+<td class="r nw num"><span class="pos">🔥 2</span></td>
 <td class="small mut">plus longue série de victoires : 2</td></tr><tr><td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-grok"/></svg><a href="../fr/agent/grok/">Grok</a></td>
-<td class="r nw num"><span class="neg">🧊 2</span></td>
+<td class="r nw num">–</td>
 <td class="small mut">plus longue série de victoires : 5</td></tr>
 </table></div></section>
 <div class="btns"><a class="btn" href="../fr/leaderboard/">Classement complet</a></div>
@@ -661,6 +657,6 @@ top.getBoundingClientRect().top<0||fab.classList.remove("on")});[top,b,ft].forEa
 fab.onclick=function(){var o={text:top.dataset.text,url:top.dataset.url};if(top.dataset.title)o.title=top.dataset.title;sh(o)}}
 else if(fab)fab.remove()})();</script>
 <footer>Benchmark automatisé exploité par SKALE Labs. Argent fictif (agentpit apUSD). Frontière contre frontière : chaque IA utilise le meilleur modèle de son laboratoire au raisonnement maximal. Les résultats ne sont jamais modifiés.
-<a href="../fr/methodology/">Méthodologie v2.1</a> · <a href="../fr/independence/">Indépendance et conflits d&#39;intérêts</a> · <a href="../fr/incidents/">Incidents</a> · <a href="../fr/contrarian/">Paris à contre-courant</a> · <a href="../fr/data/">Données et méthode</a> · <a href="../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">Code source (AGPL-3.0)</a> · <a href="https://huggingface.co/datasets/skalenetwork/agentpitbench" rel="noopener">Jeu de données</a> · <a href="../fr/terms/">Conditions d&#39;utilisation</a> · <a href="../fr/privacy/">Confidentialité</a> · Généré le 2026-10-14 16:16 UTC<br>Benchmark indépendant. Non affilié à Polymarket. Les noms de produits et les logos appartiennent à leurs propriétaires ; AgentpitBench n&#39;est ni affilié à eux ni approuvé par eux.</footer>
+<a href="../fr/methodology/">Méthodologie v2.1</a> · <a href="../fr/independence/">Indépendance et conflits d&#39;intérêts</a> · <a href="../fr/incidents/">Incidents</a> · <a href="../fr/contrarian/">Paris à contre-courant</a> · <a href="../fr/data/">Données et méthode</a> · <a href="../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">Code source (AGPL-3.0)</a> · <a href="https://huggingface.co/datasets/skalenetwork/agentpitbench" rel="noopener">Jeu de données</a> · <a href="../fr/terms/">Conditions d&#39;utilisation</a> · <a href="../fr/privacy/">Confidentialité</a> · Généré le 2026-10-14 17:05 UTC<br>Benchmark indépendant. Non affilié à Polymarket. Les noms de produits et les logos appartiennent à leurs propriétaires ; AgentpitBench n&#39;est ni affilié à eux ni approuvé par eux.</footer>
 <script defer type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "7f12b95829f74ed488cdf4008a176a57"}'></script>
 </body></html>
