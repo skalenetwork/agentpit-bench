@@ -9,6 +9,11 @@ before the AIs, comment, and are scored against the AIs. Off unless s.backend_en
 - Scoreboard (GET /scoreboard): fetched before a site build, cached in var/export/backend-scoreboard.json; a failure
   keeps the last copy. The build itself never touches the network.
 - Review (GET /admin/review): the comments list for the operator's daily digest.
+- The free API's read model (POST /ingest/rounds, docs/free-api-spec.md): every round as the static
+  /api/v1/rounds/{n}.json has it (discover.api_round: a running round's picks are null), re-sent when it changes, so
+  /v2/ serves rounds, live, leaderboards and agent histories without reading the site. Picks of a round reach the
+  Worker only once every agent has finished (the embargo; the Worker strips them again). API usage (GET
+  /admin/api-usage) is a line in the daily digest; `agentpitbench api` / `api-keys` are the operator's controls.
 
 Everything here is best-effort: a failure is logged and retried on the next tick; nothing waits on the Worker.
 """
@@ -37,6 +42,8 @@ SCOREBOARD_FILE = "backend-scoreboard.json"
 SENT_RESULTS = "backend_results_sent"   # kv: round ids whose results the Worker has
 SENT_MARKETS = "backend_markets_sig"    # kv: {sig, at} of the last markets push
 SENT_STARTED = "backend_started_sent"   # kv: round ids pushed as started (locks_at = start)
+SENT_ROUNDS = "backend_rounds_sig"      # kv: {round_id: sig} of the rounds the Worker's read model has
+ROUNDS_BATCH = 50                       # rounds per POST ingest/rounds
 REPUSH_S = 6 * 3600                     # an unchanged markets list is re-sent this often (the Worker upserts)
 LOCK_MARGIN_S = 300                     # picks lock this long before the earliest possible start
 STEP_S = 900
@@ -55,7 +62,7 @@ class Backend:
     def _key(self) -> str | None:
         return os.environ.get(KEY_ENV) or None
 
-    def ingest(self, what: str, payload: list[dict]) -> bool:
+    def ingest(self, what: str, payload: list[dict] | dict) -> bool:
         """POST ingest/<what>; True when the Worker took it. In dry-run, logged and not sent."""
         key = self._key()
         if not key:
@@ -67,6 +74,15 @@ class Backend:
         r = self.http.post(f"ingest/{what}", json=payload, headers={"X-Bench-Key": key})
         r.raise_for_status()
         return True
+
+    def admin_post(self, path: str, body: dict) -> dict:
+        """An operator action (bench key): an explicit command, so not held back by dry-run."""
+        key = self._key()
+        if not key:
+            raise RuntimeError(f"{KEY_ENV} not set")
+        r = self.http.post(path, json=body, headers={"X-Bench-Key": key})
+        r.raise_for_status()
+        return r.json()
 
     def get(self, path: str, admin: bool = False, **params) -> dict | list:
         headers = {}
@@ -196,6 +212,41 @@ def results(db: DB, agents: list[str], sent: set[int]) -> list[dict]:
     return out
 
 
+# ---------------------------------------------------------------- the free API's read model
+
+def api_meta(s: Settings, now: float) -> dict:
+    from .config import AGENT_NAMES
+    from .discover import _model
+    return {"methodology_version": s.methodology_version, "site_url": s.site_url.rstrip("/"),
+            "as_of": datetime.fromtimestamp(now, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "agents": [{"agent": a, "name": AGENT_NAMES.get(a, a), "model": _model(a)[0] or None,
+                        "model_id": _model(a)[1] or None, "reasoning": _model(a)[2] or None} for a in s.agents]}
+
+
+def api_round(s: Settings, db: DB, row, prices: dict[str, list[float]]) -> dict:
+    """One round for the Worker: the static API's record (discover.api_round, which seals a running round) plus
+    the category, the event title, when the picks went public, the methodology version and, while it is live, the
+    chance now (site.live_prices: what the site build fetched). Nothing about the humans who picked."""
+    from . import discover, exports
+    from .site import LIVE_STATES, grid_category
+    r = exports.round_record(s, db, row)
+    base = s.site_url.rstrip("/")
+    out = discover.api_round(r, base, f"{base}/round/{r['round_id']}/")
+    out.update(category=grid_category(r), event_title=r.get("event_title"),
+               revealed_at=discover.iso(r.get("revealed_at")), methodology_version=r.get("methodology_version"))
+    if discover.seal(r):   # belt and braces: discover.api_round already nulls the picks of a sealed round
+        out["sealed"] = True
+        for e in out["entries"]:
+            e.update({k: None for k in discover.PICK_FIELDS}, exit_reason=None, model_reported=None, sealed=True)
+    px = prices.get(str(r.get("market_id"))) if r["state"] in LIVE_STATES else None
+    out["prices_now"] = {"prices": px} if px else None
+    return out
+
+
+def _round_sig(x: dict) -> str:
+    return hashlib.sha256(json.dumps(x, sort_keys=True, default=str).encode()).hexdigest()[:16]
+
+
 # ---------------------------------------------------------------- the bot's periodic task
 
 class Pusher:
@@ -206,13 +257,14 @@ class Pusher:
         self.s, self.db, self.api, self.on_change = s, db, api, on_change
         self.client = client or Backend(s)
         self._last_upcoming = 0.0
+        self._last_rounds_sweep = time.time()   # the first full sweep after backend_push_s; new rounds go at once
         self._upcoming: list[dict] = []
 
     async def tick(self, now: float | None = None) -> None:
         if not self.s.backend_enabled:
             return
         now = time.time() if now is None else now
-        for job in (self._started, self._results):
+        for job in (self._started, self._results, self._rounds):
             try:
                 await job()
             except Exception as e:  # noqa: BLE001
@@ -236,6 +288,33 @@ class Pusher:
         new = results(self.db, self.s.agents, sent)
         if new and await asyncio.to_thread(self.client.ingest, "results", new):
             self.db.put(SENT_RESULTS, sorted(sent | {x["round_id"] for x in new}))
+
+    async def _rounds(self) -> None:
+        """The free API's read model: rounds that are live, new or changed. Finished rounds are rebuilt only on the
+        slower markets cadence (a correction or an exclusion still reaches the Worker)."""
+        from .site import live_prices
+        sent: dict = self.db.get(SENT_ROUNDS) or {}
+        full = time.time() - self._last_rounds_sweep >= self.s.backend_push_s
+        rows = [r for r in self.db.q("SELECT * FROM rounds ORDER BY round_id")
+                if full or str(r["round_id"]) not in sent or r["state"] not in ("resolved", "void")]
+        if not rows:
+            return
+        prices = live_prices(self.s)
+        changed = []
+        for row in rows:
+            x = api_round(self.s, self.db, row, prices)
+            sig = _round_sig(x)
+            if sent.get(str(x["round_id"])) != sig:
+                changed.append((x, sig))
+        meta = api_meta(self.s, time.time())
+        for i in range(0, len(changed), ROUNDS_BATCH):
+            chunk = changed[i:i + ROUNDS_BATCH]
+            if not await asyncio.to_thread(self.client.ingest, "rounds", {"meta": meta, "rounds": [x for x, _ in chunk]}):
+                return
+            sent.update({str(x["round_id"]): sig for x, sig in chunk})
+            self.db.put(SENT_ROUNDS, sent)
+        if full:
+            self._last_rounds_sweep = time.time()
 
     async def _markets(self, now: float) -> None:
         items = await upcoming(self.s, self.db, self.api, now)
@@ -301,6 +380,61 @@ def review(s: Settings, since: float, client: Backend | None = None) -> dict:
         return {"items": items, "n": len(items), "hidden": sum(1 for x in items if x.get("hidden"))}
     except Exception as e:  # noqa: BLE001
         return {"error": str(e)[:200]}
+    finally:
+        if client is None:
+            c.close()
+
+
+# ---------------------------------------------------------------- the free API: digest line and operator controls
+
+def api_usage(s: Settings, since: float, client: Backend | None = None) -> dict:
+    """The digest's API line: GET admin/api-usage?since=<day> -> {requests, anon_requests, keyed_requests, limited,
+    active_keys, keys, top: [{id, prefix, label, requests, limited}], enabled} or {"error": "..."}."""
+    c = client or Backend(s)
+    try:
+        d = c.get("admin/api-usage", admin=True, since=datetime.fromtimestamp(since, timezone.utc).strftime("%Y-%m-%d"))
+        return d if isinstance(d, dict) else {"error": "unexpected answer"}
+    except Exception as e:  # noqa: BLE001
+        return {"error": str(e)[:200]}
+    finally:
+        if client is None:
+            c.close()
+
+
+def api_usage_line(u: dict) -> str:
+    """One line for the digest log."""
+    if u.get("error"):
+        return f"API: unavailable ({u['error']})"
+    top = ", ".join(" ".join(x for x in (t.get("prefix"), t.get("label")) if x) + f" ({t.get('requests', 0)})"
+                    for t in (u.get("top") or [])[:3])
+    return (f"API{'' if u.get('enabled', True) else ' (OFF)'}: {u.get('requests', 0)} requests "
+            f"({u.get('anon_requests', 0)} without a key), {u.get('active_keys', 0)} active of {u.get('keys', 0)} keys, "
+            f"{u.get('limited', 0)} refused (429)" + (f"; top: {top}" if top else ""))
+
+
+def api_switch(s: Settings, enabled: bool | None, client: Backend | None = None) -> dict:
+    """`agentpitbench api --on/--off` (or the status): the Worker's /v2/ switch, no deploy needed."""
+    c = client or Backend(s)
+    try:
+        if enabled is None:
+            return c.get("admin/api-usage", admin=True)
+        return c.admin_post("admin/api", {"enabled": enabled})
+    finally:
+        if client is None:
+            c.close()
+
+
+def api_keys(s: Settings, revoke: str | None = None, limit: tuple[str, int | None] | None = None,
+             client: Backend | None = None) -> dict:
+    """`agentpitbench api-keys`: every key (prefix, label, 7-day usage), or revoke one, or set one's daily limit
+    (None: back to the default)."""
+    c = client or Backend(s)
+    try:
+        if revoke:
+            return c.admin_post(f"admin/keys/{revoke}", {"action": "revoke"})
+        if limit:
+            return c.admin_post(f"admin/keys/{limit[0]}", {"action": "limit", "daily_limit": limit[1]})
+        return c.get("admin/keys", admin=True)
     finally:
         if client is None:
             c.close()

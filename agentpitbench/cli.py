@@ -951,6 +951,14 @@ def main(argv: list[str] | None = None) -> None:
     g = rbp.add_mutually_exclusive_group()
     g.add_argument("--off", metavar="REASON", help="switch reply-back off now")
     g.add_argument("--on", action="store_true", help="clear the kill switch (after review)")
+    apx = sub.add_parser("api", help="the free API (/v2/ on the Worker): --off / --on (no deploy), or its usage")
+    g = apx.add_mutually_exclusive_group()
+    g.add_argument("--off", action="store_true", help="switch /v2/ off now (503 for everyone)")
+    g.add_argument("--on", action="store_true", help="switch /v2/ back on")
+    akx = sub.add_parser("api-keys", help="the free API's keys: list, --revoke ID, --limit ID N (N=0: the default)")
+    g = akx.add_mutually_exclusive_group()
+    g.add_argument("--revoke", metavar="ID")
+    g.add_argument("--limit", nargs=2, metavar=("ID", "N"))
     xl = sub.add_parser("x-login", help="authorize the X account with every scope the bench needs")
     xl.add_argument("--url", help="the URL X redirected you to (step 2)")
     xl.add_argument("--redirect-uri", help="callback URL registered on the X app (default: site_url)")
@@ -1084,6 +1092,14 @@ def main(argv: list[str] | None = None) -> None:
         ab_cli(s, a)
     elif a.cmd == "reply-back":
         reply_back_cli(s, a.off, a.on)
+    elif a.cmd in ("api", "api-keys"):   # docs/free-api-spec.md: the operator's controls (bench key)
+        from . import backend
+        if a.cmd == "api":
+            out = backend.api_switch(s, False if a.off else True if a.on else None)
+        else:
+            out = backend.api_keys(s, revoke=a.revoke,
+                                   limit=(a.limit[0], int(a.limit[1]) or None) if a.limit else None)
+        print(json.dumps(out, indent=1, ensure_ascii=False))
 
 
 def reply_back_cli(s: config.Settings, off: str | None, on: bool) -> None:

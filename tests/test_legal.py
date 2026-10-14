@@ -18,15 +18,15 @@ def test_legal_pages_every_language(built):  # noqa: F811
             html = (out / p / page).read_text()
             assert site.LEGAL_UPDATED in html and f"mailto:{site.LEGAL_CONTACT}" in html, (code, page)
     en = (out / "privacy/index.html").read_text()
-    assert "Last updated 2026-10-13" in en and "Cloudflare Web Analytics" in en
-    assert "Last updated 2026-10-13" in (out / "terms/index.html").read_text()
+    assert "Last updated 2026-10-14" in en and "Cloudflare Web Analytics" in en
+    assert "Last updated 2026-10-14" in (out / "terms/index.html").read_text()
 
 
 def test_legal_pages_in_sitemap_and_footer(built):  # noqa: F811
     s, _, out, _ = built
     xml = (out / "sitemap-en.xml").read_text()
     for rel in ("terms/", "privacy/"):
-        assert re.search(rf"<loc>{re.escape(s.site_url)}/{rel}</loc><lastmod>2026-10-13</lastmod>", xml), rel
+        assert re.search(rf"<loc>{re.escape(s.site_url)}/{rel}</loc><lastmod>2026-10-14</lastmod>", xml), rel
     assert f"<loc>{s.site_url}/de/privacy/</loc>" in (out / "sitemap-de.xml").read_text()
     for page in ("index.html", "leaderboard/index.html", "de/index.html"):
         html = (out / page).read_text()

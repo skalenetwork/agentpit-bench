@@ -41,6 +41,37 @@ Status: contract for the 2026-10-13 evening build. Operator decisions: Google si
 
 - The bot may post the opening post as a native X poll (reveal.media = poll arm). After resolution it sends poll totals with `POST /v1/ingest/results` (`x_poll: {option_label: votes}`) so the "Humans vs the AIs" tally can include X voters as an aggregate (no per-user rows).
 
+## Free API v2 (docs/free-api-spec.md; added 2026-10-14)
+
+The public read API lives on the same Worker under `/v2/` (GET only, `Access-Control-Allow-Origin: *`, no cookies).
+What feeds it and manages it is here, in v1:
+
+- `POST /v1/ingest/rounds` (bench key) `{meta: {methodology_version, site_url, as_of, agents: [{agent, name, model,
+  model_id, reasoning}]}, rounds: [...]}`, at most 500 rounds per call. Each round is the static
+  `/api/v1/rounds/{n}.json` record (`discover.api_round`) plus `category`, `event_title`, `revealed_at`,
+  `methodology_version` and `prices_now: {prices}|null` (live rounds only; the prices the site build fetched).
+  Upsert by `round_id`. The bot sends a round when it is new, live or changed (a per-round signature), and
+  re-checks finished rounds every `backend_push_s`.
+  **Embargo:** a round with `state = "running"` or `sealed: true` is stored with every decision field of every
+  entry null (outcome, prices, stake, confidence, rationale, quote, statement, decided_s, exit_reason, payout,
+  pnl, won, transcript_url, model_reported, summary); v2 strips them again on every read. The bot sends them
+  sealed too. Unknown fields (humans' handles, wallets) are dropped at ingest.
+- `GET /v1/me/keys` (signed in) → `{keys: [{id, label, prefix, created_at, last_used_at, revoked, daily_limit,
+  usage: [{day, n, limited}]}], limits}` (usage: the last 7 UTC days).
+- `POST /v1/me/keys` `{label}` (1–40 chars) → 201 `{key, secret}`: `secret` (`apb_…`) is shown once and stored
+  only as SHA-256. At most 3 active keys (409 `too_many_keys`); 10 creations per day.
+- `POST /v1/me/keys/{id}/revoke` → `{ok}` (404 for someone else's key). Account deletion removes the keys and
+  their usage rows.
+- Operator (bench key): `GET /v1/admin/api-usage?since=YYYY-MM-DD` → `{since, enabled, requests, anon_requests,
+  keyed_requests, limited, active_keys, keys, top: [{id, prefix, label, requests, limited}]}` (the digest line);
+  `GET /v1/admin/keys`; `POST /v1/admin/keys/{id}` `{action: "revoke"}` or `{action: "limit", daily_limit: n|null}`;
+  `POST /v1/admin/api` `{enabled: bool}` (the off switch; `API_V2_ENABLED = "0"` in wrangler.toml does the same
+  at deploy).
+- Limits (wrangler vars): `API_ANON_PER_HOUR` 60 per IP (hashed with `SESSION_SECRET`, never stored raw),
+  `API_KEY_PER_DAY` 10,000, `API_KEY_PER_SECOND` 10, `API_KEYS_PER_USER` 3. Over a limit: 429
+  `{error: "rate_limited", retry_after}` with `Retry-After` and `X-RateLimit-*` headers.
+- New D1 tables: api_rounds, api_entries, api_keys, api_usage, api_counters, kv (re-run `schema.sql`).
+
 ## Data and privacy
 
 - D1 tables: users, markets, picks, comments, likes, reports, rate (counters). Retention: picks and comments kept for the season; account deletion `POST /v1/me/delete` removes the user's row and anonymises their comments.

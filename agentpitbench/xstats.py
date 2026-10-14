@@ -694,6 +694,10 @@ def digest(s: Settings, db: DB, now: float | None = None) -> dict:
             out["comments_review"] = backend.review(s, y0)
         except Exception:
             log.exception("comments review digest block failed")
+        try:   # docs/free-api-spec.md §7: requests, active keys, top keys, 429s since yesterday
+            out["api_usage"] = backend.api_usage(s, y0)
+        except Exception:
+            log.exception("API usage digest block failed")
     s.export_dir.mkdir(parents=True, exist_ok=True)
     (s.export_dir / "x-daily.json").write_text(json.dumps(out, indent=1))
     log.info("x-daily %s: %d posts, %d impressions, %d interactions, %d link clicks, followers %s (%s), "
@@ -705,6 +709,9 @@ def digest(s: Settings, db: DB, now: float | None = None) -> dict:
     cr = out.get("comments_review")
     if cr:
         log.info("x-daily: comments to review: %s", cr.get("error") or f"{cr['n']} ({cr['hidden']} hidden)")
+    if out.get("api_usage"):
+        from .backend import api_usage_line
+        log.info("x-daily: %s", api_usage_line(out["api_usage"]))
     if out["visibility_drop"]:
         v = out["visibility_drop"]
         log.warning("x-daily: visibility drop on %s: last %d posts all under 20%% of the %s-impression baseline",
