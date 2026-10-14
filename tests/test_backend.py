@@ -158,6 +158,82 @@ def test_digest_lists_comments_to_review_only_when_on(env, monkeypatch):
     assert "comments_review" not in xstats.digest(s, db, NOW)
 
 
+# ---------------------------------------------------------------- the free API (docs/free-api-spec.md)
+
+def test_rounds_reach_the_read_model_sealed_until_every_agent_finished(env):
+    s, db = env
+    w = Worker()
+    done = make_round(db, PICKS, state="resolved", winner="CYBERSHOKE", market_id="m1")
+    live = make_round(db, PICKS, state="running", market_id="m3", question="Will Team Alpha win the grand final?")
+    (s.export_dir).mkdir(parents=True, exist_ok=True)
+    (s.export_dir / site.LIVE_PRICES_FILE).write_text(json.dumps({"m3": {"prices": [0.7, 0.3], "at": 1}}))
+    p = backend.Pusher(s, db, Api(), client=w.client(s))
+    asyncio.run(p.tick(NOW))
+    pushes = [b for path, _, b in w.sent if path == "/v1/ingest/rounds"]
+    assert len(pushes) == 1
+    body = pushes[0]
+    assert body["meta"]["methodology_version"] == s.methodology_version
+    assert [a["agent"] for a in body["meta"]["agents"]] == AGENTS
+    by = {r["round_id"]: r for r in body["rounds"]}
+    assert by[done]["sealed"] is False and by[done]["counts"] is True and by[done]["category"]
+    assert {e["agent"]: e["outcome"] for e in by[done]["entries"]}["grok"] == "Nexus"
+    assert by[done]["prices_now"] is None
+    # the running round: no decision of any agent leaves the bot (the embargo), but its chance now does
+    r = by[live]
+    assert r["sealed"] is True and r["prices_now"] == {"prices": [0.7, 0.3]}
+    blob = json.dumps(r)
+    assert "Nexus looked sharp" not in blob and "transcripts/" not in blob
+    for e in r["entries"]:
+        assert all(e[k] is None for k in ("outcome", "rationale", "quote", "confidence", "transcript_url", "model_reported"))
+    # nothing personal: no X handles, no wallets
+    assert "username" not in json.dumps(body) and "wallet" not in json.dumps(body)
+    # idempotent
+    n = len(w.sent)
+    asyncio.run(p.tick(NOW + 60))
+    assert len(w.sent) == n
+    # every agent finished: the round leaves `running` and goes again, now with the picks
+    db.set_round(live, state="awaiting_resolution")
+    asyncio.run(p.tick(NOW + 120))
+    again = [b for path, _, b in w.sent[n:] if path == "/v1/ingest/rounds"]
+    assert [x["round_id"] for x in again[0]["rounds"]] == [live]
+    assert {e["agent"]: e["outcome"] for e in again[0]["rounds"][0]["entries"]}["grok"] == "Nexus"
+
+
+def test_digest_has_the_api_usage_line(env, monkeypatch, caplog):
+    s, db = env
+    use = {"since": "2026-10-14", "enabled": True, "requests": 1234, "limited": 7, "anon_requests": 200,
+           "keyed_requests": 1034, "active_keys": 2, "keys": 3,
+           "top": [{"id": "k1", "prefix": "apb_abcdefgh", "label": "discord bot", "requests": 900, "limited": 7}]}
+    w = Worker({"admin/review": {"comments": []}, "admin/api-usage": use})
+    real = backend.Backend
+    monkeypatch.setattr(backend, "Backend", lambda s: real(s, transport=httpx.MockTransport(w)))
+    with caplog.at_level("INFO"):
+        out = xstats.digest(s, db, NOW)
+    assert out["api_usage"] == use
+    line = backend.api_usage_line(use)
+    assert line == ("API: 1234 requests (200 without a key), 2 active of 3 keys, 7 refused (429); "
+                    "top: apb_abcdefgh discord bot (900)")
+    assert line in caplog.text
+    assert backend.api_usage_line({"error": "HTTP 503"}).startswith("API: unavailable")
+    s.backend_enabled = False
+    assert "api_usage" not in xstats.digest(s, db, NOW)
+
+
+def test_operator_controls_switch_and_keys(env):
+    s, _ = env
+    w = Worker({"admin/keys": {"keys": []}, "admin/api-usage": {"enabled": True}})
+    c = w.client(s)
+    backend.api_switch(s, False, client=c)
+    backend.api_keys(s, revoke="k1", client=c)
+    backend.api_keys(s, limit=("k2", 50000), client=c)
+    assert backend.api_keys(s, client=c) == {"keys": []}
+    assert backend.api_switch(s, None, client=c) == {"enabled": True}
+    assert [(p, b) for p, _, b in w.sent] == [
+        ("/v1/admin/api", {"enabled": False}), ("/v1/admin/keys/k1", {"action": "revoke"}),
+        ("/v1/admin/keys/k2", {"action": "limit", "daily_limit": 50000})]
+    assert all(k == "k-123" for _, k, _ in w.sent)
+
+
 # ---------------------------------------------------------------- the site
 
 def build(s, db):
@@ -175,6 +251,9 @@ def test_site_without_backend_has_no_trace_of_it(tmp_path):
         assert "data-pick" not in html and "gsi/client" not in html and "data-discuss" not in html, page
     assert not (out / "me").exists()
     assert "There are no accounts, no forms" in (out / "privacy/index.html").read_text()
+    assert not (out / "developers").exists() and "developers/" not in (out / "index.html").read_text()
+    terms = (out / "terms/index.html").read_text()   # the static API's reuse terms hold without the backend too
+    assert 'id="api"' in terms and "developers/" not in terms
 
 
 def test_site_with_backend(tmp_path):
@@ -209,3 +288,10 @@ def test_site_with_backend(tmp_path):
     priv = (out / "privacy/index.html").read_text()
     assert "apb_s" in priv and "api.agentpitbench.org" in priv and "do not store your email" in priv
     assert "Sign-in, picks and comments" in (out / "terms/index.html").read_text()
+    dev = (out / "developers/index.html").read_text()
+    assert "https://api.agentpitbench.org/v2/leaderboard" in dev and "data-keys" in dev and "/me/keys" in dev
+    assert 'href="../developers/"' in (out / "data/index.html").read_text() or "developers/" in (out / "data/index.html").read_text()
+    assert (out / "es/developers/index.html").exists()
+    terms = (out / "terms/index.html").read_text()
+    assert 'id="api"' in terms and "Data: AgentpitBench (agentpitbench.org)" in terms and "developers/" in terms
+    assert "hash of the key" in priv

@@ -3,6 +3,7 @@
 import { HttpError, errorResponse, safeEqual } from './util.js';
 import { sessionUserId } from './auth.js';
 import * as h from './handlers.js';
+import * as v2 from './v2.js';
 
 const LOCALHOST_RE = /^http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?$/;
 
@@ -105,7 +106,85 @@ const ROUTES = [
   ['POST', '/v1/ingest/results', h.ingestResults, 'bench'],
   ['GET', '/v1/admin/review', h.adminReview, 'bench'],
   ['POST', '/v1/admin/comments/:id', h.adminComment, 'bench'],
+  // free API v2 (docs/free-api-spec.md): the read model, keys, operator controls
+  ['POST', '/v1/ingest/rounds', v2.ingestRounds, 'bench'],
+  ['GET', '/v1/me/keys', v2.listKeys, 'user'],
+  ['POST', '/v1/me/keys', v2.createKey, 'user'],
+  ['POST', '/v1/me/keys/:id/revoke', v2.revokeKey, 'user'],
+  ['GET', '/v1/admin/api-usage', v2.adminUsage, 'bench'],
+  ['GET', '/v1/admin/keys', v2.adminKeys, 'bench'],
+  ['POST', '/v1/admin/keys/:id', v2.adminKey, 'bench'],
+  ['POST', '/v1/admin/api', v2.adminSwitch, 'bench'],
 ];
+
+// The public read API: GET only, any origin, no cookies; counted against the per-IP or per-key limits.
+const V2_ROUTES = [
+  ['/v2', v2.index],
+  ['/v2/rounds', v2.rounds],
+  ['/v2/rounds/:n', v2.round],
+  ['/v2/upcoming', v2.upcoming],
+  ['/v2/live', v2.live],
+  ['/v2/leaderboard', v2.leaderboard],
+  ['/v2/agents/:id', v2.agent],
+  ['/v2/agents/:id/rounds', v2.agentRounds],
+  ['/v2/humans', v2.humans],
+  ['/v2/openapi.json', v2.openapi],
+];
+
+const PUBLIC_CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Expose-Headers': 'X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After',
+};
+
+function v2Preflight() {
+  return new Response(null, {
+    status: 204,
+    headers: { ...PUBLIC_CORS, 'Access-Control-Allow-Methods': 'GET, OPTIONS', 'Access-Control-Allow-Headers': 'Authorization', 'Access-Control-Max-Age': '86400' },
+  });
+}
+
+async function routeV2(request, env, path) {
+  let found = null;
+  for (const [pattern, handler] of V2_ROUTES) {
+    const params = match(pattern, path);
+    if (params) {
+      found = [handler, params];
+      break;
+    }
+  }
+  if (!found) throw new HttpError(404, 'not_found', 'no such endpoint');
+  if (request.method !== 'GET' && request.method !== 'HEAD') throw new HttpError(405, 'method_not_allowed', 'the API is read-only (GET)');
+  const ctx = new Ctx(request, env, new URL(request.url));
+  if (!(await v2.v2Enabled(env, env.DB))) throw new HttpError(503, 'api_disabled', 'the API is switched off for now');
+  const rate = await v2.admit(ctx);
+  let response;
+  try {
+    response = await found[0](ctx, found[1]);
+  } catch (err) {
+    response = errorResponse(err);
+  }
+  const headers = new Headers(response.headers);
+  for (const [k, v] of Object.entries(rate)) headers.set(k, v);
+  return new Response(response.body, { status: response.status, headers });
+}
+
+async function handleV2(request, env, path) {
+  if (request.method === 'OPTIONS') return v2Preflight();
+  let response;
+  try {
+    response = await routeV2(request, env, path);
+  } catch (err) {
+    response = errorResponse(err);
+    if (err && err.headers) {
+      const headers = new Headers(response.headers);
+      for (const [k, v] of Object.entries(err.headers)) headers.set(k, v);
+      response = new Response(response.body, { status: response.status, headers });
+    }
+  }
+  const headers = new Headers(response.headers);
+  for (const [k, v] of Object.entries(PUBLIC_CORS)) headers.set(k, v);
+  return new Response(response.body, { status: response.status, headers });
+}
 
 function match(pattern, path) {
   const ps = pattern.split('/');
@@ -157,6 +236,8 @@ async function route(request, env) {
 
 export default {
   async fetch(request, env) {
+    const path = new URL(request.url).pathname.replace(/\/+$/, '') || '/';
+    if (path === '/v2' || path.startsWith('/v2/')) return handleV2(request, env, path);
     if (request.method === 'OPTIONS') return preflight(request, env);
     let response;
     try {

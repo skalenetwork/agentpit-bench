@@ -22,7 +22,7 @@ const bad = (code, message) => new HttpError(400, code, message);
 
 // ---------------------------------------------------------------- rate limits (D1-backed)
 
-async function checkRate(ctx, key, limits) {
+export async function checkRate(ctx, key, limits) {
   const longest = Math.max(...limits.map((l) => l.windowMs));
   const rows = await ctx.db
     .prepare('SELECT ts FROM rate WHERE key = ? AND ts > ? ORDER BY ts DESC')
@@ -191,7 +191,10 @@ export async function deleteAccount(ctx) {
     db.prepare('DELETE FROM likes WHERE user_id = ?').bind(uid),
     db.prepare('DELETE FROM pick_vs WHERE user_id = ?').bind(uid),
     db.prepare('DELETE FROM picks WHERE user_id = ?').bind(uid),
-    db.prepare("DELETE FROM rate WHERE key IN ('c:' || ?, 'r:' || ?, 'n:' || ?)").bind(uid, uid, uid),
+    db.prepare("DELETE FROM rate WHERE key IN ('c:' || ?, 'r:' || ?, 'n:' || ?, 'k:' || ?)").bind(uid, uid, uid, uid),
+    // API keys (docs/free-api-spec.md) go with the account, and their usage rows with them.
+    db.prepare('DELETE FROM api_usage WHERE key_id IN (SELECT id FROM api_keys WHERE user_id = ?)').bind(uid),
+    db.prepare('DELETE FROM api_keys WHERE user_id = ?').bind(uid),
     db.prepare('DELETE FROM users WHERE id = ?').bind(uid),
   ]);
   return json({ ok: true }, 200, { 'Set-Cookie': clearSessionCookie() });

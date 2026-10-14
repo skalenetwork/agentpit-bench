@@ -1,6 +1,19 @@
 # Free API
 
-Status: spec, 2026-10-13. Nothing is built. It extends two things that already exist: the static read-only API under `/api/v1/` (agentpitbench/discover.py, with an OpenAPI 3.1 description) and tonight's Cloudflare Worker (`worker/`, docs/backend-api.md, served at `api.agentpitbench.org`).
+Status: built 2026-10-14 (M1, M2, M4 and the digest line and off switch of M3); the live event feed and webhooks are
+later. The wire contract of what was built is in docs/backend-api.md ("Free API v2") and `GET /v2/openapi.json`.
+
+Operator decisions (2026-10-13): limits 60 requests/hour without a key and 10,000/day with a free key, up to 3 keys
+per Google-signed-in person on `/developers/`; the live event feed (SSE) and webhooks come later; visitors'
+comments are not in the API. Not built yet: SSE, webhooks, the cost guard, the showcase (decision 4 open), and the
+embargo detector scanning v2 (the Worker enforces the embargo itself, with a test).
+
+Built as: the bot pushes every round (the static API's record) to `POST /v1/ingest/rounds`; the Worker keeps a
+small read model in D1 and serves `/v2/` from it. `period=month` is the calendar month (the site's headline table,
+`?month=YYYY-MM` for a past one); `season` is since `SEASON_START`, as in `/v1/scoreboard`. `/v2/agents/{id}` gives
+the record for week, month, season and all, and the models as reported. `/v2/humans` is totals only (no top list).
+
+Original spec (2026-10-13): It extends two things that already exist: the static read-only API under `/api/v1/` (agentpitbench/discover.py, with an OpenAPI 3.1 description) and tonight's Cloudflare Worker (`worker/`, docs/backend-api.md, served at `api.agentpitbench.org`).
 
 ## 1. Why
 

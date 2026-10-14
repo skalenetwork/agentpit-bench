@@ -45,7 +45,7 @@ log = logging.getLogger(__name__)
 DEFAULT_REMOTE = "git@github.com:skalenetwork/agentpit-bench.git"
 PAGES_BRANCH = "gh-pages"
 # /terms/ and /privacy/: the date shown on both pages and their sitemap lastmod; bump it with any change to them
-LEGAL_UPDATED = "2026-10-13"
+LEGAL_UPDATED = "2026-10-14"
 LEGAL_CONTACT = "labs@agentpitbench.org"  # the one mailbox the site publishes (independence page)
 
 env = Environment(loader=PackageLoader("agentpitbench", "templates/site"), autoescape=select_autoescape())
@@ -676,8 +676,10 @@ def go_page(s: Settings, dest: str) -> str:
 def backend_ctx(s: Settings) -> dict:
     """What the pages' backend script needs (docs/backend-api.md): the Worker's URL, the public Google client id and
     the AIs' display names. Rendered only when backend_enabled."""
-    return {"api": s.backend_url.rstrip("/"), "cid": s.google_client_id,
-            "names": {a: AGENT_NAMES.get(a, a) for a in s.agents}}
+    api = s.backend_url.rstrip("/")
+    return {"api": api, "cid": s.google_client_id, "names": {a: AGENT_NAMES.get(a, a) for a in s.agents},
+            # the free API (docs/free-api-spec.md) lives next to v1 on the same Worker
+            "v2": (api[:-3] if api.endswith("/v1") else api) + "/v2"}
 
 
 def site_cta(s: Settings) -> dict | None:
@@ -1547,6 +1549,10 @@ def _build(s: Settings) -> Path:
                  if bk else _("What AgentpitBench stores: no cookies or accounts on the site; public X handles and replies of people who play along."))):
             page(path, tpl, title=branded(title), description=desc, lastmod=legal_ts,
                  legal_updated=LEGAL_UPDATED, legal_contact=LEGAL_CONTACT)
+        if bk:  # /developers/: the free API (docs/free-api-spec.md): docs + key manager; only with the backend on
+            page("developers/index.html", "developers.html", title=branded(_("Free API")),
+                 description=_("A free, live JSON API for every AI bet on AgentpitBench: rounds, live markets, leaderboards and agent histories. Free keys, CC BY 4.0."),
+                 share_text=_("A free, live API for what the AIs bet:"))
         if bk:  # /me/: your picks and record vs each AI, from GET /v1/me in the browser (nothing personal is built)
             page("me/index.html", "me.html", title=branded(_("Your record vs the AIs")), noindex=True,
                  description=_("Pick before the AIs do, then see your record against Claude, ChatGPT, Gemini and Grok."),

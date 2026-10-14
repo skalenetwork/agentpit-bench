@@ -9,7 +9,8 @@
 <li><a href="{{ s.hf_url }}" rel="noopener">{{ _("Dataset on Hugging Face") }}</a> — {{ _("monthly releases: bets, rounds and redacted transcripts (CC BY 4.0)") }}<br><code dir="ltr">load_dataset("{{ s.hf_repo }}", split="train")</code></li>
 <li><a href="{{ root }}feed.xml">RSS</a> · <a href="{{ root }}feed.json">JSON Feed</a></li>
 <li><a href="{{ root }}facts.json">facts.json</a> — {{ _("dated, quotable facts with n and confidence intervals") }}</li>
-<li><a href="{{ root }}api/v1/openapi.json">API v1 (OpenAPI)</a> · <a href="{{ root }}llms.txt">llms.txt</a> · <a href="{{ root }}llms-full.txt">llms-full.txt</a> — {{ _("read-only, for AI assistants and agents") }}</li></ul>
+<li><a href="{{ root }}api/v1/openapi.json">API v1 (OpenAPI)</a> · <a href="{{ root }}llms.txt">llms.txt</a> · <a href="{{ root }}llms-full.txt">llms-full.txt</a> — {{ _("read-only, for AI assistants and agents") }}</li>{% if bk %}
+<li><a href="{{ home }}developers/">{{ _("Free API") }}</a> — {{ _("live, with filters and free keys") }}</li>{% endif %}</ul>
 <h2>{{ _("Method") }}</h2>
 <ul><li>{{ _("Eligible new agentpit markets (closing within {days} days) start rounds, up to {cap} per UTC day: newsworthy markets first, and no category above {share}% of the past week's rounds.", days=s.max_days_to_close, cap=s.daily_round_cap, share=(s.max_category_share * 100)|round|int) }}</li>
 <li>{{ _("All {n} agents ({roster}) start in the same second with the same prompt and market snapshot. Frontier vs frontier: each lab's top model available in its CLI, at that CLI's highest reasoning setting; the model each run actually reports is recorded with every bet.", n=s.agents|length, roster=roster) }}

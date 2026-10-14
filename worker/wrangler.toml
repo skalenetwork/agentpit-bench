@@ -13,6 +13,13 @@ ALLOWED_ORIGIN = "https://agentpitbench.org"
 ALLOW_LOCALHOST = "0"
 # Season start (UTC date). "season" on the scoreboard = markets locking on/after this date.
 SEASON_START = "2026-10-01"
+# Free API v2 (docs/free-api-spec.md). "0" switches /v2/ off (503) at the next deploy; the operator can also switch
+# it off at once without a deploy: `agentpitbench api --off` (POST /v1/admin/api).
+API_V2_ENABLED = "1"
+API_ANON_PER_HOUR = "60"     # without a key, per IP
+API_KEY_PER_DAY = "10000"    # per key (the operator can raise one key's limit: agentpitbench api-keys --limit)
+API_KEY_PER_SECOND = "10"
+API_KEYS_PER_USER = "3"
 
 [[d1_databases]]
 binding = "DB"
