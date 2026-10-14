@@ -1,0 +1,1120 @@
+$ codex exec <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Solana Up or Down on October 14?
+Outcomes: Up / Down | prices: Up 0.490, Down 0.510 | closes: 2026-10-14T16:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 19 rounds: 6-13, net P&L -920.3.
+- Bitcoin Up or Down - October 13, 8:00PM-12:00AM ET | you picked Up | winner Up | won | P&L +26.7
+- Will Millwall FC vs. Swansea City AFC end in a draw? | you picked No | winner No | won | P&L +38.9
+- Bitcoin Up or Down - October 13, 12:00PM-4:00PM ET | you picked Up | winner Down | lost | P&L -100.1
+- Will Levante UD vs. Sevilla FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Atalanta BC vs. Venezia FC end in a draw? | you picked Yes | winner No | lost | P&L -100.0
+- Will Pumas de la UNAM vs. CF Cruz Azul end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Ethereum dip to $2,400 October 5-11? | you picked Yes | winner No | lost | P&L -98.9
+- Will Beşiktaş JK win on 2026-10-11? | you picked No | winner Yes | lost | P&L -100.0
+- Will it rain in New Orleans, LA on October 10? | you picked Yes | winner No | lost | P&L -43.7
+- Will Real Sociedad de Fútbol vs. RC Deportivo A Coruña end in a draw? | you picked Yes | winner No | lost | P&L -100.0
+- Bitcoin Up or Down - October 10, 9PM ET | you picked Up | winner Up | won | P&L +31.6
+- Bitcoin Up or Down - October 10, 8PM ET | you picked Down | winner Down | won | P&L +92.2
+- Will Stockport County FC win on 2026-10-10? | you picked No | winner Yes | lost | P&L -100.0
+- Will Aston Villa FC vs. Brentford FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Virtus Entella win on 2026-10-10? | you picked No | winner No | won | P&L +85.2
+- Will Elon Musk post 65-89 tweets from October 8 to October 10, 2026? | you picked Yes | winner No | lost | P&L -100.0
+- Ducks vs. Jets | you picked Jets | winner Ducks | lost | P&L -100.0
+- Bitcoin Up or Down - October 9, 8PM ET | you picked Down | winner Down | won | P&L +47.9
+- Counter-Strike: PRIVATE vs Nuclear TigeRES (BO3) - 1win Private Club #2: Closed Qualifier  | you picked Nuclear TigeRES | winner PRIVATE | lost | P&L -100.0
+
+--- output ---
+WARNING: proceeding, even though we could not create PATH aliases: Refusing to create helper binaries under temporary dir "/tmp" (codex_home: AbsolutePathBuf("/tmp/apbh-codex-21o580_7/.codex"))
+Reading additional input from stdin...
+OpenAI Codex v0.161.0
+--------
+workdir: /tmp/apb-46-codex-4w6hmyo6
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: max
+reasoning summaries: none
+session id: 01a138a2-6002-74f3-bdb7-7ccce1b9f422
+--------
+user
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Solana Up or Down on October 14?
+Outcomes: Up / Down | prices: Up 0.490, Down 0.510 | closes: 2026-10-14T16:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 19 rounds: 6-13, net P&L -920.3.
+- Bitcoin Up or Down - October 13, 8:00PM-12:00AM ET | you picked Up | winner Up | won | P&L +26.7
+- Will Millwall FC vs. Swansea City AFC end in a draw? | you picked No | winner No | won | P&L +38.9
+- Bitcoin Up or Down - October 13, 12:00PM-4:00PM ET | you picked Up | winner Down | lost | P&L -100.1
+- Will Levante UD vs. Sevilla FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Atalanta BC vs. Venezia FC end in a draw? | you picked Yes | winner No | lost | P&L -100.0
+- Will Pumas de la UNAM vs. CF Cruz Azul end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Ethereum dip to $2,400 October 5-11? | you picked Yes | winner No | lost | P&L -98.9
+- Will Beşiktaş JK win on 2026-10-11? | you picked No | winner Yes | lost | P&L -100.0
+- Will it rain in New Orleans, LA on October 10? | you picked Yes | winner No | lost | P&L -43.7
+- Will Real Sociedad de Fútbol vs. RC Deportivo A Coruña end in a draw? | you picked Yes | winner No | lost | P&L -100.0
+- Bitcoin Up or Down - October 10, 9PM ET | you picked Up | winner Up | won | P&L +31.6
+- Bitcoin Up or Down - October 10, 8PM ET | you picked Down | winner Down | won | P&L +92.2
+- Will Stockport County FC win on 2026-10-10? | you picked No | winner Yes | lost | P&L -100.0
+- Will Aston Villa FC vs. Brentford FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Virtus Entella win on 2026-10-10? | you picked No | winner No | won | P&L +85.2
+- Will Elon Musk post 65-89 tweets from October 8 to October 10, 2026? | you picked Yes | winner No | lost | P&L -100.0
+- Ducks vs. Jets | you picked Jets | winner Ducks | lost | P&L -100.0
+- Bitcoin Up or Down - October 9, 8PM ET | you picked Down | winner Down | won | P&L +47.9
+- Counter-Strike: PRIVATE vs Nuclear TigeRES (BO3) - 1win Private Club #2: Closed Qualifier  | you picked Nuclear TigeRES | winner PRIVATE | lost | P&L -100.0
+
+codex
+I’ll check the settlement rules and the available Solana price data, then place the one bet before the deadline.
+
+exec
+/usr/bin/zsh -lc 'bench --help' in /tmp/apb-46-codex-4w6hmyo6
+ succeeded in 0ms:
+usage: bench [-h] {market,book,history,bet} ...
+
+Inspect the market and place your one bet.
+
+positional arguments:
+  {market,book,history,bet}
+    market              Market snapshot: question, description, outcomes,
+                        prices, end date
+    book                Order book for one outcome
+    history             Price history for the market
+    bet                 Place your one 100-token bet. Works once.
+
+options:
+  -h, --help            show this help message and exit
+
+exec
+/usr/bin/zsh -lc 'bench bet --help' in /tmp/apb-46-codex-4w6hmyo6
+exec
+/usr/bin/zsh -lc 'bench history --help' in /tmp/apb-46-codex-4w6hmyo6
+ succeeded in 0ms:
+usage: bench bet [-h] --outcome OUTCOME --rationale RATIONALE --confidence
+                 CONFIDENCE [--max-price MAX_PRICE] [--quote QUOTE]
+
+options:
+  -h, --help            show this help message and exit
+  --outcome OUTCOME
+  --rationale RATIONALE
+  --confidence CONFIDENCE
+                        0 to 1
+  --max-price MAX_PRICE
+                        worst price you accept (default: best ask + 0.05)
+  --quote QUOTE         optional one-line trash talk for your rivals, shown on
+                        your card (max 120 chars, no links)
+
+ succeeded in 0ms:
+usage: bench history [-h] --outcome OUTCOME
+
+options:
+  -h, --help         show this help message and exit
+  --outcome OUTCOME
+
+exec
+/usr/bin/zsh -lc 'bench book --help' in /tmp/apb-46-codex-4w6hmyo6
+ succeeded in 0ms:
+usage: bench book [-h] --outcome OUTCOME
+
+options:
+  -h, --help         show this help message and exit
+  --outcome OUTCOME
+
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-46-codex-4w6hmyo6
+ succeeded in 0ms:
+{
+  "question": "Solana Up or Down on October 14?",
+  "description": "This market will resolve to \"Up\" if the \"Close\" price for the Binance 1 minute candle for SOL/USDT Oct 13 '26 12:00 in the ET timezone (noon) is lower than the final \"Close\" price for the Oct 14 '26 12:00 ET candle.\n\nThis market will resolve to \"Down\" if the \"Close\" price for the Binance 1 minute candle for SOL/USDT Oct 13 '26 12:00 in the ET timezone (noon) is higher than the final \"Close\" price for the Oct 14 '26 12:00 ET candle.\n\nIf the final \"Close\" price for both of these candles is exactly equal on Binance, this market will resolve 50-50.\n\nThe resolution source for this market is Binance, specifically the SOL/USDT \"Close\" prices currently available at https://www.binance.com/en/trade/SOL_USDT with \"1m\" and \"Candles\" selected on the top bar.\n\nPlease note that this market is about the price according to Binance SOL/USDT, not according to other exchanges or trading pairs.",
+  "outcomes": [
+    "Up",
+    "Down"
+  ],
+  "prices": [
+    0.475,
+    0.525
+  ],
+  "best_bid": 0.46,
+  "best_ask": 0.49,
+  "end_date": "2026-10-14T16:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 290
+}
+
+web search: 
+exec
+/usr/bin/zsh -lc 'bench history --outcome Up' in /tmp/apb-46-codex-4w6hmyo6
+ succeeded in 0ms:
+{
+  "history": []
+}
+
+exec
+/usr/bin/zsh -lc 'bench book --outcome Up' in /tmp/apb-46-codex-4w6hmyo6
+exec
+/usr/bin/zsh -lc 'bench book --outcome Down' in /tmp/apb-46-codex-4w6hmyo6
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,datetime,concurrent.futures
+print('utc',datetime.datetime.now(datetime.timezone.utc).isoformat())
+a=int(datetime.datetime(2026,10,13,16,0,tzinfo=datetime.timezone.utc).timestamp()*1000)
+urls=[f'https://api.binance.com/api/v3/klines?symbol=SOLUSDT&interval=1m&startTime={a}&limit=1','https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT','https://api.binance.com/api/v3/time']
+def get(u):
+ try:
+  r=requests.get(u,timeout=15);return (u,r.status_code,r.text[:5000])
+ except Exception as e:return (u,str(e))
+for x in concurrent.futures.ThreadPoolExecutor().map(get,urls):print(x)
+PY" in /tmp/apb-46-codex-4w6hmyo6
+ succeeded in 85ms:
+{
+  "outcome": "Down",
+  "bids": [
+    {
+      "price": "0.52",
+      "size": "50"
+    },
+    {
+      "price": "0.51",
+      "size": "100"
+    },
+    {
+      "price": "0.5",
+      "size": "110"
+    },
+    {
+      "price": "0.49",
+      "size": "1410"
+    },
+    {
+      "price": "0.42",
+      "size": "5000"
+    },
+    {
+      "price": "0.21",
+      "size": "1714.28"
+    },
+    {
+      "price": "0.14",
+      "size": "1785.71"
+    },
+    {
+      "price": "0.11",
+      "size": "27418.15"
+    },
+    {
+      "price": "0.09",
+      "size": "9"
+    },
+    {
+      "price": "0.07",
+      "size": "10.93"
+    },
+    {
+      "price": "0.06",
+      "size": "47583.31"
+    },
+    {
+      "price": "0.05",
+      "size": "1910"
+    },
+    {
+      "price": "0.03",
+      "size": "75185.23"
+    },
+    {
+      "price": "0.02",
+      "size": "75"
+    },
+    {
+      "price": "0.01",
+      "size": "112172.66"
+    }
+  ],
+  "asks": [
+    {
+      "price": "0.53",
+      "size": "39.99"
+    },
+    {
+      "price": "0.54",
+      "size": "1300"
+    },
+    {
+      "price": "0.57",
+      "size": "160"
+    },
+    {
+      "price": "0.58",
+      "size": "5150"
+    },
+    {
+      "price": "0.78",
+      "size": "30"
+    },
+    {
+      "price": "0.79",
+      "size": "1714.28"
+    },
+    {
+      "price": "0.86",
+      "size": "1785.71"
+    },
+    {
+      "price": "0.89",
+      "size": "27418.15"
+    },
+    {
+      "price": "0.91",
+      "size": "9"
+    },
+    {
+      "price": "0.93",
+      "size": "11.63"
+    },
+    {
+      "price": "0.94",
+      "size": "47583.31"
+    },
+    {
+      "price": "0.95",
+      "size": "42510"
+    },
+    {
+      "price": "0.96",
+      "size": "100"
+    },
+    {
+      "price": "0.97",
+      "size": "7017.58"
+    },
+    {
+      "price": "0.98",
+      "size": "75"
+    }
+  ],
+  "last_trade_price": "0.39"
+}
+
+ succeeded in 87ms:
+{
+  "outcome": "Up",
+  "bids": [
+    {
+      "price": "0.47",
+      "size": "39.99"
+    },
+    {
+      "price": "0.46",
+      "size": "1300"
+    },
+    {
+      "price": "0.43",
+      "size": "160"
+    },
+    {
+      "price": "0.42",
+      "size": "5150"
+    },
+    {
+      "price": "0.22",
+      "size": "30"
+    },
+    {
+      "price": "0.21",
+      "size": "1714.28"
+    },
+    {
+      "price": "0.14",
+      "size": "1785.71"
+    },
+    {
+      "price": "0.11",
+      "size": "27418.15"
+    },
+    {
+      "price": "0.09",
+      "size": "9"
+    },
+    {
+      "price": "0.07",
+      "size": "11.63"
+    },
+    {
+      "price": "0.06",
+      "size": "47583.31"
+    },
+    {
+      "price": "0.05",
+      "size": "42510"
+    },
+    {
+      "price": "0.04",
+      "size": "100"
+    },
+    {
+      "price": "0.03",
+      "size": "7017.58"
+    },
+    {
+      "price": "0.02",
+      "size": "75"
+    }
+  ],
+  "asks": [
+    {
+      "price": "0.48",
+      "size": "50"
+    },
+    {
+      "price": "0.49",
+      "size": "100"
+    },
+    {
+      "price": "0.5",
+      "size": "110"
+    },
+    {
+      "price": "0.51",
+      "size": "1410"
+    },
+    {
+      "price": "0.58",
+      "size": "5000"
+    },
+    {
+      "price": "0.79",
+      "size": "1714.28"
+    },
+    {
+      "price": "0.86",
+      "size": "1785.71"
+    },
+    {
+      "price": "0.89",
+      "size": "27418.15"
+    },
+    {
+      "price": "0.91",
+      "size": "9"
+    },
+    {
+      "price": "0.93",
+      "size": "10.93"
+    },
+    {
+      "price": "0.94",
+      "size": "47583.31"
+    },
+    {
+      "price": "0.95",
+      "size": "1910"
+    },
+    {
+      "price": "0.97",
+      "size": "75185.23"
+    },
+    {
+      "price": "0.98",
+      "size": "75"
+    },
+    {
+      "price": "0.99",
+      "size": "112172.66"
+    }
+  ],
+  "last_trade_price": "0.61"
+}
+
+ succeeded in 280ms:
+utc 2026-10-14T04:19:07.518641+00:00
+('https://api.binance.com/api/v3/klines?symbol=SOLUSDT&interval=1m&startTime=1791907200000&limit=1', 200, '[[1791907200000,"107.40000000","107.69000000","107.36000000","107.63000000","3115.10100000",1791907259999,"335003.42977000",1216,"2685.77300000","288844.63948000","0"]]')
+('https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT', 200, '{"symbol":"SOLUSDT","price":"107.45000000"}')
+('https://api.binance.com/api/v3/time', 200, '{"serverTime":1791951547743}')
+
+web search: Solana SOL October 14 2026 price Binance SOL USDT October 13 2026
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,concurrent.futures,datetime,json,math,statistics
+urls={'sol5':'https://api.binance.com/api/v3/klines?symbol=SOLUSDT&interval=5m&limit=1000','sol1h':'https://api.binance.com/api/v3/klines?symbol=SOLUSDT&interval=1h&limit=168','btc1h':'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=72','sol24':'https://api.binance.com/api/v3/ticker/24hr?symbol=SOLUSDT','funding':'https://fapi.binance.com/fapi/v1/premiumIndex?symbol=SOLUSDT','depth':'https://api.binance.com/api/v3/depth?symbol=SOLUSDT&limit=100'}
+def fetch(kv):
+ k,u=kv
+ try:
+  r=requests.get(u,timeout=15);x=r.json()
+  if k in ['sol5','sol1h','btc1h'] and isinstance(x,list):
+   with open('/tmp/'+k+'.json','w') as f:json.dump(x,f)
+   closes=[float(a[4]) for a in x];prices={str(n):round((closes[-1]/closes[-1-n]-1)*100,3) for n in [1,3,6,12,24,48] if n<len(x)}
+   ret=[math.log(b/a) for a,b in zip(closes,closes[1:])]
+   step=5/60 if k=='sol5' else 1
+   hourly=statistics.stdev(ret)/(step**.5)
+   tail=x[-36:] if k"'!='"'sol5' else x[-12:]
+   return k,{'last':closes[-1],'changes_pct_bars':prices,'hourly_vol_pct':hourly*100,'tail':[[datetime.datetime.fromtimestamp(a[0]/1000,datetime.timezone.utc).isoformat(),*a[1:6]] for a in tail]}
+  if k=='depth':
+   return k,{'bids_10':x.get('bids',[])[:10],'asks_10':x.get('asks',[])[:10],'bids_total':sum(float(a)*float(b) for a,b in x.get('bids',[])),'asks_total':sum(float(a)*float(b) for a,b in x.get('asks',[]))}
+  return k,x
+ except Exception as e:return k,str(e)
+for x in concurrent.futures.ThreadPoolExecutor().map(fetch,urls.items()):print(json.dumps(x))
+PY" in /tmp/apb-46-codex-4w6hmyo6
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-46-codex-4w6hmyo6
+ succeeded in 69ms:
+{
+  "question": "Solana Up or Down on October 14?",
+  "description": "This market will resolve to \"Up\" if the \"Close\" price for the Binance 1 minute candle for SOL/USDT Oct 13 '26 12:00 in the ET timezone (noon) is lower than the final \"Close\" price for the Oct 14 '26 12:00 ET candle.\n\nThis market will resolve to \"Down\" if the \"Close\" price for the Binance 1 minute candle for SOL/USDT Oct 13 '26 12:00 in the ET timezone (noon) is higher than the final \"Close\" price for the Oct 14 '26 12:00 ET candle.\n\nIf the final \"Close\" price for both of these candles is exactly equal on Binance, this market will resolve 50-50.\n\nThe resolution source for this market is Binance, specifically the SOL/USDT \"Close\" prices currently available at https://www.binance.com/en/trade/SOL_USDT with \"1m\" and \"Candles\" selected on the top bar.\n\nPlease note that this market is about the price according to Binance SOL/USDT, not according to other exchanges or trading pairs.",
+  "outcomes": [
+    "Up",
+    "Down"
+  ],
+  "prices": [
+    0.48,
+    0.52
+  ],
+  "best_bid": 0.47,
+  "best_ask": 0.49,
+  "end_date": "2026-10-14T16:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 252
+}
+
+ succeeded in 345ms:
+["sol5", {"last": 107.46, "changes_pct_bars": {"1": -0.167, "3": -0.176, "6": -0.647, "12": -0.167, "24": -0.028, "48": 0.102}, "hourly_vol_pct": 0.5880143684086421, "tail": [["2026-10-14T03:20:00+00:00", "107.63000000", "107.84000000", "107.62000000", "107.82000000", "5608.95700000"], ["2026-10-14T03:25:00+00:00", "107.82000000", "107.84000000", "107.72000000", "107.80000000", "1895.14300000"], ["2026-10-14T03:30:00+00:00", "107.80000000", "108.18000000", "107.80000000", "108.18000000", "9486.03400000"], ["2026-10-14T03:35:00+00:00", "108.18000000", "108.30000000", "108.07000000", "108.11000000", "8669.30800000"], ["2026-10-14T03:40:00+00:00", "108.11000000", "108.16000000", "108.02000000", "108.09000000", "8831.66200000"], ["2026-10-14T03:45:00+00:00", "108.09000000", "108.24000000", "108.05000000", "108.16000000", "7872.73500000"], ["2026-10-14T03:50:00+00:00", "108.16000000", "108.16000000", "107.99000000", "108.00000000", "8487.70600000"], ["2026-10-14T03:55:00+00:00", "108.00000000", "108.00000000", "107.81000000", "107.83000000", "2316.94400000"], ["2026-10-14T04:00:00+00:00", "107.82000000", "107.84000000", "107.63000000", "107.65000000", "2092.45100000"], ["2026-10-14T04:05:00+00:00", "107.66000000", "107.76000000", "107.49000000", "107.66000000", "2655.84100000"], ["2026-10-14T04:10:00+00:00", "107.67000000", "107.83000000", "107.64000000", "107.64000000", "2175.75300000"], ["2026-10-14T04:15:00+00:00", "107.65000000", "107.68000000", "107.43000000", "107.46000000", "4588.78600000"]]}]
+["sol1h", {"last": 107.46, "changes_pct_bars": {"1": -0.343, "3": 0.047, "6": 0.402, "12": -0.093, "24": -0.574, "48": -5.046}, "hourly_vol_pct": 0.637371125812353, "tail": [["2026-10-12T17:00:00+00:00", "107.86000000", "108.15000000", "107.16000000", "107.79000000", "99576.83700000"], ["2026-10-12T18:00:00+00:00", "107.79000000", "107.90000000", "107.52000000", "107.57000000", "47113.84800000"], ["2026-10-12T19:00:00+00:00", "107.57000000", "108.39000000", "107.43000000", "108.33000000", "94102.16100000"], ["2026-10-12T20:00:00+00:00", "108.33000000", "108.85000000", "108.32000000", "108.47000000", "55850.87000000"], ["2026-10-12T21:00:00+00:00", "108.46000000", "108.46000000", "106.38000000", "107.21000000", "131518.13200000"], ["2026-10-12T22:00:00+00:00", "107.22000000", "107.55000000", "106.30000000", "106.40000000", "80086.99500000"], ["2026-10-12T23:00:00+00:00", "106.40000000", "106.62000000", "105.41000000", "105.76000000", "192310.66100000"], ["2026-10-13T00:00:00+00:00", "105.75000000", "105.98000000", "101.69000000", "103.00000000", "441687.41300000"], ["2026-10-13T01:00:00+00:00", "103.00000000", "105.38000000", "102.88000000", "105.35000000", "196272.17800000"], ["2026-10-13T02:00:00+00:00", "105.34000000", "107.04000000", "105.28000000", "106.73000000", "157875.05900000"], ["2026-10-13T03:00:00+00:00", "106.73000000", "107.97000000", "106.47000000", "107.48000000", "111456.14200000"], ["2026-10-13T04:00:00+00:00", "107.47000000", "108.27000000", "107.41000000", "108.08000000", "76788.22000000"], ["2026-10-13T05:00:00+00:00", "108.09000000", "108.82000000", "107.93000000", "108.46000000", "78445.43000000"], ["2026-10-13T06:00:00+00:00", "108.46000000", "108.78000000", "108.13000000", "108.63000000", "68355.78600000"], ["2026-10-13T07:00:00+00:00", "108.64000000", "109.07000000", "107.98000000", "108.58000000", "97909.00400000"], ["2026-10-13T08:00:00+00:00", "108.58000000", "108.90000000", "107.62000000", "107.67000000", "81377.20300000"], ["2026-10-13T09:00:00+00:00", "107.67000000", "107.72000000", "106.80000000", "107.02000000", "96502.13000000"], ["2026-10-13T10:00:00+00:00", "107.02000000", "107.27000000", "106.20000000", "106.53000000", "194487.67500000"], ["2026-10-13T11:00:00+00:00", "106.52000000", "107.47000000", "105.63000000", "106.18000000", "154651.85000000"], ["2026-10-13T12:00:00+00:00", "106.19000000", "106.77000000", "105.74000000", "106.69000000", "114701.67200000"], ["2026-10-13T13:00:00+00:00", "106.70000000", "107.53000000", "106.15000000", "106.80000000", "108820.26900000"], ["2026-10-13T14:00:00+00:00", "106.79000000", "108.65000000", "106.70000000", "107.55000000", "143333.38700000"], ["2026-10-13T15:00:00+00:00", "107.55000000", "107.95000000", "106.70000000", "107.39000000", "101117.68200000"], ["2026-10-13T16:00:00+00:00", "107.40000000", "108.00000000", "107.36000000", "107.56000000", "72843.24200000"], ["2026-10-13T17:00:00+00:00", "107.55000000", "107.62000000", "106.94000000", "107.16000000", "75445.69500000"], ["2026-10-13T18:00:00+00:00", "107.16000000", "108.03000000", "107.12000000", "107.86000000", "85522.70400000"], ["2026-10-13T19:00:00+00:00", "107.86000000", "108.27000000", "107.28000000", "107.55000000", "65394.42600000"], ["2026-10-13T20:00:00+00:00", "107.55000000", "107.68000000", "107.03000000", "107.14000000", "58120.84000000"], ["2026-10-13T21:00:00+00:00", "107.13000000", "107.25000000", "106.91000000", "107.13000000", "34772.80400000"], ["2026-10-13T22:00:00+00:00", "107.13000000", "107.16000000", "106.78000000", "107.03000000", "39578.16300000"], ["2026-10-13T23:00:00+00:00", "107.03000000", "107.03000000", "106.65000000", "106.83000000", "31727.97000000"], ["2026-10-14T00:00:00+00:00", "106.83000000", "108.04000000", "106.80000000", "107.44000000", "50847.15800000"], ["2026-10-14T01:00:00+00:00", "107.44000000", "107.67000000", "106.97000000", "107.41000000", "48047.72800000"], ["2026-10-14T02:00:00+00:00", "107.41000000", "107.95000000", "107.14000000", "107.76000000", "40175.67800000"], ["2026-10-14T03:00:00+00:00", "107.76000000", "108.30000000", "107.62000000", "107.83000000", "65538.01500000"], ["2026-10-14T04:00:00+00:00", "107.82000000", "107.84000000", "107.43000000", "107.46000000", "11512.83100000"]]}]
+["btc1h", {"last": 83636.01, "changes_pct_bars": {"1": -0.076, "3": 0.37, "6": 0.132, "12": 0.303, "24": 0.218, "48": -0.609}, "hourly_vol_pct": 0.33395118534006213, "tail": [["2026-10-12T17:00:00+00:00", "82510.59000000", "82642.45000000", "82390.01000000", "82504.00000000", "293.73214000"], ["2026-10-12T18:00:00+00:00", "82504.00000000", "82553.93000000", "82311.50000000", "82448.00000000", "260.06751000"], ["2026-10-12T19:00:00+00:00", "82448.01000000", "82902.30000000", "82337.84000000", "82861.80000000", "355.65452000"], ["2026-10-12T20:00:00+00:00", "82861.81000000", "83147.95000000", "82861.81000000", "83096.61000000", "335.99101000"], ["2026-10-12T21:00:00+00:00", "83096.61000000", "83115.82000000", "82431.44000000", "82574.18000000", "457.08681000"], ["2026-10-12T22:00:00+00:00", "82574.18000000", "82781.61000000", "82101.65000000", "82157.66000000", "635.47781000"], ["2026-10-12T23:00:00+00:00", "82157.65000000", "82270.87000000", "81750.09000000", "81850.00000000", "964.49444000"], ["2026-10-13T00:00:00+00:00", "81850.01000000", "81959.53000000", "81033.66000000", "81442.56000000", "1065.80395000"], ["2026-10-13T01:00:00+00:00", "81442.57000000", "82471.18000000", "81432.44000000", "82442.21000000", "809.35042000"], ["2026-10-13T02:00:00+00:00", "82442.21000000", "83100.00000000", "82418.47000000", "82930.00000000", "542.03768000"], ["2026-10-13T03:00:00+00:00", "82930.00000000", "83600.00000000", "82782.95000000", "83331.17000000", "826.12610000"], ["2026-10-13T04:00:00+00:00", "83331.16000000", "83578.74000000", "83255.17000000", "83453.87000000", "415.21667000"], ["2026-10-13T05:00:00+00:00", "83453.87000000", "83913.82000000", "83390.10000000", "83681.87000000", "612.84015000"], ["2026-10-13T06:00:00+00:00", "83681.87000000", "83802.84000000", "83579.10000000", "83774.70000000", "564.77964000"], ["2026-10-13T07:00:00+00:00", "83774.71000000", "84059.69000000", "83656.20000000", "83870.89000000", "1017.77509000"], ["2026-10-13T08:00:00+00:00", "83870.89000000", "84168.00000000", "83584.90000000", "83587.14000000", "1164.58857000"], ["2026-10-13T09:00:00+00:00", "83587.13000000", "83725.95000000", "83377.65000000", "83624.01000000", "734.80827000"], ["2026-10-13T10:00:00+00:00", "83624.01000000", "83664.82000000", "83232.90000000", "83341.42000000", "498.39908000"], ["2026-10-13T11:00:00+00:00", "83341.42000000", "83739.95000000", "83146.53000000", "83360.01000000", "794.42393000"], ["2026-10-13T12:00:00+00:00", "83360.01000000", "83481.62000000", "83122.95000000", "83360.00000000", "556.29036000"], ["2026-10-13T13:00:00+00:00", "83359.99000000", "83695.49000000", "83172.00000000", "83278.01000000", "710.18418000"], ["2026-10-13T14:00:00+00:00", "83278.00000000", "83850.00000000", "83232.00000000", "83530.01000000", "739.59442000"], ["2026-10-13T15:00:00+00:00", "83530.01000000", "83733.82000000", "83222.28000000", "83434.57000000", "568.40627000"], ["2026-10-13T16:00:00+00:00", "83434.58000000", "83627.50000000", "83383.41000000", "83383.41000000", "503.33032000"], ["2026-10-13T17:00:00+00:00", "83383.40000000", "83383.40000000", "82972.74000000", "83095.88000000", "563.80524000"], ["2026-10-13T18:00:00+00:00", "83095.88000000", "83360.01000000", "82990.00000000", "83170.14000000", "427.07434000"], ["2026-10-13T19:00:00+00:00", "83170.14000000", "83310.01000000", "83159.69000000", "83299.45000000", "300.19668000"], ["2026-10-13T20:00:00+00:00", "83299.45000000", "83439.65000000", "83182.51000000", "83415.32000000", "332.12209000"], ["2026-10-13T21:00:00+00:00", "83415.32000000", "83534.11000000", "83305.07000000", "83533.04000000", "309.22173000"], ["2026-10-13T22:00:00+00:00", "83533.05000000", "83548.91000000", "83394.19000000", "83526.00000000", "304.83194000"], ["2026-10-13T23:00:00+00:00", "83525.99000000", "83526.00000000", "83136.80000000", "83169.00000000", "422.85558000"], ["2026-10-14T00:00:00+00:00", "83169.01000000", "83709.59000000", "83169.00000000", "83417.36000000", "381.91990000"], ["2026-10-14T01:00:00+00:00", "83417.36000000", "83454.01000000", "83172.00000000", "83328.01000000", "814.27649000"], ["2026-10-14T02:00:00+00:00", "83328.00000000", "83700.00000000", "83224.01000000", "83650.01000000", "352.83701000"], ["2026-10-14T03:00:00+00:00", "83650.03000000", "83958.00000000", "83650.02000000", "83700.01000000", "483.80655000"], ["2026-10-14T04:00:00+00:00", "83700.01000000", "83760.01000000", "83618.81000000", "83636.01000000", "108.08629000"]]}]
+["sol24", {"symbol": "SOLUSDT", "priceChange": "-0.18000000", "priceChangePercent": "-0.167", "weightedAvgPrice": "107.40641889", "prevClosePrice": "107.63000000", "lastPrice": "107.46000000", "lastQty": "32.37400000", "bidPrice": "107.45000000", "bidQty": "185.89100000", "askPrice": "107.46000000", "askQty": "378.02400000", "openPrice": "107.64000000", "highPrice": "109.07000000", "lowPrice": "105.63000000", "volume": "1970606.61800000", "quoteVolume": "211655799.87571000", "openTime": 1791865175764, "closeTime": 1791951575764, "firstId": 2077445803, "lastId": 2078096237, "count": 650435}]
+["funding", {"symbol": "SOLUSDT", "markPrice": "107.41000000", "indexPrice": "107.45581964", "estimatedSettlePrice": "107.77948018", "lastFundingRate": "0.00010000", "interestRate": "0.00010000", "nextFundingTime": 1791964800000, "time": 1791951575003}]
+["depth", {"bids_10": [["107.45000000", "185.89100000"], ["107.44000000", "172.40200000"], ["107.43000000", "253.64800000"], ["107.42000000", "263.74700000"], ["107.41000000", "494.21800000"], ["107.40000000", "259.07900000"], ["107.39000000", "801.65500000"], ["107.38000000", "2564.76500000"], ["107.37000000", "368.50200000"], ["107.36000000", "854.63300000"]], "asks_10": [["107.46000000", "378.02400000"], ["107.47000000", "88.32000000"], ["107.48000000", "326.13000000"], ["107.49000000", "510.34500000"], ["107.50000000", "147.86300000"], ["107.51000000", "251.50500000"], ["107.52000000", "1079.35900000"], ["107.53000000", "2498.09500000"], ["107.54000000", "291.66900000"], ["107.55000000", "1169.98900000"]], "bids_total": 4180576.55049, "asks_total": 3435364.9036999997}]
+
+web search: Solana October 14 2026 news price today October 13 2026 inflation crypto ...
+codex
+Binance’s reference close is $107.63, and SOL is now around $107.46, slightly below it. There are nearly 12 hours until settlement, including a scheduled U.S. inflation release, so the current price gives Down only a small advantage. I’m checking recent price movement and execution prices before choosing.
+
+web search: 
+exec
+/usr/bin/zsh -lc 'bench book --outcome Down' in /tmp/apb-46-codex-4w6hmyo6
+ succeeded in 0ms:
+{
+  "outcome": "Down",
+  "bids": [
+    {
+      "price": "0.49",
+      "size": "150"
+    },
+    {
+      "price": "0.47",
+      "size": "100"
+    },
+    {
+      "price": "0.46",
+      "size": "100"
+    },
+    {
+      "price": "0.42",
+      "size": "5000"
+    },
+    {
+      "price": "0.21",
+      "size": "1714.28"
+    },
+    {
+      "price": "0.14",
+      "size": "1785.71"
+    },
+    {
+      "price": "0.11",
+      "size": "27418.15"
+    },
+    {
+      "price": "0.09",
+      "size": "9"
+    },
+    {
+      "price": "0.07",
+      "size": "10.93"
+    },
+    {
+      "price": "0.06",
+      "size": "47583.31"
+    },
+    {
+      "price": "0.05",
+      "size": "1910"
+    },
+    {
+      "price": "0.03",
+      "size": "75185.23"
+    },
+    {
+      "price": "0.02",
+      "size": "75"
+    },
+    {
+      "price": "0.01",
+      "size": "112172.66"
+    }
+  ],
+  "asks": [
+    {
+      "price": "0.52",
+      "size": "39.99"
+    },
+    {
+      "price": "0.53",
+      "size": "1300"
+    },
+    {
+      "price": "0.55",
+      "size": "100"
+    },
+    {
+      "price": "0.56",
+      "size": "150"
+    },
+    {
+      "price": "0.57",
+      "size": "20"
+    },
+    {
+      "price": "0.58",
+      "size": "5000"
+    },
+    {
+      "price": "0.78",
+      "size": "70"
+    },
+    {
+      "price": "0.79",
+      "size": "1714.28"
+    },
+    {
+      "price": "0.86",
+      "size": "1785.71"
+    },
+    {
+      "price": "0.89",
+      "size": "27418.15"
+    },
+    {
+      "price": "0.91",
+      "size": "9"
+    },
+    {
+      "price": "0.93",
+      "size": "11.63"
+    },
+    {
+      "price": "0.94",
+      "size": "47583.31"
+    },
+    {
+      "price": "0.95",
+      "size": "42510"
+    },
+    {
+      "price": "0.96",
+      "size": "100"
+    }
+  ],
+  "last_trade_price": "0.39"
+}
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,concurrent.futures,json,datetime,statistics,math
+urls={'options':'https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=SOL&kind=option','oi':'https://fapi.binance.com/futures/data/openInterestHist?symbol=SOLUSDT&period=1h&limit=12','ratio':'https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=SOLUSDT&period=1h&limit=12','taker':'https://fapi.binance.com/futures/data/takerlongshortRatio?symbol=SOLUSDT&period=1h&limit=12','bybit':'https://api.bybit.com/v5/market/tickers?category=option&baseCoin=SOL','solmonth':'https://api.binance.com/api/v3/klines?symbol=SOLUSDT&interval=1h&limit=1000'}
+def fetch(kv):
+ k,u=kv
+ try:
+  r=requests.get(u,timeout=15);x=r.json()
+  if k=='options':return k,x if 'result' not in x else x['result'][:20]
+  if k=='bybit':return k,str(x)[:7000]
+  if k=='solmonth' and isinstance(x,list):
+   with open('/tmp/solmonth.json','w') as f:json.dump(x,f)
+   c=[float(a[4]) for a in x[:-1]];ret=[math.log(b/a) for a,b in zip(c,c[1:])]
+   summary={str(n):{'change':(c[-1]/c[-1-n]-1)*100,'hour_vol_pct':statistics.stdev(ret[-n:])*100,'mean_hour_return_pct':statistics.mean(ret[-n:])*100} for n in [12,24,48,72,168,336,720]}
+   return k,summary
+  return k,x
+ except Exception as e:return k,str(e)
+for x in concurrent.futures.ThreadPoolExecutor().map(fetch,urls.items()):print(json.dumps(x))
+PY" in /tmp/apb-46-codex-4w6hmyo6
+ succeeded in 322ms:
+["options", []]
+["oi", [{"symbol": "SOLUSDT", "sumOpenInterest": "8499760.45000000", "sumOpenInterestValue": "913820253.33927800", "CMCCirculatingSupply": "589163231.61388250", "timestamp": 1791910800000}, {"symbol": "SOLUSDT", "sumOpenInterest": "8492857.33000000", "sumOpenInterestValue": "909669948.61630000", "CMCCirculatingSupply": "589163231.61388250", "timestamp": 1791914400000}, {"symbol": "SOLUSDT", "sumOpenInterest": "8497412.27000000", "sumOpenInterestValue": "916158697.81067970", "CMCCirculatingSupply": "589163231.61388250", "timestamp": 1791918000000}, {"symbol": "SOLUSDT", "sumOpenInterest": "8486041.87000000", "sumOpenInterestValue": "912334361.44370000", "CMCCirculatingSupply": "589163231.61388250", "timestamp": 1791921600000}, {"symbol": "SOLUSDT", "sumOpenInterest": "8464055.19000000", "sumOpenInterestValue": "906540414.13497410", "CMCCirculatingSupply": "589163231.61388250", "timestamp": 1791925200000}, {"symbol": "SOLUSDT", "sumOpenInterest": "8466976.18000000", "sumOpenInterestValue": "906802486.41489650", "CMCCirculatingSupply": "589163231.61388250", "timestamp": 1791928800000}, {"symbol": "SOLUSDT", "sumOpenInterest": "8498800.90000000", "sumOpenInterestValue": "909264943.54179920", "CMCCirculatingSupply": "589163231.61388250", "timestamp": 1791932400000}, {"symbol": "SOLUSDT", "sumOpenInterest": "8502244.21000000", "sumOpenInterestValue": "907956388.71241720", "CMCCirculatingSupply": "589163231.61388250", "timestamp": 1791936000000}, {"symbol": "SOLUSDT", "sumOpenInterest": "8444203.51000000", "sumOpenInterestValue": "907076341.04420000", "CMCCirculatingSupply": "589163231.61388250", "timestamp": 1791939600000}, {"symbol": "SOLUSDT", "sumOpenInterest": "8435256.77000000", "sumOpenInterestValue": "905693519.39490000", "CMCCirculatingSupply": "589163231.61388250", "timestamp": 1791943200000}, {"symbol": "SOLUSDT", "sumOpenInterest": "8450588.11000000", "sumOpenInterestValue": "910297351.20920000", "CMCCirculatingSupply": "589219698.14305840", "timestamp": 1791946800000}, {"symbol": "SOLUSDT", "sumOpenInterest": "8444977.20000000", "sumOpenInterestValue": "910284092.38800000", "CMCCirculatingSupply": "589219698.14305840", "timestamp": 1791950400000}]]
+["ratio", [{"symbol": "SOLUSDT", "longAccount": "0.7031", "longShortRatio": "2.3681", "shortAccount": "0.2969", "timestamp": 1791910800000}, {"symbol": "SOLUSDT", "longAccount": "0.7007", "longShortRatio": "2.3411", "shortAccount": "0.2993", "timestamp": 1791914400000}, {"symbol": "SOLUSDT", "longAccount": "0.7002", "longShortRatio": "2.3356", "shortAccount": "0.2998", "timestamp": 1791918000000}, {"symbol": "SOLUSDT", "longAccount": "0.7017", "longShortRatio": "2.3523", "shortAccount": "0.2983", "timestamp": 1791921600000}, {"symbol": "SOLUSDT", "longAccount": "0.7033", "longShortRatio": "2.3704", "shortAccount": "0.2967", "timestamp": 1791925200000}, {"symbol": "SOLUSDT", "longAccount": "0.7042", "longShortRatio": "2.3807", "shortAccount": "0.2958", "timestamp": 1791928800000}, {"symbol": "SOLUSDT", "longAccount": "0.7054", "longShortRatio": "2.3944", "shortAccount": "0.2946", "timestamp": 1791932400000}, {"symbol": "SOLUSDT", "longAccount": "0.7020", "longShortRatio": "2.3557", "shortAccount": "0.2980", "timestamp": 1791936000000}, {"symbol": "SOLUSDT", "longAccount": "0.7003", "longShortRatio": "2.3367", "shortAccount": "0.2997", "timestamp": 1791939600000}, {"symbol": "SOLUSDT", "longAccount": "0.6996", "longShortRatio": "2.3289", "shortAccount": "0.3004", "timestamp": 1791943200000}, {"symbol": "SOLUSDT", "longAccount": "0.7003", "longShortRatio": "2.3367", "shortAccount": "0.2997", "timestamp": 1791946800000}, {"symbol": "SOLUSDT", "longAccount": "0.6999", "longShortRatio": "2.3322", "shortAccount": "0.3001", "timestamp": 1791950400000}]]
+["taker", [{"buySellRatio": "0.8424", "sellVol": "282962.2600", "buyVol": "238379.9600", "timestamp": 1791907200000}, {"buySellRatio": "0.8037", "sellVol": "286358.9800", "buyVol": "230137.5000", "timestamp": 1791910800000}, {"buySellRatio": "1.1941", "sellVol": "215975.2600", "buyVol": "257898.5500", "timestamp": 1791914400000}, {"buySellRatio": "0.8252", "sellVol": "225981.7100", "buyVol": "186481.6500", "timestamp": 1791918000000}, {"buySellRatio": "0.7361", "sellVol": "221026.0000", "buyVol": "162702.7600", "timestamp": 1791921600000}, {"buySellRatio": "1.3517", "sellVol": "86084.9100", "buyVol": "116362.7400", "timestamp": 1791925200000}, {"buySellRatio": "1.2221", "sellVol": "129811.9800", "buyVol": "158643.6200", "timestamp": 1791928800000}, {"buySellRatio": "0.6329", "sellVol": "159114.2200", "buyVol": "100707.8300", "timestamp": 1791932400000}, {"buySellRatio": "1.0009", "sellVol": "281351.3900", "buyVol": "281599.4000", "timestamp": 1791936000000}, {"buySellRatio": "1.1728", "sellVol": "218844.9500", "buyVol": "256666.5600", "timestamp": 1791939600000}, {"buySellRatio": "0.9945", "sellVol": "139679.1100", "buyVol": "138909.4700", "timestamp": 1791943200000}, {"buySellRatio": "1.0514", "sellVol": "199404.2200", "buyVol": "209649.6200", "timestamp": 1791946800000}]]
+["bybit", "{'retCode': 0, 'retMsg': 'SUCCESS', 'result': {'category': 'option', 'list': [{'symbol': 'SOL-27NOV26-136-C-USDT', 'bid1Price': '1.36', 'bid1Size': '1', 'bid1Iv': '0.5523', 'ask1Price': '2.42', 'ask1Size': '1', 'ask1Iv': '0.6649', 'lastPrice': '1.73', 'highPrice24h': '1.73', 'lowPrice24h': '1.73', 'markPrice': '1.85030196', 'indexPrice': '107.55169516', 'markIv': '0.6076', 'underlyingPrice': '108.42', 'openInterest': '516', 'turnover24h': '0', 'volume24h': '0', 'totalVolume': '545', 'totalTurnover': '59027', 'delta': '0.16670324', 'gamma': '0.01090761', 'vega': '0.09422023', 'theta': '-0.06482884', 'predictedDeliveryPrice': '0', 'change24h': '0'}, {'symbol': 'SOL-27NOV26-150-C-USDT', 'bid1Price': '0.55', 'bid1Size': '1', 'bid1Iv': '0.573', 'ask1Price': '1.6', 'ask1Size': '1', 'ask1Iv': '0.7384', 'lastPrice': '1', 'highPrice24h': '1.03', 'lowPrice24h': '0.79', 'markPrice': '0.96114949', 'indexPrice': '107.55169516', 'markIv': '0.6485', 'underlyingPrice': '108.42', 'openInterest': '33', 'turnover24h': '650.16', 'volume24h': '6', 'totalVolume': '54', 'totalTurnover': '5880', 'delta': '0.09225186', 'gamma': '0.00676465', 'vega': '0.06236231', 'theta': '-0.04579399', 'predictedDeliveryPrice': '0', 'change24h': '0.26582279'}, {'symbol': 'SOL-27NOV26-180-P-USDT', 'bid1Price': '1.24', 'bid1Size': '80', 'bid1Iv': '0', 'ask1Price': '80.79', 'ask1Size': '110', 'ask1Iv': '1.737', 'lastPrice': '0', 'highPrice24h': '0', 'lowPrice24h': '0', 'markPrice': '71.89641804', 'indexPrice': '107.55169516', 'markIv': '0.7319', 'underlyingPrice': '108.42', 'openInterest': '0', 'turnover24h': '0', 'volume24h': '0', 'totalVolume': '0', 'totalTurnover': '0', 'delta': '-0.96889515', 'gamma': '0.00254087', 'vega': '0.02643555', 'theta': '-0.02190811', 'predictedDeliveryPrice': '0', 'change24h': '0'}, {'symbol': 'SOL-27NOV26-110-P-USDT', 'bid1Price': '8.73', 'bid1Size': '97', 'bid1Iv': '0.523', 'ask1Price': '10.01', 'ask1Size': '97', 'ask1Iv': '0.6081', 'lastPrice': '10.2', 'highPrice24h': '10.2', 'lowPrice24h': '10.2', 'markPrice': '9.19122933', 'indexPrice': '107.55169516', 'markIv': '0.5534', 'underlyingPrice': '108.42', 'openInterest': '205', 'turnover24h': '0', 'volume24h': '0', 'totalVolume': '242', 'totalTurnover': '26884', 'delta': '-0.49178734', 'gamma': '0.01911541', 'vega': '0.15039025', 'theta': '-0.09424648', 'predictedDeliveryPrice': '0', 'change24h': '0'}, {'symbol': 'SOL-27NOV26-90-C-USDT', 'bid1Price': '18.75', 'bid1Size': '261', 'bid1Iv': '0.3502', 'ask1Price': '21.52', 'ask1Size': '261', 'ask1Iv': '0.7038', 'lastPrice': '21.62', 'highPrice24h': '21.62', 'lowPrice24h': '21.62', 'markPrice': '20.37100223', 'indexPrice': '107.55169516', 'markIv': '0.5853', 'underlyingPrice': '108.42', 'openInterest': '30', 'turnover24h': '0', 'volume24h': '0', 'totalVolume': '42', 'totalTurnover': '4522', 'delta': '0.84519207', 'gamma': '0.01078867', 'vega': '0.0897734', 'theta': '-0.05950272', 'predictedDeliveryPrice': '0', 'change24h': '0'}, {'symbol': 'SOL-27NOV26-116-C-USDT', 'bid1Price': '4.77', 'bid1Size': '134', 'bid1Iv': '0.5143', 'ask1Price': '6.05', 'ask1Size': '134', 'ask1Iv': '0.6022', 'lastPrice': '5', 'highPrice24h': '5', 'lowPrice24h': '5', 'markPrice': '5.42743184', 'indexPrice': '107.55169516', 'markIv': '0.56', 'underlyingPrice': '108.42', 'openInterest': '166', 'turnover24h': '0', 'volume24h': '0', 'totalVolume': '296', 'totalTurnover': '32969', 'delta': '0.40126122', 'gamma': '0.0183135', 'vega': '0.14579106', 'theta': '-0.09244848', 'predictedDeliveryPrice': '0', 'change24h': '0'}, {'symbol': 'SOL-27NOV26-120-P-USDT', 'bid1Price': '14.37', 'bid1Size': '261', 'bid1Iv': '0.451', 'ask1Price': '17.48', 'ask1Size': '261', 'ask1Iv': '0.6779', 'lastPrice': '15.72', 'highPrice24h': '15.72', 'lowPrice24h': '15.72', 'markPrice': '15.92564139', 'indexPrice': '107.55169516', 'markIv': '0.5671', 'underlyingPrice': '108.42', 'openInterest': '30', 'turnover24h': '0', 'volume24h': '0', 'totalVolume': '30', 'totalTurnover': '3250', 'delta': '-0.66142954', 'gamma': '0.01710873', 'vega': '0.1379325', 'theta': '-0.08857777', 'predictedDeliveryPrice': '0', 'change24h': '0'}, {'symbol': 'SOL-27NOV26-122-C-USDT', 'bid1Price': '3.24', 'bid1Size': '182', 'bid1Iv': '0.5222', 'ask1Price': '4.52', 'ask1Size': '182', 'ask1Iv': '0.6185', 'lastPrice': '3.91', 'highPrice24h': '3.91', 'lowPrice24h': '3.38', 'markPrice': '3.87912962', 'indexPrice': '107.55169516', 'markIv': '0.5713', 'underlyingPrice': '108.42', 'openInterest': '22', 'turnover24h': '217.34', 'volume24h': '2', 'totalVolume': '73', 'totalTurnover': '8205', 'delta': '0.31028096', 'gamma': '0.01638506', 'vega': '0.13307411', 'theta': '-0.08608915', 'predictedDeliveryPrice': '0', 'change24h': '0.15680474'}, {'symbol': 'SOL-27NOV26-180-C-USDT', 'bid1Price': '0.02', 'bid1Size': '4', 'bid1Iv': '0.5226', 'ask1Price': '0.49', 'ask1Size': '9', 'ask1Iv': '0.7913', 'lastPrice': '0.49', 'highPrice24h': '0.49', 'lowPrice24h': '0.49', 'markPrice': '0.30641804', 'indexPrice': '107.55169516', 'markIv': '0.7319', 'underlyingPrice': '108.42', 'openInterest': '5', 'turnover24h': '0', 'volume24h': '0', 'totalVolume': '5', 'totalTurnover': '556', 'delta': '0.03110485', 'gamma': '0.00254087', 'vega': '0.02643555', 'theta': '-0.02190811', 'predictedDeliveryPrice': '0', 'change24h': '0'}, {'symbol': 'SOL-27NOV26-70-C-USDT', 'bid1Price': '33.55', 'bid1Size': '76', 'bid1Iv': '0', 'ask1Price': '42.82', 'ask1Size': '76', 'ask1Iv': '1.4259', 'lastPrice': '0', 'highPrice24h': '0', 'lowPrice24h': '0', 'markPrice': '38.72429663', 'indexPrice': '107.55169516', 'markIv': '0.7045', 'underlyingPrice': '108.42', 'openInterest': '0', 'turnover24h': '0', 'volume24h': '0', 'totalVolume': '0', 'totalTurnover': '0', 'delta': '0.97179553', 'gamma': '0.00243366', 'vega': '0.02437299', 'theta': '-0.01944317', 'predictedDeliveryPrice': '0', 'change24h': '0'}, {'symbol': 'SOL-27NOV26-124-P-USDT', 'bid1Price': '17.52', 'bid1Size': '261', 'bid1Iv': '0.4478', 'ask1Price': '20.68', 'ask1Size': '261', 'ask1Iv': '0.6979', 'lastPrice': '0', 'highPrice24h': '0', 'lowPrice24h': '0', 'markPrice': '19.0643329', 'indexPrice': '107.55169516', 'markIv': '0.5759', 'underlyingPrice': '108.42', 'openInterest': '0', 'turnover24h': '0', 'volume24h': '0', 'totalVolume': '0', 'totalTurnover': '0', 'delta': '-0.71592705', 'gamma': '0.01561314', 'vega': '0.12781044', 'theta': '-0.08333969', 'predictedDeliveryPrice': '0', 'change24h': '0'}, {'symbol': 'SOL-27NOV26-140-C-USDT', 'bid1Price': '1.05', 'bid1Size': '1', 'bid1Iv': '0.5585', 'ask1Price': '2.01', 'ask1Size': '1', 'ask1Iv': '0.6739', 'lastPrice': '2.02', 'highPrice24h': '2.02', 'lowPrice24h': '2.02', 'markPrice': '1.52077784', 'indexPrice': '107.55169516', 'markIv': '0.6192', 'underlyingPrice': '108.42', 'openInterest': '41', 'turnover24h': '0', 'volume24h': '0', 'totalVolume': '43', 'totalTurnover': '4815', 'delta': '0.14009617', 'gamma': '0.00953891', 'vega': '0.08396224', 'theta': '-0.05886794', 'predictedDeliveryPrice': '0', 'change24h': '0'}, {'symbol': 'S"]
+["solmonth", {"12": {"change": 0.40972157556569133, "hour_vol_pct": 0.3413048967777914, "mean_hour_return_pct": 0.03407370853212994}, "24": {"change": 0.32564197990323507, "hour_vol_pct": 0.411604870222307, "mean_hour_return_pct": 0.013546371444542}, "48": {"change": -3.4819190834228464, "hour_vol_pct": 0.7631763443119552, "mean_hour_return_pct": -0.0738329753812408}, "72": {"change": -1.2183950164895596, "hour_vol_pct": 0.6866089848767308, "mean_hour_return_pct": -0.017026087425218914}, "168": {"change": -8.819550143751066, "hour_vol_pct": 0.6377104837950942, "mean_hour_return_pct": -0.05495814136827607}, "336": {"change": -9.49303340607689, "hour_vol_pct": 0.5718521965223146, "mean_hour_return_pct": -0.029685523603143138}, "720": {"change": 6.783521489403843, "hour_vol_pct": 0.5883317123346901, "mean_hour_return_pct": 0.00911575492544608}}]
+
+web search: Solana October 14 2026 SOL falls price treasury selling October 13 ...
+web search: 
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-46-codex-4w6hmyo6
+ succeeded in 0ms:
+{
+  "question": "Solana Up or Down on October 14?",
+  "description": "This market will resolve to \"Up\" if the \"Close\" price for the Binance 1 minute candle for SOL/USDT Oct 13 '26 12:00 in the ET timezone (noon) is lower than the final \"Close\" price for the Oct 14 '26 12:00 ET candle.\n\nThis market will resolve to \"Down\" if the \"Close\" price for the Binance 1 minute candle for SOL/USDT Oct 13 '26 12:00 in the ET timezone (noon) is higher than the final \"Close\" price for the Oct 14 '26 12:00 ET candle.\n\nIf the final \"Close\" price for both of these candles is exactly equal on Binance, this market will resolve 50-50.\n\nThe resolution source for this market is Binance, specifically the SOL/USDT \"Close\" prices currently available at https://www.binance.com/en/trade/SOL_USDT with \"1m\" and \"Candles\" selected on the top bar.\n\nPlease note that this market is about the price according to Binance SOL/USDT, not according to other exchanges or trading pairs.",
+  "outcomes": [
+    "Up",
+    "Down"
+  ],
+  "prices": [
+    0.5,
+    0.5
+  ],
+  "best_bid": 0.49,
+  "best_ask": 0.51,
+  "end_date": "2026-10-14T16:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 195
+}
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,datetime,json,math
+x=requests.get('https://api.bybit.com/v5/market/tickers?category=option&baseCoin=SOL',timeout=15).json()
+rows=x.get('result',{}).get('list',[])
+print('timestamp',x.get('time'))
+expiries=sorted({a['symbol'].split('-')[1] for a in rows},key=lambda s:datetime.datetime.strptime(s,'%d%b%y'))
+print('expiries',expiries)
+for a in sorted(rows,key=lambda a:(datetime.datetime.strptime(a['symbol'].split('-')[1],'%d%b%y'),float(a['symbol'].split('-')[2]),a['symbol'].split('-')[3])):
+ p=a['symbol'].split('-')
+ if p[1] in expiries[:3] and 100<=float(p[2])<=116:
+  print(json.dumps({k:a[k] for k in ['symbol','bid1Price','ask1Price','markPrice','markIv','underlyingPrice','indexPrice','openInterest','delta']}))
+print('spot',requests.get('https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT',timeout=10).text)
+PY" in /tmp/apb-46-codex-4w6hmyo6
+ succeeded in 590ms:
+timestamp 1791951632213
+expiries ['14OCT26', '15OCT26', '16OCT26', '17OCT26', '23OCT26', '30OCT26', '27NOV26']
+{"symbol": "SOL-14OCT26-100-C-USDT", "bid1Price": "6.6", "ask1Price": "8.45", "markPrice": "7.58996082", "markIv": "1.3217", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "2", "delta": "0.99674913"}
+{"symbol": "SOL-14OCT26-100-P-USDT", "bid1Price": "0", "ask1Price": "0.02", "markPrice": "0.00289419", "markIv": "1.3217", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "1973", "delta": "-0.00325088"}
+{"symbol": "SOL-14OCT26-102-C-USDT", "bid1Price": "5.41", "ask1Price": "7.17", "markPrice": "5.59508798", "markIv": "1.1198", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "3", "delta": "0.99041017"}
+{"symbol": "SOL-14OCT26-102-P-USDT", "bid1Price": "0", "ask1Price": "0.02", "markPrice": "0.00802135", "markIv": "1.1198", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "1236", "delta": "-0.00958984"}
+{"symbol": "SOL-14OCT26-103-C-USDT", "bid1Price": "4.41", "ask1Price": "5.56", "markPrice": "4.60140575", "markIv": "1.0176", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "1", "delta": "0.98238893"}
+{"symbol": "SOL-14OCT26-103-P-USDT", "bid1Price": "0", "ask1Price": "0.07", "markPrice": "0.01433912", "markIv": "1.0176", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "1041", "delta": "-0.01761108"}
+{"symbol": "SOL-14OCT26-104-C-USDT", "bid1Price": "3.41", "ask1Price": "3.96", "markPrice": "3.61436499", "markIv": "0.9151", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "262", "delta": "0.96582875"}
+{"symbol": "SOL-14OCT26-104-P-USDT", "bid1Price": "0.03", "ask1Price": "0.12", "markPrice": "0.02729836", "markIv": "0.9151", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "4350", "delta": "-0.03417126"}
+{"symbol": "SOL-14OCT26-105-C-USDT", "bid1Price": "2.45", "ask1Price": "3.51", "markPrice": "2.64330615", "markIv": "0.8138", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "140", "delta": "0.92948902"}
+{"symbol": "SOL-14OCT26-105-P-USDT", "bid1Price": "0.03", "ask1Price": "0.08", "markPrice": "0.05623952", "markIv": "0.8138", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "2178", "delta": "-0.07051099"}
+{"symbol": "SOL-14OCT26-106-C-USDT", "bid1Price": "1.47", "ask1Price": "2.59", "markPrice": "1.7145235", "markIv": "0.7182", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "623", "delta": "0.84613288"}
+{"symbol": "SOL-14OCT26-106-P-USDT", "bid1Price": "0.07", "ask1Price": "0.17", "markPrice": "0.12745687", "markIv": "0.7182", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "3357", "delta": "-0.15386713"}
+{"symbol": "SOL-14OCT26-107-C-USDT", "bid1Price": "0.82", "ask1Price": "0.94", "markPrice": "0.902749", "markIv": "0.6415", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "1506", "delta": "0.66422029"}
+{"symbol": "SOL-14OCT26-107-P-USDT", "bid1Price": "0.25", "ask1Price": "0.42", "markPrice": "0.31568237", "markIv": "0.6415", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "1114", "delta": "-0.33577972"}
+{"symbol": "SOL-14OCT26-108-C-USDT", "bid1Price": "0.25", "ask1Price": "0.49", "markPrice": "0.35591022", "markIv": "0.6115", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "4852", "delta": "0.38195888"}
+{"symbol": "SOL-14OCT26-108-P-USDT", "bid1Price": "0.68", "ask1Price": "0.95", "markPrice": "0.76884359", "markIv": "0.6115", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "1523", "delta": "-0.61804113"}
+{"symbol": "SOL-14OCT26-109-C-USDT", "bid1Price": "0.06", "ask1Price": "0.19", "markPrice": "0.12014271", "markIv": "0.6431", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "3758", "delta": "0.16196627"}
+{"symbol": "SOL-14OCT26-109-P-USDT", "bid1Price": "1.48", "ask1Price": "2.03", "markPrice": "1.53307608", "markIv": "0.6431", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "630", "delta": "-0.83803373"}
+{"symbol": "SOL-14OCT26-110-C-USDT", "bid1Price": "0.03", "ask1Price": "0.18", "markPrice": "0.04359896", "markIv": "0.7111", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "4058", "delta": "0.06435466"}
+{"symbol": "SOL-14OCT26-110-P-USDT", "bid1Price": "2.3", "ask1Price": "2.77", "markPrice": "2.45653233", "markIv": "0.7111", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "255", "delta": "-0.93564534"}
+{"symbol": "SOL-14OCT26-111-C-USDT", "bid1Price": "0", "ask1Price": "0.02", "markPrice": "0.01810525", "markIv": "0.7921", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "2833", "delta": "0.02734261"}
+{"symbol": "SOL-14OCT26-111-P-USDT", "bid1Price": "3.34", "ask1Price": "4.1", "markPrice": "3.43103862", "markIv": "0.7921", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "160", "delta": "-0.97265739"}
+{"symbol": "SOL-14OCT26-112-C-USDT", "bid1Price": "0", "ask1Price": "0.03", "markPrice": "0.00845768", "markIv": "0.8765", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "3547", "delta": "0.01269047"}
+{"symbol": "SOL-14OCT26-112-P-USDT", "bid1Price": "4.31", "ask1Price": "5.4", "markPrice": "4.42139105", "markIv": "0.8765", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "146", "delta": "-0.98730954"}
+{"symbol": "SOL-14OCT26-113-C-USDT", "bid1Price": "0", "ask1Price": "0.15", "markPrice": "0.00433339", "markIv": "0.9608", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "3082", "delta": "0.00637757"}
+{"symbol": "SOL-14OCT26-113-P-USDT", "bid1Price": "5.28", "ask1Price": "6.17", "markPrice": "5.41726676", "markIv": "0.9608", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "158", "delta": "-0.99362244"}
+{"symbol": "SOL-14OCT26-114-C-USDT", "bid1Price": "0", "ask1Price": "0.01", "markPrice": "0.00238684", "markIv": "1.0438", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "646", "delta": "0.00342606"}
+{"symbol": "SOL-14OCT26-114-P-USDT", "bid1Price": "4.68", "ask1Price": "7.4", "markPrice": "6.41532021", "markIv": "1.0438", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "0", "delta": "-0.99657395"}
+{"symbol": "SOL-14OCT26-115-C-USDT", "bid1Price": "0", "ask1Price": "0.01", "markPrice": "0.00139275", "markIv": "1.125", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "759", "delta": "0.00194531"}
+{"symbol": "SOL-14OCT26-115-P-USDT", "bid1Price": "5.83", "ask1Price": "8.4", "markPrice": "7.41432612", "markIv": "1.125", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "0", "delta": "-0.99805469"}
+{"symbol": "SOL-14OCT26-116-C-USDT", "bid1Price": "0", "ask1Price": "0.01", "markPrice": "0.00085177", "markIv": "1.2045", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "4204", "delta": "0.00115691"}
+{"symbol": "SOL-14OCT26-116-P-USDT", "bid1Price": "6.85", "ask1Price": "8.9", "markPrice": "8.41378514", "markIv": "1.2045", "underlyingPrice": "107.58770218", "indexPrice": "107.57898035", "openInterest": "2", "delta": "-0.99884309"}
+{"symbol": "SOL-15OCT26-100-C-USDT", "bid1Price": "6.6", "ask1Price": "9.43", "markPrice": "7.90400397", "markIv": "0.9999", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "0", "delta": "0.90975938"}
+{"symbol": "SOL-15OCT26-100-P-USDT", "bid1Price": "0.26", "ask1Price": "0.27", "markPrice": "0.25907478", "markIv": "0.9999", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "941", "delta": "-0.09024063"}
+{"symbol": "SOL-15OCT26-102-C-USDT", "bid1Price": "5.64", "ask1Price": "6.36", "markPrice": "6.06040783", "markIv": "0.9195", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "6", "delta": "0.857347"}
+{"symbol": "SOL-15OCT26-102-P-USDT", "bid1Price": "0.42", "ask1Price": "0.44", "markPrice": "0.41547864", "markIv": "0.9195", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "365", "delta": "-0.14265301"}
+{"symbol": "SOL-15OCT26-103-C-USDT", "bid1Price": "4.81", "ask1Price": "5.49", "markPrice": "5.1770357", "markIv": "0.8811", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "0", "delta": "0.82010279"}
+{"symbol": "SOL-15OCT26-103-P-USDT", "bid1Price": "0.54", "ask1Price": "0.55", "markPrice": "0.53210651", "markIv": "0.8811", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "109", "delta": "-0.17989722"}
+{"symbol": "SOL-15OCT26-104-C-USDT", "bid1Price": "4.05", "ask1Price": "4.37", "markPrice": "4.33120101", "markIv": "0.8445", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "4", "delta": "0.77327039"}
+{"symbol": "SOL-15OCT26-104-P-USDT", "bid1Price": "0.68", "ask1Price": "0.7", "markPrice": "0.68627182", "markIv": "0.8445", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "772", "delta": "-0.22672961"}
+{"symbol": "SOL-15OCT26-105-C-USDT", "bid1Price": "3.25", "ask1Price": "3.56", "markPrice": "3.53524413", "markIv": "0.8106", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "2", "delta": "0.71532728"}
+{"symbol": "SOL-15OCT26-105-P-USDT", "bid1Price": "0.88", "ask1Price": "0.93", "markPrice": "0.89031494", "markIv": "0.8106", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "272", "delta": "-0.28467273"}
+{"symbol": "SOL-15OCT26-106-C-USDT", "bid1Price": "2.68", "ask1Price": "2.85", "markPrice": "2.8042515", "markIv": "0.7801", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "258", "delta": "0.64551906"}
+{"symbol": "SOL-15OCT26-106-P-USDT", "bid1Price": "1.16", "ask1Price": "1.19", "markPrice": "1.15932231", "markIv": "0.7801", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "224", "delta": "-0.35448095"}
+{"symbol": "SOL-15OCT26-107-C-USDT", "bid1Price": "2.08", "ask1Price": "2.12", "markPrice": "2.19375866", "markIv": "0.7705", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "379", "delta": "0.56373716"}
+{"symbol": "SOL-15OCT26-107-P-USDT", "bid1Price": "1.54", "ask1Price": "1.58", "markPrice": "1.54882947", "markIv": "0.7705", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "200", "delta": "-0.43626285"}
+{"symbol": "SOL-15OCT26-108-C-USDT", "bid1Price": "1.55", "ask1Price": "1.56", "markPrice": "1.57185885", "markIv": "0.7215", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "411", "delta": "0.47569368"}
+{"symbol": "SOL-15OCT26-108-P-USDT", "bid1Price": "2.02", "ask1Price": "2.06", "markPrice": "1.92692966", "markIv": "0.7215", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "49", "delta": "-0.52430633"}
+{"symbol": "SOL-15OCT26-109-C-USDT", "bid1Price": "1.14", "ask1Price": "1.17", "markPrice": "1.15575903", "markIv": "0.721", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "2177", "delta": "0.38646241"}
+{"symbol": "SOL-15OCT26-109-P-USDT", "bid1Price": "2.51", "ask1Price": "2.65", "markPrice": "2.51082984", "markIv": "0.721", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "6", "delta": "-0.6135376"}
+{"symbol": "SOL-15OCT26-110-C-USDT", "bid1Price": "0.81", "ask1Price": "0.84", "markPrice": "0.81405937", "markIv": "0.7153", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "1063", "delta": "0.30207956"}
+{"symbol": "SOL-15OCT26-110-P-USDT", "bid1Price": "3.18", "ask1Price": "3.31", "markPrice": "3.16913018", "markIv": "0.7153", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "17", "delta": "-0.69792045"}
+{"symbol": "SOL-15OCT26-111-C-USDT", "bid1Price": "0.56", "ask1Price": "0.59", "markPrice": "0.56539177", "markIv": "0.7168", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "363", "delta": "0.2290559"}
+{"symbol": "SOL-15OCT26-111-P-USDT", "bid1Price": "3.82", "ask1Price": "4.13", "markPrice": "3.92046258", "markIv": "0.7168", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "78", "delta": "-0.77094411"}
+{"symbol": "SOL-15OCT26-112-C-USDT", "bid1Price": "0.38", "ask1Price": "0.41", "markPrice": "0.39123351", "markIv": "0.7247", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "837", "delta": "0.17012526"}
+{"symbol": "SOL-15OCT26-112-P-USDT", "bid1Price": "4.68", "ask1Price": "4.93", "markPrice": "4.74630432", "markIv": "0.7247", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "12", "delta": "-0.82987475"}
+{"symbol": "SOL-15OCT26-113-C-USDT", "bid1Price": "0.25", "ask1Price": "0.27", "markPrice": "0.27205306", "markIv": "0.7378", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "1231", "delta": "0.12499497"}
+{"symbol": "SOL-15OCT26-113-P-USDT", "bid1Price": "5.29", "ask1Price": "6.2", "markPrice": "5.62712387", "markIv": "0.7378", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "0", "delta": "-0.87500503"}
+{"symbol": "SOL-15OCT26-114-C-USDT", "bid1Price": "0.16", "ask1Price": "0.17", "markPrice": "0.1912264", "markIv": "0.755", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "358", "delta": "0.09159187"}
+{"symbol": "SOL-15OCT26-114-P-USDT", "bid1Price": "6.13", "ask1Price": "7.21", "markPrice": "6.54629721", "markIv": "0.755", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "0", "delta": "-0.90840814"}
+{"symbol": "SOL-15OCT26-115-C-USDT", "bid1Price": "0.1", "ask1Price": "0.11", "markPrice": "0.13631567", "markIv": "0.775", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "327", "delta": "0.06732687"}
+{"symbol": "SOL-15OCT26-115-P-USDT", "bid1Price": "6.65", "ask1Price": "7.9", "markPrice": "7.49138648", "markIv": "0.775", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "0", "delta": "-0.93267314"}
+{"symbol": "SOL-15OCT26-116-C-USDT", "bid1Price": "0.06", "ask1Price": "7.04", "markPrice": "0.09868521", "markIv": "0.7972", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "25", "delta": "0.04983048"}
+{"symbol": "SOL-15OCT26-116-P-USDT", "bid1Price": "6.85", "ask1Price": "9.46", "markPrice": "8.45375602", "markIv": "0.7972", "underlyingPrice": "107.64385109", "indexPrice": "107.57898035", "openInterest": "0", "delta": "-0.95016952"}
+{"symbol": "SOL-16OCT26-100-C-USDT", "bid1Price": "7.32", "ask1Price": "8.72", "markPrice": "8.02341762", "markIv": "0.781", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "26", "delta": "0.89740919"}
+{"symbol": "SOL-16OCT26-100-P-USDT", "bid1Price": "0.31", "ask1Price": "0.32", "markPrice": "0.32341762", "markIv": "0.781", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "699", "delta": "-0.10259082"}
+{"symbol": "SOL-16OCT26-102-C-USDT", "bid1Price": "5.63", "ask1Price": "6.68", "markPrice": "6.21687354", "markIv": "0.7295", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "30", "delta": "0.84104478"}
+{"symbol": "SOL-16OCT26-102-P-USDT", "bid1Price": "0.51", "ask1Price": "0.56", "markPrice": "0.51687354", "markIv": "0.7295", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "1098", "delta": "-0.15895523"}
+{"symbol": "SOL-16OCT26-103-C-USDT", "bid1Price": "5.05", "ask1Price": "5.42", "markPrice": "5.35806675", "markIv": "0.7057", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "0", "delta": "0.80247993"}
+{"symbol": "SOL-16OCT26-103-P-USDT", "bid1Price": "0.66", "ask1Price": "0.7", "markPrice": "0.65806675", "markIv": "0.7057", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "10", "delta": "-0.19752008"}
+{"symbol": "SOL-16OCT26-104-C-USDT", "bid1Price": "4.17", "ask1Price": "4.64", "markPrice": "4.5406758", "markIv": "0.6837", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "14", "delta": "0.75556417"}
+{"symbol": "SOL-16OCT26-104-P-USDT", "bid1Price": "0.84", "ask1Price": "0.87", "markPrice": "0.8406758", "markIv": "0.6837", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "246", "delta": "-0.24443584"}
+{"symbol": "SOL-16OCT26-105-C-USDT", "bid1Price": "3.5", "ask1Price": "3.89", "markPrice": "3.77574822", "markIv": "0.664", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "123", "delta": "0.69966529"}
+{"symbol": "SOL-16OCT26-105-P-USDT", "bid1Price": "1.07", "ask1Price": "1.11", "markPrice": "1.07574822", "markIv": "0.664", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "1740", "delta": "-0.30033472"}
+{"symbol": "SOL-16OCT26-106-C-USDT", "bid1Price": "2.89", "ask1Price": "3.17", "markPrice": "3.07547247", "markIv": "0.6471", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "106", "delta": "0.63497177"}
+{"symbol": "SOL-16OCT26-106-P-USDT", "bid1Price": "1.38", "ask1Price": "1.43", "markPrice": "1.37547247", "markIv": "0.6471", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "239", "delta": "-0.36502824"}
+{"symbol": "SOL-16OCT26-107-C-USDT", "bid1Price": "2.37", "ask1Price": "2.42", "markPrice": "2.48760119", "markIv": "0.6445", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "637", "delta": "0.56218268"}
+{"symbol": "SOL-16OCT26-107-P-USDT", "bid1Price": "1.79", "ask1Price": "1.83", "markPrice": "1.78760119", "markIv": "0.6445", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "119", "delta": "-0.43781733"}
+{"symbol": "SOL-16OCT26-108-C-USDT", "bid1Price": "1.83", "ask1Price": "1.9", "markPrice": "1.90484202", "markIv": "0.621", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "351", "delta": "0.48624043"}
+{"symbol": "SOL-16OCT26-108-P-USDT", "bid1Price": "2.28", "ask1Price": "2.32", "markPrice": "2.20484202", "markIv": "0.621", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "581", "delta": "-0.51375958"}
+{"symbol": "SOL-16OCT26-109-C-USDT", "bid1Price": "1.44", "ask1Price": "1.48", "markPrice": "1.46667081", "markIv": "0.6181", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "283", "delta": "0.40941445"}
+{"symbol": "SOL-16OCT26-109-P-USDT", "bid1Price": "2.84", "ask1Price": "3.04", "markPrice": "2.76667081", "markIv": "0.6181", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "231", "delta": "-0.59058555"}
+{"symbol": "SOL-16OCT26-110-C-USDT", "bid1Price": "1.09", "ask1Price": "1.14", "markPrice": "1.10767412", "markIv": "0.6168", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "2385", "delta": "0.33632825"}
+{"symbol": "SOL-16OCT26-110-P-USDT", "bid1Price": "3.48", "ask1Price": "3.69", "markPrice": "3.40767412", "markIv": "0.6168", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "3206", "delta": "-0.66367175"}
+{"symbol": "SOL-16OCT26-111-C-USDT", "bid1Price": "0.82", "ask1Price": "0.86", "markPrice": "0.82876914", "markIv": "0.6194", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "352", "delta": "0.27067511"}
+{"symbol": "SOL-16OCT26-111-P-USDT", "bid1Price": "4.01", "ask1Price": "4.44", "markPrice": "4.12876914", "markIv": "0.6194", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "60", "delta": "-0.7293249"}
+{"symbol": "SOL-16OCT26-112-C-USDT", "bid1Price": "0.61", "ask1Price": "0.64", "markPrice": "0.61763747", "markIv": "0.6256", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "727", "delta": "0.21450248"}
+{"symbol": "SOL-16OCT26-112-P-USDT", "bid1Price": "4.85", "ask1Price": "5.23", "markPrice": "4.91763747", "markIv": "0.6256", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "914", "delta": "-0.78549753"}
+{"symbol": "SOL-16OCT26-113-C-USDT", "bid1Price": "0.44", "ask1Price": "0.48", "markPrice": "0.4606584", "markIv": "0.6349", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "632", "delta": "0.16828454"}
+{"symbol": "SOL-16OCT26-113-P-USDT", "bid1Price": "5.74", "ask1Price": "6.06", "markPrice": "5.7606584", "markIv": "0.6349", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "530", "delta": "-0.83171547"}
+{"symbol": "SOL-16OCT26-114-C-USDT", "bid1Price": "0.31", "ask1Price": "0.35", "markPrice": "0.34512133", "markIv": "0.6466", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "306", "delta": "0.13133668"}
+{"symbol": "SOL-16OCT26-114-P-USDT", "bid1Price": "6.11", "ask1Price": "7.37", "markPrice": "6.64512133", "markIv": "0.6466", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "255", "delta": "-0.86866333"}
+{"symbol": "SOL-16OCT26-115-C-USDT", "bid1Price": "0.22", "ask1Price": "0.33", "markPrice": "0.26038563", "markIv": "0.6603", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "157", "delta": "0.10236676"}
+{"symbol": "SOL-16OCT26-115-P-USDT", "bid1Price": "6.97", "ask1Price": "8.38", "markPrice": "7.56038563", "markIv": "0.6603", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "110", "delta": "-0.89763325"}
+{"symbol": "SOL-16OCT26-116-C-USDT", "bid1Price": "0.17", "ask1Price": "0.19", "markPrice": "0.19814822", "markIv": "0.6754", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "615", "delta": "0.0799157"}
+{"symbol": "SOL-16OCT26-116-P-USDT", "bid1Price": "8.25", "ask1Price": "9.37", "markPrice": "8.49814822", "markIv": "0.6754", "underlyingPrice": "107.7", "indexPrice": "107.57898035", "openInterest": "400", "delta": "-0.92008431"}
+spot {"symbol":"SOLUSDT","price":"107.58000000"}
+
+web search: "SkyAI" "Solana" "October 13, 2026" ...
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,datetime,json,math
+x=requests.get('https://api.bybit.com/v5/market/tickers?category=option&baseCoin=SOL',timeout=15).json()
+rows=x.get('result',{}).get('list',[])
+for expiry in ['14OCT26','15OCT26','16OCT26']:
+ a=sorted([r for r in rows if r['symbol'].split('-')[1]==expiry and r['symbol'].split('-')[3]=='C' and 105<=float(r['symbol'].split('-')[2])<=110],key=lambda r:float(r['symbol'].split('-')[2]))
+ print(expiry)
+ for r in a:print({k:r[k] for k in ['symbol','bid1Price','ask1Price','markPrice','markIv','underlyingPrice','indexPrice','delta']})
+ probs=[]
+ for r,s in zip(a,a[1:]):
+  k,j=float(r['symbol'].split('-')[2]),float(s['symbol'].split('-')[2]);q=(float(r['markPrice'])-float(s['markPrice']))/(j-k);probs.append(((k+j)/2,q))
+ print('mark_call_spread_up_probability',probs)
+ for (k,q),(j,p) in zip(probs,probs[1:]):
+  if k<=107.63<=j:print('Interpolated Up at 107.63:',q+(p-q)*(107.63-k)/(j-k))
+print('spot',requests.get('https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT',timeout=10).text)
+PY" in /tmp/apb-46-codex-4w6hmyo6
+ succeeded in 446ms:
+14OCT26
+{'symbol': 'SOL-14OCT26-105-C-USDT', 'bid1Price': '2.49', 'ask1Price': '3.51', 'markPrice': '2.65614362', 'markIv': '0.8151', 'underlyingPrice': '107.59928626', 'indexPrice': '107.59172729', 'delta': '0.93034609'}
+{'symbol': 'SOL-14OCT26-106-C-USDT', 'bid1Price': '1.54', 'ask1Price': '2.59', 'markPrice': '1.72636092', 'markIv': '0.7194', 'underlyingPrice': '107.59928626', 'indexPrice': '107.59172729', 'delta': '0.84795628'}
+{'symbol': 'SOL-14OCT26-107-C-USDT', 'bid1Price': '0.82', 'ask1Price': '0.94', 'markPrice': '0.91202743', 'markIv': '0.6422', 'underlyingPrice': '107.59928626', 'indexPrice': '107.59172729', 'delta': '0.66765892'}
+{'symbol': 'SOL-14OCT26-108-C-USDT', 'bid1Price': '0.25', 'ask1Price': '0.49', 'markPrice': '0.36069075', 'markIv': '0.6114', 'underlyingPrice': '107.59928626', 'indexPrice': '107.59172729', 'delta': '0.38572118'}
+{'symbol': 'SOL-14OCT26-109-C-USDT', 'bid1Price': '0.06', 'ask1Price': '0.19', 'markPrice': '0.12166987', 'markIv': '0.6423', 'underlyingPrice': '107.59928626', 'indexPrice': '107.59172729', 'delta': '0.16385094'}
+{'symbol': 'SOL-14OCT26-110-C-USDT', 'bid1Price': '0.04', 'ask1Price': '0.18', 'markPrice': '0.04402494', 'markIv': '0.71', 'underlyingPrice': '107.59928626', 'indexPrice': '107.59172729', 'delta': '0.06500972'}
+mark_call_spread_up_probability [(105.5, 0.9297826999999999), (106.5, 0.8143334900000001), (107.5, 0.5513366799999999), (108.5, 0.23902088), (109.5, 0.07764493)]
+Interpolated Up at 107.63: 0.5107356260000013
+15OCT26
+{'symbol': 'SOL-15OCT26-105-C-USDT', 'bid1Price': '3.25', 'ask1Price': '3.58', 'markPrice': '3.53926402', 'markIv': '0.8107', 'underlyingPrice': '107.64895849', 'indexPrice': '107.59172729', 'delta': '0.71568403'}
+{'symbol': 'SOL-15OCT26-106-C-USDT', 'bid1Price': '2.68', 'ask1Price': '2.87', 'markPrice': '2.80787212', 'markIv': '0.7802', 'underlyingPrice': '107.64895849', 'indexPrice': '107.59172729', 'delta': '0.64593533'}
+{'symbol': 'SOL-15OCT26-107-C-USDT', 'bid1Price': '2.08', 'ask1Price': '2.11', 'markPrice': '2.19661913', 'markIv': '0.7705', 'underlyingPrice': '107.64895849', 'indexPrice': '107.59172729', 'delta': '0.56419804'}
+{'symbol': 'SOL-15OCT26-108-C-USDT', 'bid1Price': '1.54', 'ask1Price': '1.6', 'markPrice': '1.57425385', 'markIv': '0.7215', 'underlyingPrice': '107.64895849', 'indexPrice': '107.59172729', 'delta': '0.47618233'}
+{'symbol': 'SOL-15OCT26-109-C-USDT', 'bid1Price': '1.13', 'ask1Price': '1.17', 'markPrice': '1.15776957', 'markIv': '0.721', 'underlyingPrice': '107.64895849', 'indexPrice': '107.59172729', 'delta': '0.38693046'}
+{'symbol': 'SOL-15OCT26-110-C-USDT', 'bid1Price': '0.8', 'ask1Price': '0.84', 'markPrice': '0.81553694', 'markIv': '0.7153', 'underlyingPrice': '107.64895849', 'indexPrice': '107.59172729', 'delta': '0.30249505'}
+mark_call_spread_up_probability [(105.5, 0.7313919000000002), (106.5, 0.6112529899999997), (107.5, 0.6223652800000001), (108.5, 0.41648428000000015), (109.5, 0.3422326299999999)]
+Interpolated Up at 107.63: 0.5956007500000011
+16OCT26
+{'symbol': 'SOL-16OCT26-105-C-USDT', 'bid1Price': '3.56', 'ask1Price': '3.9', 'markPrice': '3.7756455', 'markIv': '0.664', 'underlyingPrice': '107.7', 'indexPrice': '107.59172729', 'delta': '0.69967413'}
+{'symbol': 'SOL-16OCT26-106-C-USDT', 'bid1Price': '2.89', 'ask1Price': '3.15', 'markPrice': '3.0753643', 'markIv': '0.6471', 'underlyingPrice': '107.7', 'indexPrice': '107.59172729', 'delta': '0.63497774'}
+{'symbol': 'SOL-16OCT26-107-C-USDT', 'bid1Price': '2.38', 'ask1Price': '2.41', 'markPrice': '2.48748824', 'markIv': '0.6445', 'underlyingPrice': '107.7', 'indexPrice': '107.59172729', 'delta': '0.56218495'}
+{'symbol': 'SOL-16OCT26-108-C-USDT', 'bid1Price': '1.87', 'ask1Price': '1.9', 'markPrice': '1.90473191', 'markIv': '0.621', 'underlyingPrice': '107.7', 'indexPrice': '107.59172729', 'delta': '0.48623867'}
+{'symbol': 'SOL-16OCT26-109-C-USDT', 'bid1Price': '1.44', 'ask1Price': '1.47', 'markPrice': '1.46656398', 'markIv': '0.6181', 'underlyingPrice': '107.7', 'indexPrice': '107.59172729', 'delta': '0.40940868'}
+{'symbol': 'SOL-16OCT26-110-C-USDT', 'bid1Price': '1.06', 'ask1Price': '1.14', 'markPrice': '1.10757404', 'markIv': '0.6168', 'underlyingPrice': '107.7', 'indexPrice': '107.59172729', 'delta': '0.33631903'}
+mark_call_spread_up_probability [(105.5, 0.7002812), (106.5, 0.5878760600000001), (107.5, 0.5827563299999998), (108.5, 0.43816792999999987), (109.5, 0.35898994000000006)]
+Interpolated Up at 107.63: 0.5639598380000005
+spot {"symbol":"SOLUSDT","price":"107.59000000"}
+
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,json,datetime,math
+x=requests.get('https://api.bybit.com/v5/market/tickers?category=option&baseCoin=SOL',timeout=10).json()
+a=x.get('result',{}).get('list',[])
+for e in ['14OCT26','15OCT26','16OCT26']:
+ rows=sorted([r for r in a if r['symbol'].split('-')[1]==e and 105<=float(r['symbol'].split('-')[2])<=110],key=lambda r:(float(r['symbol'].split('-')[2]),r['symbol'].split('-')[3]))
+ print(e)
+ for r in rows:print(r['symbol'],'bid',r['bid1Price'],'ask',r['ask1Price'],'iv',r['markIv'])
+PY" in /tmp/apb-46-codex-4w6hmyo6
+exec
+/usr/bin/zsh -lc 'bench book --outcome Up' in /tmp/apb-46-codex-4w6hmyo6
+ succeeded in 89ms:
+{
+  "outcome": "Up",
+  "bids": [
+    {
+      "price": "0.49",
+      "size": "39.99"
+    },
+    {
+      "price": "0.48",
+      "size": "1300"
+    },
+    {
+      "price": "0.47",
+      "size": "100"
+    },
+    {
+      "price": "0.46",
+      "size": "150"
+    },
+    {
+      "price": "0.42",
+      "size": "5000"
+    },
+    {
+      "price": "0.21",
+      "size": "1714.28"
+    },
+    {
+      "price": "0.14",
+      "size": "1785.71"
+    },
+    {
+      "price": "0.11",
+      "size": "27418.15"
+    },
+    {
+      "price": "0.09",
+      "size": "9"
+    },
+    {
+      "price": "0.07",
+      "size": "11.63"
+    },
+    {
+      "price": "0.06",
+      "size": "47583.31"
+    },
+    {
+      "price": "0.05",
+      "size": "42510"
+    },
+    {
+      "price": "0.04",
+      "size": "100"
+    },
+    {
+      "price": "0.03",
+      "size": "7017.58"
+    },
+    {
+      "price": "0.02",
+      "size": "75"
+    }
+  ],
+  "asks": [
+    {
+      "price": "0.52",
+      "size": "100"
+    },
+    {
+      "price": "0.53",
+      "size": "1350"
+    },
+    {
+      "price": "0.54",
+      "size": "100"
+    },
+    {
+      "price": "0.58",
+      "size": "5000"
+    },
+    {
+      "price": "0.79",
+      "size": "1714.28"
+    },
+    {
+      "price": "0.86",
+      "size": "1785.71"
+    },
+    {
+      "price": "0.89",
+      "size": "27418.15"
+    },
+    {
+      "price": "0.91",
+      "size": "9"
+    },
+    {
+      "price": "0.93",
+      "size": "10.93"
+    },
+    {
+      "price": "0.94",
+      "size": "47583.31"
+    },
+    {
+      "price": "0.95",
+      "size": "1910"
+    },
+    {
+      "price": "0.97",
+      "size": "75185.23"
+    },
+    {
+      "price": "0.98",
+      "size": "75"
+    },
+    {
+      "price": "0.99",
+      "size": "112172.66"
+    }
+  ],
+  "last_trade_price": "0.61"
+}
+
+ succeeded in 733ms:
+14OCT26
+SOL-14OCT26-105-C-USDT bid 2.49 ask 3.51 iv 0.8176
+SOL-14OCT26-105-P-USDT bid 0.03 ask 0.08 iv 0.8176
+SOL-14OCT26-106-C-USDT bid 1.54 ask 2.59 iv 0.7216
+SOL-14OCT26-106-P-USDT bid 0.07 ask 0.15 iv 0.7216
+SOL-14OCT26-107-C-USDT bid 0.86 ask 0.95 iv 0.6437
+SOL-14OCT26-107-P-USDT bid 0.25 ask 0.38 iv 0.6437
+SOL-14OCT26-108-C-USDT bid 0.28 ask 0.49 iv 0.6114
+SOL-14OCT26-108-P-USDT bid 0.67 ask 0.9 iv 0.6114
+SOL-14OCT26-109-C-USDT bid 0.06 ask 0.19 iv 0.6408
+SOL-14OCT26-109-P-USDT bid 1.45 ask 2.03 iv 0.6408
+SOL-14OCT26-110-C-USDT bid 0.04 ask 0.18 iv 0.7079
+SOL-14OCT26-110-P-USDT bid 2.29 ask 2.77 iv 0.7079
+15OCT26
+SOL-15OCT26-105-C-USDT bid 3.28 ask 3.6 iv 0.8114
+SOL-15OCT26-105-P-USDT bid 0.87 ask 0.9 iv 0.8114
+SOL-15OCT26-106-C-USDT bid 2.68 ask 2.87 iv 0.7808
+SOL-15OCT26-106-P-USDT bid 1.14 ask 1.17 iv 0.7808
+SOL-15OCT26-107-C-USDT bid 2.09 ask 2.14 iv 0.7705
+SOL-15OCT26-107-P-USDT bid 1.49 ask 1.55 iv 0.7705
+SOL-15OCT26-108-C-USDT bid 1.56 ask 1.62 iv 0.7215
+SOL-15OCT26-108-P-USDT bid 1.98 ask 2.04 iv 0.7215
+SOL-15OCT26-109-C-USDT bid 1.14 ask 1.19 iv 0.7212
+SOL-15OCT26-109-P-USDT bid 2.51 ask 2.63 iv 0.7212
+SOL-15OCT26-110-C-USDT bid 0.82 ask 0.84 iv 0.7153
+SOL-15OCT26-110-P-USDT bid 3.11 ask 3.27 iv 0.7153
+16OCT26
+SOL-16OCT26-105-C-USDT bid 3.46 ask 3.93 iv 0.6643
+SOL-16OCT26-105-P-USDT bid 1.06 ask 1.1 iv 0.6643
+SOL-16OCT26-106-C-USDT bid 2.91 ask 3.15 iv 0.6474
+SOL-16OCT26-106-P-USDT bid 1.37 ask 1.42 iv 0.6474
+SOL-16OCT26-107-C-USDT bid 2.4 ask 2.45 iv 0.6445
+SOL-16OCT26-107-P-USDT bid 1.77 ask 1.84 iv 0.6445
+SOL-16OCT26-108-C-USDT bid 1.88 ask 1.93 iv 0.621
+SOL-16OCT26-108-P-USDT bid 2.25 ask 2.3 iv 0.621
+SOL-16OCT26-109-C-USDT bid 1.46 ask 1.49 iv 0.6182
+SOL-16OCT26-109-P-USDT bid 2.81 ask 2.95 iv 0.6182
+SOL-16OCT26-110-C-USDT bid 1.07 ask 1.16 iv 0.6167
+SOL-16OCT26-110-P-USDT bid 3.43 ask 3.58 iv 0.6167
+
+web search: October 14 2026 CPI preview core 2.5 2.4 forecast Reuters ...
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import json,math,statistics,datetime,requests
+x=json.load(open('/tmp/solmonth.json'))[:-1]
+p=[float(a[4]) for a in x];threshold=math.log(107.63/107.59)
+for days in [7,14,30,40]:
+ a=p[-days*24:];r=[math.log(a[i+12]/a[i]) for i in range(len(a)-12)]
+ print(days,'days',len(r),'rolling_up',sum(z>threshold for z in r)/len(r),'12h_median_pct',statistics.median(r)*100,'12h_sigma_pct',statistics.stdev(r)*100)
+ bytime=[]
+ for i in range(len(x)-12):
+  d=datetime.datetime.fromtimestamp(x[i][0]/1000,datetime.timezone.utc)
+  if d.hour==3 and i>=len(x)-days*24:bytime.append(math.log(p[i+12]/p[i]))
+ print('UTC4to16 n',len(bytime),'up',sum(z>threshold for z in bytime)/len(bytime),'median_pct',statistics.median(bytime)*100)
+print('spot',requests.get('https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT',timeout=10).text)
+PY" in /tmp/apb-46-codex-4w6hmyo6
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-46-codex-4w6hmyo6
+ succeeded in 75ms:
+{
+  "question": "Solana Up or Down on October 14?",
+  "description": "This market will resolve to \"Up\" if the \"Close\" price for the Binance 1 minute candle for SOL/USDT Oct 13 '26 12:00 in the ET timezone (noon) is lower than the final \"Close\" price for the Oct 14 '26 12:00 ET candle.\n\nThis market will resolve to \"Down\" if the \"Close\" price for the Binance 1 minute candle for SOL/USDT Oct 13 '26 12:00 in the ET timezone (noon) is higher than the final \"Close\" price for the Oct 14 '26 12:00 ET candle.\n\nIf the final \"Close\" price for both of these candles is exactly equal on Binance, this market will resolve 50-50.\n\nThe resolution source for this market is Binance, specifically the SOL/USDT \"Close\" prices currently available at https://www.binance.com/en/trade/SOL_USDT with \"1m\" and \"Candles\" selected on the top bar.\n\nPlease note that this market is about the price according to Binance SOL/USDT, not according to other exchanges or trading pairs.",
+  "outcomes": [
+    "Up",
+    "Down"
+  ],
+  "prices": [
+    0.505,
+    0.495
+  ],
+  "best_bid": 0.49,
+  "best_ask": 0.52,
+  "end_date": "2026-10-14T16:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 122
+}
+
+ succeeded in 232ms:
+7 days 156 rolling_up 0.4230769230769231 12h_median_pct -0.23006203324332244 12h_sigma_pct 2.0760019357960906
+UTC4to16 n 6 up 0.3333333333333333 median_pct -0.37347910548597746
+14 days 324 rolling_up 0.4660493827160494 12h_median_pct -0.08923632040509917 12h_sigma_pct 1.812488466426655
+UTC4to16 n 13 up 0.38461538461538464 median_pct -0.6631866232554136
+30 days 708 rolling_up 0.5169491525423728 12h_median_pct 0.13787676749420896 12h_sigma_pct 2.1566528814128327
+UTC4to16 n 29 up 0.5172413793103449 median_pct 0.15096874460062487
+40 days 948 rolling_up 0.4989451476793249 12h_median_pct 0.029278852742202228 12h_sigma_pct 1.9916424962158754
+UTC4to16 n 39 up 0.5128205128205128 median_pct 0.15096874460062487
+spot {"symbol":"SOLUSDT","price":"107.63000000"}
+
+web search: https://www.clevelandfed.org/our-research/indicators-and-data/inflation-nowcasting
+codex
+SOL has recovered to roughly the $107.63 reference price. I now lean slightly Up: the Cleveland Fed’s inflation forecast is below consensus on headline monthly and core annual inflation, which could support crypto before settlement. That is a modest edge, with substantial uncertainty. [Cleveland Fed](https://www.clevelandfed.org/our-research/indicators-and-data/inflation-nowcasting), [consensus preview](https://marketintellabs.com/research/september-cpi-expectations)
+
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import subprocess,json,requests
+for side in ['Up','Down']:
+ x=json.loads(subprocess.check_output(['bench','book','--outcome',side],text=True));print(side,json.dumps({'bids':x['bids'][:3],'asks':x['asks'][:3]}))
+print('spot',requests.get('https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT',timeout=10).text)
+PY" in /tmp/apb-46-codex-4w6hmyo6
+ succeeded in 800ms:
+Up {"bids": [{"price": "0.5", "size": "39.99"}, {"price": "0.49", "size": "1300"}, {"price": "0.47", "size": "250"}], "asks": [{"price": "0.53", "size": "10"}, {"price": "0.54", "size": "1450"}, {"price": "0.55", "size": "100"}]}
+Down {"bids": [{"price": "0.47", "size": "10"}, {"price": "0.46", "size": "1450"}, {"price": "0.45", "size": "100"}], "asks": [{"price": "0.5", "size": "39.99"}, {"price": "0.51", "size": "1300"}, {"price": "0.53", "size": "250"}]}
+spot {"symbol":"SOLUSDT","price":"107.69000000"}
+
+web search: https://marketintellabs.com/research/september-cpi-expectations
+exec
+/usr/bin/zsh -lc "bench bet --outcome Up --confidence 0.55 --rationale 'Binance SOL/USDT is "'$107.69 versus the $107.63 reference close, and the Cleveland Fed nowcast points to slightly softer CPI than consensus before settlement. I give Up a modest 55% chance because the price cushion is tiny and the inflation release can reverse it.'"' --quote 'Three rivals, one candle, no points for confidence theater.'" in /tmp/apb-46-codex-4w6hmyo6
+ succeeded in 3726ms:
+{
+  "placed": true,
+  "outcome": "Up",
+  "avg_price": 0.5395,
+  "shares": 185.3704,
+  "stake_filled": 100.0,
+  "unspent": -0.0,
+  "quote": "Three rivals, one candle, no points for confidence theater."
+}
+
+codex
+Bet placed: **100 tokens on Up** at **0.5395** average price. Confidence: **55%**.
+
+Payout if Up wins: **185.37 tokens**.
+tokens used
+99,184
+Bet placed: **100 tokens on Up** at **0.5395** average price. Confidence: **55%**.
+
+Payout if Up wins: **185.37 tokens**.
