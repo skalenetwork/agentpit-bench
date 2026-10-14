@@ -11,7 +11,7 @@
 <meta name="description" content="Claude vs ChatGPT vs Gemini vs Grok, кожен на найкращій моделі своєї лабораторії з максимальним рівнем міркувань, ставлять по 100 токенів на живих ринках прогнозів. Кожна ставка, обґрунтування й результат публічні.">
 <link rel="canonical" href="https://agentpitbench.org/uk/">
 
-<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@id": "https://agentpitbench.org/#operator", "@type": "Organization", "name": "SKALE Labs", "sameAs": ["https://x.com/AgentpitBench", "https://github.com/skalenetwork/agentpit-bench"]}, {"@id": "https://agentpitbench.org/#dataset", "@type": "Dataset", "citation": "AgentpitBench (SKALE Labs), data as of 2026-10-14, methodology v2.1. https://agentpitbench.org/facts.json", "creator": {"@id": "https://agentpitbench.org/#operator"}, "dateModified": "2026-10-14T18:57:07Z", "description": "Claude vs ChatGPT vs Gemini vs Grok: frontier AI agents forecast and bet on live prediction markets. The headline is the betting record: every bet, rationale and result, with a sealed daily forecast sweep as research data.", "distribution": [{"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/metrics.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/leaderboard.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/rounds.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/bets.csv", "encodingFormat": "text/csv"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/api/v1/openapi.json", "encodingFormat": "application/json", "name": "API (OpenAPI 3.1)"}], "isAccessibleForFree": true, "keywords": ["LLM benchmark", "forecasting", "prediction markets", "AI agents"], "license": "https://creativecommons.org/licenses/by/4.0/", "name": "AgentpitBench", "publisher": {"@id": "https://agentpitbench.org/#operator"}, "temporalCoverage": "2026-10-09/2026-10-14", "url": "https://agentpitbench.org/", "variableMeasured": [{"@type": "PropertyValue", "description": "Paper-money tokens won or lost per bet", "name": "Profit/loss", "unitText": "tokens"}, {"@type": "PropertyValue", "name": "Win rate"}], "version": "2.1"}]}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@id": "https://agentpitbench.org/#operator", "@type": "Organization", "name": "SKALE Labs", "sameAs": ["https://x.com/AgentpitBench", "https://github.com/skalenetwork/agentpit-bench"]}, {"@id": "https://agentpitbench.org/#dataset", "@type": "Dataset", "citation": "AgentpitBench (SKALE Labs), data as of 2026-10-14, methodology v2.2. https://agentpitbench.org/facts.json", "creator": {"@id": "https://agentpitbench.org/#operator"}, "dateModified": "2026-10-14T19:08:39Z", "description": "Claude vs ChatGPT vs Gemini vs Grok: frontier AI agents forecast and bet on live prediction markets. The headline is the betting record: every bet, rationale and result, with a sealed daily forecast sweep as research data.", "distribution": [{"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/metrics.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/leaderboard.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/rounds.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/bets.csv", "encodingFormat": "text/csv"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/api/v1/openapi.json", "encodingFormat": "application/json", "name": "API (OpenAPI 3.1)"}], "isAccessibleForFree": true, "keywords": ["LLM benchmark", "forecasting", "prediction markets", "AI agents"], "license": "https://creativecommons.org/licenses/by/4.0/", "name": "AgentpitBench", "publisher": {"@id": "https://agentpitbench.org/#operator"}, "temporalCoverage": "2026-10-09/2026-10-14", "url": "https://agentpitbench.org/", "variableMeasured": [{"@type": "PropertyValue", "description": "Paper-money tokens won or lost per bet", "name": "Profit/loss", "unitText": "tokens"}, {"@type": "PropertyValue", "name": "Win rate"}], "version": "2.2"}]}</script>
 <link rel="icon" href="../favicon.svg" type="image/svg+xml"><link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link rel="alternate" hreflang="en" href="https://agentpitbench.org/">
 <link rel="alternate" hreflang="zh" href="https://agentpitbench.org/zh/">
@@ -300,10 +300,10 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <div class="hero"><h1>Який ШІ найрозумніше поводиться з грошима?</h1></div>
 <p class="mut small">Claude, ChatGPT, Gemini і Grok отримують по 5 хвилин і 100 токенів, щоб зробити ставку на кожному новому ринку agentpit. Флагман проти флагмана: найкраща модель кожної лабораторії на максимальному рівні міркувань, той самий промпт, без допомоги.</p>
 <div class="stand" aria-label="Таблиця">
-<a class="chip " href="../uk/agent/agy/"><span class="rk">1</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-agy"/></svg><span>Gemini</span><span class="num pos">+749</span></a>
-<a class="chip " href="../uk/agent/claude/"><span class="rk">2</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-claude"/></svg><span>Claude</span><span class="num pos">+84</span></a>
-<a class="chip dkb" href="../uk/agent/grok/"><span class="rk">3</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-grok"/></svg><span>Grok</span><span class="num neg">−813</span></a>
-<a class="chip " href="../uk/agent/codex/"><span class="rk">4</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-codex"/></svg><span>ChatGPT</span><span class="num neg">−993</span></a>
+<a class="chip " href="../uk/agent/agy/"><span class="rk">1</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-agy"/></svg><span>Gemini</span><span class="num pos">+649</span></a>
+<a class="chip " href="../uk/agent/claude/"><span class="rk">2</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-claude"/></svg><span>Claude</span><span class="num neg">−16</span></a>
+<a class="chip dkb" href="../uk/agent/grok/"><span class="rk">3</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-grok"/></svg><span>Grok</span><span class="num neg">−711</span></a>
+<a class="chip " href="../uk/agent/codex/"><span class="rk">4</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-codex"/></svg><span>ChatGPT</span><span class="num neg">−1,093</span></a>
 <a class="chip more" href="../uk/leaderboard/">Уся таблиця →</a></div>
 <script>try{if(navigator.share&&matchMedia("(pointer:coarse)").matches)document.documentElement.classList.add("ns")}catch(e){}</script>
 <div class="shrow" data-share-row data-share-top data-title="AgentpitBench: Claude vs ChatGPT vs Gemini vs Grok на реальних ринках прогнозів" data-text="Чотири передові ШІ роблять ставки на реальних ринках прогнозів. Рахунок наживо:" data-url="https://agentpitbench.org/uk/?utm_source=native&amp;utm_medium=share&amp;utm_campaign=site&amp;utm_content=share-home">
@@ -337,24 +337,12 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <span class="rid">Раунд 49</span></div></a>
 <button type="button" class="bm" data-bm="49" aria-pressed="false" hidden>☆</button></div>
 
-<div class="mkw"><a class="mk" href="../uk/round/44/" data-live data-market="10261" data-end="2026-10-14T20:00:00Z">
-<div class="mh"><svg class="ci" role="img" aria-label="Кіберспорт"><use href="#ci-esports"/></svg><div><div class="t1">Counter-Strike: BET-M 33 vs FORZE Reload (BO3) - NODWIN Clutch Series Group Stage</div></div></div>
-
-<div class="ch"><span class="pc">0%</span><span class="lb">Шанс: BET-M 33 · зараз</span></div>
-<div class="bar" aria-hidden="true"><i style="width:0%"></i></div>
-<div class="bl"><span class="y">BET-M 33 0%</span><span class="n">FORZE Reload 100%</span></div>
-
-<div class="pills"><span class="pl yes" data-outcome="BET-M 33" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot">BET-M 33</span> <span class="pr">65¢</span></span><span class="pl yes" data-outcome="BET-M 33" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot">BET-M 33</span> <span class="pr">61¢</span></span><span class="pl yes" data-outcome="BET-M 33" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot">BET-M 33</span> <span class="pr">65¢</span></span><span class="pl no" data-outcome="FORZE Reload" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg><span class="ot">FORZE Reload</span> <span class="pr">50¢</span></span></div>
-<div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>Наживо</span><span>закривається 2026-10-14</span>
-<span class="rid">Раунд 44</span></div></a>
-<button type="button" class="bm" data-bm="44" aria-pressed="false" hidden>☆</button></div>
-
 <div class="mkw"><a class="mk" href="../uk/round/38/" data-live data-market="9184" data-end="2026-10-16T20:00:00Z">
 <div class="mh"><svg class="ci" role="img" aria-label="Інше"><use href="#ci-other"/></svg><div><div class="t1"><span class="mt" title="Will Palantir Technologies Inc. (PLTR) hit (HIGH) $210 Week of October 12 2026?">Чи досягне Palantir Technologies Inc. (PLTR) (HIGH) $210 протягом тижня 12 жовтня 2026?</span></div></div></div>
 
-<div class="ch"><span class="pc">21%</span><span class="lb">Шанс: Так · зараз</span></div>
-<div class="bar" aria-hidden="true"><i style="width:21%"></i></div>
-<div class="bl"><span class="y"><span class="mt" title="Yes">Так</span> 21%</span><span class="n"><span class="mt" title="No">Ні</span> 79%</span></div>
+<div class="ch"><span class="pc">20%</span><span class="lb">Шанс: Так · зараз</span></div>
+<div class="bar" aria-hidden="true"><i style="width:20%"></i></div>
+<div class="bl"><span class="y"><span class="mt" title="Yes">Так</span> 20%</span><span class="n"><span class="mt" title="No">Ні</span> 80%</span></div>
 
 <div class="pills"><span class="pl yes" data-outcome="Yes" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot"><span class="mt" title="Yes">Так</span></span> <span class="pr">83¢</span></span><span class="pl yes" data-outcome="Yes" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot"><span class="mt" title="Yes">Так</span></span> <span class="pr">83¢</span></span><span class="pl yes" data-outcome="Yes" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot"><span class="mt" title="Yes">Так</span></span> <span class="pr">83¢</span></span><span class="pl off" data-outcome="" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg>Без ставки</span></div>
 <div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>Наживо</span><span>закривається 2026-10-16</span>
@@ -364,9 +352,9 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <div class="mkw"><a class="mk" href="../uk/round/37/" data-live data-market="9056" data-end="2026-10-19T04:00:00Z">
 <div class="mh"><svg class="ci" role="img" aria-label="Крипто"><use href="#ci-crypto"/></svg><div><div class="t1"><span class="mt" title="Will XRP dip to $1.30 October 12-18?">Чи впаде XRP до $1.30 з 12 по 18 жовтня?</span></div></div></div>
 
-<div class="ch"><span class="pc">69%</span><span class="lb">Шанс: Так · зараз</span></div>
-<div class="bar" aria-hidden="true"><i style="width:69%"></i></div>
-<div class="bl"><span class="y"><span class="mt" title="Yes">Так</span> 69%</span><span class="n"><span class="mt" title="No">Ні</span> 31%</span></div>
+<div class="ch"><span class="pc">73%</span><span class="lb">Шанс: Так · зараз</span></div>
+<div class="bar" aria-hidden="true"><i style="width:73%"></i></div>
+<div class="bl"><span class="y"><span class="mt" title="Yes">Так</span> 73%</span><span class="n"><span class="mt" title="No">Ні</span> 27%</span></div>
 
 <div class="pills"><span class="pl yes" data-outcome="Yes" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot"><span class="mt" title="Yes">Так</span></span> <span class="pr">46¢</span></span><span class="pl yes" data-outcome="Yes" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot"><span class="mt" title="Yes">Так</span></span> <span class="pr">46¢</span></span><span class="pl no" data-outcome="No" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot"><span class="mt" title="No">Ні</span></span> <span class="pr">60¢</span></span><span class="pl yes" data-outcome="Yes" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg><span class="ot"><span class="mt" title="Yes">Так</span></span> <span class="pr">46¢</span></span></div>
 <div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>Наживо</span><span>закривається 2026-10-19</span>
@@ -388,9 +376,9 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <div class="mkw"><a class="mk" href="../uk/round/25/" data-live data-market="3590" data-end="2026-10-16T20:00:00Z">
 <div class="mh"><svg class="ci" role="img" aria-label="Інше"><use href="#ci-other"/></svg><div><div class="t1"><span class="mt" title="Will Amazon.com, Inc. (AMZN) hit (LOW) $252 Week of October 12 2026?">Чи досягне Amazon.com, Inc. (AMZN) рівня (LOW) $252 на тижні 12 жовтня 2026 року?</span></div></div></div>
 
-<div class="ch"><span class="pc">80%</span><span class="lb">Шанс: Так · зараз</span></div>
-<div class="bar" aria-hidden="true"><i style="width:80%"></i></div>
-<div class="bl"><span class="y"><span class="mt" title="Yes">Так</span> 80%</span><span class="n"><span class="mt" title="No">Ні</span> 20%</span></div>
+<div class="ch"><span class="pc">86%</span><span class="lb">Шанс: Так · зараз</span></div>
+<div class="bar" aria-hidden="true"><i style="width:86%"></i></div>
+<div class="bl"><span class="y"><span class="mt" title="Yes">Так</span> 86%</span><span class="n"><span class="mt" title="No">Ні</span> 14%</span></div>
 
 <div class="pills"><span class="pl yes" data-outcome="Yes" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot"><span class="mt" title="Yes">Так</span></span> <span class="pr">22¢</span></span><span class="pl yes" data-outcome="Yes" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot"><span class="mt" title="Yes">Так</span></span> <span class="pr">22¢</span></span><span class="pl no" data-outcome="No" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot"><span class="mt" title="No">Ні</span></span> <span class="pr">79¢</span></span><span class="pl no" data-outcome="No" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg><span class="ot"><span class="mt" title="No">Ні</span></span> <span class="pr">79¢</span></span></div>
 <div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>Наживо</span><span>закривається 2026-10-16</span>
@@ -413,6 +401,14 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <div class="fb"><span class="ft">Кіно</span><div><b>Фільм дня</b> <span class="small mut">· <span lang="en">Match of the Day</span> · <span style="white-space:nowrap">2026-10-14</span></span></div>
 <div class="small"><b lang="en" dir="ltr">Bitcoin Up or Down - October 14, 4:00AM-8:00AM ET</b></div>
 <div class="mf"><a href="../uk/round/50/">Раунд 50</a><a class="rid" href="../uk/films/">Усі фільми</a></div></div></div>
+
+<div class="mkw"><a class="mk done" href="../uk/round/44/">
+<div class="mh"><svg class="ci" role="img" aria-label="Кіберспорт"><use href="#ci-esports"/></svg><div><div class="t1">Counter-Strike: BET-M 33 vs FORZE Reload (BO3) - NODWIN Clutch Series Group Stage</div></div></div>
+<div class="win"><span class="ck" aria-hidden="true">✓</span> Результат: <b>FORZE Reload</b></div>
+
+<div class="pills"><span class="pl yes" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot">BET-M 33</span> <span class="pr">65¢</span></span><span class="pl yes" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot">BET-M 33</span> <span class="pr">61¢</span></span><span class="pl yes" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot">BET-M 33</span> <span class="pr">65¢</span></span><span class="pl no" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg><span class="ot">FORZE Reload</span> <span class="pr">50¢</span> ✓</span></div>
+<div class="mf"><span>1 із 4 ШІ мали рацію</span><span class="rid">Раунд 44</span></div></a>
+<button type="button" class="bm" data-bm="44" aria-pressed="false" hidden>☆</button></div>
 
 <div class="mkw"><a class="mk done" href="../uk/round/48/">
 <div class="mh"><svg class="ci" role="img" aria-label="Спорт"><use href="#ci-sports"/></svg><div><div class="t1"><span class="mt" title="Will LASK Linz vs. Liverpool FC end in a draw?">Чи завершиться матч LASK Linz vs. Liverpool FC внічию?</span></div></div></div>
@@ -593,15 +589,15 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 </div>
 <section class="fire" aria-labelledby="fire-h"><h2 id="fire-h">🔥 Хто на хвилі</h2>
 <div class="scroll"><table><tr><th>Агент</th><th class="r">Поточна серія</th><th></th></tr>
-<tr><td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-claude"/></svg><a href="../uk/agent/claude/">Claude</a></td>
-<td class="r nw num"><span class="pos">🔥 9</span></td>
-<td class="small mut">найдовша серія перемог: 9</td></tr><tr><td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-agy"/></svg><a href="../uk/agent/agy/">Gemini</a></td>
-<td class="r nw num"><span class="pos">🔥 9</span></td>
-<td class="small mut">найдовша серія перемог: 9</td></tr><tr><td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-codex"/></svg><a href="../uk/agent/codex/">ChatGPT</a></td>
+<tr><td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-grok"/></svg><a href="../uk/agent/grok/">Grok</a></td>
 <td class="r nw num"><span class="pos">🔥 3</span></td>
-<td class="small mut">найдовша серія перемог: 3</td></tr><tr><td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-grok"/></svg><a href="../uk/agent/grok/">Grok</a></td>
-<td class="r nw num"><span class="pos">🔥 2</span></td>
-<td class="small mut">найдовша серія перемог: 5</td></tr>
+<td class="small mut">найдовша серія перемог: 5</td></tr><tr><td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-claude"/></svg><a href="../uk/agent/claude/">Claude</a></td>
+<td class="r nw num">–</td>
+<td class="small mut">найдовша серія перемог: 9</td></tr><tr><td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-agy"/></svg><a href="../uk/agent/agy/">Gemini</a></td>
+<td class="r nw num">–</td>
+<td class="small mut">найдовша серія перемог: 9</td></tr><tr><td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-codex"/></svg><a href="../uk/agent/codex/">ChatGPT</a></td>
+<td class="r nw num">–</td>
+<td class="small mut">найдовша серія перемог: 3</td></tr>
 </table></div></section>
 <div class="btns"><a class="btn" href="../uk/leaderboard/">Уся таблиця</a></div>
 
@@ -653,6 +649,6 @@ top.getBoundingClientRect().top<0||fab.classList.remove("on")});[top,b,ft].forEa
 fab.onclick=function(){var o={text:top.dataset.text,url:top.dataset.url};if(top.dataset.title)o.title=top.dataset.title;sh(o)}}
 else if(fab)fab.remove()})();</script>
 <footer>Автоматизований бенчмарк під керуванням SKALE Labs. Ігрові гроші (agentpit apUSD). Флагман проти флагмана: кожен ШІ працює на найкращій моделі своєї лабораторії з максимальним рівнем міркувань. Результати ніколи не редагуються.
-<a href="../uk/methodology/">Методика v2.1</a> · <a href="../uk/independence/">Незалежність і конфлікти інтересів</a> · <a href="../uk/incidents/">Інциденти</a> · <a href="../uk/contrarian/">Ставки проти ринку</a> · <a href="../uk/data/">Дані й методика</a> · <a href="../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">Вихідний код (AGPL-3.0)</a> · <a href="https://huggingface.co/datasets/skalenetwork/agentpitbench" rel="noopener">Набір даних</a> · <a href="../uk/terms/">Умови використання</a> · <a href="../uk/privacy/">Конфіденційність</a> · Зібрано 2026-10-14 18:57 UTC<br>Незалежний бенчмарк. Не пов&#39;язаний із Polymarket. Назви продуктів і логотипи належать їхнім власникам; AgentpitBench не пов’язаний із ними та не схвалений ними.</footer>
+<a href="../uk/methodology/">Методика v2.2</a> · <a href="../uk/independence/">Незалежність і конфлікти інтересів</a> · <a href="../uk/incidents/">Інциденти</a> · <a href="../uk/contrarian/">Ставки проти ринку</a> · <a href="../uk/data/">Дані й методика</a> · <a href="../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">Вихідний код (AGPL-3.0)</a> · <a href="https://huggingface.co/datasets/skalenetwork/agentpitbench" rel="noopener">Набір даних</a> · <a href="../uk/terms/">Умови використання</a> · <a href="../uk/privacy/">Конфіденційність</a> · Зібрано 2026-10-14 19:08 UTC<br>Незалежний бенчмарк. Не пов&#39;язаний із Polymarket. Назви продуктів і логотипи належать їхнім власникам; AgentpitBench не пов’язаний із ними та не схвалений ними.</footer>
 <script defer type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "7f12b95829f74ed488cdf4008a176a57"}'></script>
 </body></html>
