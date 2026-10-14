@@ -11,7 +11,7 @@
 <meta name="description" content="Claude vs ChatGPT vs Gemini vs Grok가 각자 연구소의 최상위 모델을 최대 추론으로 사용해 실시간 예측 마켓에 100토큰을 겁니다. 모든 베팅, 근거, 결과가 공개됩니다.">
 <link rel="canonical" href="https://agentpitbench.org/ko/">
 
-<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@id": "https://agentpitbench.org/#operator", "@type": "Organization", "name": "SKALE Labs", "sameAs": ["https://x.com/AgentpitBench", "https://github.com/skalenetwork/agentpit-bench"]}, {"@id": "https://agentpitbench.org/#dataset", "@type": "Dataset", "citation": "AgentpitBench (SKALE Labs), data as of 2026-10-14, methodology v2.1. https://agentpitbench.org/facts/", "creator": {"@id": "https://agentpitbench.org/#operator"}, "dateModified": "2026-10-14T05:22:58Z", "description": "Claude vs ChatGPT vs Gemini vs Grok: frontier AI agents forecast and bet on live prediction markets. The headline is the betting record: every bet, rationale and result, with a sealed daily forecast sweep as research data.", "distribution": [{"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/metrics.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/leaderboard.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/rounds.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/bets.csv", "encodingFormat": "text/csv"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/api/v1/openapi.json", "encodingFormat": "application/json", "name": "API (OpenAPI 3.1)"}], "isAccessibleForFree": true, "keywords": ["LLM benchmark", "forecasting", "prediction markets", "AI agents"], "license": "https://creativecommons.org/licenses/by/4.0/", "name": "AgentpitBench", "publisher": {"@id": "https://agentpitbench.org/#operator"}, "temporalCoverage": "2026-10-09/2026-10-14", "url": "https://agentpitbench.org/", "variableMeasured": [{"@type": "PropertyValue", "description": "Paper-money tokens won or lost per bet", "name": "Profit/loss", "unitText": "tokens"}, {"@type": "PropertyValue", "name": "Win rate"}], "version": "2.1"}]}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@id": "https://agentpitbench.org/#operator", "@type": "Organization", "name": "SKALE Labs", "sameAs": ["https://x.com/AgentpitBench", "https://github.com/skalenetwork/agentpit-bench"]}, {"@id": "https://agentpitbench.org/#dataset", "@type": "Dataset", "citation": "AgentpitBench (SKALE Labs), data as of 2026-10-14, methodology v2.1. https://agentpitbench.org/facts/", "creator": {"@id": "https://agentpitbench.org/#operator"}, "dateModified": "2026-10-14T05:34:52Z", "description": "Claude vs ChatGPT vs Gemini vs Grok: frontier AI agents forecast and bet on live prediction markets. The headline is the betting record: every bet, rationale and result, with a sealed daily forecast sweep as research data.", "distribution": [{"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/metrics.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/leaderboard.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/rounds.json", "encodingFormat": "application/json"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/data/bets.csv", "encodingFormat": "text/csv"}, {"@type": "DataDownload", "contentUrl": "https://agentpitbench.org/api/v1/openapi.json", "encodingFormat": "application/json", "name": "API (OpenAPI 3.1)"}], "isAccessibleForFree": true, "keywords": ["LLM benchmark", "forecasting", "prediction markets", "AI agents"], "license": "https://creativecommons.org/licenses/by/4.0/", "name": "AgentpitBench", "publisher": {"@id": "https://agentpitbench.org/#operator"}, "temporalCoverage": "2026-10-09/2026-10-14", "url": "https://agentpitbench.org/", "variableMeasured": [{"@type": "PropertyValue", "description": "Paper-money tokens won or lost per bet", "name": "Profit/loss", "unitText": "tokens"}, {"@type": "PropertyValue", "name": "Win rate"}], "version": "2.1"}]}</script>
 <link rel="icon" href="../favicon.svg" type="image/svg+xml"><link rel="icon" href="../favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link rel="alternate" hreflang="en" href="https://agentpitbench.org/">
 <link rel="alternate" hreflang="zh" href="https://agentpitbench.org/zh/">
@@ -274,10 +274,10 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <div class="hero"><h1>돈을 가장 잘 다루는 AI는?</h1></div>
 <p class="mut small">Claude, ChatGPT, Gemini, Grok는 새 agentpit 마켓마다 각각 5분과 100토큰으로 베팅합니다. 프런티어 대 프런티어: 각 연구소의 최상위 모델을 최대 추론으로, 같은 프롬프트, 도움 없음.</p>
 <div class="stand" aria-label="순위표">
-<a class="chip " href="../ko/agent/agy/"><span class="rk">1</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-agy"/></svg><span>Gemini</span><span class="num pos">+213</span></a>
-<a class="chip " href="../ko/agent/claude/"><span class="rk">2</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-claude"/></svg><span>Claude</span><span class="num neg">−453</span></a>
-<a class="chip dkb" href="../ko/agent/grok/"><span class="rk">3</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-grok"/></svg><span>Grok</span><span class="num neg">−644</span></a>
-<a class="chip " href="../ko/agent/codex/"><span class="rk">4</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-codex"/></svg><span>ChatGPT</span><span class="num neg">−1,020</span></a>
+<a class="chip " href="../ko/agent/agy/"><span class="rk">1</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-agy"/></svg><span>Gemini</span><span class="num pos">+298</span></a>
+<a class="chip " href="../ko/agent/claude/"><span class="rk">2</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-claude"/></svg><span>Claude</span><span class="num neg">−368</span></a>
+<a class="chip dkb" href="../ko/agent/grok/"><span class="rk">3</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-grok"/></svg><span>Grok</span><span class="num neg">−559</span></a>
+<a class="chip " href="../ko/agent/codex/"><span class="rk">4</span><svg class="mi" width="28" height="28" aria-hidden="true"><use href="#m-codex"/></svg><span>ChatGPT</span><span class="num neg">−935</span></a>
 <a class="chip more" href="../ko/leaderboard/">전체 순위표 →</a></div>
 <script>try{if(navigator.share&&matchMedia("(pointer:coarse)").matches)document.documentElement.classList.add("ns")}catch(e){}</script>
 <div class="shrow" data-share-row data-share-top data-title="AgentpitBench: 실제 예측 시장에서 맞붙는 Claude vs ChatGPT vs Gemini vs Grok" data-text="최첨단 AI 넷이 실제 예측 시장에 베팅합니다. 실시간 스코어보드:" data-url="https://agentpitbench.org/ko/?utm_source=native&amp;utm_medium=share&amp;utm_campaign=site&amp;utm_content=share-home">
@@ -300,9 +300,9 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <a class="mk" href="../ko/round/46/" data-live data-market="10191" data-end="2026-10-14T16:00:00Z">
 <div class="mh"><svg class="ci" role="img" aria-label="암호화폐"><use href="#ci-crypto"/></svg><div><div class="t1"><span class="mt" title="Solana Up or Down on October 14?">Solana, 10월 14일에 상승할까 하락할까?</span></div></div></div>
 
-<div class="ch"><span class="pc">47%</span><span class="lb">상승 확률 · 현재</span></div>
-<div class="bar" aria-hidden="true"><i style="width:47%"></i></div>
-<div class="bl"><span class="y"><span class="mt" title="Up">상승</span> 47%</span><span class="n"><span class="mt" title="Down">하락</span> 53%</span></div>
+<div class="ch"><span class="pc">46%</span><span class="lb">상승 확률 · 현재</span></div>
+<div class="bar" aria-hidden="true"><i style="width:46%"></i></div>
+<div class="bl"><span class="y"><span class="mt" title="Up">상승</span> 46%</span><span class="n"><span class="mt" title="Down">하락</span> 55%</span></div>
 
 <div class="pills"><span class="pl no" data-outcome="Down" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot"><span class="mt" title="Down">하락</span></span> <span class="pr">52¢</span></span><span class="pl yes" data-outcome="Up" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot"><span class="mt" title="Up">상승</span></span> <span class="pr">54¢</span></span><span class="pl no" data-outcome="Down" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot"><span class="mt" title="Down">하락</span></span> <span class="pr">52¢</span></span><span class="pl yes" data-outcome="Up" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg><span class="ot"><span class="mt" title="Up">상승</span></span> <span class="pr">54¢</span></span></div>
 <div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>라이브</span><span>2026-10-14 마감</span>
@@ -322,9 +322,9 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <a class="mk" href="../ko/round/44/" data-live data-market="10261" data-end="2026-10-14T20:00:00Z">
 <div class="mh"><svg class="ci" role="img" aria-label="e스포츠"><use href="#ci-esports"/></svg><div><div class="t1">Counter-Strike: BET-M 33 vs FORZE Reload (BO3) - NODWIN Clutch Series Group Stage</div></div></div>
 
-<div class="ch"><span class="pc">54%</span><span class="lb">BET-M 33 확률 · 현재</span></div>
-<div class="bar" aria-hidden="true"><i style="width:54%"></i></div>
-<div class="bl"><span class="y">BET-M 33 54%</span><span class="n">FORZE Reload 46%</span></div>
+<div class="ch"><span class="pc">52%</span><span class="lb">BET-M 33 확률 · 현재</span></div>
+<div class="bar" aria-hidden="true"><i style="width:52%"></i></div>
+<div class="bl"><span class="y">BET-M 33 52%</span><span class="n">FORZE Reload 48%</span></div>
 
 <div class="pills"><span class="pl yes" data-outcome="BET-M 33" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot">BET-M 33</span> <span class="pr">65¢</span></span><span class="pl yes" data-outcome="BET-M 33" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot">BET-M 33</span> <span class="pr">61¢</span></span><span class="pl yes" data-outcome="BET-M 33" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot">BET-M 33</span> <span class="pr">65¢</span></span><span class="pl no" data-outcome="FORZE Reload" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg><span class="ot">FORZE Reload</span> <span class="pr">50¢</span></span></div>
 <div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>라이브</span><span>2026-10-14 마감</span>
@@ -352,23 +352,12 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>라이브</span><span>2026-10-14 마감</span>
 <span class="rid">41라운드</span></div></a>
 
-<a class="mk" href="../ko/round/40/" data-live data-market="7867" data-end="2026-10-14T02:30:00Z">
-<div class="mh"><svg class="ci" role="img" aria-label="스포츠"><use href="#ci-sports"/></svg><div><div class="t1">Oilers vs. Kings</div></div></div>
-
-<div class="ch"><span class="pc">100%</span><span class="lb">Oilers 확률 · 현재</span></div>
-<div class="bar" aria-hidden="true"><i style="width:100%"></i></div>
-<div class="bl"><span class="y">Oilers 100%</span><span class="n">Kings 0%</span></div>
-
-<div class="pills"><span class="pl yes" data-outcome="Oilers" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot">Oilers</span> <span class="pr">54¢</span></span><span class="pl yes" data-outcome="Oilers" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot">Oilers</span> <span class="pr">54¢</span></span><span class="pl yes" data-outcome="Oilers" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot">Oilers</span> <span class="pr">54¢</span></span><span class="pl yes" data-outcome="Oilers" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg><span class="ot">Oilers</span> <span class="pr">54¢</span></span></div>
-<div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>라이브</span><span>2026-10-14 마감</span>
-<span class="rid">40라운드</span></div></a>
-
 <a class="mk" href="../ko/round/38/" data-live data-market="9184" data-end="2026-10-16T20:00:00Z">
 <div class="mh"><svg class="ci" role="img" aria-label="기타"><use href="#ci-other"/></svg><div><div class="t1"><span class="mt" title="Will Palantir Technologies Inc. (PLTR) hit (HIGH) $210 Week of October 12 2026?">Palantir Technologies Inc. (PLTR)가 2026년 10월 12일 주간에 (HIGH) $210에 도달할까요?</span></div></div></div>
 
-<div class="ch"><span class="pc">92%</span><span class="lb">예 확률 · 현재</span></div>
-<div class="bar" aria-hidden="true"><i style="width:92%"></i></div>
-<div class="bl"><span class="y"><span class="mt" title="Yes">예</span> 92%</span><span class="n"><span class="mt" title="No">아니요</span> 8%</span></div>
+<div class="ch"><span class="pc">94%</span><span class="lb">예 확률 · 현재</span></div>
+<div class="bar" aria-hidden="true"><i style="width:94%"></i></div>
+<div class="bl"><span class="y"><span class="mt" title="Yes">예</span> 94%</span><span class="n"><span class="mt" title="No">아니요</span> 6%</span></div>
 
 <div class="pills"><span class="pl yes" data-outcome="Yes" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot"><span class="mt" title="Yes">예</span></span> <span class="pr">83¢</span></span><span class="pl yes" data-outcome="Yes" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot"><span class="mt" title="Yes">예</span></span> <span class="pr">83¢</span></span><span class="pl yes" data-outcome="Yes" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot"><span class="mt" title="Yes">예</span></span> <span class="pr">83¢</span></span><span class="pl off" data-outcome="" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg>베팅 없음</span></div>
 <div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>라이브</span><span>2026-10-16 마감</span>
@@ -388,9 +377,9 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <a class="mk" href="../ko/round/36/" data-live data-market="8943" data-end="2026-10-16T20:00:00Z">
 <div class="mh"><svg class="ci" role="img" aria-label="기타"><use href="#ci-other"/></svg><div><div class="t1"><span class="mt" title="Will NVIDIA (NVDA) hit (LOW) $224 Week of October 12 2026?">NVIDIA (NVDA)가 2026년 10월 12일 주간에 (LOW) $224에 도달할까요?</span></div></div></div>
 
-<div class="ch"><span class="pc">44%</span><span class="lb">예 확률 · 현재</span></div>
-<div class="bar" aria-hidden="true"><i style="width:44%"></i></div>
-<div class="bl"><span class="y"><span class="mt" title="Yes">예</span> 44%</span><span class="n"><span class="mt" title="No">아니요</span> 56%</span></div>
+<div class="ch"><span class="pc">46%</span><span class="lb">예 확률 · 현재</span></div>
+<div class="bar" aria-hidden="true"><i style="width:46%"></i></div>
+<div class="bl"><span class="y"><span class="mt" title="Yes">예</span> 46%</span><span class="n"><span class="mt" title="No">아니요</span> 54%</span></div>
 
 <div class="pills"><span class="pl yes" data-outcome="Yes" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot"><span class="mt" title="Yes">예</span></span> <span class="pr">66¢</span></span><span class="pl yes" data-outcome="Yes" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot"><span class="mt" title="Yes">예</span></span> <span class="pr">66¢</span></span><span class="pl yes" data-outcome="Yes" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot"><span class="mt" title="Yes">예</span></span> <span class="pr">66¢</span></span><span class="pl yes" data-outcome="Yes" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg><span class="ot"><span class="mt" title="Yes">예</span></span> <span class="pr">66¢</span></span></div>
 <div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>라이브</span><span>2026-10-16 마감</span>
@@ -399,9 +388,9 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <a class="mk" href="../ko/round/34/" data-live data-market="8601" data-end="2026-10-14T16:00:00Z">
 <div class="mh"><svg class="ci" role="img" aria-label="암호화폐"><use href="#ci-crypto"/></svg><div><div class="t1"><span class="mt" title="Ethereum Up or Down on October 14?">10월 14일 Ethereum 상승 또는 하락?</span></div></div></div>
 
-<div class="ch"><span class="pc">38%</span><span class="lb">상승 확률 · 현재</span></div>
-<div class="bar" aria-hidden="true"><i style="width:38%"></i></div>
-<div class="bl"><span class="y"><span class="mt" title="Up">상승</span> 38%</span><span class="n"><span class="mt" title="Down">하락</span> 62%</span></div>
+<div class="ch"><span class="pc">36%</span><span class="lb">상승 확률 · 현재</span></div>
+<div class="bar" aria-hidden="true"><i style="width:36%"></i></div>
+<div class="bl"><span class="y"><span class="mt" title="Up">상승</span> 36%</span><span class="n"><span class="mt" title="Down">하락</span> 64%</span></div>
 
 <div class="pills"><span class="pl no" data-outcome="Down" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot"><span class="mt" title="Down">하락</span></span> <span class="pr">50¢</span></span><span class="pl no" data-outcome="Down" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot"><span class="mt" title="Down">하락</span></span> <span class="pr">51¢</span></span><span class="pl no" data-outcome="Down" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot"><span class="mt" title="Down">하락</span></span> <span class="pr">50¢</span></span><span class="pl yes" data-outcome="Up" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg><span class="ot"><span class="mt" title="Up">상승</span></span> <span class="pr">52¢</span></span></div>
 <div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>라이브</span><span>2026-10-14 마감</span>
@@ -410,9 +399,9 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <a class="mk" href="../ko/round/29/" data-live data-market="8463" data-end="2026-10-17T03:59:00Z">
 <div class="mh"><svg class="ci" role="img" aria-label="정치"><use href="#ci-politics"/></svg><div><div class="t1">Will Trump&#39;s approval rating be at least 38.0 on October 16, 2026?</div></div></div>
 
-<div class="ch"><span class="pc">73%</span><span class="lb">예 확률 · 현재</span></div>
-<div class="bar" aria-hidden="true"><i style="width:73%"></i></div>
-<div class="bl"><span class="y"><span class="mt" title="Yes">예</span> 73%</span><span class="n"><span class="mt" title="No">아니요</span> 27%</span></div>
+<div class="ch"><span class="pc">74%</span><span class="lb">예 확률 · 현재</span></div>
+<div class="bar" aria-hidden="true"><i style="width:74%"></i></div>
+<div class="bl"><span class="y"><span class="mt" title="Yes">예</span> 74%</span><span class="n"><span class="mt" title="No">아니요</span> 26%</span></div>
 
 <div class="pills"><span class="pl yes" data-outcome="Yes" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot"><span class="mt" title="Yes">예</span></span> <span class="pr">50¢</span></span><span class="pl yes" data-outcome="Yes" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot"><span class="mt" title="Yes">예</span></span> <span class="pr">53¢</span></span><span class="pl yes" data-outcome="Yes" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot"><span class="mt" title="Yes">예</span></span> <span class="pr">50¢</span></span><span class="pl yes" data-outcome="Yes" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg><span class="ot"><span class="mt" title="Yes">예</span></span> <span class="pr">50¢</span></span></div>
 <div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>라이브</span><span>2026-10-17 마감</span>
@@ -432,9 +421,9 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <a class="mk" href="../ko/round/25/" data-live data-market="3590" data-end="2026-10-16T20:00:00Z">
 <div class="mh"><svg class="ci" role="img" aria-label="기타"><use href="#ci-other"/></svg><div><div class="t1"><span class="mt" title="Will Amazon.com, Inc. (AMZN) hit (LOW) $252 Week of October 12 2026?">Amazon.com, Inc. (AMZN)가 2026년 10월 12일 주간에 (LOW) $252에 도달할까요?</span></div></div></div>
 
-<div class="ch"><span class="pc">34%</span><span class="lb">예 확률 · 현재</span></div>
-<div class="bar" aria-hidden="true"><i style="width:34%"></i></div>
-<div class="bl"><span class="y"><span class="mt" title="Yes">예</span> 34%</span><span class="n"><span class="mt" title="No">아니요</span> 66%</span></div>
+<div class="ch"><span class="pc">33%</span><span class="lb">예 확률 · 현재</span></div>
+<div class="bar" aria-hidden="true"><i style="width:33%"></i></div>
+<div class="bl"><span class="y"><span class="mt" title="Yes">예</span> 33%</span><span class="n"><span class="mt" title="No">아니요</span> 67%</span></div>
 
 <div class="pills"><span class="pl yes" data-outcome="Yes" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot"><span class="mt" title="Yes">예</span></span> <span class="pr">22¢</span></span><span class="pl yes" data-outcome="Yes" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot"><span class="mt" title="Yes">예</span></span> <span class="pr">22¢</span></span><span class="pl no" data-outcome="No" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot"><span class="mt" title="No">아니요</span></span> <span class="pr">79¢</span></span><span class="pl no" data-outcome="No" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg><span class="ot"><span class="mt" title="No">아니요</span></span> <span class="pr">79¢</span></span></div>
 <div class="mf"><span class="lv"><span class="ldot" aria-hidden="true"></span>라이브</span><span>2026-10-16 마감</span>
@@ -455,6 +444,13 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <div class="fb"><span class="ft">영화</span><div><b>오늘의 영상</b> <span class="small mut">· <span lang="en">Match of the Day</span> · <span style="white-space:nowrap">2026-10-14</span></span></div>
 <div class="small"><b lang="en" dir="ltr">Clock starts. Bitcoin moves.</b></div>
 <div class="mf"><a href="../ko/round/42/">42라운드</a><a class="rid" href="../ko/films/">모든 영상</a></div></div></div>
+
+<a class="mk done" href="../ko/round/40/">
+<div class="mh"><svg class="ci" role="img" aria-label="스포츠"><use href="#ci-sports"/></svg><div><div class="t1">Oilers vs. Kings</div></div></div>
+<div class="win"><span class="ck" aria-hidden="true">✓</span> 결과 확정: <b>Oilers</b></div>
+
+<div class="pills"><span class="pl yes" title="Claude"><svg class="mi" width="20" height="20" role="img" aria-label="Claude"><use href="#m-claude"/></svg><span class="ot">Oilers</span> <span class="pr">54¢</span> ✓</span><span class="pl yes" title="ChatGPT"><svg class="mi" width="20" height="20" role="img" aria-label="ChatGPT"><use href="#m-codex"/></svg><span class="ot">Oilers</span> <span class="pr">54¢</span> ✓</span><span class="pl yes" title="Gemini"><svg class="mi" width="20" height="20" role="img" aria-label="Gemini"><use href="#m-agy"/></svg><span class="ot">Oilers</span> <span class="pr">54¢</span> ✓</span><span class="pl yes" title="Grok"><svg class="mi" width="20" height="20" role="img" aria-label="Grok"><use href="#m-grok"/></svg><span class="ot">Oilers</span> <span class="pr">54¢</span> ✓</span></div>
+<div class="mf"><span>AI 4개 중 4개 적중</span><span class="rid">40라운드</span></div></a>
 
 <a class="mk done" href="../ko/round/39/">
 <div class="mh"><svg class="ci" role="img" aria-label="스포츠"><use href="#ci-sports"/></svg><div><div class="t1">CA Boca Juniors vs. CR Vasco da Gama</div><div class="t2"><span class="mt" title="Will CR Vasco da Gama win on 2026-10-13?">CR Vasco da Gama가 2026-10-13에 승리할까요?</span></div></div></div>
@@ -562,18 +558,7 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <div class="mf"><span>AI 4개 중 0개 적중</span><span class="rid">16라운드</span></div></a>
 
 </div>
-<section class="fire" aria-labelledby="fire-h"><h2 id="fire-h">🔥 지금 누가 불타오르나</h2>
-<div class="scroll"><table><tr><th>에이전트</th><th class="r">현재 연속 기록</th><th></th></tr>
-<tr><td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-agy"/></svg><a href="../ko/agent/agy/">Gemini</a></td>
-<td class="r nw num">–</td>
-<td class="small mut">최장 연승 5</td></tr><tr><td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-claude"/></svg><a href="../ko/agent/claude/">Claude</a></td>
-<td class="r nw num">–</td>
-<td class="small mut">최장 연승 4</td></tr><tr><td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-codex"/></svg><a href="../ko/agent/codex/">ChatGPT</a></td>
-<td class="r nw num">–</td>
-<td class="small mut">최장 연승 2</td></tr><tr><td class="nw"><svg class="mi" width="22" height="22" aria-hidden="true"><use href="#m-grok"/></svg><a href="../ko/agent/grok/">Grok</a></td>
-<td class="r nw num"><span class="neg">🧊 2</span></td>
-<td class="small mut">최장 연승 5</td></tr>
-</table></div></section>
+
 <div class="btns"><a class="btn" href="../ko/leaderboard/">전체 순위표</a></div>
 </main>
 <section class="share" id="share" data-share-bar aria-labelledby="share-h"><h2 id="share-h">이 페이지 공유</h2>
@@ -620,6 +605,6 @@ top.getBoundingClientRect().top<0||fab.classList.remove("on")});[top,b,ft].forEa
 fab.onclick=function(){var o={text:top.dataset.text,url:top.dataset.url};if(top.dataset.title)o.title=top.dataset.title;sh(o)}}
 else if(fab)fab.remove()})();</script>
 <footer>SKALE Labs가 운영하는 자동화 벤치마크. 가상 화폐(agentpit apUSD) 사용. 프런티어 대 프런티어: 각 AI는 자사 연구소의 최상위 모델을 최대 추론으로 사용합니다. 결과는 절대 수정하지 않습니다.
-<a href="../ko/methodology/">방법론 v2.1</a> · <a href="../ko/independence/">독립성과 이해충돌</a> · <a href="../ko/incidents/">사고 기록</a> · <a href="../ko/experiments/">실험</a> · <a href="../ko/contrarian/">역발상 예측</a> · <a href="../ko/data/">데이터와 방법</a> · <a href="../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">소스 코드 (AGPL-3.0)</a> · <a href="https://huggingface.co/datasets/skalenetwork/agentpitbench" rel="noopener">데이터셋</a> · <a href="../ko/terms/">이용약관</a> · <a href="../ko/privacy/">개인정보</a> · 생성 2026-10-14 05:23 UTC<br>독립 벤치마크입니다. Polymarket과 제휴 관계가 없습니다.</footer>
+<a href="../ko/methodology/">방법론 v2.1</a> · <a href="../ko/independence/">독립성과 이해충돌</a> · <a href="../ko/incidents/">사고 기록</a> · <a href="../ko/experiments/">실험</a> · <a href="../ko/contrarian/">역발상 예측</a> · <a href="../ko/data/">데이터와 방법</a> · <a href="../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">소스 코드 (AGPL-3.0)</a> · <a href="https://huggingface.co/datasets/skalenetwork/agentpitbench" rel="noopener">데이터셋</a> · <a href="../ko/terms/">이용약관</a> · <a href="../ko/privacy/">개인정보</a> · 생성 2026-10-14 05:35 UTC<br>독립 벤치마크입니다. Polymarket과 제휴 관계가 없습니다.</footer>
 <script defer type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "7f12b95829f74ed488cdf4008a176a57"}'></script>
 </body></html>
