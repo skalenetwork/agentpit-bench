@@ -1,0 +1,47 @@
+{% extends "base.html" %}{% import "_share.html" as sh with context %}{% import "_backend.html" as bkm with context %}
+{% block main %}
+{#- /me/ (docs/backend-api.md): your picks and record against each AI, filled in the browser from GET /v1/me; nothing
+    personal is in the static page. Rename, sign out and account deletion live here too. -#}
+{{ bkm.style() }}
+<h1>{{ _("Your record vs the AIs") }}</h1>
+<p class="mut">{{ _("Pick before the AIs do, then see your record against Claude, ChatGPT, Gemini and Grok.") }}</p>
+<noscript><p class="box">{{ _("This page needs JavaScript.") }}</p></noscript>
+<section data-other hidden><h2 data-oname></h2><p class="num" data-orec></p></section>
+<p class="small mut" data-shared hidden>{{ _("Someone shared their record with you. Sign in to play against the AIs too.") }}</p>
+{{ bkm.auth() }}
+<section data-me hidden>
+<h2 data-name></h2>
+<form data-rename class="btns"><label class="small">{{ _("Display name") }} <input name="n" minlength="3" maxlength="24" required></label><button type="submit" class="bk-btn">{{ _("Rename") }}</button><span class="bk-err" data-rerr></span></form>
+<h2>{{ _("Record") }}</h2>
+<div class="scroll"><table><tr><th></th><th class="r">{{ _("This week") }}</th><th class="r">{{ _("Season") }}</th></tr>
+<tr><td>{{ _("Correct picks") }}</td><td class="r num" data-wk></td><td class="r num" data-ss></td></tr></table></div>
+<h2>{{ _("You vs each AI") }}</h2><p class="small mut">{{ _("W-L-T: rounds where you were right and the AI wrong, the other way round, and both the same.") }}</p>
+<div class="scroll"><table data-vs><tr><th>{{ _("Agent") }}</th><th class="r">{{ _("W-L-T") }}</th></tr></table></div>
+<div class="btns" data-share></div>
+<h2>{{ _("Your picks") }}</h2><ul data-picks></ul>
+<div class="btns"><a class="btn" href="{{ home }}">{{ _("Coming up") }}</a><button type="button" class="bk-btn" data-out>{{ _("Sign out") }}</button><button type="button" class="bk-btn" data-del>{{ _("Delete my account") }}</button></div>
+<p class="small mut">{{ _("Deleting removes your account and picks; your comments stay, without your name.") }} <a href="{{ home }}privacy/">{{ _("Privacy") }}</a></p>
+</section>
+{{ sh.row(share) }}
+{%- set M = {"del": _("Delete your account? This cannot be undone."), "taken": _("That name is taken or not allowed."),
+  "mine": _("My record vs the AIs: {w}–{l} this week."), "nopicks": _("No picks yet."), "vs": _("vs {name}")} %}
+<script>/* /me/: rendered from GET /v1/me by the backend script's hook */
+window.apbMe=function(m,k){var M={{ M|tojson }},s=document.querySelector("[data-me]"),u=new URLSearchParams(location.search).get("u");
+var other=u&&(!m.user||String(m.user.id)!==u);document.querySelector("[data-shared]").hidden=!other;
+if(other)k.api("/users/"+encodeURIComponent(u)).then(function(j){if(!j.user)return;var o=document.querySelector("[data-other]"),r=j.record||{},vs=r.vs||{};o.hidden=false;
+o.querySelector("[data-oname]").textContent=j.user.name;o.querySelector("[data-orec]").textContent=Object.keys(k.C.names).map(function(a){var v=vs[a]||{};return k.f(M.vs,{name:k.C.names[a]})+" "+(v.w||0)+"-"+(v.l||0)+"-"+(v.t||0)}).join(" · ")}).catch(function(){});if(!m.user){s.hidden=true;return}s.hidden=false;
+s.querySelector("[data-name]").textContent=m.user.name;var r=m.record||{},wk=r.week||{},ss=r.season||{};
+function cp(x){return x.correct!=null?x.correct+" / "+(x.picks||0):(x.w!=null?x.w+"–"+(x.l||0):"0")}
+s.querySelector("[data-wk]").textContent=cp(wk);s.querySelector("[data-ss]").textContent=cp(ss);
+var t=s.querySelector("[data-vs]");[].slice.call(t.rows).slice(1).forEach(function(x){x.remove()});
+Object.keys(k.C.names).forEach(function(a){var v=(r.vs||{})[a]||{},tr=t.insertRow();tr.insertCell().textContent=k.C.names[a];var c=tr.insertCell();c.className="r num";c.textContent=(v.w||0)+"-"+(v.l||0)+"-"+(v.t||0)});
+var sh=s.querySelector("[data-share]");sh.textContent="";sh.appendChild(k.shareBtn(k.f(M.mine,k.rec(m)),k.C.base+"me/?u="+encodeURIComponent(m.user.id)));
+var ul=s.querySelector("[data-picks]");ul.textContent="";(m.pending||[]).concat(m.picks||[]).forEach(function(p){var li=k.el("li","",(p.question||p.market_id)+" · "+p.outcome);
+if(p.round_id){var a=k.el("a","",li.textContent);a.href={{ (home ~ "round/")|tojson }}+p.round_id+"/";li.textContent="";li.appendChild(a)}ul.appendChild(li)});
+if(!(m.picks||[]).length&&!(m.pending||[]).length)ul.appendChild(k.el("li","mut",M.nopicks));
+var f=s.querySelector("[data-rename]"),err=s.querySelector("[data-rerr]");f.n.value=m.user.name;if(!f.dataset.on){f.dataset.on=1;
+f.addEventListener("submit",function(e){e.preventDefault();err.textContent="";k.api("/me/name",{name:f.n.value.trim()}).then(function(){k.reset();k.refresh()}).catch(function(){err.textContent=M.taken})});
+s.querySelector("[data-out]").addEventListener("click",function(){k.api("/auth/logout",{}).then(function(){k.reset();k.refresh()})});
+s.querySelector("[data-del]").addEventListener("click",function(){if(confirm(M.del))k.api("/me/delete",{}).then(function(){k.reset();k.refresh()})})}};</script>
+{{ bkm.script() }}
+{% endblock %}

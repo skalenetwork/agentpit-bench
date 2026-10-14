@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% import "_macros.html" as m with context %}{% import "_share.html" as sh with context %}
+{% extends "base.html" %}{% import "_macros.html" as m with context %}{% import "_share.html" as sh with context %}{% import "_backend.html" as bkm with context %}
 {% block main %}
 <div class="small mut">{{ _("Round {n}", n=r.round_id) }} · {{ _("started {date}", date=r.started_at|date) }} · {{ _("closes {date}", date=(r.end_date or '')[:10]) }}{% if r.split %} · <span class="tag">{{ _("Split") }}</span>{% endif %}{% if is_upset(r) %} · <span class="tag upset">{{ _("Upset") }}</span>{% endif %}{% if r.high_stakes %} · <span class="tag hs">{{ _("High Stakes") }}</span>{% endif %}{% if r.exhibition and r.exclusion != 'infra' %} · <span class="tag ex">{{ _("Exhibition") }}</span>{% endif %}</div>
 <div class="rh"><h1>{% if r.market_name and r.market_name != r.question %}{{ mq(r.event_title) }} · {% endif %}{{ mq(r.question) }}</h1><div class="ra"><button type="button" class="bm" data-bm="{{ r.round_id }}" aria-pressed="false" hidden>☆</button>{{ sh.menu(share, embed) }}</div></div>
@@ -38,7 +38,13 @@
 {% if card %}<img class="card" src="{{ root }}{{ card }}" alt="{{ card_alt }}" width="1200" height="675" loading="lazy"><div class="btns">{{ m.share_image(img) }}</div>{% endif %}</section>{% endif %}
 <p class="small mut">{{ _("Outcomes at start:") }} {% for o in r.outcomes %}{{ mq(o) }} {{ r.prices_at_start[loop.index0]|cents if r.prices_at_start|length > loop.index0 else '' }}{% if not loop.last %} · {% endif %}{% endfor %}
 {% if tweet_url(r.thread_tweet_id) %} · <a href="{{ tweet_url(r.thread_tweet_id) }}">{{ _("X thread") }}</a>{% endif %}{% if tweet_url(r.results_tweet_id) %} · <a href="{{ tweet_url(r.results_tweet_id) }}">{{ _("results tweet") }}</a>{% endif %} · <a href="{{ r.market_link }}">{{ _("agentpit market") }}</a></p>
+{% if bk %}{#- the backend (docs/backend-api.md): your pick (closed once the AIs start: the counts, and after the result the
+    share text), then the Discussion tab; both filled in the browser, never in the static page -#}
+{{ bkm.style() }}<section data-bkpick hidden><h2>{{ _("Humans vs the AIs") }}</h2>{{ bkm.auth() }}{% set aip = {} %}{% if r.state == 'resolved' %}{% for e in r.entries %}{% if aip.update({e.agent: e.outcome}) %}{% endif %}{% endfor %}{% endif %}
+{{ bkm.pick(r.market_id, r.outcomes, r.market_name or r.question, r.winner if r.state == 'resolved' else none, aip) }}</section>
+{{ bkm.discussion(r.round_id) }}{% endif %}
 {% if same_cat %}<h2>{{ _("More markets in {category}", category=_(cat)) }}</h2><ul>{% for x in same_cat %}<li><a href="{{ home }}round/{{ x.round_id }}/">{{ mq(x.question) }}</a></li>{% endfor %}</ul>{% endif %}
 <p class="small">{% if prev_r %}<a href="{{ home }}round/{{ prev_r.round_id }}/" rel="prev">← {{ _("Previous round") }}</a>{% endif %}{% if prev_r and next_r %} · {% endif %}{% if next_r %}<a href="{{ home }}round/{{ next_r.round_id }}/" rel="next">{{ _("Next round") }} →</a>{% endif %}</p>
 {% if img or picks or wins %}{{ m.share_script() }}{% endif %}
+{% if bk %}{{ bkm.script() }}{% endif %}
 {% endblock %}

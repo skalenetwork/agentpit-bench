@@ -35,8 +35,10 @@ def test_legal_pages_in_sitemap_and_footer(built):  # noqa: F811
 
 
 def test_privacy_claims_match_the_code():
-    """The privacy page says the site sets no cookies and keeps choices in localStorage: no template or script
-    may write a cookie, and the theme/language/challenge state must be localStorage."""
+    """The privacy page says the site's pages set no cookies and keep choices in localStorage: no template or script
+    may write a cookie, and the theme/language/challenge state must be localStorage. With the backend on
+    (docs/backend-api.md) the one cookie, apb_s, is set by api.agentpitbench.org after sign-in (HttpOnly): the pages
+    only send it with credentialed requests to the Worker, never read or write it."""
     sources = [*TEMPLATES.glob("*.html"), *(TEMPLATES.parent.parent / "static").glob("*.js"),
                *(TEMPLATES.parent.parent / "widget").glob("*.js")]
     for f in sources:
@@ -45,3 +47,6 @@ def test_privacy_claims_match_the_code():
     assert 'localStorage.setItem("apb-theme"' in base and 'localStorage.setItem("apb-lang"' in base
     assert 'var K="apb-saved"' in base and "localStorage.setItem(K" in base  # bookmarks: browser only
     assert "localStorage.setItem(K" in (TEMPLATES / "challenge.html").read_text()
+    bk = (TEMPLATES / "_backend.html").read_text()
+    assert 'credentials:"include"' in bk and "apb_s" in bk
+    assert bk.count("https://accounts.google.com/gsi/client") == 1 and "s.src=" in bk  # injected on click only

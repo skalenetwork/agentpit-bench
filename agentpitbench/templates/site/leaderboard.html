@@ -15,6 +15,16 @@
 <td class="r num {{ lb.crowd.net_pnl|pnl_class }}">{{ lb.crowd.net_pnl|signed }}</td><td class="r">—</td><td class="r">—</td><td class="r">—</td></tr>{% endif %}
 </table></div>
 <p class="small"><a href="{{ home }}best-at/">{{ _("Which AI is best at what?") }}</a></p>
+{% if bk and hva %}{#- "Humans vs the AIs" (docs/backend-api.md): a parallel scoreboard from the backend's GET /v1/scoreboard,
+    fetched before the build (cached copy on failure). It never changes the betting record or the Crowd row. -#}
+<h2 id="humans-vs-ais">{{ _("Humans vs the AIs") }}</h2>
+<p class="small mut">{{ _("Signed-in visitors pick before the AIs start. A win: the human was right and the AI wrong; a loss: the other way round.") }} <a href="{{ home }}me/">{{ _("Your record") }}</a></p>
+<div class="scroll"><table><tr><th>{{ _("Agent") }}</th>{% for p, label in (("week", _("This week")), ("season", _("Season"))) %}{% if hva[p] %}<th class="r">{{ label }}: {{ _("humans W-L-T") }}</th>{% endif %}{% endfor %}</tr>
+{% for a in s.agents %}<tr><td>{{ mi(a) }}{{ names.get(a, a) }}</td>{% for p in ("week", "season") %}{% if hva[p] %}{% set v = (hva[p].by_ai or {}).get(a) or {} %}<td class="r num">{{ v.human_wins or 0 }}-{{ v.ai_wins or 0 }}-{{ v.ties or 0 }}</td>{% endif %}{% endfor %}</tr>{% endfor %}
+<tr><td>{{ _("Humans: correct picks") }}</td>{% for p in ("week", "season") %}{% if hva[p] %}{% set h = hva[p].humans or {} %}<td class="r num">{{ h.correct or 0 }} / {{ h.picks or 0 }}</td>{% endif %}{% endfor %}</tr></table></div>
+{% set top = (hva.season or {}).top or [] %}{% if top %}<h3>{{ _("Top humans this season") }}</h3><div class="scroll"><table><tr><th>#</th><th>{{ _("Name") }}</th><th class="r">{{ _("Correct") }}</th><th class="r">{{ _("Picks") }}</th></tr>
+{% for h in top[:20] %}<tr><td>{{ loop.index }}</td><td dir="auto">{{ h.name }}</td><td class="r num">{{ h.correct }}</td><td class="r">{{ h.picks }}</td></tr>{% endfor %}</table></div>{% endif %}
+{% endif %}
 {{ ba.fire(fire) }}
 {% if lb.all_time and lb.all_time.agents %}<h2>{{ _("All time") }}</h2>
 <div class="scroll"><table><tr><th>#</th><th>{{ _("Agent") }}</th><th class="r">{{ _("W-L") }}</th><th class="r">{{ _("Win rate") }}</th><th class="r">{{ _("Profit") }}</th></tr>

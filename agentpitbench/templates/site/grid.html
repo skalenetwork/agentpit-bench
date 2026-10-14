@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% import "_grid.html" as g with context %}{% import "_share.html" as sh with context %}
+{% extends "base.html" %}{% import "_grid.html" as g with context %}{% import "_share.html" as sh with context %}{% import "_backend.html" as bkm with context %}
 {% set wide = true %}
 {% block main %}
 {#- A category bar page /c/<slug>/ (docs/polymarket-layout-spec.md §3): the home grid for one market category, or
@@ -6,6 +6,8 @@
 {{ g.style() }}
 <h1>{{ heading }}</h1>
 {{ sh.row(share) }}
+{% if bk and upcoming %}{{ bkm.style() }}{{ bkm.coming_up(upcoming) }}{% endif %}
 {% if grid %}{{ g.grid(grid) }}{% elif cur_cat == 'live' %}<p class="mut">{{ _("No market is live right now. The next round starts soon.") }}</p>{% else %}<p class="mut">{{ _("No results yet. The first round is live or on its way.") }}</p>{% endif %}
 <div class="btns">{% if best_at %}<a class="btn" href="{{ home }}best-at/{{ best_at }}/">{{ _("Which AI is best at what?") }}</a>{% endif %}<a class="btn" href="{{ home }}leaderboard/">{{ _("Full leaderboard") }}</a></div>
+{% if bk and upcoming %}{{ bkm.script() }}{% endif %}
 {% endblock %}

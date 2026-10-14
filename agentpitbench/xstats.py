@@ -688,6 +688,12 @@ def digest(s: Settings, db: DB, now: float | None = None) -> dict:
             out["tiktok"] = ttstats.digest_block(s, db, now)
         except Exception:
             log.exception("TikTok digest block failed")
+    if s.backend_enabled:   # docs/backend-api.md: the comments to review (reported or hidden since yesterday)
+        try:
+            from . import backend
+            out["comments_review"] = backend.review(s, y0)
+        except Exception:
+            log.exception("comments review digest block failed")
     s.export_dir.mkdir(parents=True, exist_ok=True)
     (s.export_dir / "x-daily.json").write_text(json.dumps(out, indent=1))
     log.info("x-daily %s: %d posts, %d impressions, %d interactions, %d link clicks, followers %s (%s), "
@@ -696,6 +702,9 @@ def digest(s: Settings, db: DB, now: float | None = None) -> dict:
              " ABOVE ALERT" if out["read_alert"] else "", out["skipped_for_budget"])
     if out.get("northstar"):
         log.info("x-daily: %s", northstar.line(out["northstar"]))
+    cr = out.get("comments_review")
+    if cr:
+        log.info("x-daily: comments to review: %s", cr.get("error") or f"{cr['n']} ({cr['hidden']} hidden)")
     if out["visibility_drop"]:
         v = out["visibility_drop"]
         log.warning("x-daily: visibility drop on %s: last %d posts all under 20%% of the %s-impression baseline",

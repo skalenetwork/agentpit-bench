@@ -673,6 +673,13 @@ def go_page(s: Settings, dest: str) -> str:
     return GO_HTML.format(dest_attr=h(dest, quote=True), dest_js=json.dumps(dest).replace("</", "<\\/"), beacon=beacon)
 
 
+def backend_ctx(s: Settings) -> dict:
+    """What the pages' backend script needs (docs/backend-api.md): the Worker's URL, the public Google client id and
+    the AIs' display names. Rendered only when backend_enabled."""
+    return {"api": s.backend_url.rstrip("/"), "cid": s.google_client_id,
+            "names": {a: AGENT_NAMES.get(a, a) for a in s.agents}}
+
+
 def site_cta(s: Settings) -> dict | None:
     """The day's site.round_cta arm (English round pages): {arm, text, arms}; None without a database."""
     if not s.db_path.exists():
@@ -1305,6 +1312,15 @@ def _build(s: Settings) -> Path:
         film_of.setdefault(f["round_id"], f)
 
     n_resolved = sum(1 for r in all_rounds if discover.counts(r))  # the embeds' credibility line
+    # the backend (docs/backend-api.md), off unless backend_enabled: "Coming up" (the bot's last upcoming list, picks
+    # still open at build time), the cached "Humans vs the AIs" scoreboard, and the client-side pick/comment UI
+    from . import backend as _backend
+    bk = backend_ctx(s) if s.backend_enabled else None
+    upcoming = [{**x, "locks_utc": datetime.fromtimestamp(x["locks_at"], timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+                 "category": grid_category({"question": x.get("question") or "", "event_title": x.get("event_title")})}
+                for x in _backend.upcoming_cached(s) if (x.get("locks_at") or 0) > time.time() and not x.get("round_id")
+                and x.get("outcomes")] if bk else []
+    hva = _backend.scoreboard(s) if bk else None
     for lang in CODES:
         _ = Translator(lang)
         r_embeds: dict[int, dict] = {}
@@ -1322,7 +1338,7 @@ def _build(s: Settings) -> Path:
                   "lang_name": NAMES[lang], "mascot_sprite": lambda root: sprite(s.agents, root), "mi": mascot_use,
                   "commentary": commentary, "model_line": lambda a, _=_: model_line(a, _, eras.get(a)),
                   "models": AGENT_MODELS, "reasoning": REASONING, "exclusions": EXCLUSION_REASONS,
-                  "tq": tq, "mq": mq}
+                  "tq": tq, "mq": mq, "bk": bk}
         common["cat_links"] = {c["category"]: f"best-at/{c['slug']}/" for c in cat_live}
         common["cat_min"] = CATEGORY_MIN
         common["grid_bar"] = [("live", _("Live")), *((slug, _(cat)) for slug, cat in grid_cats)]
@@ -1387,6 +1403,7 @@ def _build(s: Settings) -> Path:
 
         page("index.html", "index.html", grid=[cards_of[r["round_id"]] for r in grid_rounds(rounds)],
              standings=board[:4], description=None, film=films[0] if films else None, fire=fire, cur_cat="",
+             upcoming=upcoming,
              today=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
              share_text=_("Four frontier AIs bet on real prediction markets. Live scoreboard:"),
              jsonld=discover.dataset_ld(s, lb, f"{base}/"),
@@ -1404,12 +1421,13 @@ def _build(s: Settings) -> Path:
                 cd = _("Every {category} market on AgentpitBench: the market's chance, each AI's pick and who was right.", category=cn)
             grs = grid_rounds(rounds, cat, live_only=cat is None)
             page(rel + "index.html", "grid.html", grid=[cards_of[r["round_id"]] for r in grs], cur_cat=slug,
+                 upcoming=upcoming if cat is None else [],
                  heading=ct, title=branded(ct), description=cd, best_at=best_slugs.get(cat),
                  lastmod=max((r.get("resolved_at") or r.get("started_at") or 0 for r in grs), default=0) or None,
                  jsonld=crumbs(None, (ct, rel)))
         page("leaderboard/index.html", "leaderboard.html",
              chart=pnl_chart(lb.get("series", {}), crowd=(lb.get("crowd") or {}).get("series"), _=_),
-             best=best, worst=worst, weekly=weekly, seasons=seasons, fire=fire,
+             best=best, worst=worst, weekly=weekly, seasons=seasons, fire=fire, hva=hva,
              title=branded(_("AI forecasting leaderboard: {names}", names=", ".join(names))),
              description=leaderboard_description(lb, _, ", ".join(names), as_of),
              share_text=leaderboard_share(lb, _), og=previews["standings"],
@@ -1522,9 +1540,14 @@ def _build(s: Settings) -> Path:
                 ("terms/index.html", "terms.html", _("Terms of use"),
                  _("AgentpitBench terms of use: an automated AI benchmark with paper money, not advice and not gambling; code AGPL-3.0, data CC BY 4.0.")),
                 ("privacy/index.html", "privacy.html", _("Privacy"),
-                 _("What AgentpitBench stores: no cookies or accounts on the site; public X handles and replies of people who play along."))):
+                 _("What AgentpitBench stores: Google sign-in for picks and comments (no email kept), one cookie on the backend after sign-in; public X handles and replies of people who play along.")
+                 if bk else _("What AgentpitBench stores: no cookies or accounts on the site; public X handles and replies of people who play along."))):
             page(path, tpl, title=branded(title), description=desc, lastmod=legal_ts,
                  legal_updated=LEGAL_UPDATED, legal_contact=LEGAL_CONTACT)
+        if bk:  # /me/: your picks and record vs each AI, from GET /v1/me in the browser (nothing personal is built)
+            page("me/index.html", "me.html", title=branded(_("Your record vs the AIs")), noindex=True,
+                 description=_("Pick before the AIs do, then see your record against Claude, ChatGPT, Gemini and Grok."),
+                 share_text=_("Can you beat the AIs? Pick before they do:"))
         page("incidents/index.html", "incidents.html", incidents=extra["incidents"] + INCIDENTS, title=branded(_("Incidents")),
              share_text=_("AgentpitBench publishes its own incidents. Here's the log."))
         page("contrarian/index.html", "contrarian.html", calls=lb.get("contrarian") or [],
@@ -1815,6 +1838,12 @@ class SiteDeployer:
                     await refresh_live_prices(self.s)
                 except Exception:
                     log.exception("live price refresh failed")
+            if self.s.backend_enabled:  # "Humans vs the AIs" (docs/backend-api.md); a failure keeps the cached copy
+                try:
+                    from . import backend
+                    await asyncio.to_thread(backend.refresh_scoreboard, self.s)
+                except Exception:
+                    log.exception("backend scoreboard refresh failed")
             await asyncio.to_thread(build, self.s)
             self.builds += 1
             if await asyncio.to_thread(deploy, self.s):
