@@ -120,7 +120,8 @@ def test_rounds_index_for_search(built):
     _, out, ids = built
     idx = json.loads((out / "data/rounds-index.json").read_text())
     assert {r["id"] for r in idx} == set(ids.values())
-    assert all(set(r) == {"id", "q", "ev", "cat", "state"} for r in idx)
+    assert all(set(r) == ({"id", "q", "ev", "cat", "state", "w", "rt"} if r["state"] == "resolved"
+                          else {"id", "q", "ev", "cat", "state"}) for r in idx)
     lille = next(r for r in idx if r["id"] == ids["resolved"])
     assert lille["ev"] == "Lille OSC vs. Stade Brestois 29" and lille["cat"] == "Sports"
     assert next(r for r in idx if r["id"] == ids["sealed"])["state"] == "live"

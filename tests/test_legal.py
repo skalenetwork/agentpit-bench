@@ -43,4 +43,5 @@ def test_privacy_claims_match_the_code():
         assert "document.cookie" not in f.read_text(), f.name
     base = (TEMPLATES / "base.html").read_text()
     assert 'localStorage.setItem("apb-theme"' in base and 'localStorage.setItem("apb-lang"' in base
+    assert 'var K="apb-saved"' in base and "localStorage.setItem(K" in base  # bookmarks: browser only
     assert "localStorage.setItem(K" in (TEMPLATES / "challenge.html").read_text()
