@@ -1,7 +1,8 @@
 # agentpitbench-api (Cloudflare Worker + D1)
 
-Backend for sign-in, human picks, the "Humans vs the AIs" scoreboard and comments.
-The contract is `docs/backend-api.md` (v1). Plain JavaScript ES modules, no runtime
+Backend for sign-in, human picks, the "Humans vs the AIs" scoreboard and comments
+(contract: `docs/backend-api.md`, v1), and the free public read API under `/v2/`
+(`docs/free-api-spec.md`: rounds, upcoming, live, leaderboard, agents, humans totals; API keys). Plain JavaScript ES modules, no runtime
 dependencies (WebCrypto for Google RS256 tokens and the HMAC session cookie).
 
 ```
@@ -9,7 +10,8 @@ worker/
   wrangler.toml     name agentpitbench-api, D1 binding DB, vars, custom domain (commented)
   schema.sql        D1 schema (idempotent; apply with wrangler d1 execute)
   src/index.js      routing, CORS, CSRF guard, X-Bench-Key check
-  src/handlers.js   endpoints
+  src/handlers.js   endpoints (v1)
+  src/v2.js         the free API: /v2/ reads, the embargo, keys, rate limits, /v1/ingest/rounds, operator controls
   src/auth.js       Google ID token verification (JWKS cached), session cookie
   src/words.js      generated names, name rules, word filter
   test/             vitest + @cloudflare/vitest-pool-workers (local workerd + D1)
@@ -98,6 +100,21 @@ curl -s https://api.agentpitbench.org/v1/health                      # {"ok":tru
 curl -s https://api.agentpitbench.org/v1/scoreboard?period=week
 curl -s -H "X-Bench-Key: $BENCH_INGEST_KEY" https://api.agentpitbench.org/v1/admin/review
 ```
+
+## Free API v2
+
+- `/v2/*` is GET only, `Access-Control-Allow-Origin: *`, no cookies. Without a key: `API_ANON_PER_HOUR`
+  (60) per IP per hour (the IP is hashed with `SESSION_SECRET` before it is stored). With
+  `Authorization: Bearer apb_...`: `API_KEY_PER_DAY` (10,000) per key per UTC day and `API_KEY_PER_SECOND` (10).
+  Over a limit: 429 `{error: "rate_limited", retry_after}` plus `Retry-After` and `X-RateLimit-*` headers.
+- Keys: up to `API_KEYS_PER_USER` (3) active keys per signed-in person (`/v1/me/keys`), shown once, stored as
+  SHA-256. Account deletion removes them.
+- The bot feeds the read model with `POST /v1/ingest/rounds`. Picks of a sealed round (state `running`, or
+  `sealed: true`) are stripped at ingest and again at every read.
+- Off switch: `API_V2_ENABLED = "0"` in `wrangler.toml` (next deploy), or at once without a deploy:
+  `agentpitbench api --off` (`POST /v1/admin/api {enabled:false}`); `/v2/` then answers 503 `api_disabled`.
+- After deploying this version run the schema again (`npx wrangler d1 execute agentpitbench --remote
+  --file=schema.sql`): it only adds the new tables.
 
 ## Behaviour notes (decisions the contract left open)
 
