@@ -47,6 +47,8 @@ SLOTS: dict[str, dict] = {
     "generic.cta": {"kind": "text", "max_len": 60},
     "site.round_cta": {"kind": "text", "max_len": 28},
     "reveal.media": {"kind": "code", "codes": ["four_decisions", "split_card"]},
+    # the round's opener: the split card (control) or a native X poll naming each side and its AIs (no media on X)
+    "reveal.format": {"kind": "code", "codes": ["card", "poll"]},
     "results.media": {"kind": "code", "codes": ["clip", "still"]},
     "tags": {"kind": "code", "codes": ["", " #AI", " #PredictionMarkets"]},
     "tone": {"kind": "code", "codes": ["fun", "plain"]},

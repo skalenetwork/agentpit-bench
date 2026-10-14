@@ -21,8 +21,8 @@ from .config import Settings
 from .db import DB
 from .engage import Engage
 from .site import SiteDeployer
-from .twitter import (Poster, clip, decision_text, market_name, price_str, results_shape, results_text, split_text,
-                      reveal_text)
+from .twitter import (Poster, clip, decision_text, market_name, poll_minutes, poll_options, poll_result_line,
+                      price_str, results_shape, results_text, split_text, reveal_text)
 from .virality import commentary
 
 log = logging.getLogger(__name__)
@@ -271,15 +271,24 @@ class BenchPublisher:
         shown = [(p, e) for e in rnd["entries"]
                  if (p := self.s.cards_dir / str(round_id) / f"decision-{e['agent']}.png").exists()][:4]
         cards = [p for p, _ in shown]
+        poll = opts = None
         try:
-            text, media = self._reveal_ab(round_id, rnd, key, headline, few, cards)
+            text, media, poll, opts = self._reveal_ab(round_id, rnd, key, headline, few, cards)
         except Exception:  # A/B never blocks a post: the control goes out
             log.exception("A/B for %s failed; posting the control", key)
             text, media = reveal_text(rnd, headline), cards or None
         # media is the decision cards (a list) or one split card (a Path): alt texts only describe the cards
         alt = [card_alt(rnd, e) for _, e in shown] if isinstance(media, list) and media == cards else None
         async with self._lock(round_id):
-            tid = await self.poster.post(key, "reveal", text, media, round_id=round_id, alt=alt)
+            tid = await self.poster.post(key, "reveal", text, media, round_id=round_id, alt=alt, poll=poll)
+            if poll and tid:
+                self.db.x("INSERT OR IGNORE INTO x_polls(round_id,tweet_id,options_json,duration_minutes) "
+                          "VALUES(?,?,?,?)", round_id, tid, json.dumps(opts, ensure_ascii=False),
+                          poll["duration_minutes"])
+            elif poll:   # X refused the poll (or nothing posted): the split card goes out instead, never no opener
+                log.warning("%s: the poll post failed; posting the split card", key)
+                ab.realize_control(self.db, key, "reveal.format")
+                tid = await self.poster.post(key, "reveal", text, media, round_id=round_id)
             if tid:
                 self.db.set_round(round_id, thread_tweet_id=tid)
                 self.db.x("UPDATE bets SET tweet_id=? WHERE tweet_id IS NULL AND run_id IN "
@@ -287,7 +296,9 @@ class BenchPublisher:
         exports.export(self.s, self.db)
 
     def _reveal_ab(self, round_id: int, rnd: dict, key: str, headline: str, few: bool, cards: list):
-        """The reveal's A/B slots: hook, cta, tags (text, through ab.finish) and media."""
+        """The reveal's A/B slots: hook, cta, tags (text, through ab.finish) and the format. Returns (text, media,
+        poll, options): the poll arm (reveal.format) posts the same text as a native X poll with no media on X;
+        `media` (the split card) is then only what Bluesky and Telegram, which have no polls, get."""
         sit, facts = split_shape(rnd)
         hook = ab.choose(self.db, self.s, "reveal.hook", key, None if few else sit, facts, kind="reveal")
         choices = [hook] + [ab.choose(self.db, self.s, sl, key, kind="reveal") for sl in ("reveal.cta", "tags")]
@@ -298,7 +309,13 @@ class BenchPublisher:
         # cut the cards' edges ("LAUDE BETS"); operator 2026-10-13 ended the reveal.media A/B arm for the split card
         split = self.s.cards_dir / str(round_id) / "split.png"
         media = split if split.exists() else (cards[0] if cards else None)  # no split card (one bettor): its card
-        return text, media
+        opts = None if few else poll_options(rnd)
+        if not opts or len({o["label"] for o in opts}) != len(opts):
+            return text, media, None, None   # under 2 bettors (or clashing labels): always the card, nothing recorded
+        if ab.choose(self.db, self.s, "reveal.format", key, kind="reveal").key != "poll":
+            return text, media, None, None
+        return text, media, {"options": [o["label"] for o in opts],
+                             "duration_minutes": poll_minutes(rnd.get("end_date"))}, opts
 
     async def on_resolved(self, round_id: int) -> None:
         try:   # a reveal still held for its window goes first: results quote it (virality-2 F1, never dropped)
@@ -326,6 +343,11 @@ class BenchPublisher:
         except Exception:
             log.exception("A/B for %s failed; posting the control", key)
         variant = variant or headline_variant(round_id)
+        poll_line = ""
+        try:   # the reveal poll's tally for the results text (optional: it gives way first)
+            poll_line = await self._poll_line(round_id, rnd)
+        except Exception:
+            log.exception("poll read for round %s failed", round_id)
         self.db.set_round(round_id, headline_variant=variant)  # recorded so clicks per tone can be compared
         png = await self._card(self.cards.results(rnd, board, crowd, cast=cast, top_humans=lb["humans"][:3],
                                                   variant=variant))
@@ -339,7 +361,7 @@ class BenchPublisher:
                 f"&utm_content={variant}")
         def render(v):
             return results_text(self.s, rnd, board, link, crowd, cast, hook=v.get("results.hook"),
-                                cta=v.get("results.cta", ""), extra_tags=v.get("tags", ""))
+                                cta=v.get("results.cta", ""), extra_tags=v.get("tags", ""), poll_line=poll_line)
         try:
             sit, facts = results_shape(rnd)
             choices = [ab.choose(self.db, self.s, "results.hook", key, sit, facts, kind="results")]
@@ -369,6 +391,32 @@ class BenchPublisher:
             log.exception("post-resolution extras for round %s failed", round_id)
         exports.export(self.s, self.db)
         self.site.request()
+
+    async def _poll_line(self, round_id: int, rnd: dict) -> str:
+        """Read the reveal poll's totals once after resolution (one X read), store them, and return the results
+        post's tally line ('' without a poll, with too few votes or when the read failed)."""
+        row = self.db.one("SELECT * FROM x_polls WHERE round_id=?", round_id)
+        if not row:
+            return ""
+        opts = json.loads(row["options_json"])
+        if row["read_at"] is None:
+            res = None
+            try:
+                res = await asyncio.to_thread(self.poster.poll_results, row["tweet_id"])
+            except Exception:
+                log.exception("reading the poll of round %s failed", round_id)
+            if res:
+                votes = {o["label"]: o["votes"] for o in res["options"]}
+                self.db.x("UPDATE x_polls SET votes_json=?, total=?, status=?, read_at=? WHERE round_id=?",
+                          json.dumps(votes, ensure_ascii=False), res["total"], res["status"], time.time(), round_id)
+            else:   # recorded as attempted either way, so the backend push doesn't wait on it
+                self.db.x("UPDATE x_polls SET read_at=? WHERE round_id=?", time.time(), round_id)
+            row = self.db.one("SELECT * FROM x_polls WHERE round_id=?", round_id)
+        if not row["votes_json"]:
+            return ""
+        votes = json.loads(row["votes_json"])
+        return poll_result_line({"options": [{**o, "votes": votes.get(o["label"], 0)} for o in opts],
+                                 "total": row["total"]}, rnd["winner"])
 
     async def press_conference(self, round_id: int) -> None:
         """Losing agents' one-line statements, as one link-free reply (two at most) under the results post.

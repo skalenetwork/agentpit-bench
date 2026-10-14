@@ -10,10 +10,12 @@ import asyncio
 import contextvars
 import json
 import logging
+import math
 import os
 import re
 import threading
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import requests
@@ -103,6 +105,72 @@ def market_name(rnd: dict) -> str:
     if ev and _VS.search(ev) and not _VS.search(q):
         return f"{ev} · {q}"
     return q
+
+
+POLL_LABEL_MAX = 25            # X: each poll option is at most 25 characters
+POLL_MIN_MIN, POLL_MAX_MIN = 5, 7 * 24 * 60   # X: a poll lasts 5 minutes to 7 days
+POLL_MIN_VOTES = 10            # below this the results post says nothing about the poll
+
+
+def _poll_label(outcome: str, names: list[str]) -> str:
+    """'YES · Claude, Grok', shortened step by step to fit 25: '<outcome> · 2 AIs', the bare outcome, a clip."""
+    o = " ".join((outcome or "").split())
+    for tail in (", ".join(names), f"{len(names)} AIs" if len(names) > 1 else ""):
+        if tail and len(f"{o} · {tail}") <= POLL_LABEL_MAX:
+            return f"{o} · {tail}"
+    return clip(o, POLL_LABEL_MAX)
+
+
+def poll_options(rnd: dict) -> list[dict] | None:
+    """The reveal poll's options as [{label, outcome}] (outcome None: 'They're wrong' on a market with more than two
+    outcomes). Split rounds: one option per side, naming its AIs (up to 4 sides: X allows 2-4 options). Unanimous
+    rounds: 'All 4 AIs: YES' against 'They're wrong'. None when fewer than 2 AIs bet (that round posts the card)."""
+    sides: dict[str, list[str]] = {}
+    for e in rnd["entries"]:
+        if e.get("outcome"):
+            sides.setdefault(e["outcome"], []).append(e["name"])
+    n = sum(len(v) for v in sides.values())
+    if n < 2:
+        return None
+    if len(sides) == 1:
+        (o, _), = sides.items()
+        other = [x for x in (rnd.get("outcomes") or []) if x != o]
+        head = f"All {n} AIs: "
+        return [{"label": head + clip(o, POLL_LABEL_MAX - len(head)), "outcome": o},
+                {"label": "They're wrong", "outcome": other[0] if len(other) == 1 else None}]
+    groups = sorted(sides.items(), key=lambda kv: -len(kv[1]))[:4]
+    return [{"label": _poll_label(o, names), "outcome": o} for o, names in groups]
+
+
+def poll_minutes(end_date: str | None, now: float | None = None) -> int:
+    """Poll length: until the market closes, clamped to X's 5 minutes .. 7 days (a day when the date is unreadable)."""
+    now = time.time() if now is None else now
+    try:
+        end = datetime.fromisoformat(str(end_date).replace("Z", "+00:00"))
+        if end.tzinfo is None:
+            end = end.replace(tzinfo=timezone.utc)
+        mins = math.ceil((end.timestamp() - now) / 60)
+    except (ValueError, TypeError):
+        mins = 24 * 60
+    return max(POLL_MIN_MIN, min(POLL_MAX_MIN, mins))
+
+
+def poll_result_line(poll: dict | None, winner: str | None) -> str:
+    """'64% of 212 X voters backed YES; they were right.' from a stored poll read ({options: [{label, outcome,
+    votes}], total}); '' when there is no poll, too few votes, a tie at the top or no winner. Neutral: no call to act."""
+    if not poll or not winner or int(poll.get("total") or 0) < POLL_MIN_VOTES:
+        return ""
+    opts = poll["options"]
+    top = max(o["votes"] for o in opts)
+    leaders = [o for o in opts if o["votes"] == top]
+    if len(leaders) != 1:
+        return ""
+    o, total = leaders[0], int(poll["total"])
+    pct = round(100 * o["votes"] / total)
+    if o.get("outcome") is None:   # "They're wrong" on a market with more than two outcomes: right iff the AIs missed
+        ai = [x["outcome"] for x in opts if x.get("outcome")]
+        return f"{pct}% of {total} X voters doubted the AIs; they were {'right' if winner not in ai else 'wrong'}."
+    return f"{pct}% of {total} X voters backed {o['outcome']}; they were {'right' if o['outcome'] == winner else 'wrong'}."
 
 
 def give_way(render, steps: list[str], flex: str = "", flex_min: int = 0, name: str = "") -> str:
@@ -253,11 +321,12 @@ def results_hook(rnd: dict) -> str:
 
 
 def results_text(s: Settings, rnd: dict, board: list[dict], round_url: str, crowd: dict | None = None,
-                 cast: str | None = None, hook: str | None = None, cta: str = "", extra_tags: str = "") -> str:
+                 cast: str | None = None, hook: str | None = None, cta: str = "", extra_tags: str = "", poll_line: str = "") -> str:
     """cast is accepted for compatibility but not repeated: the commentary line is on the card already.
     hook / cta / extra_tags are A/B variants (None / "" = today's control). Vendor handles are never varied.
     Line 1 is the market name; give way (longtail spec §3.2): the Crowd, the cta, the tags, the season line, then
-    the hook is clipped. A void round's hook already carries the name in full."""
+    the hook is clipped. A void round's hook already carries the name in full. poll_line (the reveal poll's tally)
+    is optional: it is the first part to go."""
     head = results_hook(rnd) if hook is None else hook
     tags = " ".join(dict.fromkeys(VENDOR_HANDLES[e["agent"]] for e in rnd["entries"]
                                   if e["won"] and e["agent"] in VENDOR_HANDLES))
@@ -268,11 +337,11 @@ def results_text(s: Settings, rnd: dict, board: list[dict], round_url: str, crow
     def render(d, f, n):
         line = (f"Season: {season}{'' if 'crowd' in d else crowd_part}. " if season and "season" not in d else "")
         line += f"{TAG}{'' if 'tags' in d else extra_tags}" + (f" {tags}" if tags else "")
-        lines = ([] if void else [n]) + [f, line] + ([cta] if cta and "cta" not in d else []) + [round_url]
+        lines = ([] if void else [n]) + [f] + ([poll_line] if poll_line and "poll" not in d else []) + [line] + ([cta] if cta and "cta" not in d else []) + [round_url]
         return "\n".join(lines)
     if void:  # the hook is 'Voided: <market name>. …': protected, never clipped
-        return give_way(lambda d, f, n: render(d, head, n), ["crowd", "cta", "tags", "season"])
-    return give_way(render, ["crowd", "cta", "tags", "season"], flex=head, flex_min=30, name=market_name(rnd))
+        return give_way(lambda d, f, n: render(d, head, n), ["poll", "crowd", "cta", "tags", "season"])
+    return give_way(render, ["poll", "crowd", "cta", "tags", "season"], flex=head, flex_min=30, name=market_name(rnd))
 
 
 def milestone_text(headline: str, subline: str) -> str:
@@ -422,13 +491,15 @@ class Poster:
     async def post(self, post_key: str, kind: str, text: str, image: Path | list[Path] | None = None,
                    reply_to: str | None = None, round_id: int | None = None, quote_of: str | None = None,
                    alt: list[str] | None = None, bsky_fallback: Path | None = None,
-                   bsky_media: Path | None = None) -> str | None:
+                   bsky_media: Path | None = None, poll: dict | None = None) -> str | None:
         """quote_of: tweet id to quote (a standalone post that embeds the round's thread).
         image: one image or video, or a list of up to 4 images shown together (the round's reveal).
         A successful post is then mirrored to Bluesky and Telegram (bluesky.Mirror, telegram.Mirror; never raise,
         never block X): alt is per-image alt text on Bluesky, bsky_fallback the still card either mirror posts if
         its video upload fails or the video is over its limit, bsky_media other media for Bluesky (the weekly
-        episode's trailer: Bluesky caps video at 3 minutes)."""
+        episode's trailer: Bluesky caps video at 3 minutes).
+        poll: {"options": [labels], "duration_minutes": n}: a native X poll. X polls carry no media, so on X the
+        post is text + poll only; the mirrors (no polls there) still get the text and `image`."""
         # mirrors follow X: nothing either. The one reply allowed is a listed "reply-back" (docs/virality-2-spec.md F2)
         if self.s.post_kinds and (kind not in self.s.post_kinds or (reply_to and kind != REPLY_BACK)):
             log.info("[not posted] %s: only %s posts, no replies", post_key, "/".join(self.s.post_kinds))
@@ -436,7 +507,8 @@ class Poster:
         if kind == REPLY_BACK and not self.s.post_kinds:   # never by default: only when listed in post_kinds
             log.info("[not posted] %s: reply-back is not in post_kinds", post_key)
             return None
-        tweet_id = await self._post_x(post_key, kind, text, image, reply_to, round_id, quote_of)
+        tweet_id = await self._post_x(post_key, kind, text, None if poll else image, reply_to, round_id, quote_of,
+                                      poll)
         if kind == REPLY_BACK:   # an answer on X only: never mirrored (two-posts rule on every channel)
             return tweet_id
         if tweet_id and self.bsky.enabled:
@@ -453,7 +525,7 @@ class Poster:
                 log.exception("telegram mirror of %s failed", post_key)
         return tweet_id
 
-    async def _post_x(self, post_key, kind, text, image, reply_to, round_id, quote_of) -> str | None:
+    async def _post_x(self, post_key, kind, text, image, reply_to, round_id, quote_of, poll=None) -> str | None:
         row = self.db.one("SELECT tweet_id FROM tweets WHERE post_key=?", post_key)
         if row and row["tweet_id"]:
             return row["tweet_id"]
@@ -465,9 +537,9 @@ class Poster:
             log.warning("tweet %s is %d chars; clipping", post_key, tweet_len(text))
             text = clip(text, MAX_LEN)
         if self.live:
-            tweet_id = await self._post_live(text, image, reply_to, quote_of)
+            tweet_id = await self._post_live(text, image, reply_to, quote_of, poll)
         else:
-            tweet_id = self._post_outbox(post_key, kind, text, image, reply_to, quote_of)
+            tweet_id = self._post_outbox(post_key, kind, text, image, reply_to, quote_of, poll)
         if tweet_id:
             self.db.x("INSERT INTO tweets(post_key,tweet_id,kind,round_id,text,image_path,posted_at,reply_to,quote_of)"
                       " VALUES(?,?,?,?,?,?,?,?,?)"
@@ -500,23 +572,23 @@ class Poster:
             log.exception("could not delete tweet %s", tweet_id)
             return False
 
-    def _post_outbox(self, post_key, kind, text, image, reply_to, quote_of=None) -> str:
+    def _post_outbox(self, post_key, kind, text, image, reply_to, quote_of=None, poll=None) -> str:
         self.s.outbox_dir.mkdir(parents=True, exist_ok=True)
         safe = re.sub(r"[^A-Za-z0-9_.-]", "_", post_key)
         tweet_id = f"dry-{safe}"
         (self.s.outbox_dir / f"{safe}.json").write_text(json.dumps({
             "post_key": post_key, "kind": kind, "text": text, "length": tweet_len(text),
             "image": _media_str(image), "images": [str(i) for i in _media_list(image)],
-            "reply_to": reply_to, "quote_of": quote_of,
+            "reply_to": reply_to, "quote_of": quote_of, "poll": poll,
             "tweet_id": tweet_id,
             "at": time.time()}, indent=1))
         log.info("[outbox] %s: %s", post_key, text.replace("\n", " ")[:120])
         return tweet_id
 
-    async def _post_live(self, text, image, reply_to, quote_of=None) -> str | None:
+    async def _post_live(self, text, image, reply_to, quote_of=None, poll=None) -> str | None:
         for attempt in range(5):
             try:
-                return await asyncio.to_thread(self._post_sync, text, image, reply_to, quote_of)
+                return await asyncio.to_thread(self._post_sync, text, image, reply_to, quote_of, poll)
             except PermanentError:
                 log.exception("tweet rejected")
                 return None
@@ -688,15 +760,33 @@ class Poster:
         return self.read(TWEETS_URL, {"ids": tweet_id, "tweet.fields": "public_metrics,non_public_metrics,"
                                       "organic_metrics,promoted_metrics"}, "post", "metrics")
 
+    def poll_results(self, tweet_id: str) -> dict | None:
+        """The votes of the poll on one of our posts (GET /2/tweets?ids= with expansions=attachments.poll_ids and
+        poll.fields=options,voting_status: one post read, ledgered as caller 'poll'). {options: [{label, votes}],
+        total, status} or None when X can't be read, the post is a dry-run one or carries no poll."""
+        if not self.can_read or not tweet_id or tweet_id.startswith("dry-"):
+            return None
+        j = self.read(TWEETS_URL, {"ids": tweet_id, "tweet.fields": "attachments",
+                                   "expansions": "attachments.poll_ids",
+                                   "poll.fields": "options,voting_status,end_datetime"}, "post", "poll")
+        poll = next(iter((j.get("includes") or {}).get("polls") or []), None)
+        if not poll:
+            return None
+        opts = sorted(poll.get("options") or [], key=lambda o: o.get("position", 0))
+        return {"options": [{"label": o["label"], "votes": int(o.get("votes", 0))} for o in opts],
+                "total": sum(int(o.get("votes", 0)) for o in opts), "status": poll.get("voting_status")}
+
     def upload(self, image: Path) -> str:
         # bytes, not a file handle: a 401 retry must resend the whole image
         r = self._call("POST", UPLOAD2_URL, files={"media": (image.name, image.read_bytes(), "image/png")},
                        data={"media_category": "tweet_image"})
         return r.json()["data"]["id"]
 
-    def _post_sync(self, text, image, reply_to, quote_of=None) -> str:
+    def _post_sync(self, text, image, reply_to, quote_of=None, poll=None) -> str:
         if self.oauth2.ready:
             body: dict = {"text": text}
+            if poll:
+                body["poll"] = _poll_body(poll)
             if image:
                 body["media"] = {"media_ids": [self.upload_media(Path(m)) for m in _media_list(image)]}
             if reply_to and not reply_to.startswith("dry-"):
@@ -706,6 +796,8 @@ class Poster:
             return self._call("POST", TWEET_URL, json=body).json()["data"]["id"]
         sess = self._session()
         body: dict = {"text": text}
+        if poll:
+            body["poll"] = _poll_body(poll)
         if image:
             ids = []
             for m in _media_list(image):
@@ -721,6 +813,11 @@ class Poster:
         r = sess.post(TWEET_URL, json=body, timeout=60)
         _check(r)
         return r.json()["data"]["id"]
+
+
+def _poll_body(poll: dict) -> dict:
+    """The v2 create-post `poll` object."""
+    return {"options": list(poll["options"]), "duration_minutes": int(poll["duration_minutes"])}
 
 
 class PermanentError(Exception):

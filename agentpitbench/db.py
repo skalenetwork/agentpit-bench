@@ -74,6 +74,16 @@ CREATE TABLE IF NOT EXISTS tweets (
     metrics_json TEXT
 );
 CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT);
+CREATE TABLE IF NOT EXISTS x_polls (         -- the reveal's native X poll (A/B reveal.format = poll) and its read-back
+    round_id INTEGER PRIMARY KEY,
+    tweet_id TEXT,
+    options_json TEXT NOT NULL,              -- [{label, outcome}] as posted
+    duration_minutes INTEGER,
+    votes_json TEXT,                         -- {label: votes} once read after resolution
+    total INTEGER,
+    status TEXT,                             -- X voting_status when read: open / closed
+    read_at REAL                             -- when a read was attempted (set even if it failed)
+);
 CREATE TABLE IF NOT EXISTS bsky_posts (   -- Bluesky mirror of a tweets row (same post_key); docs/bluesky-spec.md
     post_key TEXT PRIMARY KEY,
     uri TEXT, cid TEXT,                    -- at://did/app.bsky.feed.post/rkey, or dry-<key> from the outbox
