@@ -72,7 +72,7 @@ def test_seo_check_fails_only_on_fixed_pages():
     with pytest.raises(RuntimeError, match="duplicate description"):
         site.check_seo([("en", "press/", "Press", "same"), ("en", "data/", "Data", "same")])
     with pytest.raises(RuntimeError, match="empty title"):
-        site.check_seo([("de", "facts/", "", "x")])
+        site.check_seo([("de", "methodology/", "", "x")])
 
 
 def test_retired_head_to_head_pages_redirect(built):

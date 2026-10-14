@@ -36,7 +36,7 @@ def test_every_tool_answers_with_a_source_link(client):
         assert r["as_of"] and r["citation"] and r["methodology_version"] == s.methodology_version, name
         assert r["data"], name
     assert tools.call(c, "get_round", {"n": 1})["source_url"] == f"{s.site_url}/round/1/"
-    assert tools.call(c, "get_facts")["source_url"] == f"{s.site_url}/facts/"
+    assert tools.call(c, "get_facts")["source_url"] == f"{s.site_url}/facts.json"
 
 
 def test_open_rounds_keep_picks_sealed(client):
@@ -91,7 +91,7 @@ def test_stdio_subprocess(client):
                        capture_output=True, text=True, env=env, timeout=30)
     r1, r2 = (json.loads(x) for x in p.stdout.splitlines())
     assert r1["result"]["protocolVersion"] == server.PROTOCOL_VERSIONS[0]  # unknown version: offer ours
-    assert r2["result"]["structuredContent"]["source_url"] == f"{s.site_url}/facts/"
+    assert r2["result"]["structuredContent"]["source_url"] == f"{s.site_url}/facts.json"
 
 
 @pytest.mark.skipif(not shutil.which("node"), reason="node not installed")

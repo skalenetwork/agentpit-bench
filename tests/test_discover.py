@@ -90,32 +90,34 @@ def test_sitemap_every_page_every_language(built):
             alts = u.findall("x:link", ns)
             assert {a.get("hreflang") for a in alts} == {*i18n.CODES, "x-default"}
             assert loc in {a.get("href") for a in alts}
-    for rel in ("", "leaderboard/", "facts/", "methodology/", "round/1/", "agent/grok/"):
+    for rel in ("", "leaderboard/", "methodology/", "round/1/", "agent/grok/"):
         for c in i18n.CODES:
             assert f"{s.site_url}/{'' if c == 'en' else c + '/'}{rel}" in locs, (c, rel)
     assert not any("/widget/" in x or "/embed/" in x for x in locs)
     assert f"{s.site_url}/round/{ids['void']}/" not in locs  # hidden void rounds have no page
 
 
-def test_facts_page_in_every_language_matches_the_leaderboard(built):
+def test_facts_page_removed_facts_json_stays(built):
+    """/facts/ was removed (operator 2026-10-13): the old URL is a noindex stub to home in every language, nothing
+    links to it, and facts.json carries the dated facts for AI assistants instead."""
     s, _, out, _ = built
     lb = json.loads((out / "data/leaderboard.json").read_text())
     leader = next(b for b in lb["agents"] if b["rank"] == 1)   # the betting record is the headline
-    pnl = site.signed(leader["net_pnl"])
     assert leader["name"] in (out / "leaderboard/index.html").read_text()
     for code in i18n.CODES:
         prefix = "" if code == "en" else f"{code}/"
-        f = out / prefix / "facts/index.html"
-        html = f.read_text()
-        assert f.stat().st_size < 100_000 and f'<html lang="{code}"' in html
-        assert leader["name"] in html and pnl in html
-    en = (out / "facts/index.html").read_text()
-    assert "@misc{agentpitbench" in en and "Last updated" in en
-    assert f"{leader['name']} leads the AgentpitBench betting table" in en
-    assert "Brier" not in en and "95% confidence" not in en and "does not test the gap" not in en
-    assert "<h1>Fakten</h1>" in (out / "de/facts/index.html").read_text()
+        stub = (out / prefix / "facts/index.html").read_text()
+        assert "noindex" in stub and f'content="0;url={s.site_url}/{prefix}"' in stub, code
+    assert not any("/facts/" in f.read_text() for f in out.glob("sitemap*.xml"))
+    for p in ("index.html", "methodology/index.html", "independence/index.html", "data/index.html", "de/index.html"):
+        assert "/facts/" not in (out / p).read_text(), p
+    for p in ("llms.txt", "llms-full.txt", "api/v1/methodology.json", "api/v1/openapi.json"):
+        assert "/facts/" not in (out / p).read_text(), p
 
     fj = json.loads((out / "facts.json").read_text())
+    assert fj["source_url"] == f"{s.site_url}/facts.json" and fj["citation"].endswith(f"{s.site_url}/facts.json")
+    assert f"{leader['name']} leads the AgentpitBench betting table" in json.dumps(fj)
+    assert "@misc{agentpitbench" in fj["data"]["bibtex"] and f"{s.site_url}/facts.json" in fj["data"]["bibtex"]
     assert fj == json.loads((out / "api/v1/facts.json").read_text())
     d = fj["data"]
     assert "forecast" not in d and d["betting"]["leader"]["agent"] == leader["agent"]
@@ -134,7 +136,7 @@ def test_llms_txt(built):
     for text in (short, full):
         assert f"Data as of {stamp}, methodology v{s.methodology_version}." in text
         assert "also operates agentpit" in text
-        for link in ("/facts/", "/methodology/", "/independence/", "/leaderboard/", "/data/metrics.json",
+        for link in ("/facts.json", "/methodology/", "/independence/", "/leaderboard/", "/data/metrics.json",
                      "/api/v1/openapi.json"):
             assert s.site_url + link in text, link
         assert next(b for b in lb["agents"] if b["rank"] == 1)["name"] in text
@@ -155,7 +157,7 @@ def test_json_ld(built):
 
     def types(doc):
         return {n["@type"] for n in doc["@graph"]}
-    for p in ("index.html", "leaderboard/index.html", "facts/index.html", "fr/index.html"):
+    for p in ("index.html", "leaderboard/index.html", "fr/index.html"):
         doc = ld(p)
         assert {"Dataset", "Organization"} <= types(doc)
         ds = next(n for n in doc["@graph"] if n["@type"] == "Dataset")
@@ -260,4 +262,5 @@ def test_citation_cff_and_readme_abstract():
     assert cff.startswith("cff-version: 1.2.0") and "type: dataset" in cff
     assert f'version: "methodology-{Settings().methodology_version}"' in cff  # bump with the methodology
     readme = (root / "README.md").read_text()
-    assert "## Abstract" in readme and "CITATION.cff" in readme and "/facts/" in readme
+    assert "## Abstract" in readme and "CITATION.cff" in readme and "/facts.json" in readme
+    assert "/facts/" not in readme + cff

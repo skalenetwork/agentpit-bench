@@ -350,7 +350,7 @@ def test_share_row_at_the_top_of_every_page(env):
     s, out = _built(env, card=True)
     for code in ("en", "ar"):
         prefix = "" if code == "en" else f"{code}/"
-        for p in PUBLIC + ["facts/index.html", "films/index.html", "challenge/index.html"]:
+        for p in PUBLIC + ["films/index.html", "challenge/index.html"]:
             html = (out / prefix / p).read_text()
             top = html.find("data-share-top")
             assert 0 < top < html.index('id="share"'), (code, p)
@@ -409,8 +409,10 @@ def test_quote_share_never_for_sealed_or_without_a_card(env):
     assert site.x_len(long) <= 256 and long.startswith('Claude on "')
 
 
-def test_facts_share_each_sentence(env):
+def test_facts_page_is_gone(env):
+    """/facts/ was removed (operator 2026-10-13): a noindex stub without a share bar, no per-fact share script."""
     s, out = _built(env)
-    html = (out / "facts/index.html").read_text()
-    assert html.count("data-fact") > 5 and 'aria-label="Share"' in html
-    assert 'aria-label="مشاركة"' in (out / "ar/facts/index.html").read_text()
+    for p in ("facts/index.html", "ar/facts/index.html"):
+        html = (out / p).read_text()
+        assert "noindex" in html and "data-share-bar" not in html and "data-fact" not in html, p
+    assert "data-fact" not in (out / "index.html").read_text()
