@@ -109,3 +109,12 @@ def test_shadow_report(db):
              mid, score, "why", tier, time.time(), q)
     rep = rating.shadow_report(db, 7, per_day=2)
     assert "overlap" in rep and "Spearman" in rep and "Largest disagreements" in rep
+
+
+def test_shadow_report_retired_ids(db):
+    """Ids retired by a renumbering ('old:123') sit beside numeric ones; the report must not crash on them."""
+    import time
+    for mid, score, tier in (("old:25765", 70, 1), ("12", 60, 1), ("old:x", 50, 0)):
+        db.x("INSERT INTO market_ratings(market_id,score,reason,keyword_tier,rated_at,question) VALUES(?,?,?,?,?,?)",
+             mid, score, "why", tier, time.time(), f"q{mid}")
+    assert "overlap" in rating.shadow_report(db, 7)

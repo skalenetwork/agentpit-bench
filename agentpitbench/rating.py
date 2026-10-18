@@ -179,6 +179,12 @@ def _spearman(a: list[float], b: list[float]) -> float | None:
     return round(cov / (va * vb), 3) if va and vb else None
 
 
+def _mid(r: dict) -> int:
+    """Numeric market id for tie-breaking; ids retired by a renumbering ('old:123') keep their number."""
+    m = str(r["market_id"]).removeprefix("old:")
+    return int(m) if m.isdigit() else -1
+
+
 def shadow_report(db: DB, days: int = 7, per_day: int = 5) -> str:
     from datetime import datetime, timezone
     rows = [dict(r) for r in db.q("SELECT * FROM market_ratings WHERE score IS NOT NULL AND rated_at>?",
@@ -190,9 +196,9 @@ def shadow_report(db: DB, days: int = 7, per_day: int = 5) -> str:
     for r in rows:
         by_day.setdefault(datetime.fromtimestamp(r["rated_at"], timezone.utc).strftime("%Y-%m-%d"), []).append(r)
     for day, rs in sorted(by_day.items()):
-        kw = sorted(rs, key=lambda r: (KEYWORD_SCORE[r["keyword_tier"]], int(r["market_id"])), reverse=True)[:per_day]
+        kw = sorted(rs, key=lambda r: (KEYWORD_SCORE[r["keyword_tier"]], _mid(r)), reverse=True)[:per_day]
         md = sorted(rs, key=lambda r: (r["score"] if not (r["keyword_tier"] == 0 and r["score"] >= 50)
-                                       else KEYWORD_SCORE[0], int(r["market_id"])), reverse=True)[:per_day]
+                                       else KEYWORD_SCORE[0], _mid(r)), reverse=True)[:per_day]
         overlap = len({r["market_id"] for r in kw} & {r["market_id"] for r in md})
         out.append(f"{day}: {len(rs)} rated; top {per_day} overlap {overlap}/{min(per_day, len(rs))}")
         out.append("  keyword: " + " | ".join(r["question"][:50] for r in kw))
