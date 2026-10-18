@@ -149,8 +149,9 @@ async def upcoming(s: Settings, db: DB, api, now: float | None = None) -> list[d
 
     markets = await asyncio.gather(*(fetch(r["market_id"]) for r in rows))
     out = []
+    at = datetime.fromtimestamp(now, timezone.utc)
     for r, m in zip(rows, markets):
-        if not m or (r["condition_id"] and m.get("conditionId") != r["condition_id"]) or not basic_eligible(s, m):
+        if not m or (r["condition_id"] and m.get("conditionId") != r["condition_id"]) or not basic_eligible(s, m, at):
             continue
         lock = lock_time(s, m.get("question", ""), m.get("endDate"), m.get("description"), now, horizon)
         if lock is None:
