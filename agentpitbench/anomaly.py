@@ -271,7 +271,7 @@ def market_name_missing(s: Settings, db: DB, now: float) -> list[Anomaly]:
         db.put("market_name_since", now)
         return []
     out = []
-    for table in ("tweets", "bsky_posts", "tg_posts"):
+    for table in ("tweets", "bsky_posts", "tg_posts", "threads_posts"):
         rows = db.q(f"SELECT p.post_key, p.text, r.question, r.event_title FROM {table} p JOIN rounds r USING(round_id) "
                     "WHERE p.kind IN ('reveal','results','motd') AND p.posted_at>? AND p.posted_at>?",
                     float(since), now - 86400)

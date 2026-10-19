@@ -194,7 +194,7 @@ def build(s: Settings, db: DB, month: str, upload: bool = True) -> Path:
 # ---------------------------------------------------------------- the secrets gate
 
 _SECRET_NAME = re.compile(r"TOKEN|SECRET|KEY|PASSWORD|PASS|BEARER|AUTH|COOKIE|CREDENTIAL|PAT\b", re.I)
-_TOKEN_FILES = ("x_oauth2.json", "tt_oauth2.json", "yt_oauth2.json")
+_TOKEN_FILES = ("x_oauth2.json", "tt_oauth2.json", "yt_oauth2.json", "threads_oauth2.json")
 MIN_SECRET_LEN = 8  # shorter values (true, handles, ids like 0) would match by accident
 
 

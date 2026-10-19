@@ -172,6 +172,9 @@ class Settings:
     bluesky_enabled: bool = False
     bluesky_pds_url: str = "https://bsky.social"
     bluesky_did: str = ""
+    # Threads (docs/threads-spec.md, docs/threads-setup.md): mirrors the Bluesky posts. Secrets THREADS_USER_ID /
+    # THREADS_ACCESS_TOKEN in secrets.env. Media goes out as <site_url>/cards/... URLs, so only once deployed.
+    threads_enabled: bool = False
     bluesky_vendor_handles: dict = field(default_factory=dict)   # agent -> verified official Bluesky handle only
     # Telegram (docs/telegram-spec.md): mirror the X posts to a public channel. Secrets TELEGRAM_BOT_TOKEN /
     # TELEGRAM_CHANNEL (@agentpitbench or the -100... id) in secrets.env.

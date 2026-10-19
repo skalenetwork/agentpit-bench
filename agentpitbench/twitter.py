@@ -487,8 +487,10 @@ class Poster:
                                   os.environ.get("X_CLIENT_SECRET", ""), os.environ.get("X_OAUTH2_REFRESH_TOKEN"))
         from .bluesky import Mirror
         from .telegram import Mirror as TelegramMirror
+        from .threads import Mirror as ThreadsMirror
         self.bsky = Mirror(s, db)
         self.tg = TelegramMirror(s, db)
+        self.threads = ThreadsMirror(s, db)
 
     @property
     def live(self) -> bool:
@@ -534,6 +536,12 @@ class Poster:
                                    round_id=round_id, fallback=bsky_fallback)
             except Exception:
                 log.exception("telegram mirror of %s failed", post_key)
+        if tweet_id and self.threads.enabled:  # docs/threads-spec.md; same contract again
+            try:
+                await self.threads.post(post_key, kind, text, image, reply_to=reply_to, quote_of=quote_of,
+                                        round_id=round_id, alt=alt, fallback=bsky_fallback)
+            except Exception:
+                log.exception("threads mirror of %s failed", post_key)
         return tweet_id
 
     async def _post_x(self, post_key, kind, text, image, reply_to, round_id, quote_of, poll=None) -> str | None:

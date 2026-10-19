@@ -91,6 +91,13 @@ CREATE TABLE IF NOT EXISTS bsky_posts (   -- Bluesky mirror of a tweets row (sam
     kind TEXT, round_id INTEGER, text TEXT, posted_at REAL,
     deleted INTEGER NOT NULL DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS threads_posts (  -- Threads mirror of a tweets row (same post_key); docs/threads-spec.md
+    post_key TEXT PRIMARY KEY,
+    media_id TEXT,                         -- the published Threads id, or dry-<key> from the outbox
+    root_id TEXT,                          -- the thread root (a top-level post is its own root)
+    kind TEXT, round_id INTEGER, text TEXT, posted_at REAL,
+    deleted INTEGER NOT NULL DEFAULT 0
+);
 CREATE TABLE IF NOT EXISTS tg_posts (     -- Telegram channel mirror of a tweets row (same post_key); docs/telegram-spec.md
     post_key TEXT PRIMARY KEY,
     chat TEXT,
