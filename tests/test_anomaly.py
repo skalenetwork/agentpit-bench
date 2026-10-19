@@ -271,7 +271,7 @@ def test_rounds_pause_and_resume(s, db):
     assert cli.rounds_paused(s, db)
     anomaly.resume(db, posting=True, rounds=False, isatty=lambda: True)
     assert cli.rounds_paused(s, db) and not opai.paused(s, db, "posting")
-    anomaly.resume(db, posting=False, rounds=True, isatty=lambda: True)
+    anomaly.resume(db, posting=False, rounds=True, isatty=lambda: False)  # rounds: no terminal needed
     assert not cli.rounds_paused(s, db)
     assert db.one("SELECT state FROM anomalies")["state"] == "acknowledged"
 
@@ -302,3 +302,28 @@ def test_only_opening_and_closing_posts_go_out(s, db):
     assert asyncio.run(p.post("r1-late", "results", "a reply", reply_to="1")) is None   # a reply even of an allowed kind
     assert asyncio.run(p.post("awards-1", "awards", "weekly")) is None
     assert [r["kind"] for r in db.q("SELECT kind FROM tweets ORDER BY posted_at")] == ["reveal", "results"]
+
+
+def test_rounds_pause_expires_with_an_alert(s, db):
+    anomaly.pause(db, posting=False, rounds=True, reason="methodology switch")
+    since = db.get("pause")["since"]
+    assert not anomaly.expire_rounds_pause(s, db, since + 5 * 3600)
+    assert db.get("pause")["rounds"]
+    assert anomaly.expire_rounds_pause(s, db, since + 6 * 3600 + 1)
+    assert db.get("pause") == {}
+    assert db.one("SELECT 1 FROM alerts WHERE kind='pause-expired'")
+
+
+def test_posting_pause_outlives_the_rounds_pause(s, db):
+    anomaly.pause(db, posting=True, rounds=True, reason="embargo-breach (anomaly #1)")
+    since = db.get("pause")["since"]
+    assert anomaly.expire_rounds_pause(s, db, since + 7 * 3600)
+    p = db.get("pause")
+    assert p["posting"] and not p["rounds"]
+
+
+def test_rounds_pause_expiry_off(s, db):
+    s.pause_rounds_max_h = 0
+    anomaly.pause(db, posting=False, rounds=True, reason="x")
+    assert not anomaly.expire_rounds_pause(s, db, time.time() + 30 * 86400)
+    assert db.get("pause")["rounds"]

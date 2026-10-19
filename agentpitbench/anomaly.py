@@ -313,9 +313,10 @@ def pause(db: DB, *, posting: bool, rounds: bool, reason: str, anomaly_id: int |
 
 
 def resume(db: DB, *, posting: bool, rounds: bool, isatty=None) -> dict:
-    """Operator only, at a terminal. Open anomalies become acknowledged."""
-    if not (isatty or sys.stdin.isatty)():
-        raise ResumeError("resume needs an interactive terminal")
+    """Open anomalies become acknowledged. Resuming new rounds works from anywhere (rounds always keep
+    running); resuming posting is operator only, at a terminal."""
+    if posting and not (isatty or sys.stdin.isatty)():
+        raise ResumeError("resuming posting needs an interactive terminal")
     cur = db.get("pause") or {}
     p = {**cur, "posting": bool(cur.get("posting")) and not posting, "rounds": bool(cur.get("rounds")) and not rounds}
     if not p["posting"] and not p["rounds"]:
@@ -419,8 +420,28 @@ def improve_draft(s: Settings, db: DB, draft_id: int, a: Anomaly, at: float) -> 
     return True
 
 
+def expire_rounds_pause(s: Settings, db: DB, now: float | None = None) -> bool:
+    """Rounds never sit paused for long: a rounds pause older than pause_rounds_max_h lifts itself and the
+    operator gets an alert. A posting pause stays until the operator resumes it at a terminal."""
+    now = time.time() if now is None else now
+    cur = db.get("pause") or {}
+    if s.pause_rounds_max_h <= 0 or not cur.get("rounds") or now - (cur.get("since") or now) < s.pause_rounds_max_h * 3600:
+        return False
+    p = {**cur, "rounds": False} if cur.get("posting") else {}
+    db.put("pause", p)
+    hours = (now - cur["since"]) / 3600
+    log.warning("rounds pause expired after %.1f h (%s); new rounds resumed", hours, cur.get("reason"))
+    alerts.send(s, db, "warn", "pause-expired", "New rounds resumed automatically",
+                f"New rounds were paused for {hours:.1f} h ({cur.get('reason')}); a rounds pause lifts itself "
+                f"after {s.pause_rounds_max_h:g} h." + (" Posting stays paused." if p else ""),
+                action="new rounds resumed", resume="agentpitbench ops pause --rounds to hold them again")
+    return True
+
+
 def tick(s: Settings, db: DB, now: float | None = None) -> list[Anomaly]:
-    """Run every detector; raise the new ones. Returns the anomalies raised this tick."""
+    """Lift an expired rounds pause, then run every detector; raise the new ones. Returns the anomalies raised
+    this tick."""
+    expire_rounds_pause(s, db, now)
     new = []
     for a in detect(s, db, now):
         if raise_(s, db, a):
