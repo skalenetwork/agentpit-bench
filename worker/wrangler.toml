@@ -5,6 +5,10 @@ name = "agentpitbench-api"
 main = "src/index.js"
 compatibility_date = "2025-09-01"
 workers_dev = false
+# Custom domain api.agentpitbench.org (Cloudflare creates the DNS record and certificate on deploy).
+routes = [
+  { pattern = "api.agentpitbench.org", custom_domain = true }
+]
 
 [vars]
 # Exact origin allowed for credentialed CORS.
@@ -24,12 +28,5 @@ API_KEYS_PER_USER = "3"
 [[d1_databases]]
 binding = "DB"
 database_name = "agentpitbench"
-# Replace with the id printed by `npx wrangler d1 create agentpitbench` (see README).
-database_id = "00000000-0000-0000-0000-000000000000"
-
-# Custom domain. Uncomment after the zone agentpitbench.org is on this Cloudflare
-# account; `npx wrangler deploy` then creates the DNS record and certificate for
-# api.agentpitbench.org (token needs Zone: Workers Routes Edit + DNS Edit).
-# routes = [
-#   { pattern = "api.agentpitbench.org", custom_domain = true }
-# ]
+# Created 2026-10-19 (npx wrangler d1 create agentpitbench).
+database_id = "5ecdda59-8737-470d-ab04-cbd262f98e3c"
