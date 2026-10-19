@@ -1,4 +1,4 @@
-# "Make your own pick" — signed-in picks (spec v0.1)
+# "Make your own pick" — signed-in picks (spec v0.2)
 
 Status: draft for operator review, 2026-10-19. A delta against `docs/backend-api.md` (contract v1: Google-only
 auth, `POST /v1/picks`, D1, lock at AI start) and `docs/daily-challenge-spec.md` v0.3 (Beat the AIs, today
@@ -13,6 +13,16 @@ Operator decisions (2026-10-19):
   methodology proposal approved by the operator; see §7.
 - **Finished rounds:** the red button becomes "pick the next one".
 
+Open questions for the operator (raised in review; the spec as written assumes the first option):
+- **Q1. Challenge picks are almost all late.** Challenge sets are rounds closing today, and their AIs have
+  already started. Under "lock at AI start", a challenge pick never counts as beating the AIs (§4).
+  Options:
+  - (a) Keep today's sets. Challenge picks are late picks: fun, grid and streak only.
+  - (b) Build sets from markets that close today and have not locked yet (the `upcoming` list). Every
+    challenge pick then counts, but there will be fewer and smaller sets.
+- **Q2. One person picking on both X and the site** counts twice as two humans. Options: (a) accept it;
+  (b) let users link their X handle and count them once.
+
 ## 1. Goal and stopping rule
 
 Turn a page view into a signed-in pick, and a pick into a share that brings the next picker. "Viral enough"
@@ -20,8 +30,9 @@ means all five checks pass (§10):
 
 1. A visitor reaches a stored pick in at most **2 taps** after Google's own sign-in prompt.
 2. Every pick has a share surface, both **at pick time** and **after the result**, each with a one-line brag
-   and a return link.
-3. A non-user who follows a share lands where they can pick in **1 tap** (plus sign-in).
+   and a return link that leads to an open pick.
+3. A non-user who follows a share lands where they can make a **counted** pick in **1 tap** (plus sign-in),
+   even when the shared round has locked or resolved.
 4. The user's streak and record are visible on `/me/` and in every share text.
 5. Nothing on any page, in JSON, in a share text or in a preview leaks a sealed AI pick.
 
@@ -55,9 +66,9 @@ link, "Bet on agentpit".
 - Failure states: lock passed during sign-in → "Too late: picks closed when the AIs started", and the
   pick moves to "next one". Sign-in cancelled → the pending pick is kept for the session and the buttons
   show it unconfirmed.
-- No email is stored (contract). The Privacy page already has the `apb_s` sign-in cookie text. Add one
-  sentence: picks are stored with your generated name, and site picks can appear on the public humans
-  leaderboard.
+- No email is stored (contract). The Privacy page already describes the `apb_s` sign-in cookie (checked).
+  Add one sentence: picks are stored with your generated name, and site picks can appear on the public
+  humans leaderboard.
 
 ## 4. Picks: counted and late
 
@@ -81,8 +92,9 @@ The text is built client-side from the market's full name (`data-name`), so the 
 pick.
 
 - **At pick time** (new; the main loop): a sheet appears after a pick is stored.
-  - Text: "I picked **{pick}** on {market}. 4 AIs locked theirs too; sealed until {close}. Can you beat
-    them? → {url}"
+  - Text: "I picked **{pick}** on {market}. 4 AIs locked theirs too; sealed until {close}. I'm {w}–{l} this
+    week. → {url}". The record clause is dropped while w+l = 0. The link always leads to an open pick (see
+    the referral landing below), so the text never promises a pick the reader can't make.
   - Buttons: X, Bluesky, Copy, More (`navigator.share`).
   - The url is the round page with `?ref={user_public_id}&utm_source=share&utm_campaign=pick`.
   - It carries no AI pick and no crowd split.
@@ -93,10 +105,14 @@ pick.
   - The round's existing card image is reused (contract v1 scope). The text is the hook.
 - **Challenge grid:** unchanged format (spec v0.3). With an account, the grid comes from the database (§6),
   so it's the same on every device.
-- **Referral landing:** a round page opened with `?ref=` shows a slim bar above the picker: "**{Name}**
-  picked. What's yours?" The friend's pick stays hidden until lock, which keeps sealed-pick discipline and
-  curiosity. Their outcome buttons are 1 tap away (check 3). After resolution the bar reads "{Name} was
-  right / wrong. You?" The ref is stored on the new user's first pick (`picks.ref_user`), for counting only.
+- **Referral landing:** a round page opened with `?ref=` shows a slim bar above the fold. Most friends
+  arrive after the counted window has closed: the lock is set 3–12 hours ahead.
+  - **Still open:** "**{Name}** picked. What's yours?" with this market's picker, 1 tap away. The friend's
+    pick stays hidden until lock.
+  - **Locked or running:** "{Name} picked on {market}. It's locked now. Beat the AIs on the next one:"
+    and the §2 "next one" picker opens inline, auto-opened above the fold.
+  - **Resolved:** "{Name} was right / wrong on {market}. Beat the AIs on the next one:" with the same picker.
+  - The ref is stored on the new user's first pick (`picks.ref_user`), for counting only.
 - **Return hook** (no email): after a pick, "Add result time to calendar" opens a Google Calendar link
   (`calendar.google.com/calendar/render?action=TEMPLATE&...`, a plain link with no script) with the round
   url. `/me/` lists open picks with their close times.
@@ -105,8 +121,9 @@ pick.
 
 - Signed out: unchanged (localStorage, spec v0.3), plus a bar: "Sign in to keep your streak on every device
   and get on the leaderboard."
-- **First sign-in imports** the local picks: `POST /v1/picks/import` `[{market_id, outcome, t}]`. Each pick is
-  stored as late (or as counted if `t` < `locks_at` and the market still accepts it). Existing D1 picks win.
+- **First sign-in imports** the local picks: `POST /v1/picks/import` `[{market_id, outcome, t}]`. The client
+  timestamp `t` is never trusted. A pick is counted only if the server's `now < locks_at` at import time;
+  otherwise it is stored late; after resolution it is dropped. Existing D1 picks win.
   The local copy is then marked imported.
 - Signed in: the grid, streak and history come from `GET /v1/me` (add `late` and `round_id` per pick, and
   `challenge: {streak, best, days_played}` computed from D1 with the same rules as v0.3). localStorage
@@ -119,11 +136,12 @@ pick.
   `{user_public_id, name, market_id, outcome, created_at, late:false}`.
 - The bot stores them in `humans` with `source='site'`, `user_id='site:'+id` and
   `username=name`. Late picks are never pulled.
-- Each person counts once per round: if one person picks both on the site and on X, both count, because
-  they are different identities. Accepted.
-- The public humans leaderboard merges `x` and `site` sources. **This is a methodology change** (the Crowd
-  and humans rows are methodology-locked). The operator proposes it with `method propose`, approves it at a
-  terminal, and `i18n fill` runs before shipping. Until it's approved, site picks show on `/me/` and the
+- One person picking both on the site and on X counts twice. See open question Q2.
+- The public humans leaderboard merges `x` and `site` sources. **This is a methodology change.** There is
+  no methodology key for human pick sources today, and `method propose` refuses a text-only change. So
+  the code first adds `humans_sources: ["x"]` to the methodology knobs, behaviour unchanged. Then the
+  operator proposes `--set humans_sources=x,site`, approves it at a terminal, and `i18n fill` runs before
+  shipping. Until it's approved, site picks show on `/me/` and the
   "Humans vs the AIs" scoreboard (contract), not on the methodology-locked leaderboard.
 - Anti-abuse: one Google account = one picker. The existing per-IP rate limits apply. `GET /v1/admin/picks`
   flags bursts of more than 20 new accounts per /24 network per day; the bot skips those accounts and the
@@ -131,8 +149,11 @@ pick.
 
 ## 8. The A/B experiment
 
-- The `round-cta` arms keep their texts. The click is still counted through a `/go/round-cta/<arm>/<round>/`
-  hop, which now redirects back to `<round url>#pick`, so the Cloudflare count keeps working.
+- The `round-cta` arms keep their texts. The `/go/round-cta/` hop is retired, because the button now opens
+  a picker on the same page (on FINAL rounds, a different market's picker), which a redirect can't target.
+  The click is counted client-side: the pick carries `cta_arm`, and the Worker counts button opens per arm
+  (`POST /v1/cta {arm, round_id}`, no sign-in, rate-limited). The old Cloudflare counts stay readable as
+  history.
 - New outcome metric per arm: picks stored within 30 minutes of the click. The client sends
   `cta_arm` with the pick, and D1 stores it.
 - The digest gets: CTA clicks → sign-ins → picks → shares → referral picks, per day.
@@ -168,8 +189,10 @@ pick.
 
 | # | Check | Status |
 |---|---|---|
-| 1 | ≤ 2 taps to a stored pick after sign-in | pending review |
-| 2 | Share at pick time and after the result | pending review |
-| 3 | A shared link lands 1 tap from a pick | pending review |
-| 4 | Streak and record on `/me/` and in share text | pending review |
-| 5 | No sealed AI pick leaks | pending review |
+| 1 | ≤ 2 taps to a stored pick after sign-in | pass (pick-first pending flow, §3) |
+| 2 | Share at pick time and after the result | pass (§5) |
+| 3 | A shared link lands 1 tap from a counted pick | pass after v0.2: locked or resolved landings open the "next one" picker (§5). It failed in v0.1. |
+| 4 | Streak and record on `/me/` and in every share text | pass after v0.2: the pick-time text carries w–l (§5). It failed in v0.1. |
+| 5 | No sealed AI pick leaks | pass: AI picks appear only after resolution; the friend's pick is hidden until lock |
+
+Reviewed with the advisor, 2026-10-19 (two passes).
