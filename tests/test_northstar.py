@@ -1,4 +1,4 @@
-"""Month-1 North Star (docs/marketing-strategy.md): leaderboard visitors and Beat the AIs attempts, cookie-free."""
+"""Month-1 North Star (docs/marketing-strategy.md): site visitors and Beat the AIs attempts, cookie-free."""
 import json
 from datetime import datetime, timezone
 
@@ -23,13 +23,14 @@ def env(tmp_path, monkeypatch):
 
 def groups(*rows):
     return {"data": {"viewer": {"accounts": [{"rumPageloadEventsAdaptiveGroups": [
-        {"count": c, "sum": {"visits": v}, "avg": {"sampleInterval": k}, "dimensions": {"requestPath": p}}
-        for p, c, v, k in rows]}]}}}
+        {"count": c, "sum": {"visits": v}, "avg": {"sampleInterval": k},
+         "dimensions": {"requestPath": p, **({"refererHost": r[0]} if r else {})}}
+        for p, c, v, k, *r in rows]}]}}}
 
 
 DAY1 = groups(("/leaderboard/", 4, 2, 1), ("/ru/leaderboard/", 1, 1, 1), ("/challenge/", 2, 0, 1),
               ("/de/challenge/", 3, 1, 2), ("/round/7/", 9, 9, 1), ("/go/round-cta/1/7/", 1, 0, 1),
-              ("/agent/claude/", 5, 5, 1))
+              ("/agent/claude/", 5, 5, 1), ("/", 3, 3, 1, "t.co"), ("/", 2, 2, 1, ""), ("/", 1, 0, 1, "t.co"))
 DAY2 = groups(("/leaderboard/", 10, 3, 1))
 
 
@@ -83,13 +84,22 @@ def test_fetch_and_status(env, monkeypatch):
     db.x("INSERT INTO humans(round_id,user_id,username,pick,created_at) VALUES(1,'u2','b','No',?)", ts("2026-10-12"))
     st = northstar.status(db, ts("2026-10-15"))
     assert st["days_counted"] == 2 and st["days_missing"] == []
-    assert st["leaderboard_visitors"] == {"visits": 6, "page_views": 15, "goal": 1000}
+    # site-wide visits (every path): day 1 = 2+1+0+2+9+0+5+3+2+0, day 2 = 3
+    assert st["site_visitors"] == {"visits": 27, "leaderboard_page_views": 15, "goal": 1000}
     assert st["challenge_attempts"] == {"total": 9, "x_picks": 1, "page_views": 8, "goal": 100}
     live = northstar.status(db, ts("2026-10-15"), today={"/fr/leaderboard/": (3, 1), "/challenge/": (2, 0)})
-    assert live["today_live"] and live["leaderboard_visitors"]["visits"] == 7
+    assert live["today_live"] and live["site_visitors"]["visits"] == 28
     assert live["challenge_attempts"]["total"] == 11
-    assert "attempts 9 of 100" in northstar.line(st) and "6 visits" in northstar.line(st)
-    assert "9 / 100" in northstar.report(st)
+    assert "attempts 9 of 100" in northstar.line(st) and "site visitors 27 of 1000" in northstar.line(st)
+    assert "9 / 100" in northstar.report(st) and "27 / 1000" in northstar.report(st)
+    assert "refererHost" in h.sent[0]
+    # every path x referer host is stored; cf_clicks is unchanged (kept paths only, summed over referers)
+    rows = {(r["path"], r["referer_host"]): (r["views"], r["visits"]) for r in
+            db.q("SELECT * FROM cf_pages WHERE day='2026-10-13'")}
+    assert rows[("/", "t.co")] == (4, 3)
+    assert rows[("/", "")] == (2, 2) and rows[("/round/7/", "")] == (9, 9)
+    assert db.one("SELECT COUNT(*) n FROM cf_clicks WHERE path='/'")["n"] == 0
+    assert db.one("SELECT views FROM cf_clicks WHERE path='/de/challenge/'")["views"] == 6
 
 
 def test_day_read_before_north_star_is_reread(env, monkeypatch):
@@ -99,7 +109,7 @@ def test_day_read_before_north_star_is_reread(env, monkeypatch):
     monkeypatch.setenv("CF_API_TOKEN", "tok")
     monkeypatch.setenv("CF_ACCOUNT_TAG", "acct")
     assert cf.fetch_due(s, db, now=ts("2026-10-14"), http=H({"2026-10-13": DAY1})) == 1
-    assert northstar.status(db, ts("2026-10-14"))["leaderboard_visitors"]["page_views"] == 5
+    assert northstar.status(db, ts("2026-10-14"))["site_visitors"]["leaderboard_page_views"] == 5
 
 
 def test_digest_carries_north_star(env):
@@ -107,3 +117,22 @@ def test_digest_carries_north_star(env):
     out = xstats.digest(s, db, ts("2026-10-15", 9))
     assert out["northstar"]["challenge_attempts"]["goal"] == 100
     assert json.loads((s.export_dir / "x-daily.json").read_text())["northstar"]["window"] == ["2026-10-13", "2026-11-12"]
+
+
+def test_cf_pages_failure_is_non_fatal_and_reread_idempotent(env, monkeypatch):
+    s, db = env
+    monkeypatch.setenv("CF_API_TOKEN", "tok")
+    monkeypatch.setenv("CF_ACCOUNT_TAG", "acct")
+
+    class Bad:
+        def post(self, *a, **k):
+            class R:
+                status_code = 500
+                text = "boom"
+            return R()
+    assert cf.fetch_due(s, db, now=ts("2026-10-14"), http=Bad()) == 0
+    assert db.one("SELECT COUNT(*) n FROM cf_pages")["n"] == 0
+    h = H({"2026-10-13": DAY1})
+    cf.fetch_day(s, db, "2026-10-13", h)
+    cf.fetch_day(s, db, "2026-10-13", h)
+    assert db.one("SELECT COUNT(*) n FROM cf_pages")["n"] == 9
