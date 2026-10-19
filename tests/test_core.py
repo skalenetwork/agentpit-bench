@@ -354,7 +354,9 @@ async def test_tracker_retries_failed_redeem(s, db, monkeypatch):
             code = answers.pop(0)
             if code >= 300:
                 req = httpx.Request("POST", "https://x/redeem_position")
-                raise httpx.HTTPStatusError("bad", request=req, response=httpx.Response(code, text="not settled", request=req))
+                text = "not settled" if code != 401 else '{"detail":"nothing to claim"}'
+                code = 400 if code == 401 else code  # 401 here stands for agentpit's "400 nothing to claim"
+                raise httpx.HTTPStatusError("bad", request=req, response=httpx.Response(code, text=text, request=req))
             return {}
 
         async def close(self):
@@ -374,6 +376,9 @@ async def test_tracker_retries_failed_redeem(s, db, monkeypatch):
     await t.check()  # due retries run from the tracker loop
     assert len(calls) == 3 and db.get("redeem_pending") == {}
     answers[:] = [409]
+    await t._redeem_one(rid, "1", "claude", 0)
+    assert db.get("redeem_pending") == {}
+    answers[:] = [401]  # agentpit settled it itself: done, no retry
     await t._redeem_one(rid, "1", "claude", 0)
     assert db.get("redeem_pending") == {}
 

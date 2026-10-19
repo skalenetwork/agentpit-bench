@@ -162,9 +162,11 @@ class Tracker:
         except Exception as ex:
             resp = getattr(ex, "response", None)
             body = (getattr(resp, "text", "") or "")[:300]
-            if getattr(resp, "status_code", None) == 409:  # already redeemed
+            code = getattr(resp, "status_code", None)
+            if code == 409 or (code == 400 and "nothing to claim" in body):
+                # already redeemed, or settled by agentpit itself (checked 2026-10-19: closed positions paid in full)
                 pending.pop(k, None)
-                log.info("redeem for %s in round %s: already redeemed", agent, round_id)
+                log.info("redeem for %s in round %s: nothing to claim (already settled)", agent, round_id)
             elif tries < len(self.REDEEM_RETRY_S):
                 pending[k] = {"market_id": str(market_id), "tries": tries + 1,
                               "at": time.time() + self.REDEEM_RETRY_S[tries]}
