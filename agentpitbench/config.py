@@ -250,9 +250,10 @@ class Settings:
     opai_rate_batch: int = 40
     opai_pick_threshold: float = 0.80
     anomaly_posts_per_hour: int = 20
-    # A rounds pause (operator or anomaly) lifts itself after this many hours, with an alert; 0 = never.
-    # Posting pauses never expire on their own.
+    # A rounds or posting pause (operator or anomaly) lifts itself after this many hours, with an alert;
+    # 0 = never. (The posting_paused config flag is separate and never expires.)
     pause_rounds_max_h: float = 6
+    pause_posting_max_h: float = 6
     selection_scoring: str = "keyword"  # from methodology.json (keyword / model); never set in bench.toml
     # §9 cadence policy: the daily 07:00 UTC decision. Off = config values only. On: shadow until a week of
     # 24 h X snapshots exists, then a recommendation in the digest; applied (one knob a day, within

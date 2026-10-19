@@ -420,28 +420,34 @@ def improve_draft(s: Settings, db: DB, draft_id: int, a: Anomaly, at: float) -> 
     return True
 
 
-def expire_rounds_pause(s: Settings, db: DB, now: float | None = None) -> bool:
-    """Rounds never sit paused for long: a rounds pause older than pause_rounds_max_h lifts itself and the
-    operator gets an alert. A posting pause stays until the operator resumes it at a terminal."""
+def expire_pause(s: Settings, db: DB, now: float | None = None) -> list[str]:
+    """Nothing sits paused for long: the rounds or posting part of a pause older than pause_rounds_max_h /
+    pause_posting_max_h lifts itself and the operator gets an alert. Returns the parts lifted."""
     now = time.time() if now is None else now
     cur = db.get("pause") or {}
-    if s.pause_rounds_max_h <= 0 or not cur.get("rounds") or now - (cur.get("since") or now) < s.pause_rounds_max_h * 3600:
-        return False
-    p = {**cur, "rounds": False} if cur.get("posting") else {}
+    age = now - (cur.get("since") or now)
+    lifted = [w for w, h in (("rounds", s.pause_rounds_max_h), ("posting", s.pause_posting_max_h))
+              if cur.get(w) and h > 0 and age >= h * 3600]
+    if not lifted:
+        return []
+    p = {**cur, **{w: False for w in lifted}}
+    if not p.get("posting") and not p.get("rounds"):
+        p = {}
     db.put("pause", p)
-    hours = (now - cur["since"]) / 3600
-    log.warning("rounds pause expired after %.1f h (%s); new rounds resumed", hours, cur.get("reason"))
-    alerts.send(s, db, "warn", "pause-expired", "New rounds resumed automatically",
-                f"New rounds were paused for {hours:.1f} h ({cur.get('reason')}); a rounds pause lifts itself "
-                f"after {s.pause_rounds_max_h:g} h." + (" Posting stays paused." if p else ""),
-                action="new rounds resumed", resume="agentpitbench ops pause --rounds to hold them again")
-    return True
+    what = " and ".join("new rounds" if w == "rounds" else "posting" for w in lifted)
+    left = [w for w in ("rounds", "posting") if p.get(w)]
+    log.warning("pause expired after %.1f h (%s); %s resumed", age / 3600, cur.get("reason"), what)
+    alerts.send(s, db, "warn", "pause-expired", f"{what.capitalize()} resumed automatically",
+                f"{what.capitalize()} were paused for {age / 3600:.1f} h ({cur.get('reason')}); a pause lifts "
+                f"itself after its time limit." + (f" Still paused: {left[0]}." if left else ""),
+                action=f"{what} resumed", resume="agentpitbench ops pause to hold them again")
+    return lifted
 
 
 def tick(s: Settings, db: DB, now: float | None = None) -> list[Anomaly]:
-    """Lift an expired rounds pause, then run every detector; raise the new ones. Returns the anomalies raised
-    this tick."""
-    expire_rounds_pause(s, db, now)
+    """Lift an expired pause, then run every detector; raise the new ones. Returns the anomalies raised this
+    tick."""
+    expire_pause(s, db, now)
     new = []
     for a in detect(s, db, now):
         if raise_(s, db, a):

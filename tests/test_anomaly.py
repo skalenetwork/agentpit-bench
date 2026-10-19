@@ -307,23 +307,31 @@ def test_only_opening_and_closing_posts_go_out(s, db):
 def test_rounds_pause_expires_with_an_alert(s, db):
     anomaly.pause(db, posting=False, rounds=True, reason="methodology switch")
     since = db.get("pause")["since"]
-    assert not anomaly.expire_rounds_pause(s, db, since + 5 * 3600)
+    assert anomaly.expire_pause(s, db, since + 5 * 3600) == []
     assert db.get("pause")["rounds"]
-    assert anomaly.expire_rounds_pause(s, db, since + 6 * 3600 + 1)
+    assert anomaly.expire_pause(s, db, since + 6 * 3600 + 1) == ["rounds"]
     assert db.get("pause") == {}
     assert db.one("SELECT 1 FROM alerts WHERE kind='pause-expired'")
 
 
-def test_posting_pause_outlives_the_rounds_pause(s, db):
+def test_posting_pause_expires_too(s, db):
     anomaly.pause(db, posting=True, rounds=True, reason="embargo-breach (anomaly #1)")
     since = db.get("pause")["since"]
-    assert anomaly.expire_rounds_pause(s, db, since + 7 * 3600)
+    assert anomaly.expire_pause(s, db, since + 7 * 3600) == ["rounds", "posting"]
+    assert db.get("pause") == {}
+
+
+def test_posting_outlives_rounds_with_a_longer_limit(s, db):
+    s.pause_posting_max_h = 24
+    anomaly.pause(db, posting=True, rounds=True, reason="x")
+    since = db.get("pause")["since"]
+    assert anomaly.expire_pause(s, db, since + 7 * 3600) == ["rounds"]
     p = db.get("pause")
     assert p["posting"] and not p["rounds"]
 
 
-def test_rounds_pause_expiry_off(s, db):
-    s.pause_rounds_max_h = 0
-    anomaly.pause(db, posting=False, rounds=True, reason="x")
-    assert not anomaly.expire_rounds_pause(s, db, time.time() + 30 * 86400)
-    assert db.get("pause")["rounds"]
+def test_pause_expiry_off(s, db):
+    s.pause_rounds_max_h = s.pause_posting_max_h = 0
+    anomaly.pause(db, posting=True, rounds=True, reason="x")
+    assert anomaly.expire_pause(s, db, time.time() + 30 * 86400) == []
+    assert db.get("pause")["rounds"] and db.get("pause")["posting"]
