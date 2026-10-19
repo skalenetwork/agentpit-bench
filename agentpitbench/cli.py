@@ -554,7 +554,7 @@ def north_star(s: config.Settings, live: bool, as_json: bool) -> None:
     db = DB(s.db_path)
     today = None
     if live:
-        today = cf.read_day(s, datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+        today = cf.read_day(s, datetime.now(timezone.utc).strftime("%Y-%m-%d"), all_paths=True)
         if today is None:
             print("no CF_API_TOKEN / CF_ACCOUNT_TAG: completed days only", file=sys.stderr)
     st = northstar.status(db, today=today)
@@ -907,7 +907,7 @@ def main(argv: list[str] | None = None) -> None:
     xs.add_argument("--days", type=float, default=7)
     xs.add_argument("--by", choices=["kind", "agent", "category"], default="kind")
     xs.add_argument("--bucket", choices=["1h", "24h", "72h", "7d"], default="24h")
-    ns = sub.add_parser("northstar", help="month-1 North Star: leaderboard visitors vs 1,000, Beat the AIs "
+    ns = sub.add_parser("northstar", help="month-1 North Star: site visitors vs 1,000, Beat the AIs "
                                           "attempts vs 100 (private; Cloudflare, cookie-free)")
     ns.add_argument("--live", action="store_true", help="also read today so far from Cloudflare (stores nothing)")
     ns.add_argument("--json", action="store_true")

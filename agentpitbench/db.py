@@ -292,6 +292,11 @@ CREATE TABLE IF NOT EXISTS cf_clicks (       -- /go/ hop and North Star page vie
     day TEXT NOT NULL, path TEXT NOT NULL, views INTEGER NOT NULL, taken_at REAL NOT NULL,
     PRIMARY KEY (day, path)
 );
+CREATE TABLE IF NOT EXISTS cf_pages (       -- every path x referer host per UTC day (Cloudflare GraphQL)
+    day TEXT NOT NULL, path TEXT NOT NULL, referer_host TEXT NOT NULL DEFAULT '', views INTEGER NOT NULL,
+    visits INTEGER NOT NULL, taken_at REAL NOT NULL,
+    PRIMARY KEY (day, path, referer_host)
+);
 CREATE TABLE IF NOT EXISTS account_metrics (
     day TEXT PRIMARY KEY, followers INTEGER, following INTEGER, tweets INTEGER, listed INTEGER, taken_at REAL
 );

@@ -9,7 +9,8 @@ filters on requestHost). Until they exist this does nothing and site arms earn n
 
 The same daily read also keeps the North Star paths (docs/marketing-strategy.md; agentpitbench/northstar.py):
 page views and Cloudflare visits of /leaderboard/ and /challenge/ in every language, for every completed day from
-northstar.START. Cookie-free: the beacon the site already loads, no new script, nothing personal.
+northstar.START. It also stores every path with its referer host per day in cf_pages (site-wide traffic; the
+North Star's visitor count is the sum of its visits). Cookie-free: the beacon the site already loads, no new script, nothing personal.
 """
 from __future__ import annotations
 
@@ -46,29 +47,44 @@ def query(account: str, day: str, site_tag: str, host: str) -> str:
     return ("query GoClicks { viewer { accounts(filter: {accountTag: " + json.dumps(account) + "}) {"
             " rumPageloadEventsAdaptiveGroups(limit: 10000, orderBy: [count_DESC], filter: {"
             f"datetime_geq: {json.dumps(t0)}, datetime_lt: {json.dumps(t1)}, {who}" + "}) {"
-            " count sum { visits } avg { sampleInterval } dimensions { requestPath } } } } }")
+            " count sum { visits } avg { sampleInterval } dimensions { requestPath refererHost } } } } }")
 
 
 def kept(path: str) -> bool:
     return path.startswith(PREFIX) or bool(TRACKED.match(path))
 
 
-def parse_full(j: dict) -> dict[str, tuple[int, int]]:
-    """{path: (estimated page views, estimated visits)} for /go/ and North Star paths (count, and the sum of
+def parse_pages(j: dict) -> dict[tuple[str, str], tuple[int, int]]:
+    """{(path, referer host): (estimated page views, estimated visits)} for EVERY path (count, and the sum of
     visits, each x the average sample interval). A visit is a page load that starts a visit (Cloudflare's
-    definition: the referrer is not this site), so it counts the people who landed on that path."""
+    definition: the referrer is not this site), so visits are non-zero on landing pages only."""
     if j.get("errors"):
         raise RuntimeError(f"Cloudflare GraphQL: {json.dumps(j['errors'])[:300]}")
     accts = ((j.get("data") or {}).get("viewer") or {}).get("accounts") or []
-    out: dict[str, tuple[int, int]] = {}
+    out: dict[tuple[str, str], tuple[int, int]] = {}
     for g in (accts[0].get("rumPageloadEventsAdaptiveGroups") or []) if accts else []:
-        path = (g.get("dimensions") or {}).get("requestPath") or ""
-        if kept(path):
-            k = (g.get("avg") or {}).get("sampleInterval") or 1
-            n, v = (g.get("count") or 0) * k, ((g.get("sum") or {}).get("visits") or 0) * k
-            pv, pvis = out.get(path, (0, 0))
-            out[path] = (pv + int(round(n)), pvis + int(round(v)))
+        d = g.get("dimensions") or {}
+        key = (d.get("requestPath") or "", d.get("refererHost") or "")
+        k = (g.get("avg") or {}).get("sampleInterval") or 1
+        n, v = (g.get("count") or 0) * k, ((g.get("sum") or {}).get("visits") or 0) * k
+        pv, pvis = out.get(key, (0, 0))
+        out[key] = (pv + int(round(n)), pvis + int(round(v)))
     return out
+
+
+def by_path(pages: dict, only_kept: bool = False) -> dict[str, tuple[int, int]]:
+    """Sum parse_pages over referer hosts: {path: (views, visits)}, optionally only /go/ and North Star paths."""
+    out: dict[str, tuple[int, int]] = {}
+    for (path, _), (v, vis) in pages.items():
+        if not only_kept or kept(path):
+            pv, pvis = out.get(path, (0, 0))
+            out[path] = (pv + v, pvis + vis)
+    return out
+
+
+def parse_full(j: dict) -> dict[str, tuple[int, int]]:
+    """{path: (estimated page views, estimated visits)} for /go/ and North Star paths."""
+    return by_path(parse_pages(j), True)
 
 
 def parse(j: dict) -> dict[str, int]:
@@ -76,7 +92,7 @@ def parse(j: dict) -> dict[str, int]:
     return {p: v for p, (v, _) in parse_full(j).items()}
 
 
-def read_day(s: Settings, day: str, http=requests) -> dict[str, tuple[int, int]] | None:
+def read_pages(s: Settings, day: str, http=requests) -> dict[tuple[str, str], tuple[int, int]] | None:
     """One UTC day (today: so far) from Cloudflare, stored nowhere. None without credentials."""
     c = creds()
     if not c:
@@ -86,19 +102,31 @@ def read_day(s: Settings, day: str, http=requests) -> dict[str, tuple[int, int]]
                   json={"query": query(acct, day, site_tag, urlparse(s.site_url).hostname or "")})
     if r.status_code >= 300:
         raise RuntimeError(f"Cloudflare GraphQL HTTP {r.status_code}: {r.text[:300]}")
-    return parse_full(r.json())
+    return parse_pages(r.json())
+
+
+def read_day(s: Settings, day: str, http=requests, all_paths: bool = False) -> dict[str, tuple[int, int]] | None:
+    """read_pages summed over referers: /go/ and North Star paths, or every path with all_paths."""
+    pages = read_pages(s, day, http)
+    return None if pages is None else by_path(pages, not all_paths)
 
 
 def fetch_day(s: Settings, db: DB, day: str, http=requests) -> dict[str, int] | None:
-    full = read_day(s, day, http)
-    if full is None:
+    pages = read_pages(s, day, http)
+    if pages is None:
         return None
+    full = by_path(pages, True)
     now = time.time()
+    db.x("DELETE FROM cf_pages WHERE day=?", day)
+    for (path, ref), (v, vis) in pages.items():
+        db.x("INSERT INTO cf_pages(day,path,referer_host,views,visits,taken_at) VALUES(?,?,?,?,?,?)",
+             day, path, ref, v, vis, now)
     db.x("DELETE FROM cf_clicks WHERE day=?", day)
     for path, (v, vis) in full.items():
         db.x("INSERT INTO cf_clicks(day,path,views,visits,taken_at) VALUES(?,?,?,?,?)", day, path, v, vis, now)
     db.put(f"cf_day_{day}", True)
     db.put(f"cf_ns_{day}", True)    # this day's read includes the North Star paths
+    db.put(f"cf_pg_{day}", True)    # ... and every path with its referer host (cf_pages)
     db.put("cf_last_ok", now)
     return {p: v for p, (v, _) in full.items()}
 
@@ -120,7 +148,7 @@ def fetch_due(s: Settings, db: DB, now: float | None = None, http=requests) -> i
     ns_days = set(northstar.window_days(today))
     n = 0
     for day in sorted(ab_days | ns_days):
-        if day >= today or day < since or (db.get(f"cf_day_{day}") and (day not in ns_days or db.get(f"cf_ns_{day}"))):
+        if day >= today or day < since or (db.get(f"cf_day_{day}") and (day not in ns_days or db.get(f"cf_pg_{day}"))):
             continue
         try:
             fetch_day(s, db, day, http)
