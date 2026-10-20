@@ -1,0 +1,47 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Counter-Strike: FaZe vs BASEMENT BOYS (BO3) - DraculaN Playoffs
+Outcomes: FaZe / BASEMENT BOYS | prices: FaZe 0.675, BASEMENT BOYS 0.325 | closes: 2026-10-20T17:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 13-7, net P&L +89.5.
+- Avalanche vs. Flyers | you picked Avalanche | winner Flyers | lost | P&L -100.0
+- Will CA Newell's Old Boys win on 2026-10-19? | you picked No | winner Yes | lost | P&L -100.0
+- Will SC Braga vs. Gil Vicente FC end in a draw? | you picked No | winner No | won | P&L +32.8
+- Will Lille OSC win on 2026-10-17? | you picked Yes | winner No | lost | P&L -100.0
+- Will Trump's approval rating be at least 38.0 on October 16, 2026? | you picked Yes | winner Yes | won | P&L +74.2
+- Will Palantir Technologies Inc. (PLTR) hit (HIGH) $210 Week of October 12 2026? | you picked Yes | winner No | lost | P&L -100.0
+- Will Amazon.com, Inc. (AMZN) hit (LOW) $252 Week of October 12 2026? | you picked No | winner Yes | lost | P&L -100.0
+- Will XRP dip to $1.30 October 12-18? | you picked No | winner Yes | lost | P&L -100.0
+- Will AEK win on 2026-10-14? | you picked No | winner No | won | P&L +56.2
+- Will Ankara Keciorengucu win on 2026-10-14? | you picked No | winner No | won | P&L +75.4
+- Counter-Strike: BET-M 33 vs FORZE Reload (BO3) - NODWIN Clutch Series Group Stage | you picked BET-M 33 | winner FORZE Reload | lost | P&L -100.0
+- Will LASK Linz vs. Liverpool FC end in a draw? | you picked No | winner No | won | P&L +20.5
+- Will Amazon.com, Inc. (AMZN) hit (LOW) $256 Week of October 12 2026? | you picked Yes | winner Yes | won | P&L +132.6
+- Ethereum Up or Down on October 14? | you picked Down | winner Down | won | P&L +100.0
+- Solana Up or Down on October 14? | you picked Down | winner Down | won | P&L +93.1
+- Will Istanbulspor AS win on 2026-10-14? | you picked No | winner No | won | P&L +23.5
+- Counter-Strike: ex-RUSTEC vs mellren (BO3) - CCT Europe Series #11 Group Stage | you picked ex-RUSTEC | winner ex-RUSTEC | won | P&L +48.7
+- Will NVIDIA (NVDA) hit (LOW) $224 Week of October 12 2026? | you picked Yes | winner Yes | won | P&L +52.1
+- Will Kashiwa Reysol win on 2026-10-14? | you picked Yes | winner Yes | won | P&L +19.0
+- Will Vissel Kobe win on 2026-10-14? | you picked Yes | winner Yes | won | P&L +61.3
+
+--- output ---
+### Bet Placed Successfully
+
+* **Market:** Counter-Strike: FaZe vs BASEMENT BOYS (BO3) - DraculaN Playoffs
+* **Selected Outcome:** **FaZe**
+* **Stake Filled:** 100.0 tokens (100% filled, 0 unspent)
+* **Shares Purchased:** 121.69 shares @ avg price 0.8218
+* **Confidence:** 0.85
+* **Rationale:** FaZe Clan (HLTV #17) holds a massive individual and tactical firepower advantage with tier-1 stars Twistzz and frozen over BASEMENT BOYS (#93). In a Best-of-3 playoff format, upset variance is heavily mitigated, making FaZe overwhelmingly likely to win.
+* **Trash Talk Quote:** *"Twistzz and frozen in a BO3 against rank 93? Easiest green of the day."*
