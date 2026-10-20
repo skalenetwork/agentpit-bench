@@ -1,0 +1,122 @@
+$ codex exec <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+6932 | Will Netflix (NFLX) finish week of October 12 above $110? | Yes 0.200, No 0.800 | 2026-10-16T20:00:00Z
+6858 | Cricket World Cup League 2: Oman vs Nepal | Oman 0.470, Nepal 0.530 | 2026-10-20T06:00:00Z
+6777 | Bitcoin Up or Down - October 13, 12:00AM-4:00AM ET | Up 0.780, Down 0.220 | 2026-10-13T08:00:00Z
+6930 | LoL: Team WE vs FlyQuest - Game 3 Winner | Team WE 0.675, FlyQuest 0.325 | 2026-10-13T12:00:00Z
+6842 | Will Trump say "Iran" 5+ times during his Midterm Rally in Alaska? | Yes 0.585, No 0.415 | 2026-10-13T23:35:00Z
+3192 | Will S&P 500 (SPY) hit (LOW) $765 Week of October 12 2026? | Yes 0.175, No 0.825 | 2026-10-16T20:00:00Z
+6917 | Will Daejeon Citizen FC win on 2026-10-13? | Yes 0.325, No 0.675 | 2026-10-13T10:00:00Z
+6739 | Will FC Pohang Steelers vs. Johor Darul Ta'zim end in a draw? | Yes 0.265, No 0.735 | 2026-10-13T10:00:00Z
+6761 | Will Bitcoin dip to $82,000 on October 13? | Yes 0.245, No 0.755 | 2026-10-14T04:00:00Z
+6929 | Dota 2: Yakult Brothers vs Zenith - Game 2 Winner | Yakult Brothers 0.450, Zenith 0.550 | 2026-10-13T08:00:00Z
+6675 | Will Trump say "Fish" or "Fishing" or "Fisherman" during his Midterm Rally in Alaska? | Yes 0.720, No 0.280 | 2026-10-13T23:35:00Z
+3191 | Will S&P 500 (SPY) hit (LOW) $770 Week of October 12 2026? | Yes 0.420, No 0.580 | 2026-10-16T20:00:00Z
+6912 | Will Beijing Guoan win on 2026-10-13? | Yes 0.265, No 0.735 | 2026-10-13T12:15:00Z
+6737 | Will Montakhab Suez Petrojet vs. Wadi Degla SC end in a draw? | Yes 0.325, No 0.675 | 2026-10-13T17:00:00Z
+6760 | Will Bitcoin dip to $83,000 on October 13? | Yes 0.655, No 0.345 | 2026-10-14T04:00:00Z
+6887 | Dota 2: Team Lynx vs Dawn Bulls (BO3) - DreamLeague Western Europe Closed Qualifier Playoffs | Team Lynx 0.465, Dawn Bulls 0.535 | 2026-10-15T16:00:00Z
+6653 | Will Trump say "Israel" or "Israeli" during his Midterm Rally in Alaska? | Yes 0.365, No 0.635 | 2026-10-13T23:35:00Z
+3190 | Will S&P 500 (SPY) hit (HIGH) $785 Week of October 12 2026? | Yes 0.350, No 0.650 | 2026-10-16T20:00:00Z
+6884 | Will Buriram United win on 2026-10-13? | Yes 0.465, No 0.535 | 2026-10-13T12:15:00Z
+6509 | Blues vs. Senators | Blues 0.485, Senators 0.515 | 2026-10-13T23:30:00Z
+6759 | Will Bitcoin reach $84,000 on October 13? | Yes 0.760, No 0.240 | 2026-10-14T04:00:00Z
+6743 | Counter-Strike: Copenhagen Wolves vs VP.Future 3 (BO3) - European Pro League Regular Playoffs | Copenhagen Wolves 0.745, VP.Future 3 0.255 | 2026-10-13T14:00:00Z
+6652 | Will Trump say "Mask" during his Midterm Rally in Alaska? | Yes 0.375, No 0.625 | 2026-10-13T23:35:00Z
+1640 | Will S&P 500 (SPY) hit (LOW) $775 Week of October 12 2026? | Yes 0.770, No 0.230 | 2026-10-16T20:00:00Z
+6851 | Will Poland win on 2026-10-13? | Yes 0.365, No 0.635 | 2026-10-13T16:00:00Z
+6435 | Cavaliers vs. Magic | Cavaliers 0.525, Magic 0.475 | 2026-10-13T23:00:00Z
+6758 | Will Bitcoin reach $85,000 on October 13? | Yes 0.310, No 0.690 | 2026-10-14T04:00:00Z
+6741 | Dota 2: Yakult Brothers vs Zenith (BO3) - DreamLeague China Closed Qualifier Playoffs | Yakult Brothers 0.395, Zenith 0.605 | 2026-10-13T10:00:00Z
+6650 | Will Trump say "Ceasefire" during his Midterm Rally in Alaska? | Yes 0.175, No 0.825 | 2026-10-13T23:35:00Z
+1151 | Will S&P 500 (SPY) hit (HIGH) $780 Week of October 12 2026? | Yes 0.760, No 0.240 | 2026-10-16T20:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+WARNING: proceeding, even though we could not create PATH aliases: Refusing to create helper binaries under temporary dir "/tmp" (codex_home: AbsolutePathBuf("/tmp/apbh-codex-xrsdw8vf/.codex"))
+Reading additional input from stdin...
+OpenAI Codex v0.161.0
+--------
+workdir: /tmp/apb-sweep-codex-fh1pq1xr
+model: gpt-6-luna
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: max
+reasoning summaries: none
+session id: 01a133e8-529e-7202-933b-d5d2c64a7938
+--------
+user
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+6932 | Will Netflix (NFLX) finish week of October 12 above $110? | Yes 0.200, No 0.800 | 2026-10-16T20:00:00Z
+6858 | Cricket World Cup League 2: Oman vs Nepal | Oman 0.470, Nepal 0.530 | 2026-10-20T06:00:00Z
+6777 | Bitcoin Up or Down - October 13, 12:00AM-4:00AM ET | Up 0.780, Down 0.220 | 2026-10-13T08:00:00Z
+6930 | LoL: Team WE vs FlyQuest - Game 3 Winner | Team WE 0.675, FlyQuest 0.325 | 2026-10-13T12:00:00Z
+6842 | Will Trump say "Iran" 5+ times during his Midterm Rally in Alaska? | Yes 0.585, No 0.415 | 2026-10-13T23:35:00Z
+3192 | Will S&P 500 (SPY) hit (LOW) $765 Week of October 12 2026? | Yes 0.175, No 0.825 | 2026-10-16T20:00:00Z
+6917 | Will Daejeon Citizen FC win on 2026-10-13? | Yes 0.325, No 0.675 | 2026-10-13T10:00:00Z
+6739 | Will FC Pohang Steelers vs. Johor Darul Ta'zim end in a draw? | Yes 0.265, No 0.735 | 2026-10-13T10:00:00Z
+6761 | Will Bitcoin dip to $82,000 on October 13? | Yes 0.245, No 0.755 | 2026-10-14T04:00:00Z
+6929 | Dota 2: Yakult Brothers vs Zenith - Game 2 Winner | Yakult Brothers 0.450, Zenith 0.550 | 2026-10-13T08:00:00Z
+6675 | Will Trump say "Fish" or "Fishing" or "Fisherman" during his Midterm Rally in Alaska? | Yes 0.720, No 0.280 | 2026-10-13T23:35:00Z
+3191 | Will S&P 500 (SPY) hit (LOW) $770 Week of October 12 2026? | Yes 0.420, No 0.580 | 2026-10-16T20:00:00Z
+6912 | Will Beijing Guoan win on 2026-10-13? | Yes 0.265, No 0.735 | 2026-10-13T12:15:00Z
+6737 | Will Montakhab Suez Petrojet vs. Wadi Degla SC end in a draw? | Yes 0.325, No 0.675 | 2026-10-13T17:00:00Z
+6760 | Will Bitcoin dip to $83,000 on October 13? | Yes 0.655, No 0.345 | 2026-10-14T04:00:00Z
+6887 | Dota 2: Team Lynx vs Dawn Bulls (BO3) - DreamLeague Western Europe Closed Qualifier Playoffs | Team Lynx 0.465, Dawn Bulls 0.535 | 2026-10-15T16:00:00Z
+6653 | Will Trump say "Israel" or "Israeli" during his Midterm Rally in Alaska? | Yes 0.365, No 0.635 | 2026-10-13T23:35:00Z
+3190 | Will S&P 500 (SPY) hit (HIGH) $785 Week of October 12 2026? | Yes 0.350, No 0.650 | 2026-10-16T20:00:00Z
+6884 | Will Buriram United win on 2026-10-13? | Yes 0.465, No 0.535 | 2026-10-13T12:15:00Z
+6509 | Blues vs. Senators | Blues 0.485, Senators 0.515 | 2026-10-13T23:30:00Z
+6759 | Will Bitcoin reach $84,000 on October 13? | Yes 0.760, No 0.240 | 2026-10-14T04:00:00Z
+6743 | Counter-Strike: Copenhagen Wolves vs VP.Future 3 (BO3) - European Pro League Regular Playoffs | Copenhagen Wolves 0.745, VP.Future 3 0.255 | 2026-10-13T14:00:00Z
+6652 | Will Trump say "Mask" during his Midterm Rally in Alaska? | Yes 0.375, No 0.625 | 2026-10-13T23:35:00Z
+1640 | Will S&P 500 (SPY) hit (LOW) $775 Week of October 12 2026? | Yes 0.770, No 0.230 | 2026-10-16T20:00:00Z
+6851 | Will Poland win on 2026-10-13? | Yes 0.365, No 0.635 | 2026-10-13T16:00:00Z
+6435 | Cavaliers vs. Magic | Cavaliers 0.525, Magic 0.475 | 2026-10-13T23:00:00Z
+6758 | Will Bitcoin reach $85,000 on October 13? | Yes 0.310, No 0.690 | 2026-10-14T04:00:00Z
+6741 | Dota 2: Yakult Brothers vs Zenith (BO3) - DreamLeague China Closed Qualifier Playoffs | Yakult Brothers 0.395, Zenith 0.605 | 2026-10-13T10:00:00Z
+6650 | Will Trump say "Ceasefire" during his Midterm Rally in Alaska? | Yes 0.175, No 0.825 | 2026-10-13T23:35:00Z
+1151 | Will S&P 500 (SPY) hit (HIGH) $780 Week of October 12 2026? | Yes 0.760, No 0.240 | 2026-10-16T20:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+codex
+I’ll check the live price-sensitive markets and the scheduled sports events first, then calibrate the remaining forecasts to the quoted market prices.
+web search: 
+web search: October 13 2026 sports fixtures Pohang Steelers Johor Daejeon Citizen Beijing Guoan Buriram Poland ...
+web search: 
+web search: Trump midterm rally Alaska October 13 2026 speech today transcript rally schedule ...
+web search: 
+web search: Bitcoin price October 13 2026 current BTC USD 83000 ...
+web search: 
+web search: "Netflix" "Oct 12, 2026" stock close NFLX ...
+web search: 
+web search: Shanghai Port vs Daejeon Citizen odds 13 October 2026 ...
+web search: 
+web search: Pohang Steelers Johor Darul Ta'zim odds October 13 2026 match draw ...
+web search: 
+web search: BTC USD October 13 2026 04:00 UTC price bitcoin ...
+web search: 
+web search: Bitcoin hourly price October 13 2026 04:00 05:00 06:00 UTC ...
+web search: 
+web search: Oman vs Nepal live score October 13 2026 17/1 6.1 ov current score ...
+codex
+{"forecasts":[{"id":"6932","probabilities":{"Yes":0.001,"No":0.999}},{"id":"6858","probabilities":{"Oman":0.47,"Nepal":0.53}},{"id":"6777","probabilities":{"Up":0.82,"Down":0.18}},{"id":"6930","probabilities":{"Team WE":0.68,"FlyQuest":0.32}},{"id":"6842","probabilities":{"Yes":0.60,"No":0.40}},{"id":"3192","probabilities":{"Yes":0.19,"No":0.81}},{"id":"6917","probabilities":{"Yes":0.30,"No":0.70}},{"id":"6739","probabilities":{"Yes":0.28,"No":0.72}},{"id":"6761","probabilities":{"Yes":0.30,"No":0.70}},{"id":"6929","probabilities":{"Yakult Brothers":0.45,"Zenith":0.55}},{"id":"6675","probabilities":{"Yes":0.78,"No":0.22}},{"id":"3191","probabilities":{"Yes":0.44,"No":0.56}},{"id":"6912","probabilities":{"Yes":0.25,"No":0.75}},{"id":"6737","probabilities":{"Yes":0.34,"No":0.66}},{"id":"6760","probabilities":{"Yes":0.69,"No":0.31}},{"id":"6887","probabilities":{"Team Lynx":0.47,"Dawn Bulls":0.53}},{"id":"6653","probabilities":{"Yes":0.38,"No":0.62}},{"id":"3190","probabilities":{"Yes":0.38,"No":0.62}},{"id":"6884","probabilities":{"Yes":0.49,"No":0.51}},{"id":"6509","probabilities":{"Blues":0.47,"Senators":0.53}},{"id":"6759","probabilities":{"Yes":0.72,"No":0.28}},{"id":"6743","probabilities":{"Copenhagen Wolves":0.74,"VP.Future 3":0.26}},{"id":"6652","probabilities":{"Yes":0.36,"No":0.64}},{"id":"1640","probabilities":{"Yes":0.77,"No":0.23}},{"id":"6851","probabilities":{"Yes":0.39,"No":0.61}},{"id":"6435","probabilities":{"Cavaliers":0.51,"Magic":0.49}},{"id":"6758","probabilities":{"Yes":0.29,"No":0.71}},{"id":"6741","probabilities":{"Yakult Brothers":0.40,"Zenith":0.60}},{"id":"6650","probabilities":{"Yes":0.19,"No":0.81}},{"id":"1151","probabilities":{"Yes":0.77,"No":0.23}}]}
+tokens used
+96,595
+{"forecasts":[{"id":"6932","probabilities":{"Yes":0.001,"No":0.999}},{"id":"6858","probabilities":{"Oman":0.47,"Nepal":0.53}},{"id":"6777","probabilities":{"Up":0.82,"Down":0.18}},{"id":"6930","probabilities":{"Team WE":0.68,"FlyQuest":0.32}},{"id":"6842","probabilities":{"Yes":0.60,"No":0.40}},{"id":"3192","probabilities":{"Yes":0.19,"No":0.81}},{"id":"6917","probabilities":{"Yes":0.30,"No":0.70}},{"id":"6739","probabilities":{"Yes":0.28,"No":0.72}},{"id":"6761","probabilities":{"Yes":0.30,"No":0.70}},{"id":"6929","probabilities":{"Yakult Brothers":0.45,"Zenith":0.55}},{"id":"6675","probabilities":{"Yes":0.78,"No":0.22}},{"id":"3191","probabilities":{"Yes":0.44,"No":0.56}},{"id":"6912","probabilities":{"Yes":0.25,"No":0.75}},{"id":"6737","probabilities":{"Yes":0.34,"No":0.66}},{"id":"6760","probabilities":{"Yes":0.69,"No":0.31}},{"id":"6887","probabilities":{"Team Lynx":0.47,"Dawn Bulls":0.53}},{"id":"6653","probabilities":{"Yes":0.38,"No":0.62}},{"id":"3190","probabilities":{"Yes":0.38,"No":0.62}},{"id":"6884","probabilities":{"Yes":0.49,"No":0.51}},{"id":"6509","probabilities":{"Blues":0.47,"Senators":0.53}},{"id":"6759","probabilities":{"Yes":0.72,"No":0.28}},{"id":"6743","probabilities":{"Copenhagen Wolves":0.74,"VP.Future 3":0.26}},{"id":"6652","probabilities":{"Yes":0.36,"No":0.64}},{"id":"1640","probabilities":{"Yes":0.77,"No":0.23}},{"id":"6851","probabilities":{"Yes":0.39,"No":0.61}},{"id":"6435","probabilities":{"Cavaliers":0.51,"Magic":0.49}},{"id":"6758","probabilities":{"Yes":0.29,"No":0.71}},{"id":"6741","probabilities":{"Yakult Brothers":0.40,"Zenith":0.60}},{"id":"6650","probabilities":{"Yes":0.19,"No":0.81}},{"id":"1151","probabilities":{"Yes":0.77,"No":0.23}}]}
