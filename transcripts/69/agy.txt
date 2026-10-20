@@ -1,0 +1,42 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Will Huddersfield Town AFC win on 2026-10-20?
+Outcomes: Yes / No | prices: Yes 0.625, No 0.375 | closes: 2026-10-20T18:45:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 10-10, net P&L -368.1.
+- Penguins vs. Utah | you picked Utah | winner Utah | won | P&L +56.2
+- Commanders vs. 49ers | you picked 49ers | winner 49ers | won | P&L +26.6
+- Will SC Corinthians Paulista vs. EC Vitória end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Goiás EC win on 2026-10-19? | you picked Yes | winner No | lost | P&L -100.0
+- Atlanta Dream vs. Golden State Valkyries | you picked Golden State Valkyries | winner Atlanta Dream | lost | P&L -100.0
+- Sharks vs. Maple Leafs | you picked Maple Leafs | winner Maple Leafs | won | P&L +81.8
+- Will CD Riestra win on 2026-10-19? | you picked No | winner No | won | P&L +75.4
+- Avalanche vs. Flyers | you picked Avalanche | winner Flyers | lost | P&L -100.0
+- Will CA Newell's Old Boys win on 2026-10-19? | you picked No | winner Yes | lost | P&L -100.0
+- Will SC Braga vs. Gil Vicente FC end in a draw? | you picked No | winner No | won | P&L +32.8
+- Will Lille OSC win on 2026-10-17? | you picked Yes | winner No | lost | P&L -100.0
+- Will Trump's approval rating be at least 38.0 on October 16, 2026? | you picked Yes | winner Yes | won | P&L +74.2
+- Will Palantir Technologies Inc. (PLTR) hit (HIGH) $210 Week of October 12 2026? | you picked Yes | winner No | lost | P&L -100.0
+- Will Amazon.com, Inc. (AMZN) hit (LOW) $252 Week of October 12 2026? | you picked No | winner Yes | lost | P&L -100.0
+- Will XRP dip to $1.30 October 12-18? | you picked No | winner Yes | lost | P&L -100.0
+- Will AEK win on 2026-10-14? | you picked No | winner No | won | P&L +56.2
+- Will Ankara Keciorengucu win on 2026-10-14? | you picked No | winner No | won | P&L +75.4
+- Counter-Strike: BET-M 33 vs FORZE Reload (BO3) - NODWIN Clutch Series Group Stage | you picked BET-M 33 | winner FORZE Reload | lost | P&L -100.0
+- Will LASK Linz vs. Liverpool FC end in a draw? | you picked No | winner No | won | P&L +20.5
+- Will Amazon.com, Inc. (AMZN) hit (LOW) $256 Week of October 12 2026? | you picked Yes | winner Yes | won | P&L +132.6
+
+--- output ---
+error: Eligibility check failed: failed to get load code assist response: UNAVAILABLE (code 503): The service is currently unavailable.
+
+[bench] process exited with 1 before betting; restarting
+error: Eligibility check failed: UNAVAILABLE (code 503): The service is currently unavailable.
