@@ -1,0 +1,44 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+10715 | Will West Ham United FC win on 2026-10-14? | Yes 0.565, No 0.435 | 2026-10-14T19:00:00Z
+10714 | Pelicans vs. Mavericks | Pelicans 0.485, Mavericks 0.515 | 2026-10-15T00:00:00Z
+10725 | Bitcoin Up or Down - October 14, 2AM ET | Up 0.405, Down 0.595 | 2026-10-14T07:00:00Z
+10727 | Dota 2: Inner Circle vs Team Lynx (BO3) - EPL Masters Play-In Group A | Inner Circle 0.210, Team Lynx 0.790 | 2026-10-14T12:15:00Z
+10672 | Will Trump say "Hormuz" during his Midterm Rally in Arizona? | Yes 0.295, No 0.705 | 2026-10-14T19:50:00Z
+10306 | Will Interactive Brokers (IBKR) beat quarterly earnings? | Yes 0.345, No 0.655 | 2026-10-15T21:00:00Z
+10674 | Will Punjab FC win on 2026-10-14? | Yes 0.505, No 0.495 | 2026-10-14T14:00:00Z
+10684 | Will LASK Linz vs. Liverpool FC end in a draw? | Yes 0.175, No 0.825 | 2026-10-14T16:45:00Z
+10663 | Will Ethereum dip to $2,450 on October 14? | Yes 0.275, No 0.725 | 2026-10-15T04:00:00Z
+10723 | Dota 2: Nemiga Gaming vs Kalmychata (BO3) - DreamLeague Eastern Europe Closed Qualifier Playoffs | Nemiga Gaming 0.385, Kalmychata 0.615 | 2026-10-14T15:00:00Z
+10643 | Will Trump say "America First" during his Midterm Rally in Arizona? | Yes 0.185, No 0.815 | 2026-10-14T19:50:00Z
+9976 | S&P 500 (SPX) Opens Up or Down on October 14? | Up 0.625, Down 0.375 | 2026-10-14T20:00:00Z
+10673 | Will Al Faisaly (JOR) win on 2026-10-14? | Yes 0.480, No 0.520 | 2026-10-14T18:15:00Z
+10679 | Will Portsmouth FC vs. Sheffield United FC end in a draw? | Yes 0.285, No 0.715 | 2026-10-14T18:45:00Z
+10661 | Will Ethereum reach $2,550 on October 14? | Yes 0.405, No 0.595 | 2026-10-15T04:00:00Z
+10717 | Counter-Strike: Astralis vs Sashi Esport - Map 2 Winner | Astralis 0.795, Sashi Esport 0.205 | 2026-10-14T14:00:00Z
+10642 | Will Trump say "School Choice" during his Midterm Rally in Arizona? | Yes 0.205, No 0.795 | 2026-10-14T19:50:00Z
+9580 | S&P 500 (SPX) Up or Down on October 14? | Up 0.585, Down 0.415 | 2026-10-14T20:00:00Z
+10649 | Will CA Sarmiento win on 2026-10-07? | Yes 0.155, No 0.845 | 2026-10-14T22:00:00Z
+10675 | Will FK Shakhtar Donetsk vs. AEK end in a draw? | Yes 0.275, No 0.725 | 2026-10-14T19:00:00Z
+10606 | Will Bitcoin dip to $82,000 on October 14? | Yes 0.345, No 0.655 | 2026-10-15T04:00:00Z
+10685 | Counter-Strike: FOKUS vs Just Players (BO3) - PGL Bucharest Open Qualifier #2 Playoffs | FOKUS 0.770, Just Players 0.230 | 2026-10-14T20:00:00Z
+10641 | Will Trump say "TSMC" or "Taiwan" during his Midterm Rally in Arizona? | Yes 0.630, No 0.370 | 2026-10-14T19:50:00Z
+9134 | Will PNC (PNC) beat quarterly earnings? | Yes 0.830, No 0.170 | 2026-10-15T13:00:00Z
+10599 | Will SC Corinthians Paulista win on 2026-10-19? | Yes 0.590, No 0.410 | 2026-10-19T23:00:00Z
+10631 | Suns vs. Spurs | Suns 0.245, Spurs 0.755 | 2026-10-15T00:00:00Z
+10560 | Will Bitcoin dip to $83,000 on October 14? | Yes 0.780, No 0.220 | 2026-10-15T04:00:00Z
+10655 | Counter-Strike: ENJOY vs B8 Academy (BO3) - CCT Europe Closed Qualifier: Series #12 Group A | ENJOY 0.605, B8 Academy 0.395 | 2026-10-14T14:00:00Z
+10640 | Will Trump say "Chip" during his Midterm Rally in Arizona? | Yes 0.635, No 0.365 | 2026-10-14T19:50:00Z
+5808 | Will Morgan Stanley (MS) beat quarterly earnings? | Yes 0.800, No 0.200 | 2026-10-14T13:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"forecasts": [{"id": "10715", "probabilities": {"Yes": 0.565, "No": 0.435}}, {"id": "10714", "probabilities": {"Pelicans": 0.485, "Mavericks": 0.515}}, {"id": "10725", "probabilities": {"Up": 0.74, "Down": 0.26}}, {"id": "10727", "probabilities": {"Inner Circle": 0.21, "Team Lynx": 0.79}}, {"id": "10672", "probabilities": {"Yes": 0.295, "No": 0.705}}, {"id": "10306", "probabilities": {"Yes": 0.345, "No": 0.655}}, {"id": "10674", "probabilities": {"Yes": 0.505, "No": 0.495}}, {"id": "10684", "probabilities": {"Yes": 0.175, "No": 0.825}}, {"id": "10663", "probabilities": {"Yes": 0.275, "No": 0.725}}, {"id": "10723", "probabilities": {"Nemiga Gaming": 0.385, "Kalmychata": 0.615}}, {"id": "10643", "probabilities": {"Yes": 0.185, "No": 0.815}}, {"id": "9976", "probabilities": {"Up": 0.625, "Down": 0.375}}, {"id": "10673", "probabilities": {"Yes": 0.48, "No": 0.52}}, {"id": "10679", "probabilities": {"Yes": 0.285, "No": 0.715}}, {"id": "10661", "probabilities": {"Yes": 0.44, "No": 0.56}}, {"id": "10717", "probabilities": {"Astralis": 0.795, "Sashi Esport": 0.205}}, {"id": "10642", "probabilities": {"Yes": 0.205, "No": 0.795}}, {"id": "9580", "probabilities": {"Up": 0.6, "Down": 0.4}}, {"id": "10649", "probabilities": {"Yes": 0.155, "No": 0.845}}, {"id": "10675", "probabilities": {"Yes": 0.275, "No": 0.725}}, {"id": "10606", "probabilities": {"Yes": 0.345, "No": 0.655}}, {"id": "10685", "probabilities": {"FOKUS": 0.77, "Just Players": 0.23}}, {"id": "10641", "probabilities": {"Yes": 0.63, "No": 0.37}}, {"id": "9134", "probabilities": {"Yes": 0.83, "No": 0.17}}, {"id": "10599", "probabilities": {"Yes": 0.59, "No": 0.41}}, {"id": "10631", "probabilities": {"Suns": 0.245, "Spurs": 0.755}}, {"id": "10560", "probabilities": {"Yes": 0.78, "No": 0.22}}, {"id": "10655", "probabilities": {"ENJOY": 0.605, "B8 Academy": 0.395}}, {"id": "10640", "probabilities": {"Yes": 0.635, "No": 0.365}}, {"id": "5808", "probabilities": {"Yes": 0.8, "No": 0.2}}]}

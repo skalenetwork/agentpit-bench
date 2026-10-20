@@ -1,0 +1,1008 @@
+$ grok -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+10715 | Will West Ham United FC win on 2026-10-14? | Yes 0.565, No 0.435 | 2026-10-14T19:00:00Z
+10714 | Pelicans vs. Mavericks | Pelicans 0.485, Mavericks 0.515 | 2026-10-15T00:00:00Z
+10725 | Bitcoin Up or Down - October 14, 2AM ET | Up 0.405, Down 0.595 | 2026-10-14T07:00:00Z
+10727 | Dota 2: Inner Circle vs Team Lynx (BO3) - EPL Masters Play-In Group A | Inner Circle 0.210, Team Lynx 0.790 | 2026-10-14T12:15:00Z
+10672 | Will Trump say "Hormuz" during his Midterm Rally in Arizona? | Yes 0.295, No 0.705 | 2026-10-14T19:50:00Z
+10306 | Will Interactive Brokers (IBKR) beat quarterly earnings? | Yes 0.345, No 0.655 | 2026-10-15T21:00:00Z
+10674 | Will Punjab FC win on 2026-10-14? | Yes 0.505, No 0.495 | 2026-10-14T14:00:00Z
+10684 | Will LASK Linz vs. Liverpool FC end in a draw? | Yes 0.175, No 0.825 | 2026-10-14T16:45:00Z
+10663 | Will Ethereum dip to $2,450 on October 14? | Yes 0.275, No 0.725 | 2026-10-15T04:00:00Z
+10723 | Dota 2: Nemiga Gaming vs Kalmychata (BO3) - DreamLeague Eastern Europe Closed Qualifier Playoffs | Nemiga Gaming 0.385, Kalmychata 0.615 | 2026-10-14T15:00:00Z
+10643 | Will Trump say "America First" during his Midterm Rally in Arizona? | Yes 0.185, No 0.815 | 2026-10-14T19:50:00Z
+9976 | S&P 500 (SPX) Opens Up or Down on October 14? | Up 0.625, Down 0.375 | 2026-10-14T20:00:00Z
+10673 | Will Al Faisaly (JOR) win on 2026-10-14? | Yes 0.480, No 0.520 | 2026-10-14T18:15:00Z
+10679 | Will Portsmouth FC vs. Sheffield United FC end in a draw? | Yes 0.285, No 0.715 | 2026-10-14T18:45:00Z
+10661 | Will Ethereum reach $2,550 on October 14? | Yes 0.405, No 0.595 | 2026-10-15T04:00:00Z
+10717 | Counter-Strike: Astralis vs Sashi Esport - Map 2 Winner | Astralis 0.795, Sashi Esport 0.205 | 2026-10-14T14:00:00Z
+10642 | Will Trump say "School Choice" during his Midterm Rally in Arizona? | Yes 0.205, No 0.795 | 2026-10-14T19:50:00Z
+9580 | S&P 500 (SPX) Up or Down on October 14? | Up 0.585, Down 0.415 | 2026-10-14T20:00:00Z
+10649 | Will CA Sarmiento win on 2026-10-07? | Yes 0.155, No 0.845 | 2026-10-14T22:00:00Z
+10675 | Will FK Shakhtar Donetsk vs. AEK end in a draw? | Yes 0.275, No 0.725 | 2026-10-14T19:00:00Z
+10606 | Will Bitcoin dip to $82,000 on October 14? | Yes 0.345, No 0.655 | 2026-10-15T04:00:00Z
+10685 | Counter-Strike: FOKUS vs Just Players (BO3) - PGL Bucharest Open Qualifier #2 Playoffs | FOKUS 0.770, Just Players 0.230 | 2026-10-14T20:00:00Z
+10641 | Will Trump say "TSMC" or "Taiwan" during his Midterm Rally in Arizona? | Yes 0.630, No 0.370 | 2026-10-14T19:50:00Z
+9134 | Will PNC (PNC) beat quarterly earnings? | Yes 0.830, No 0.170 | 2026-10-15T13:00:00Z
+10599 | Will SC Corinthians Paulista win on 2026-10-19? | Yes 0.590, No 0.410 | 2026-10-19T23:00:00Z
+10631 | Suns vs. Spurs | Suns 0.245, Spurs 0.755 | 2026-10-15T00:00:00Z
+10560 | Will Bitcoin dip to $83,000 on October 14? | Yes 0.780, No 0.220 | 2026-10-15T04:00:00Z
+10655 | Counter-Strike: ENJOY vs B8 Academy (BO3) - CCT Europe Closed Qualifier: Series #12 Group A | ENJOY 0.605, B8 Academy 0.395 | 2026-10-14T14:00:00Z
+10640 | Will Trump say "Chip" during his Midterm Rally in Arizona? | Yes 0.635, No 0.365 | 2026-10-14T19:50:00Z
+5808 | Will Morgan Stanley (MS) beat quarterly earnings? | Yes 0.800, No 0.200 | 2026-10-14T13:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"type":"available_commands","tools":["run_terminal_command","read_file","search_replace","list_dir","grep","kill_command_or_subagent","todo_write","get_command_or_subagent_output","spawn_subagent","scheduler_create","scheduler_delete","scheduler_list","monitor","search_tool","use_tool","workflow","enter_plan_mode","exit_plan_mode","ask_user_question","send_feedback","web_search","web_fetch","image_gen","image_edit","image_to_video","reference_to_video","write"],"commands":["compact","always-approve","context","session-info","feedback","deep-research","workflow","goal","loop"]}
+{"type":"available_commands","tools":["run_terminal_command","read_file","search_replace","list_dir","grep","kill_command_or_subagent","todo_write","get_command_or_subagent_output","spawn_subagent","scheduler_create","scheduler_delete","scheduler_list","monitor","search_tool","use_tool","workflow","enter_plan_mode","exit_plan_mode","ask_user_question","send_feedback","web_search","web_fetch","image_gen","image_edit","image_to_video","reference_to_video","write"],"commands":["compact","always-approve","context","session-info","feedback","deep-research","workflow","goal","loop"]}
+{"type":"available_commands","tools":["run_terminal_command","read_file","search_replace","list_dir","grep","kill_command_or_subagent","todo_write","get_command_or_subagent_output","spawn_subagent","scheduler_create","scheduler_delete","scheduler_list","monitor","search_tool","use_tool","workflow","enter_plan_mode","exit_plan_mode","ask_user_question","send_feedback","web_search","web_fetch","image_gen","image_edit","image_to_video","reference_to_video","write"],"commands":["compact","always-approve","context","session-info","feedback","deep-research","workflow","goal","loop","learn-traces"]}
+{"type":"available_commands","tools":["run_terminal_command","read_file","search_replace","list_dir","grep","kill_command_or_subagent","todo_write","get_command_or_subagent_output","spawn_subagent","scheduler_create","scheduler_delete","scheduler_list","monitor","search_tool","use_tool","workflow","enter_plan_mode","exit_plan_mode","ask_user_question","send_feedback","web_search","web_fetch","image_gen","image_edit","image_to_video","reference_to_video","write"],"commands":["compact","always-approve","context","session-info","feedback","deep-research","workflow","goal","loop","build-with-ai","code-review","create-skill","create-workflow","design","execute-plan","game-assets","bundled:imagine","implement","learn","long-running-background-tasks","pr-babysit","resume-claude","resume-codex","resume-cursor","review","skill-design-principles","statusline","threejs-frame-conventions","learn-traces"]}
+{"type":"thought","data":"I am starting the AgentpitBench"}
+{"type":"thought","data":" daily forecast sweep."}
+{"type":"thought","data":"\n\nI am reviewing the"}
+{"type":"thought","data":" 30 markets and noting"}
+{"type":"thought","data":" their close times. "}
+{"type":"thought","data":"Many resolve today or"}
+{"type":"thought","data":" tomorrow."}
+{"type":"thought","data":"\n\nMarkets 10725 through"}
+{"type":"thought","data":" 10684 are now catalogued."}
+{"type":"thought","data":" These span Bitcoin,"}
+{"type":"thought","data":" Dota 2, Trump quotes,"}
+{"type":"thought","data":" IBKR earnings, Punjab"}
+{"type":"thought","data":" FC, and LASK Linz."}
+{"type":"thought","data":"\n\nMarkets 10663 through"}
+{"type":"thought","data":" 10661 are now catalogued."}
+{"type":"thought","data":" These include ETH price"}
+{"type":"thought","data":" targets, a second Dota"}
+{"type":"thought","data":" 2 match, Trump quotes,"}
+{"type":"thought","data":" SPX direction, Al Faisaly,"}
+{"type":"thought","data":" and a Portsmouth draw."}
+{"type":"thought","data":"\n\nMarkets 10717 through"}
+{"type":"thought","data":" 10649 are now catalogued."}
+{"type":"thought","data":" These include a CS:GO"}
+{"type":"thought","data":" map match, another "}
+{"type":"thought","data":"Trump quote, SPX direction,"}
+{"type":"thought","data":" a past CA Sarmiento"}
+{"type":"thought","data":" match, a Shakhtar draw,"}
+{"type":"thought","data":" and a BTC dip target."}
+{"type":"thought","data":"\n\nMarkets 10685 through"}
+{"type":"thought","data":" 10655 are now catalogued."}
+{"type":"thought","data":" These include a CS:GO"}
+{"type":"thought","data":" match, another Trump quote, PNC earnings, a future Corinthians match, a Suns versus Spurs game, a BTC dip target, and a CS:GO match between ENJOY and B8 Academy."}
+{"type":"text","data":"I'll"}
+{"type":"text","data":" research"}
+{"type":"text","data":" the"}
+{"type":"text","data":" live"}
+{"type":"text","data":" prices"}
+{"type":"text","data":","}
+{"type":"text","data":" fixtures"}
+{"type":"text","data":","}
+{"type":"text","data":" and"}
+{"type":"text","data":" earnings"}
+{"type":"text","data":" that"}
+{"type":"text","data":" these"}
+{"type":"text","data":" "}
+{"type":"text","data":"30"}
+{"type":"text","data":" markets"}
+{"type":"text","data":" turn"}
+{"type":"text","data":" on"}
+{"type":"text","data":","}
+{"type":"text","data":" then"}
+{"type":"text","data":" assign"}
+{"type":"text","data":" a"}
+{"type":"text","data":" probability"}
+{"type":"text","data":" to"}
+{"type":"text","data":" every"}
+{"type":"text","data":" outcome"}
+{"type":"text","data":"."}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-0","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-1","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-0","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Bitcoin price USD October 14 2026","sources":[{"type":"url","url":"https://www.okx.com/en-us/price-history/bitcoin-btc"},{"type":"url","url":"https://mytrade.courses/markets/crypto/bitcoin"},{"type":"url","url":"https://bitkan.com/price/bitcoin/historical-data"},{"type":"url","url":"https://www.marketwatch.com/investing/cryptocurrency/btcusd/download-data"},{"type":"url","url":"https://www.gurufocus.com/economic_indicators/6056/bitcoin-price"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-0","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-2","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-2","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"West Ham fixture October 14 2026 opponent odds","sources":[{"type":"url","url":"https://sportbet.one/sports/soccer/england/championship/lincoln-city-west-ham-18651566"},{"type":"url","url":"https://sportspundit.com/soccer/matches/lincoln-vs-west-ham/"},{"type":"url","url":"https://www.espn.com/soccer/odds/_/gameId/401880224"},{"type":"url","url":"https://www.flashscore.co.ke/match/football/lincoln-city-hrHTRs5B/west-ham-Cxq57r8g/"},{"type":"url","url":"https://betbetter.world/soccer/efl-championship/matchups/lincoln-city-vs-west-ham-united"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-2","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-3","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-1","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Ethereum price USD October 14 2026","sources":[{"type":"url","url":"https://www.okx.com/price-history/ethereum-eth"},{"type":"url","url":"https://mytrade.courses/markets/crypto/ethereum"},{"type":"url","url":"https://bitkan.com/price/ethereum/historical-data"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-1","status":"completed"},"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-3","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Morgan Stanley Q3 2026 earnings beat OR miss October 14","sources":[{"type":"url","url":"https://www.cnbc.com/2026/10/13/bank-earnings-live-updates.html"},{"type":"url","url":"https://ca.finance.yahoo.com/quote/MS/"},{"type":"url","url":"https://www.btimesonline.com/articles/175603/20251015/morgan-stanley-posts-record-18point2-billion-revenue-as-deal-activity-trading-drive-biggest-profit-beat-in-five-years.htm"},{"type":"url","url":"https://www.zacks.com/stock/news/3003866/morgan-stanley-stock-ahead-of-q3-earnings-buy-hold-or-sell"},{"type":"url","url":"https://www.moomoo.com/stock/MS-US/earnings"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-3","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-4","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-5","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-4","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"S&P 500 futures October 14 2026 premarket","sources":[{"type":"url","url":"https://www.reuters.com/business/sp-500-futures-muted-investors-await-big-bank-earnings-chip-weakness-weighs-2026-10-13/"},{"type":"url","url":"https://markets.businessinsider.com/premarket"},{"type":"url","url":"https://investrade.com/morning-preview-october-13-2026/"},{"type":"url","url":"https://finance.yahoo.com/markets/stocks/articles/p-500-dow-futures-muted-112400648.html"},{"type":"url","url":"https://www.investopedia.com/stock-market-today-dow-jones-s-and-p-500-10132026-12171459"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-4","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-6","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-5","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Pelicans vs Mavericks October 14 2026 odds prediction","sources":[{"type":"url","url":"https://www.covers.com/sport/basketball/nba/matchup/389860/picks"},{"type":"url","url":"https://www.actionnetwork.com/nba-game/pelicans-mavericks-score-odds-october-14-2026/295986"},{"type":"url","url":"https://stavka.tv/matches/basketball/15-10-2026-dallas-mavericks-new-orleans-pelicans"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-5","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-7","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-6","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Suns vs Spurs October 14 2026 odds","sources":[{"type":"url","url":"https://www.covers.com/sport/basketball/nba/matchup/389875/odds"},{"type":"url","url":"https://www.covers.com/sport/basketball/nba/matchup/389875/picks"},{"type":"url","url":"https://www.bettingpros.com/nba/matchups/phoenix-suns-vs-san-antonio-spurs/"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-6","status":"completed"},"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-7","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Trump midterm rally Arizona October 14 2026","sources":[{"type":"url","url":"https://www.azcentral.com/story/news/politics/elections/2026/10/08/donald-trump-arizona-midterm-election-rally/92162608007/"},{"type":"url","url":"https://www.fox5vegas.com/2026/10/12/president-trump-headline-midterm-rally-bullhead-city/"},{"type":"url","url":"https://tucson.com/news/state-regional/government-politics/elections/article_0e9d0b23-5232-4ca7-ba0e-dfc28ea4b5c5.html"},{"type":"url","url":"https://x.com/dannowicki/status/2108385755823473098"},{"type":"url","url":"https://x.com/azcentral/status/2108399604471410906"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-7","status":"completed"},"locations":[]}
+{"type":"text","data":"Crypto"}
+{"type":"text","data":","}
+{"type":"text","data":" NBA"}
+{"type":"text","data":","}
+{"type":"text","data":" West"}
+{"type":"text","data":" Ham"}
+{"type":"text","data":","}
+{"type":"text","data":" and"}
+{"type":"text","data":" the"}
+{"type":"text","data":" Arizona"}
+{"type":"text","data":" rally"}
+{"type":"text","data":" are"}
+{"type":"text","data":" in"}
+{"type":"text","data":"."}
+{"type":"text","data":" Next"}
+{"type":"text","data":" I’ll"}
+{"type":"text","data":" check"}
+{"type":"text","data":" the"}
+{"type":"text","data":" remaining"}
+{"type":"text","data":" fixtures"}
+{"type":"text","data":","}
+{"type":"text","data":" es"}
+{"type":"text","data":"ports"}
+{"type":"text","data":","}
+{"type":"text","data":" and"}
+{"type":"text","data":" earnings"}
+{"type":"text","data":"."}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-8","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-9","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-10","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-8","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Punjab FC vs match October 14 2026 prediction odds","sources":[{"type":"url","url":"https://www.thetopbookies.com/betting-tips/football/pfc-vs-ofc-14-oct-2026_thetopbookies"},{"type":"url","url":"https://www.oddssafari.com/matches/soccer/india/super-league/punjab-fc-vs-odisha-fc/6346915"},{"type":"url","url":"https://www.feedinco.com/predictions/2026-10-14/Punjab-vs-Odisha-FC-prediction"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-8","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-11","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-10","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Portsmouth vs Sheffield United October 14 2026 odds draw","sources":[{"type":"url","url":"https://www.oddschecker.com/football/english/championship/portsmouth-v-sheffield-utd/winner"},{"type":"url","url":"https://matchsharp.com/match/portsmouth-vs-sheffield-united-1637847838"},{"type":"url","url":"https://footballnation.eu/match/championship/2026/795901/"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-10","status":"completed"},"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-9","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"LASK Linz vs Liverpool October 14 2026 odds draw","sources":[{"type":"url","url":"https://www.oddschecker.com/football/champions-league/lask-linz-v-liverpool/winner"},{"type":"url","url":"https://www.888sport.com/football/europe/uefa-champions-league/lask-linz-vs-liverpool-e-8241772/"},{"type":"url","url":"https://www.smartbet.gg/football/lask-liverpool/19872636/odds"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-9","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-12","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-11","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Shakhtar Donetsk vs AEK October 14 2026 odds draw","sources":[{"type":"url","url":"https://sports.everygame.eu/en/Bets/Soccer/UEFA-Champions-League/FC-Shakhtar-Donetsk-v-AEK-Athens/2894946"},{"type":"url","url":"https://www.africapicks.com/picks/shakhtar-donetsk-vs-aek-athens-fc-2026-10-14/"},{"type":"url","url":"https://www.betvictor.com/en-ca/sports/240/meetings/724920510/events/2842701120"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-11","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-13","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-12","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Al Faisaly Jordan match October 14 2026 odds","sources":[{"type":"url","url":"https://scores24.live/en/soccer/m-14-10-2026-faisaly-jor-al-nahda-sc-prediction"},{"type":"url","url":"https://www.betmonitor.com/odds-comparison/football/jordan-premier-league/al-salt-al-faisaly-amman/109883980"},{"type":"url","url":"https://foot.be/match/afc-cup/2026/810340/"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-12","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-14","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-13","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"CA Sarmiento result October 7 2026 OR October 2026 match","sources":[{"type":"url","url":"https://www.0223.com.ar/nota/2026-10-9-14-35-0-en-vivo-aldosivi-y-sarmiento-ya-juegan-el-segundo-tiempo"},{"type":"url","url":"https://www.laarena.com.ar/deportes/triunfo-de-sarmiento-202610110290"},{"type":"url","url":"https://www.wincomparator.com/predictions/sarmiento-river-plate-8839406/"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-13","status":"completed"},"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-14","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Corinthians next match October 19 2026 odds win","sources":[{"type":"url","url":"https://www.888sport.com/football/brazil/brazilian-serie-a/corinthians-vs-ec-vitoria-e-8376045/"},{"type":"url","url":"https://sportbet.one/sports/soccer/brazil/serie-a/sc-corinthians-ec-vitoria-ba-18547639"},{"type":"url","url":"https://fbref.com/en/squads/bf4acd28/2026/matchlogs/c24/schedule/Corinthians-Scores-and-Fixtures-Serie-A"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-14","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-15","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-16","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-15","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"PNC Financial earnings Q3 2026 October 15 beat estimate","sources":[{"type":"url","url":"https://finance.yahoo.com/quote/PNC/"},{"type":"url","url":"https://stockanalysis.com/stocks/pnc/"},{"type":"url","url":"https://ph.investing.com/equities/pnc-fin-serv-earnings"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-15","status":"completed"},"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-16","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Interactive Brokers IBKR Q3 2026 earnings estimate beat history","sources":[{"type":"url","url":"https://www.macroaxis.com/earnings-estimate/IBKR"},{"type":"url","url":"https://www.tipranks.com/news/pre-earnings/ibkr-earnings-this-week-how-will-it-perform-pre-earnings-news"},{"type":"url","url":"https://businessquant.com/stocks/ibkr/estimates/"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-16","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-17","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-17","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Astralis vs Sashi map 2 October 14 2026 CS2","sources":[{"type":"url","url":"https://limitless.exchange/markets/astralis-vs-sashi-esport-map-2-winner-1791720300711"},{"type":"url","url":"https://www.lines.com/prediction-markets/sports/esports/cs2-ast10-sashi-2026-10-14"},{"type":"url","url":"https://esportsresults.com/match/cs2/1731151/astralis-vs-sashi-esport"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-17","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-18","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-18","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Dota 2 Inner Circle vs Team Lynx EPL Masters October 14 2026 odds","sources":[{"type":"url","url":"https://esportsinsider.com/betting-odds/dota2/match/inner-circle-vs-team-lynx-1743568"},{"type":"url","url":"https://sportbet.one/pt/sports/esports/dota-2/european-pro-league-masters-closed-qualifier/inner-circle-lynx-19011114"},{"type":"url","url":"https://stavka.tv/matches/dota2/14-10-2026-inner-circle-x-insanity-team-lynx"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-18","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-19","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-19","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Nemiga vs Kalmychata Dota 2 DreamLeague October 14 2026","sources":[{"type":"url","url":"https://esportsresults.com/match/dota2/1743369/yellow-submarine-vs-kalmychata"},{"type":"url","url":"https://sportbet.one/sports/esports/dota-2/dreamleague-eeu-closed-qualifier/nemiga-kalmychata-19015198"},{"type":"url","url":"https://escorenews.com/en/dota-2/dreamleague-season-30/eastern-europe/nemiga-vs-kalmychata-664519"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-19","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-20","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-20","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"FOKUS vs Just Players CS2 PGL Bucharest odds October 2026","sources":[{"type":"url","url":"https://leon.bet/blog/forecasts/cs-go/fokus-just-players-14-10-2026-user"},{"type":"url","url":"https://betmonitor.com/odds-comparison/esport/pgl-bucharest-european/10029195"},{"type":"url","url":"https://esportsinsider.com/betting-odds/counter-strike/match/fokus-cs-go-vs-just_players-1747580"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-20","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-21","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-21","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"ENJOY vs B8 Academy CS2 October 14 2026 odds","sources":[{"type":"url","url":"https://esportsinsider.com/betting-odds/counter-strike/match/enjoy-vs-b8-academy-1745495"},{"type":"url","url":"https://kalshi.com/markets/kxcs2totalmaps/cs2-total-maps/kxcs2totalmaps-26oct140400b8aenjoy"},{"type":"url","url":"https://stavka.tv/matches/csgo/14-10-2026-enjoy-b8-academy"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-21","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-22","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-22","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Trump rally speech \"Hormuz\" OR \"America First\" OR \"school choice\" OR TSMC frequency 2026","sources":[{"type":"url","url":"https://www.c-span.org/program/america-250/president-trump-rally-at-great-american-state-fair/681497"},{"type":"url","url":"https://www.youtube.com/watch?v=HS3e6mGJ98M"},{"type":"url","url":"https://www.youtube.com/watch?v=Ud8zWaUx00s"},{"type":"url","url":"https://www.techi.com/tsmc-stock-october-sales-earnings-ai-rally/"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-22","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-23","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-24","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-23","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Interactive Brokers earnings beat probability Zacks ESP Q3 2026","sources":[{"type":"url","url":"https://www.zacks.com/stock/news/3004875/gear-up-for-interactive-brokers-ibkr-q3-earnings-wall-street-estimates-for-key-metrics"},{"type":"url","url":"https://www.zacks.com/stock/news/3005794/want-better-returns-dont-ignore-these-2-computer-and-technology-stocks-set-to-beat-earnings"},{"type":"url","url":"https://www.tipranks.com/news/pre-earnings/ibkr-earnings-this-week-how-will-it-perform-pre-earnings-news"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-23","status":"completed"},"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-24","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Sarmiento vs River Plate October 14 2026 odds result","sources":[{"type":"url","url":"https://www.oddalerts.com/livescores/river-plate-vs-sarmiento/11573-15674"},{"type":"url","url":"https://www.sportsmole.co.uk/football/argentina-primera-division/sarmiento-vs-river-plate_game_259922.html"},{"type":"url","url":"https://www.sportsgambler.com/betting-tips/football/sarmiento-vs-river-plate-prediction-lineups-odds-2026-10-14/"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-24","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-25","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-25","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Bitcoin price now October 14 2026 live","sources":[{"type":"url","url":"https://www.okx.com/en-us/price-history/bitcoin-btc"},{"type":"url","url":"https://mytrade.courses/markets/crypto/bitcoin"},{"type":"url","url":"https://www.marketwatch.com/investing/cryptocurrency/btcusd/download-data"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-25","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-26","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-26","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"S&P 500 close October 13 2026 futures October 14","sources":[{"type":"url","url":"https://portfolio-terminal.com/markets/sp-500"},{"type":"url","url":"https://www.tipranks.com/news/stock-futures-are-little-changed-after-another-down-day-on-wall-street"},{"type":"url","url":"https://www.cnbc.com/quotes/.SPX"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-26","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-27","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-27","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Morgan Stanley earnings surprise history beat rate percentage","sources":[{"type":"url","url":"https://tickzen.app/stocks/ms/earnings"},{"type":"url","url":"https://www.alphaquery.com/stock/MS/earnings-history"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-27","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-28","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-28","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Interactive Brokers September 2026 monthly brokerage metrics DARTs client equity","sources":[{"type":"url","url":"https://www.tipranks.com/news/the-fly/interactive-brokers-reports-september-darts-up-6-y-y-thefly-news"},{"type":"url","url":"https://fxnewsgroup.com/forex-news/retail-forex/interactive-brokers-registers-6-y-y-increase-in-darts-in-sep-2026/"},{"type":"url","url":"https://www.businesswire.com/news/home/20261001989930/en/Interactive-Brokers-Group-Reports-Brokerage-Metrics-and-Other-Financial-Information-for-September-2026-includes-Reg.-NMS-Execution-Statistics"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-28","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-29","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-29","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"PNC Zacks earnings ESP beat Q3 2026","sources":[{"type":"url","url":"https://finance.yahoo.com/quote/PNC/"},{"type":"url","url":"https://www.fxempire.com/stocks/pnc/earnings"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-29","status":"completed"},"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-30","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-31","title":"Web search:","kind":"search","status":"in_progress","toolName":"Web search:","rawInput":{"variant":"WebSearch","backend":true},"content":[],"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-30","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"\"Will Trump say\" rally phrase odds school choice Hormuz Arizona","sources":[{"type":"url","url":"https://kalshi.com/markets/kxtrumpmention/what-will-trump-say/kxtrumpmention-26oct14"},{"type":"url","url":"https://www.azcentral.com/story/news/politics/elections/2026/04/18/5-takeaways-from-trump-speech-in-arizona/89670437007/"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-30","status":"completed"},"locations":[]}
+{"type":"tool_call_update","toolCallId":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-31","status":"completed","content":[],"rawOutput":{"action":{"type":"search","query":"Astralis ranking CS2 October 2026 vs Sashi","sources":[{"type":"url","url":"https://esports-news.co.uk/matches/cs2/team/astralis/"},{"type":"url","url":"https://www.lines.com/prediction-markets/sports/esports/cs2-ast10-sashi-2026-10-14"}]},"id":"ws_00f33f21-6093-9d47-ae78-eaa212c4581b_call-6830189f-4b6a-42ea-b221-7128c830a231-31","status":"completed"},"locations":[]}
+{"type":"text","data":"{\""}
+{"type":"text","data":"forecast"}
+{"type":"text","data":"s"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" [{\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"107"}
+{"type":"text","data":"15"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"56"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"44"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"107"}
+{"type":"text","data":"14"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Pel"}
+{"type":"text","data":"icans"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"48"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"M"}
+{"type":"text","data":"aver"}
+{"type":"text","data":"icks"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"52"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"107"}
+{"type":"text","data":"25"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Up"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"46"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"Down"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"54"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"107"}
+{"type":"text","data":"27"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Inner"}
+{"type":"text","data":" Circle"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"21"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"Team"}
+{"type":"text","data":" Lyn"}
+{"type":"text","data":"x"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"79"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"106"}
+{"type":"text","data":"72"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"33"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"67"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"103"}
+{"type":"text","data":"06"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"48"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"52"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"106"}
+{"type":"text","data":"74"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"55"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"45"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"106"}
+{"type":"text","data":"84"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"17"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"83"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"106"}
+{"type":"text","data":"63"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"30"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"70"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"107"}
+{"type":"text","data":"23"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Nem"}
+{"type":"text","data":"iga"}
+{"type":"text","data":" Gaming"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"39"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"Kal"}
+{"type":"text","data":"m"}
+{"type":"text","data":"ych"}
+{"type":"text","data":"ata"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"61"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"106"}
+{"type":"text","data":"43"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"22"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"78"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"997"}
+{"type":"text","data":"6"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Up"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"64"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"Down"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"36"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"106"}
+{"type":"text","data":"73"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"51"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"49"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"106"}
+{"type":"text","data":"79"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"28"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"72"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"106"}
+{"type":"text","data":"61"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"38"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"62"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"107"}
+{"type":"text","data":"17"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Astr"}
+{"type":"text","data":"alis"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"78"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"S"}
+{"type":"text","data":"ashi"}
+{"type":"text","data":" Es"}
+{"type":"text","data":"port"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"22"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"106"}
+{"type":"text","data":"42"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"28"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"72"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"958"}
+{"type":"text","data":"0"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Up"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"57"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"Down"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"43"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"106"}
+{"type":"text","data":"49"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"17"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"83"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"106"}
+{"type":"text","data":"75"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"28"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"72"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"106"}
+{"type":"text","data":"06"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"36"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"64"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"106"}
+{"type":"text","data":"85"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"FO"}
+{"type":"text","data":"K"}
+{"type":"text","data":"US"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"77"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"Just"}
+{"type":"text","data":" Players"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"23"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"106"}
+{"type":"text","data":"41"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"63"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"37"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"913"}
+{"type":"text","data":"4"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"84"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"16"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"105"}
+{"type":"text","data":"99"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"57"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"43"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"106"}
+{"type":"text","data":"31"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"S"}
+{"type":"text","data":"uns"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"27"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"Sp"}
+{"type":"text","data":"urs"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"73"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"105"}
+{"type":"text","data":"60"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"82"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"18"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"106"}
+{"type":"text","data":"55"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"EN"}
+{"type":"text","data":"JO"}
+{"type":"text","data":"Y"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"59"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"B"}
+{"type":"text","data":"8"}
+{"type":"text","data":" Academy"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"41"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"106"}
+{"type":"text","data":"40"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"67"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"33"}
+{"type":"text","data":"}},"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"id"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" \""}
+{"type":"text","data":"580"}
+{"type":"text","data":"8"}
+{"type":"text","data":"\","}
+{"type":"text","data":" \""}
+{"type":"text","data":"probabilities"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" {\""}
+{"type":"text","data":"Yes"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"79"}
+{"type":"text","data":","}
+{"type":"text","data":" \""}
+{"type":"text","data":"No"}
+{"type":"text","data":"\":"}
+{"type":"text","data":" "}
+{"type":"text","data":"0"}
+{"type":"text","data":"."}
+{"type":"text","data":"21"}
+{"type":"text","data":"}}"}
+{"type":"text","data":"]}"}
+{"type":"available_commands","tools":["run_terminal_command","read_file","search_replace","list_dir","grep","kill_command_or_subagent","todo_write","get_command_or_subagent_output","spawn_subagent","scheduler_create","scheduler_delete","scheduler_list","monitor","search_tool","use_tool","workflow","enter_plan_mode","exit_plan_mode","ask_user_question","send_feedback","web_search","web_fetch","image_gen","image_edit","image_to_video","reference_to_video","write"],"commands":["compact","always-approve","context","session-info","feedback","deep-research","workflow","goal","loop","build-with-ai","code-review","create-skill","create-workflow","design","execute-plan","game-assets","bundled:imagine","implement","learn","long-running-background-tasks","pr-babysit","resume-claude","resume-codex","resume-cursor","review","skill-design-principles","statusline","threejs-frame-conventions","learn-traces"]}
+{"type":"usage","usage":{"input_tokens":104449,"output_tokens":19263,"cache_read_input_tokens":224128,"cache_creation_input_tokens":0,"reasoning_tokens":17469},"signature":"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"}
+{"type":"end","stopReason":"end_turn","sessionId":"01a13909-7d3d-7590-9134-9a590c09618f","requestId":"566b38f0-c6b0-418d-bbd3-4dafee302d9d","usage":{"input_tokens":104449,"cache_read_input_tokens":224128,"cache_creation_input_tokens":0,"output_tokens":19263,"reasoning_tokens":17469,"total_tokens":347840},"num_turns":1,"total_cost_usd":0.4568472,"total_cost_usd_ticks":4568472000,"modelUsage":{"grok-4.7-build":{"inputTokens":104449,"outputTokens":19263,"cacheReadInputTokens":224128,"cacheCreationInputTokens":0,"modelCalls":1,"costUSD":0.4568472}}}
