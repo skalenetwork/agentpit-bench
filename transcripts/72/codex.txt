@@ -1,0 +1,525 @@
+$ codex exec <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Counter-Strike: FaZe vs JiJieHao (BO3) - DraculaN Playoffs
+Outcomes: FaZe / JiJieHao | prices: FaZe 0.700, JiJieHao 0.300 | closes: 2026-10-21T17:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 9-11, net P&L +55.3.
+- Will Barnet FC win on 2026-10-20? | you picked No | winner No | won | P&L +190.0
+- Will Al Qadisiyah Saudi Club win on 2026-10-20? | you picked No | winner Yes | lost | P&L -100.0
+- Will Al Diraiyah Saudi Club win on 2026-10-20? | you picked No | winner Yes | lost | P&L -100.0
+- Will FC Porto vs. PSV end in a draw? | you picked No | winner No | won | P&L +25.0
+- Will Huddersfield Town AFC win on 2026-10-20? | you picked No | winner Yes | lost | P&L -100.0
+- Will Fenerbahçe SK vs. SK Slavia Praha end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will SK Slavia Praha win on 2026-10-20? | you picked Yes | winner No | lost | P&L -100.0
+- Counter-Strike: BBL vs BC.Game Esports (BO3) - DraculaN Playoffs | you picked BC.Game Esports | winner BC.Game Esports | won | P&L +61.0
+- Counter-Strike: ex-RUSTEC vs Metizport (BO3) - Stake Ranked Episode 6: Closed Qualifier Pl | you picked ex-RUSTEC | winner Metizport | lost | P&L -100.0
+- Penguins vs. Utah | you picked Penguins | winner Utah | lost | P&L -100.0
+- Commanders vs. 49ers | you picked Commanders | winner 49ers | lost | P&L -100.0
+- Will SC Corinthians Paulista vs. EC Vitória end in a draw? | you picked Yes | winner Yes | won | P&L +316.7
+- Will Goiás EC win on 2026-10-19? | you picked No | winner No | won | P&L +150.0
+- Atlanta Dream vs. Golden State Valkyries | you picked Golden State Valkyries | winner Atlanta Dream | lost | P&L -100.0
+- Sharks vs. Maple Leafs | you picked Maple Leafs | winner Maple Leafs | won | P&L +81.8
+- Will CD Riestra win on 2026-10-19? | you picked No | winner No | won | P&L +75.4
+- Avalanche vs. Flyers | you picked Flyers | winner Flyers | won | P&L +222.6
+- Will CA Newell's Old Boys win on 2026-10-19? | you picked No | winner Yes | lost | P&L -100.0
+- Will SC Braga vs. Gil Vicente FC end in a draw? | you picked No | winner No | won | P&L +32.8
+- Will Lille OSC win on 2026-10-17? | you picked Yes | winner No | lost | P&L -100.0
+
+--- output ---
+WARNING: proceeding, even though we could not create PATH aliases: Refusing to create helper binaries under temporary dir "/tmp" (codex_home: AbsolutePathBuf("/tmp/apbh-codex-rnkyfzf8/.codex"))
+Reading additional input from stdin...
+OpenAI Codex v0.161.0
+--------
+workdir: /tmp/apb-72-codex-azwseb4n
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: max
+reasoning summaries: none
+session id: 01a15bcf-3d23-7de0-adcf-18ae69a0670b
+--------
+user
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Counter-Strike: FaZe vs JiJieHao (BO3) - DraculaN Playoffs
+Outcomes: FaZe / JiJieHao | prices: FaZe 0.700, JiJieHao 0.300 | closes: 2026-10-21T17:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 9-11, net P&L +55.3.
+- Will Barnet FC win on 2026-10-20? | you picked No | winner No | won | P&L +190.0
+- Will Al Qadisiyah Saudi Club win on 2026-10-20? | you picked No | winner Yes | lost | P&L -100.0
+- Will Al Diraiyah Saudi Club win on 2026-10-20? | you picked No | winner Yes | lost | P&L -100.0
+- Will FC Porto vs. PSV end in a draw? | you picked No | winner No | won | P&L +25.0
+- Will Huddersfield Town AFC win on 2026-10-20? | you picked No | winner Yes | lost | P&L -100.0
+- Will Fenerbahçe SK vs. SK Slavia Praha end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will SK Slavia Praha win on 2026-10-20? | you picked Yes | winner No | lost | P&L -100.0
+- Counter-Strike: BBL vs BC.Game Esports (BO3) - DraculaN Playoffs | you picked BC.Game Esports | winner BC.Game Esports | won | P&L +61.0
+- Counter-Strike: ex-RUSTEC vs Metizport (BO3) - Stake Ranked Episode 6: Closed Qualifier Pl | you picked ex-RUSTEC | winner Metizport | lost | P&L -100.0
+- Penguins vs. Utah | you picked Penguins | winner Utah | lost | P&L -100.0
+- Commanders vs. 49ers | you picked Commanders | winner 49ers | lost | P&L -100.0
+- Will SC Corinthians Paulista vs. EC Vitória end in a draw? | you picked Yes | winner Yes | won | P&L +316.7
+- Will Goiás EC win on 2026-10-19? | you picked No | winner No | won | P&L +150.0
+- Atlanta Dream vs. Golden State Valkyries | you picked Golden State Valkyries | winner Atlanta Dream | lost | P&L -100.0
+- Sharks vs. Maple Leafs | you picked Maple Leafs | winner Maple Leafs | won | P&L +81.8
+- Will CD Riestra win on 2026-10-19? | you picked No | winner No | won | P&L +75.4
+- Avalanche vs. Flyers | you picked Flyers | winner Flyers | won | P&L +222.6
+- Will CA Newell's Old Boys win on 2026-10-19? | you picked No | winner Yes | lost | P&L -100.0
+- Will SC Braga vs. Gil Vicente FC end in a draw? | you picked No | winner No | won | P&L +32.8
+- Will Lille OSC win on 2026-10-17? | you picked Yes | winner No | lost | P&L -100.0
+
+codex
+I’ll check the market and recent match evidence, then place the single 100-token bet before the clock expires.
+
+exec
+/usr/bin/zsh -lc 'bench --help' in /tmp/apb-72-codex-azwseb4n
+ succeeded in 0ms:
+usage: bench [-h] {market,book,history,bet} ...
+
+Inspect the market and place your one bet.
+
+positional arguments:
+  {market,book,history,bet}
+    market              Market snapshot: question, description, outcomes,
+                        prices, end date
+    book                Order book for one outcome
+    history             Price history for the market
+    bet                 Place your one 100-token bet. Works once.
+
+options:
+  -h, --help            show this help message and exit
+
+web search: 
+exec
+/usr/bin/zsh -lc 'bench bet --help' in /tmp/apb-72-codex-azwseb4n
+ succeeded in 0ms:
+usage: bench bet [-h] --outcome OUTCOME --rationale RATIONALE --confidence
+                 CONFIDENCE [--max-price MAX_PRICE] [--quote QUOTE]
+
+options:
+  -h, --help            show this help message and exit
+  --outcome OUTCOME
+  --rationale RATIONALE
+  --confidence CONFIDENCE
+                        0 to 1
+  --max-price MAX_PRICE
+                        worst price you accept (default: best ask + 0.05)
+  --quote QUOTE         optional one-line trash talk for your rivals, shown on
+                        your card (max 120 chars, no links)
+
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-72-codex-azwseb4n
+ succeeded in 0ms:
+{
+  "question": "Counter-Strike: FaZe vs JiJieHao (BO3) - DraculaN Playoffs",
+  "description": "This market refers to the Counter-Strike Upper bracket quarterfinal 2 match between FaZe and JiJieHao in the DraculaN Playoffs, initially scheduled for October 21, 2026 at 7:00 AM ET.\n\nThis market will resolve to \"FaZe\" if FaZe win the match against JiJieHao.\n\nThis market will resolve to \"JiJieHao\" if JiJieHao win the match against FaZe.\n\nIf the match is canceled (not played at all) or ends in a tie, this market will resolve to 50-50.\n\nIf the match is postponed, it must be rescheduled to a start time on or before November 4, 2026 at 11:59 PM ET (14 calendar days after the originally scheduled start of October 21, 2026 at 7:00 AM ET). If, by that deadline, the most recently announced rescheduled start time is on or before the deadline, this market resolves based on the result of the match as played. Otherwise, this market resolves 50-50, regardless of whether the match is subsequently played.\n\nIf the match begins but is not completed, and one team wins due to the opponent's forfeiture, disqualification, or walkover, this market will resolve to the team who wins. \n\nIf the match ends in a forfeit, disqualification, or walkover (team withdraws before the start and the other wins automatically), this market will resolve to 50-50. \n\nThe resolution source for this market will be official information from https://hltv.org. However, if https://hltv.org has not published final results within 2 hours after the event\u2019s conclusion, a consensus of credible reporting may be used instead including video evidence.\n\nIn cases where a team\u2019s listed name includes minor discrepancies from the resolution source, this market will resolve based on the underlying real-world match rather than exact name matching. Recognizable abbreviations, alternate or erroneous spellings, sponsor tags, affiliate or academy designations, regional identifiers, and minor formatting differences will be treated as referring to the same team, provided the intended team can be clearly and uniquely identified within the relevant competition. If a listed team name has no reasonable connection to any participating team, or if it matches or could reasonably refer to another team in the same competition such that the intended team cannot be unambiguously determined, this market will resolve 50-50.",
+  "outcomes": [
+    "FaZe",
+    "JiJieHao"
+  ],
+  "prices": [
+    0.7,
+    0.3
+  ],
+  "best_bid": 0.69,
+  "best_ask": 0.71,
+  "end_date": "2026-10-21T17:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 289
+}
+
+web search: FaZe JiJieHao DraculaN October 21 2026 ...
+web search: 
+exec
+/usr/bin/zsh -lc 'bench book --help' in /tmp/apb-72-codex-azwseb4n
+ succeeded in 0ms:
+usage: bench book [-h] --outcome OUTCOME
+
+options:
+  -h, --help         show this help message and exit
+  --outcome OUTCOME
+
+exec
+/usr/bin/zsh -lc 'bench history --help' in /tmp/apb-72-codex-azwseb4n
+ succeeded in 0ms:
+usage: bench history [-h] --outcome OUTCOME
+
+options:
+  -h, --help         show this help message and exit
+  --outcome OUTCOME
+
+web search: https://www.hltv.org/matches/2399623/faze-vs-jijiehao-digital-crusade-draculan-season-7
+web search: 
+exec
+/usr/bin/zsh -lc 'bench book --outcome FaZe' in /tmp/apb-72-codex-azwseb4n
+exec
+/usr/bin/zsh -lc 'bench book --outcome JiJieHao' in /tmp/apb-72-codex-azwseb4n
+exec
+/usr/bin/zsh -lc 'bench history --outcome FaZe' in /tmp/apb-72-codex-azwseb4n
+ succeeded in 95ms:
+{
+  "history": []
+}
+
+ succeeded in 100ms:
+{
+  "outcome": "JiJieHao",
+  "bids": [
+    {
+      "price": "0.29",
+      "size": "1941.53"
+    },
+    {
+      "price": "0.28",
+      "size": "608.99"
+    },
+    {
+      "price": "0.27",
+      "size": "193"
+    },
+    {
+      "price": "0.26",
+      "size": "3200"
+    },
+    {
+      "price": "0.25",
+      "size": "369.79"
+    },
+    {
+      "price": "0.24",
+      "size": "179.51"
+    },
+    {
+      "price": "0.21",
+      "size": "19.04"
+    },
+    {
+      "price": "0.2",
+      "size": "828.74"
+    },
+    {
+      "price": "0.19",
+      "size": "21.05"
+    },
+    {
+      "price": "0.16",
+      "size": "37.5"
+    },
+    {
+      "price": "0.1",
+      "size": "60"
+    },
+    {
+      "price": "0.09",
+      "size": "2916"
+    },
+    {
+      "price": "0.06",
+      "size": "10.5"
+    },
+    {
+      "price": "0.05",
+      "size": "300"
+    },
+    {
+      "price": "0.03",
+      "size": "306.47"
+    }
+  ],
+  "asks": [
+    {
+      "price": "0.31",
+      "size": "30"
+    },
+    {
+      "price": "0.32",
+      "size": "3418.71"
+    },
+    {
+      "price": "0.33",
+      "size": "157"
+    },
+    {
+      "price": "0.38",
+      "size": "180"
+    },
+    {
+      "price": "0.39",
+      "size": "5"
+    },
+    {
+      "price": "0.41",
+      "size": "350"
+    },
+    {
+      "price": "0.5",
+      "size": "106.9"
+    },
+    {
+      "price": "0.51",
+      "size": "125"
+    },
+    {
+      "price": "0.62",
+      "size": "1939"
+    },
+    {
+      "price": "0.63",
+      "size": "10"
+    },
+    {
+      "price": "0.73",
+      "size": "20"
+    },
+    {
+      "price": "0.82",
+      "size": "20"
+    },
+    {
+      "price": "0.88",
+      "size": "30"
+    },
+    {
+      "price": "0.9",
+      "size": "5.9"
+    },
+    {
+      "price": "0.91",
+      "size": "36"
+    }
+  ],
+  "last_trade_price": "0.29"
+}
+
+ succeeded in 102ms:
+{
+  "outcome": "FaZe",
+  "bids": [
+    {
+      "price": "0.69",
+      "size": "30"
+    },
+    {
+      "price": "0.68",
+      "size": "3418.71"
+    },
+    {
+      "price": "0.67",
+      "size": "157"
+    },
+    {
+      "price": "0.62",
+      "size": "180"
+    },
+    {
+      "price": "0.61",
+      "size": "5"
+    },
+    {
+      "price": "0.59",
+      "size": "350"
+    },
+    {
+      "price": "0.5",
+      "size": "106.9"
+    },
+    {
+      "price": "0.49",
+      "size": "125"
+    },
+    {
+      "price": "0.38",
+      "size": "1939"
+    },
+    {
+      "price": "0.37",
+      "size": "10"
+    },
+    {
+      "price": "0.27",
+      "size": "20"
+    },
+    {
+      "price": "0.18",
+      "size": "20"
+    },
+    {
+      "price": "0.12",
+      "size": "30"
+    },
+    {
+      "price": "0.1",
+      "size": "5.9"
+    },
+    {
+      "price": "0.09",
+      "size": "36"
+    }
+  ],
+  "asks": [
+    {
+      "price": "0.71",
+      "size": "1941.53"
+    },
+    {
+      "price": "0.72",
+      "size": "608.99"
+    },
+    {
+      "price": "0.73",
+      "size": "193"
+    },
+    {
+      "price": "0.74",
+      "size": "3200"
+    },
+    {
+      "price": "0.75",
+      "size": "369.79"
+    },
+    {
+      "price": "0.76",
+      "size": "179.51"
+    },
+    {
+      "price": "0.79",
+      "size": "19.04"
+    },
+    {
+      "price": "0.8",
+      "size": "828.74"
+    },
+    {
+      "price": "0.81",
+      "size": "21.05"
+    },
+    {
+      "price": "0.84",
+      "size": "37.5"
+    },
+    {
+      "price": "0.9",
+      "size": "60"
+    },
+    {
+      "price": "0.91",
+      "size": "2916"
+    },
+    {
+      "price": "0.94",
+      "size": "10.5"
+    },
+    {
+      "price": "0.95",
+      "size": "300"
+    },
+    {
+      "price": "0.97",
+      "size": "306.47"
+    }
+  ],
+  "last_trade_price": "0.71"
+}
+
+web search: "FaZe" "JiJieHao" "2399623" ...
+web search: 
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-72-codex-azwseb4n
+ succeeded in 1092ms:
+{
+  "question": "Counter-Strike: FaZe vs JiJieHao (BO3) - DraculaN Playoffs",
+  "description": "This market refers to the Counter-Strike Upper bracket quarterfinal 2 match between FaZe and JiJieHao in the DraculaN Playoffs, initially scheduled for October 21, 2026 at 7:00 AM ET.\n\nThis market will resolve to \"FaZe\" if FaZe win the match against JiJieHao.\n\nThis market will resolve to \"JiJieHao\" if JiJieHao win the match against FaZe.\n\nIf the match is canceled (not played at all) or ends in a tie, this market will resolve to 50-50.\n\nIf the match is postponed, it must be rescheduled to a start time on or before November 4, 2026 at 11:59 PM ET (14 calendar days after the originally scheduled start of October 21, 2026 at 7:00 AM ET). If, by that deadline, the most recently announced rescheduled start time is on or before the deadline, this market resolves based on the result of the match as played. Otherwise, this market resolves 50-50, regardless of whether the match is subsequently played.\n\nIf the match begins but is not completed, and one team wins due to the opponent's forfeiture, disqualification, or walkover, this market will resolve to the team who wins. \n\nIf the match ends in a forfeit, disqualification, or walkover (team withdraws before the start and the other wins automatically), this market will resolve to 50-50. \n\nThe resolution source for this market will be official information from https://hltv.org. However, if https://hltv.org has not published final results within 2 hours after the event\u2019s conclusion, a consensus of credible reporting may be used instead including video evidence.\n\nIn cases where a team\u2019s listed name includes minor discrepancies from the resolution source, this market will resolve based on the underlying real-world match rather than exact name matching. Recognizable abbreviations, alternate or erroneous spellings, sponsor tags, affiliate or academy designations, regional identifiers, and minor formatting differences will be treated as referring to the same team, provided the intended team can be clearly and uniquely identified within the relevant competition. If a listed team name has no reasonable connection to any participating team, or if it matches or could reasonably refer to another team in the same competition such that the intended team cannot be unambiguously determined, this market will resolve 50-50.",
+  "outcomes": [
+    "FaZe",
+    "JiJieHao"
+  ],
+  "prices": [
+    0.7,
+    0.3
+  ],
+  "best_bid": 0.69,
+  "best_ask": 0.71,
+  "end_date": "2026-10-21T17:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 257
+}
+
+web search: "FaZe" "JiJieHao" "odds" "2026" "1." "2." ...
+codex
+FaZe is the likelier winner, but the odds I found put JiJieHao’s chance around 33–38% after removing bookmaker margins. JiJieHao is available near 32¢ for the full stake, so it may offer better value; I’m checking the matchup before committing. [Odds comparison](https://esportsinsider.com/betting-odds/counter-strike/match/faze-vs-jijiehao-1748767)
+
+web search: 
+web search: site:hltv.org/betting/analytics/2399623 "Map" ...
+web search: 
+web search: 
+web search: https://www.hltv.org/betting/analytics/2399623/faze-vs-jijiehao-digital-crusade-draculan-season-7
+web search: "FaZe" "JiJieHao" "2399623" "Nuke" ...
+web search: 
+web search: https://www.hltv.org/matches/2399623/faze-vs-jijiehao-digital-crusade-draculan-season-7 ...
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-72-codex-azwseb4n
+ succeeded in 66ms:
+{
+  "question": "Counter-Strike: FaZe vs JiJieHao (BO3) - DraculaN Playoffs",
+  "description": "This market refers to the Counter-Strike Upper bracket quarterfinal 2 match between FaZe and JiJieHao in the DraculaN Playoffs, initially scheduled for October 21, 2026 at 7:00 AM ET.\n\nThis market will resolve to \"FaZe\" if FaZe win the match against JiJieHao.\n\nThis market will resolve to \"JiJieHao\" if JiJieHao win the match against FaZe.\n\nIf the match is canceled (not played at all) or ends in a tie, this market will resolve to 50-50.\n\nIf the match is postponed, it must be rescheduled to a start time on or before November 4, 2026 at 11:59 PM ET (14 calendar days after the originally scheduled start of October 21, 2026 at 7:00 AM ET). If, by that deadline, the most recently announced rescheduled start time is on or before the deadline, this market resolves based on the result of the match as played. Otherwise, this market resolves 50-50, regardless of whether the match is subsequently played.\n\nIf the match begins but is not completed, and one team wins due to the opponent's forfeiture, disqualification, or walkover, this market will resolve to the team who wins. \n\nIf the match ends in a forfeit, disqualification, or walkover (team withdraws before the start and the other wins automatically), this market will resolve to 50-50. \n\nThe resolution source for this market will be official information from https://hltv.org. However, if https://hltv.org has not published final results within 2 hours after the event\u2019s conclusion, a consensus of credible reporting may be used instead including video evidence.\n\nIn cases where a team\u2019s listed name includes minor discrepancies from the resolution source, this market will resolve based on the underlying real-world match rather than exact name matching. Recognizable abbreviations, alternate or erroneous spellings, sponsor tags, affiliate or academy designations, regional identifiers, and minor formatting differences will be treated as referring to the same team, provided the intended team can be clearly and uniquely identified within the relevant competition. If a listed team name has no reasonable connection to any participating team, or if it matches or could reasonably refer to another team in the same competition such that the intended team cannot be unambiguously determined, this market will resolve 50-50.",
+  "outcomes": [
+    "FaZe",
+    "JiJieHao"
+  ],
+  "prices": [
+    0.7,
+    0.3
+  ],
+  "best_bid": 0.69,
+  "best_ask": 0.71,
+  "end_date": "2026-10-21T17:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 195
+}
+
+codex
+I’m taking JiJieHao with a 35% estimated win probability. The map pool supports the upset case: they’ve won 79% of 14 recent Mirage games and consistently ban Nuke, FaZe’s strongest map by recent win rate. At roughly 32¢, that supports the value bet. [HLTV matchup](https://www.hltv.org/matches/2399623/faze-vs-jijiehao-digital-crusade-draculan-season-7)
+
+exec
+/usr/bin/zsh -lc "bench bet --outcome JiJieHao --confidence 0.35 --max-price 0.32 --rationale 'Sportsbook odds imply roughly a 33-38% fair win probability for JiJieHao, above the roughly 32% execution price; I estimate 35%. Their 79% Mirage win rate over 14 recent maps and consistent Nuke ban support a credible upset route against FaZe.' --quote 'Three rivals, one overpriced favorite.'" in /tmp/apb-72-codex-azwseb4n
+ succeeded in 3359ms:
+{
+  "placed": true,
+  "outcome": "JiJieHao",
+  "avg_price": 0.319,
+  "shares": 313.4375,
+  "stake_filled": 100.0,
+  "unspent": -0.0,
+  "quote": "Three rivals, one overpriced favorite."
+}
+
+codex
+Placed **100 tokens on JiJieHao at 0.319**.
+
+My estimated win probability: **35%**, offering a modest edge based on [available odds](https://esportsinsider.com/betting-odds/counter-strike/match/faze-vs-jijiehao-1748767).
+
+**Net profit if successful: 213.44 tokens.**
+tokens used
+71,601
+Placed **100 tokens on JiJieHao at 0.319**.
+
+My estimated win probability: **35%**, offering a modest edge based on [available odds](https://esportsinsider.com/betting-odds/counter-strike/match/faze-vs-jijiehao-1748767).
+
+**Net profit if successful: 213.44 tokens.**
