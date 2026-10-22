@@ -1,0 +1,513 @@
+$ codex exec <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Valorant: KeepBest Gaming vs Wolves Esports (BO3) - VCT Threshold China Week 1
+Outcomes: KeepBest Gaming / Wolves Esports | prices: KeepBest Gaming 0.475, Wolves Esports 0.525 | closes: 2026-10-22T15:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 9-11, net P&L -360.5.
+- Will Racing Club de Lens win on 2026-10-21? | you picked Yes | winner No | lost | P&L -100.0
+- Will Real Betis Balompié vs. Feyenoord Rotterdam end in a draw? | you picked No | winner No | won | P&L +25.0
+- Will Club Brugge KV vs. Racing Club de Lens end in a draw? | you picked No | winner No | won | P&L +28.2
+- Counter-Strike: BC.Game Esports vs Nexus (BO3) - DraculaN Playoffs | you picked BC.Game Esports | winner BC.Game Esports | won | P&L +19.0
+- Counter-Strike: FaZe vs JiJieHao (BO3) - DraculaN Playoffs | you picked JiJieHao | winner JiJieHao | won | P&L +213.4
+- Counter-Strike: Sinners vs Heroic (BO3) - DraculaN Playoffs | you picked Heroic | winner Sinners | lost | P&L -100.0
+- Will Nagoya Grampus win on 2026-10-21? | you picked No | winner No | won | P&L +72.4
+- Will Kawasaki Frontale win on 2026-10-21? | you picked No | winner Yes | lost | P&L -100.0
+- Will Nagoya Grampus vs. Cerezo Ōsaka end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Valorant: Unsettled Resentment vs Octagonal Disposition Gaming (BO3) - VCT Threshold China | you picked Unsettled Resentment | winner Unsettled Resentment | won | P&L +105.4
+- Will Barnet FC win on 2026-10-20? | you picked No | winner No | won | P&L +190.0
+- Will Al Qadisiyah Saudi Club win on 2026-10-20? | you picked No | winner Yes | lost | P&L -100.0
+- Will Al Diraiyah Saudi Club win on 2026-10-20? | you picked No | winner Yes | lost | P&L -100.0
+- Will FC Porto vs. PSV end in a draw? | you picked No | winner No | won | P&L +25.0
+- Will Huddersfield Town AFC win on 2026-10-20? | you picked No | winner Yes | lost | P&L -100.0
+- Will Fenerbahçe SK vs. SK Slavia Praha end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will SK Slavia Praha win on 2026-10-20? | you picked Yes | winner No | lost | P&L -100.0
+- Counter-Strike: BBL vs BC.Game Esports (BO3) - DraculaN Playoffs | you picked BC.Game Esports | winner BC.Game Esports | won | P&L +61.0
+- Counter-Strike: ex-RUSTEC vs Metizport (BO3) - Stake Ranked Episode 6: Closed Qualifier Pl | you picked ex-RUSTEC | winner Metizport | lost | P&L -100.0
+- Penguins vs. Utah | you picked Penguins | winner Utah | lost | P&L -100.0
+
+--- output ---
+WARNING: proceeding, even though we could not create PATH aliases: Refusing to create helper binaries under temporary dir "/tmp" (codex_home: AbsolutePathBuf("/tmp/apbh-codex-zrweutku/.codex"))
+Reading additional input from stdin...
+OpenAI Codex v0.161.0
+--------
+workdir: /tmp/apb-83-codex-lro8ue15
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: max
+reasoning summaries: none
+session id: 01a16137-3617-7563-9b72-94d9705e4f3c
+--------
+user
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Valorant: KeepBest Gaming vs Wolves Esports (BO3) - VCT Threshold China Week 1
+Outcomes: KeepBest Gaming / Wolves Esports | prices: KeepBest Gaming 0.475, Wolves Esports 0.525 | closes: 2026-10-22T15:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 9-11, net P&L -360.5.
+- Will Racing Club de Lens win on 2026-10-21? | you picked Yes | winner No | lost | P&L -100.0
+- Will Real Betis Balompié vs. Feyenoord Rotterdam end in a draw? | you picked No | winner No | won | P&L +25.0
+- Will Club Brugge KV vs. Racing Club de Lens end in a draw? | you picked No | winner No | won | P&L +28.2
+- Counter-Strike: BC.Game Esports vs Nexus (BO3) - DraculaN Playoffs | you picked BC.Game Esports | winner BC.Game Esports | won | P&L +19.0
+- Counter-Strike: FaZe vs JiJieHao (BO3) - DraculaN Playoffs | you picked JiJieHao | winner JiJieHao | won | P&L +213.4
+- Counter-Strike: Sinners vs Heroic (BO3) - DraculaN Playoffs | you picked Heroic | winner Sinners | lost | P&L -100.0
+- Will Nagoya Grampus win on 2026-10-21? | you picked No | winner No | won | P&L +72.4
+- Will Kawasaki Frontale win on 2026-10-21? | you picked No | winner Yes | lost | P&L -100.0
+- Will Nagoya Grampus vs. Cerezo Ōsaka end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Valorant: Unsettled Resentment vs Octagonal Disposition Gaming (BO3) - VCT Threshold China | you picked Unsettled Resentment | winner Unsettled Resentment | won | P&L +105.4
+- Will Barnet FC win on 2026-10-20? | you picked No | winner No | won | P&L +190.0
+- Will Al Qadisiyah Saudi Club win on 2026-10-20? | you picked No | winner Yes | lost | P&L -100.0
+- Will Al Diraiyah Saudi Club win on 2026-10-20? | you picked No | winner Yes | lost | P&L -100.0
+- Will FC Porto vs. PSV end in a draw? | you picked No | winner No | won | P&L +25.0
+- Will Huddersfield Town AFC win on 2026-10-20? | you picked No | winner Yes | lost | P&L -100.0
+- Will Fenerbahçe SK vs. SK Slavia Praha end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will SK Slavia Praha win on 2026-10-20? | you picked Yes | winner No | lost | P&L -100.0
+- Counter-Strike: BBL vs BC.Game Esports (BO3) - DraculaN Playoffs | you picked BC.Game Esports | winner BC.Game Esports | won | P&L +61.0
+- Counter-Strike: ex-RUSTEC vs Metizport (BO3) - Stake Ranked Episode 6: Closed Qualifier Pl | you picked ex-RUSTEC | winner Metizport | lost | P&L -100.0
+- Penguins vs. Utah | you picked Penguins | winner Utah | lost | P&L -100.0
+
+codex
+I’ll inspect the market and check recent team results, then place the one 100-token bet before the deadline.
+
+exec
+/usr/bin/zsh -lc 'bench --help' in /tmp/apb-83-codex-lro8ue15
+ succeeded in 0ms:
+usage: bench [-h] {market,book,history,bet} ...
+
+Inspect the market and place your one bet.
+
+positional arguments:
+  {market,book,history,bet}
+    market              Market snapshot: question, description, outcomes,
+                        prices, end date
+    book                Order book for one outcome
+    history             Price history for the market
+    bet                 Place your one 100-token bet. Works once.
+
+options:
+  -h, --help            show this help message and exit
+
+web search: 
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-83-codex-lro8ue15
+ succeeded in 149ms:
+{
+  "question": "Valorant: KeepBest Gaming vs Wolves Esports (BO3) - VCT Threshold China Week 1",
+  "description": "This market refers to the Valorant Quarterfinal 3 match between KeepBest Gaming and Wolves Esports in the VCT Threshold China Week 1, initially scheduled for October 22, 2026 at 5:00 AM ET.\n\nThis market will resolve to \"KeepBest Gaming\" if KeepBest Gaming win the match against Wolves Esports.\n\nThis market will resolve to \"Wolves Esports\" if Wolves Esports win the match against KeepBest Gaming.\n\nIf the match is canceled (not played at all) or ends in a tie, this market will resolve to 50-50.\n\nIf the match is postponed, it must be rescheduled to a start time on or before November 5, 2026 at 11:59 PM ET (14 calendar days after the originally scheduled start of October 22, 2026 at 5:00 AM ET). If, by that deadline, the most recently announced rescheduled start time is on or before the deadline, this market resolves based on the result of the match as played. Otherwise, this market resolves 50-50, regardless of whether the match is subsequently played.\n\nIf the match begins but is not completed, and one team wins due to the opponent's forfeiture, disqualification, or walkover, this market will resolve to the team who wins. \n\nIf the match ends in a forfeit, disqualification, or walkover (team withdraws before the start and the other wins automatically), this market will resolve to 50-50. \n\nThe resolution source for this market will be official information from https://vlr.gg. However, if https://vlr.gg has not published final results within 2 hours after the event\u2019s conclusion, a consensus of credible reporting may be used instead including video evidence.\n\nIn cases where a team\u2019s listed name includes minor discrepancies from the resolution source, this market will resolve based on the underlying real-world match rather than exact name matching. Recognizable abbreviations, alternate or erroneous spellings, sponsor tags, affiliate or academy designations, regional identifiers, and minor formatting differences will be treated as referring to the same team, provided the intended team can be clearly and uniquely identified within the relevant competition. If a listed team name has no reasonable connection to any participating team, or if it matches or could reasonably refer to another team in the same competition such that the intended team cannot be unambiguously determined, this market will resolve 50-50.",
+  "outcomes": [
+    "KeepBest Gaming",
+    "Wolves Esports"
+  ],
+  "prices": [
+    0.475,
+    0.525
+  ],
+  "best_bid": 0.47,
+  "best_ask": 0.48,
+  "end_date": "2026-10-22T15:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 286
+}
+
+web search: KeepBest Gaming Wolves Esports October 22 2026 VCT Threshold China ...
+web search: 
+exec
+/usr/bin/zsh -lc 'bench history' in /tmp/apb-83-codex-lro8ue15
+ exited 2 in 0ms:
+usage: bench history [-h] --outcome OUTCOME
+bench history: error: the following arguments are required: --outcome
+
+exec
+/usr/bin/zsh -lc 'bench bet --help' in /tmp/apb-83-codex-lro8ue15
+ succeeded in 0ms:
+usage: bench bet [-h] --outcome OUTCOME --rationale RATIONALE --confidence
+                 CONFIDENCE [--max-price MAX_PRICE] [--quote QUOTE]
+
+options:
+  -h, --help            show this help message and exit
+  --outcome OUTCOME
+  --rationale RATIONALE
+  --confidence CONFIDENCE
+                        0 to 1
+  --max-price MAX_PRICE
+                        worst price you accept (default: best ask + 0.05)
+  --quote QUOTE         optional one-line trash talk for your rivals, shown on
+                        your card (max 120 chars, no links)
+
+web search: "KeepBest" "Wolves" "September 3, 2026" ...
+web search: 
+exec
+/usr/bin/zsh -lc "bench history --outcome 'KeepBest Gaming'" in /tmp/apb-83-codex-lro8ue15
+exec
+/usr/bin/zsh -lc "bench book --outcome 'KeepBest Gaming'" in /tmp/apb-83-codex-lro8ue15
+ succeeded in 290ms:
+{
+  "history": []
+}
+
+ succeeded in 313ms:
+{
+  "outcome": "KeepBest Gaming",
+  "bids": [
+    {
+      "price": "0.47",
+      "size": "39.73"
+    },
+    {
+      "price": "0.46",
+      "size": "1331.9"
+    },
+    {
+      "price": "0.45",
+      "size": "400"
+    },
+    {
+      "price": "0.44",
+      "size": "20000"
+    },
+    {
+      "price": "0.43",
+      "size": "66"
+    },
+    {
+      "price": "0.42",
+      "size": "206"
+    },
+    {
+      "price": "0.37",
+      "size": "126"
+    },
+    {
+      "price": "0.36",
+      "size": "165"
+    },
+    {
+      "price": "0.34",
+      "size": "8.82"
+    },
+    {
+      "price": "0.32",
+      "size": "100"
+    },
+    {
+      "price": "0.31",
+      "size": "1675"
+    },
+    {
+      "price": "0.3",
+      "size": "717"
+    },
+    {
+      "price": "0.29",
+      "size": "17.24"
+    },
+    {
+      "price": "0.27",
+      "size": "10"
+    },
+    {
+      "price": "0.25",
+      "size": "2076"
+    }
+  ],
+  "asks": [
+    {
+      "price": "0.48",
+      "size": "375.09"
+    },
+    {
+      "price": "0.51",
+      "size": "197"
+    },
+    {
+      "price": "0.52",
+      "size": "185.42"
+    },
+    {
+      "price": "0.53",
+      "size": "333"
+    },
+    {
+      "price": "0.54",
+      "size": "176"
+    },
+    {
+      "price": "0.55",
+      "size": "343"
+    },
+    {
+      "price": "0.57",
+      "size": "50"
+    },
+    {
+      "price": "0.58",
+      "size": "1709"
+    },
+    {
+      "price": "0.59",
+      "size": "50"
+    },
+    {
+      "price": "0.6",
+      "size": "60"
+    },
+    {
+      "price": "0.68",
+      "size": "10"
+    },
+    {
+      "price": "0.75",
+      "size": "2036"
+    },
+    {
+      "price": "0.76",
+      "size": "20"
+    },
+    {
+      "price": "0.84",
+      "size": "20"
+    },
+    {
+      "price": "0.88",
+      "size": "20"
+    }
+  ],
+  "last_trade_price": "0"
+}
+
+web search: https://www.vlr.gg/team/12784/keepbest-gaming
+codex
+KeepBest won the September head-to-head 2–0 and followed it with two more series wins. Both maps against Wolves were close, though, and the odds sources disagree; I’m checking roster continuity before settling on the pick. [VLR results](https://www.vlr.gg/team/12784/keepbest-gaming)
+
+web search: 
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-83-codex-lro8ue15
+ succeeded in 181ms:
+{
+  "question": "Valorant: KeepBest Gaming vs Wolves Esports (BO3) - VCT Threshold China Week 1",
+  "description": "This market refers to the Valorant Quarterfinal 3 match between KeepBest Gaming and Wolves Esports in the VCT Threshold China Week 1, initially scheduled for October 22, 2026 at 5:00 AM ET.\n\nThis market will resolve to \"KeepBest Gaming\" if KeepBest Gaming win the match against Wolves Esports.\n\nThis market will resolve to \"Wolves Esports\" if Wolves Esports win the match against KeepBest Gaming.\n\nIf the match is canceled (not played at all) or ends in a tie, this market will resolve to 50-50.\n\nIf the match is postponed, it must be rescheduled to a start time on or before November 5, 2026 at 11:59 PM ET (14 calendar days after the originally scheduled start of October 22, 2026 at 5:00 AM ET). If, by that deadline, the most recently announced rescheduled start time is on or before the deadline, this market resolves based on the result of the match as played. Otherwise, this market resolves 50-50, regardless of whether the match is subsequently played.\n\nIf the match begins but is not completed, and one team wins due to the opponent's forfeiture, disqualification, or walkover, this market will resolve to the team who wins. \n\nIf the match ends in a forfeit, disqualification, or walkover (team withdraws before the start and the other wins automatically), this market will resolve to 50-50. \n\nThe resolution source for this market will be official information from https://vlr.gg. However, if https://vlr.gg has not published final results within 2 hours after the event\u2019s conclusion, a consensus of credible reporting may be used instead including video evidence.\n\nIn cases where a team\u2019s listed name includes minor discrepancies from the resolution source, this market will resolve based on the underlying real-world match rather than exact name matching. Recognizable abbreviations, alternate or erroneous spellings, sponsor tags, affiliate or academy designations, regional identifiers, and minor formatting differences will be treated as referring to the same team, provided the intended team can be clearly and uniquely identified within the relevant competition. If a listed team name has no reasonable connection to any participating team, or if it matches or could reasonably refer to another team in the same competition such that the intended team cannot be unambiguously determined, this market will resolve 50-50.",
+  "outcomes": [
+    "KeepBest Gaming",
+    "Wolves Esports"
+  ],
+  "prices": [
+    0.475,
+    0.525
+  ],
+  "best_bid": 0.47,
+  "best_ask": 0.48,
+  "end_date": "2026-10-22T15:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 259
+}
+
+web search: "KeepBest Gaming" "Wolves Esports" "22.10.2026" odds ...
+web search: 
+web search: "KeepBest" "Wolves" "2026-10-22" prediction odds ...
+web search: 
+web search: "KeepBest Gaming" "Wolves Esports" "October 22, 2026" prediction -site:esportsinsider.com -site:robinhood.com -site:vlr.gg ...
+web search: 
+exec
+/usr/bin/zsh -lc "bench book --outcome 'Wolves Esports'" in /tmp/apb-83-codex-lro8ue15
+web search: 'Betting'
+ succeeded in 1366ms:
+{
+  "outcome": "Wolves Esports",
+  "bids": [
+    {
+      "price": "0.52",
+      "size": "403.93"
+    },
+    {
+      "price": "0.5",
+      "size": "100"
+    },
+    {
+      "price": "0.49",
+      "size": "197"
+    },
+    {
+      "price": "0.48",
+      "size": "10.42"
+    },
+    {
+      "price": "0.47",
+      "size": "333"
+    },
+    {
+      "price": "0.46",
+      "size": "176"
+    },
+    {
+      "price": "0.45",
+      "size": "343"
+    },
+    {
+      "price": "0.43",
+      "size": "50"
+    },
+    {
+      "price": "0.42",
+      "size": "1709"
+    },
+    {
+      "price": "0.41",
+      "size": "50"
+    },
+    {
+      "price": "0.4",
+      "size": "60"
+    },
+    {
+      "price": "0.32",
+      "size": "10"
+    },
+    {
+      "price": "0.25",
+      "size": "2036"
+    },
+    {
+      "price": "0.24",
+      "size": "20"
+    },
+    {
+      "price": "0.16",
+      "size": "20"
+    }
+  ],
+  "asks": [
+    {
+      "price": "0.53",
+      "size": "39.73"
+    },
+    {
+      "price": "0.54",
+      "size": "1331.9"
+    },
+    {
+      "price": "0.55",
+      "size": "400"
+    },
+    {
+      "price": "0.56",
+      "size": "20000"
+    },
+    {
+      "price": "0.57",
+      "size": "66"
+    },
+    {
+      "price": "0.58",
+      "size": "206"
+    },
+    {
+      "price": "0.63",
+      "size": "126"
+    },
+    {
+      "price": "0.64",
+      "size": "165"
+    },
+    {
+      "price": "0.66",
+      "size": "8.82"
+    },
+    {
+      "price": "0.67",
+      "size": "55"
+    },
+    {
+      "price": "0.68",
+      "size": "169"
+    },
+    {
+      "price": "0.69",
+      "size": "1500"
+    },
+    {
+      "price": "0.7",
+      "size": "717"
+    },
+    {
+      "price": "0.71",
+      "size": "17.24"
+    },
+    {
+      "price": "0.73",
+      "size": "10"
+    }
+  ],
+  "last_trade_price": "0"
+}
+
+codex
+The bookmaker lines I verified favor Wolves at roughly 55–56% after removing the margin. KeepBest’s stronger recent results keep this close, but I now lean Wolves; I’m checking the final execution price. [Listed odds](https://www.vlr.gg/777948/keepbest-gaming-vs-wolves-esports-vct-china-2026-threshold-week-1-qf/?game=287461&tab=economy)
+
+web search: 
+web search: 
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-83-codex-lro8ue15
+ succeeded in 175ms:
+{
+  "question": "Valorant: KeepBest Gaming vs Wolves Esports (BO3) - VCT Threshold China Week 1",
+  "description": "This market refers to the Valorant Quarterfinal 3 match between KeepBest Gaming and Wolves Esports in the VCT Threshold China Week 1, initially scheduled for October 22, 2026 at 5:00 AM ET.\n\nThis market will resolve to \"KeepBest Gaming\" if KeepBest Gaming win the match against Wolves Esports.\n\nThis market will resolve to \"Wolves Esports\" if Wolves Esports win the match against KeepBest Gaming.\n\nIf the match is canceled (not played at all) or ends in a tie, this market will resolve to 50-50.\n\nIf the match is postponed, it must be rescheduled to a start time on or before November 5, 2026 at 11:59 PM ET (14 calendar days after the originally scheduled start of October 22, 2026 at 5:00 AM ET). If, by that deadline, the most recently announced rescheduled start time is on or before the deadline, this market resolves based on the result of the match as played. Otherwise, this market resolves 50-50, regardless of whether the match is subsequently played.\n\nIf the match begins but is not completed, and one team wins due to the opponent's forfeiture, disqualification, or walkover, this market will resolve to the team who wins. \n\nIf the match ends in a forfeit, disqualification, or walkover (team withdraws before the start and the other wins automatically), this market will resolve to 50-50. \n\nThe resolution source for this market will be official information from https://vlr.gg. However, if https://vlr.gg has not published final results within 2 hours after the event\u2019s conclusion, a consensus of credible reporting may be used instead including video evidence.\n\nIn cases where a team\u2019s listed name includes minor discrepancies from the resolution source, this market will resolve based on the underlying real-world match rather than exact name matching. Recognizable abbreviations, alternate or erroneous spellings, sponsor tags, affiliate or academy designations, regional identifiers, and minor formatting differences will be treated as referring to the same team, provided the intended team can be clearly and uniquely identified within the relevant competition. If a listed team name has no reasonable connection to any participating team, or if it matches or could reasonably refer to another team in the same competition such that the intended team cannot be unambiguously determined, this market will resolve 50-50.",
+  "outcomes": [
+    "KeepBest Gaming",
+    "Wolves Esports"
+  ],
+  "prices": [
+    0.475,
+    0.525
+  ],
+  "best_bid": 0.47,
+  "best_ask": 0.48,
+  "end_date": "2026-10-22T15:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 190
+}
+
+exec
+/usr/bin/zsh -lc "bench bet --outcome 'Wolves Esports' --confidence 0.55 --max-price 0.54 --rationale 'Two pre-match bookmaker lines listed by VLR imply a margin-adjusted Wolves win probability around 55-56%, above the roughly 53.8% execution cost. KeepBest won the previous meeting by only 13-11 and 14-12, so its strong recent form limits my confidence to 55%.' --quote 'My edge is small. Your excuses will be longer.'" in /tmp/apb-83-codex-lro8ue15
+ succeeded in 4757ms:
+{
+  "placed": true,
+  "outcome": "Wolves Esports",
+  "avg_price": 0.5379,
+  "shares": 185.9209,
+  "stake_filled": 100.0,
+  "unspent": 0.0,
+  "quote": "My edge is small. Your excuses will be longer."
+}
+
+codex
+Placed **100 tokens on Wolves Esports** at **0.5379**, with **55% confidence**.
+
+[Bookmaker lines](https://www.vlr.gg/777948/keepbest-gaming-vs-wolves-esports-vct-china-2026-threshold-week-1-qf/?game=287461&tab=economy) imply roughly 55–56% after removing the margin—a small edge.
+
+Potential profit if Wolves win: **85.92 tokens**.
+tokens used
+83,940
+Placed **100 tokens on Wolves Esports** at **0.5379**, with **55% confidence**.
+
+[Bookmaker lines](https://www.vlr.gg/777948/keepbest-gaming-vs-wolves-esports-vct-china-2026-threshold-week-1-qf/?game=287461&tab=economy) imply roughly 55–56% after removing the margin—a small edge.
+
+Potential profit if Wolves win: **85.92 tokens**.

@@ -1,0 +1,46 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Valorant: KeepBest Gaming vs Wolves Esports (BO3) - VCT Threshold China Week 1
+Outcomes: KeepBest Gaming / Wolves Esports | prices: KeepBest Gaming 0.475, Wolves Esports 0.525 | closes: 2026-10-22T15:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 11-9, net P&L -315.3.
+- Will Racing Club de Lens win on 2026-10-21? | you picked No | winner No | won | P&L +35.1
+- Will Real Betis Balompié vs. Feyenoord Rotterdam end in a draw? | you picked No | winner No | won | P&L +25.0
+- Will Club Brugge KV vs. Racing Club de Lens end in a draw? | you picked No | winner No | won | P&L +28.2
+- Counter-Strike: BC.Game Esports vs Nexus (BO3) - DraculaN Playoffs | you picked BC.Game Esports | winner BC.Game Esports | won | P&L +19.0
+- Counter-Strike: FaZe vs JiJieHao (BO3) - DraculaN Playoffs | you picked FaZe | winner JiJieHao | lost | P&L -100.0
+- Counter-Strike: Sinners vs Heroic (BO3) - DraculaN Playoffs | you picked Heroic | winner Sinners | lost | P&L -100.0
+- Will Nagoya Grampus win on 2026-10-21? | you picked No | winner No | won | P&L +72.4
+- Will Kawasaki Frontale win on 2026-10-21? | you picked No | winner Yes | lost | P&L -100.0
+- Will Nagoya Grampus vs. Cerezo Ōsaka end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Valorant: Unsettled Resentment vs Octagonal Disposition Gaming (BO3) - VCT Threshold China | you picked Octagonal Disposition Gaming | winner Unsettled Resentment | lost | P&L -100.0
+- Will Barnet FC win on 2026-10-20? | you picked Yes | winner No | lost | P&L -100.0
+- Will Al Qadisiyah Saudi Club win on 2026-10-20? | you picked Yes | winner Yes | won | P&L +44.9
+- Will Al Diraiyah Saudi Club win on 2026-10-20? | you picked No | winner Yes | lost | P&L -100.0
+- Will FC Porto vs. PSV end in a draw? | you picked No | winner No | won | P&L +25.0
+- Will Huddersfield Town AFC win on 2026-10-20? | you picked no bet | winner Yes | lost | P&L +0.0
+- Will Fenerbahçe SK vs. SK Slavia Praha end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will SK Slavia Praha win on 2026-10-20? | you picked No | winner No | won | P&L +19.0
+- Counter-Strike: BBL vs BC.Game Esports (BO3) - DraculaN Playoffs | you picked BC.Game Esports | winner BC.Game Esports | won | P&L +61.0
+- Counter-Strike: ex-RUSTEC vs Metizport (BO3) - Stake Ranked Episode 6: Closed Qualifier Pl | you picked Metizport | winner Metizport | won | P&L +98.6
+- Penguins vs. Utah | you picked Utah | winner Utah | won | P&L +56.2
+
+--- output ---
+Bet placed successfully:
+
+- **Market**: Valorant: KeepBest Gaming vs Wolves Esports (BO3) - VCT Threshold China Week 1
+- **Pick**: `KeepBest Gaming`
+- **Stake**: 100.0 tokens @ average price 0.48 (208.33 shares)
+- **Confidence**: 0.62
+- **Rationale**: KeepBest Gaming swept Wolves Esports 2-0 in their recent China Evolution Series Act 3 encounter and reached the grand finals. KBG brings superior momentum and form against a relegated Wolves squad, making them strong value.
+- **Quote**: *"Underdog price on the superior team? Thanks for the donation."*
