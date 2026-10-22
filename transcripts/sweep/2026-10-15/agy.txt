@@ -1,0 +1,45 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+13609 | Will Beşiktaş JK win on 2026-10-15? | Yes 0.265, No 0.735 | 2026-10-15T19:00:00Z
+13513 | Oilers vs. Utah | Oilers 0.460, Utah 0.540 | 2026-10-18T02:00:00Z
+13582 | Will Ethereum dip to $2,300 on October 15? | Yes 0.455, No 0.545 | 2026-10-16T04:00:00Z
+12967 | Will Trump say "Dad" or "Daddy" this week? | Yes 0.510, No 0.490 | 2026-10-19T03:59:00Z
+13538 | Counter-Strike: Legacy vs FURIA - Map 2 Winner | Legacy 0.470, FURIA 0.530 | 2026-10-15T22:00:00Z
+13524 | S&P 500 (SPY) closes above $765 on October 15? | Yes 0.615, No 0.385 | 2026-10-15T20:00:00Z
+13594 | Will PFK CSKA Sofia win on 2026-10-15? | Yes 0.155, No 0.845 | 2026-10-15T16:45:00Z
+13509 | Will CA Osasuna vs. Real Racing Club end in a draw? | Yes 0.265, No 0.735 | 2026-10-18T12:00:00Z
+13580 | Will Ethereum reach $2,450 on October 15? | Yes 0.155, No 0.845 | 2026-10-16T04:00:00Z
+12966 | Will Trump say "Muscle" or "Muscular" this week? | Yes 0.280, No 0.720 | 2026-10-19T03:59:00Z
+13537 | Dota 2: Execration vs Royal Bear - Game 2 Winner | Execration 0.270, Royal Bear 0.730 | 2026-10-15T10:10:00Z
+13514 | S&P 500 (SPY) closes above $770 on October 15? | Yes 0.300, No 0.700 | 2026-10-15T20:00:00Z
+13566 | Will Al Kholood Saudi Club win on 2026-10-15? | Yes 0.455, No 0.545 | 2026-10-15T13:40:00Z
+13293 | Raptors vs. Knicks | Raptors 0.385, Knicks 0.615 | 2026-10-15T23:30:00Z
+13563 | Will Ethereum dip to $2,250 on October 15? | Yes 0.150, No 0.850 | 2026-10-16T04:00:00Z
+12965 | Will Trump say "Third Term" this week? | Yes 0.505, No 0.495 | 2026-10-19T03:59:00Z
+13516 | Counter-Strike: Esport Academy Copenhagen vs ENCE (BO1) - Elisa BreakOut Series #2 Group A | Esport Academy Copenhagen 0.580, ENCE 0.420 | 2026-10-16T00:00:00Z
+12452 | Will S&P 500 (SPY) hit (HIGH) $775 Week of October 12 2026? | Yes 0.260, No 0.740 | 2026-10-16T20:00:00Z
+13565 | Will Phnom Penh Crown FC win on 2026-10-15? | Yes 0.150, No 0.850 | 2026-10-15T10:00:00Z
+13287 | Cricket World Cup League 2: Oman vs Canada | Oman 0.620, Canada 0.380 | 2026-10-22T06:00:00Z
+13510 | Ethereum Up or Down - October 15, 12:00AM-4:00AM ET | Up 0.325, Down 0.675 | 2026-10-15T08:00:00Z
+12963 | Will Trump say "Khomeini" or "Khamenei" this week? | Yes 0.495, No 0.505 | 2026-10-19T03:59:00Z
+13448 | Counter-Strike: The Last Resort vs Spirit Academy (BO3) - CCT Europe Series #11 Group Stage | The Last Resort 0.265, Spirit Academy 0.735 | 2026-10-15T20:00:00Z
+3193 | Will S&P 500 (SPY) hit (LOW) $760 Week of October 12 2026? | Yes 0.375, No 0.625 | 2026-10-16T20:00:00Z
+13556 | Will Coinbase Global, Inc. (COIN) hit (LOW) $160 Week of October 12 2026? | Yes 0.260, No 0.740 | 2026-10-16T20:00:00Z
+13191 | Sharks vs. Predators | Sharks 0.435, Predators 0.565 | 2026-10-16T00:00:00Z
+13471 | Bitcoin Up or Down - October 15, 12:00AM-4:00AM ET | Up 0.285, Down 0.715 | 2026-10-15T08:00:00Z
+12962 | Will Trump say "Nobel" this week? | Yes 0.560, No 0.440 | 2026-10-19T03:59:00Z
+13353 | Counter-Strike: ex-Zero Tenacity vs Just Players (BO3) - NODWIN Clutch Series Group Stage | ex-Zero Tenacity 0.650, Just Players 0.350 | 2026-10-15T17:00:00Z
+12719 | S&P 500 (SPX) Up or Down on October 15? | Up 0.360, Down 0.640 | 2026-10-15T20:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+I have launched the script to fetch details for all 30 prediction markets and will proceed once the results are ready.
+{"forecasts": [{"id": "13609", "probabilities": {"Yes": 0.27, "No": 0.73}}, {"id": "13513", "probabilities": {"Oilers": 0.47, "Utah": 0.53}}, {"id": "13582", "probabilities": {"Yes": 0.46, "No": 0.54}}, {"id": "12967", "probabilities": {"Yes": 0.32, "No": 0.68}}, {"id": "13538", "probabilities": {"Legacy": 0.46, "FURIA": 0.54}}, {"id": "13524", "probabilities": {"Yes": 0.63, "No": 0.37}}, {"id": "13594", "probabilities": {"Yes": 0.14, "No": 0.86}}, {"id": "13509", "probabilities": {"Yes": 0.27, "No": 0.73}}, {"id": "13580", "probabilities": {"Yes": 0.14, "No": 0.86}}, {"id": "12966", "probabilities": {"Yes": 0.22, "No": 0.78}}, {"id": "13537", "probabilities": {"Execration": 0.25, "Royal Bear": 0.75}}, {"id": "13514", "probabilities": {"Yes": 0.29, "No": 0.71}}, {"id": "13566", "probabilities": {"Yes": 0.44, "No": 0.56}}, {"id": "13293", "probabilities": {"Raptors": 0.38, "Knicks": 0.62}}, {"id": "13563", "probabilities": {"Yes": 0.13, "No": 0.87}}, {"id": "12965", "probabilities": {"Yes": 0.65, "No": 0.35}}, {"id": "13516", "probabilities": {"Esport Academy Copenhagen": 0.57, "ENCE": 0.43}}, {"id": "12452", "probabilities": {"Yes": 0.26, "No": 0.74}}, {"id": "13565", "probabilities": {"Yes": 0.11, "No": 0.89}}, {"id": "13287", "probabilities": {"Oman": 0.63, "Canada": 0.37}}, {"id": "13510", "probabilities": {"Up": 0.55, "Down": 0.45}}, {"id": "12963", "probabilities": {"Yes": 0.48, "No": 0.52}}, {"id": "13448", "probabilities": {"The Last Resort": 0.25, "Spirit Academy": 0.75}}, {"id": "3193", "probabilities": {"Yes": 0.37, "No": 0.63}}, {"id": "13556", "probabilities": {"Yes": 0.24, "No": 0.76}}, {"id": "13191", "probabilities": {"Sharks": 0.42, "Predators": 0.58}}, {"id": "13471", "probabilities": {"Up": 0.52, "Down": 0.48}}, {"id": "12962", "probabilities": {"Yes": 0.58, "No": 0.42}}, {"id": "13353", "probabilities": {"ex-Zero Tenacity": 0.67, "Just Players": 0.33}}, {"id": "12719", "probabilities": {"Up": 0.36, "Down": 0.64}}]}
