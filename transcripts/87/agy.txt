@@ -1,0 +1,48 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Will Panathinaikós AO win on 2026-10-22?
+Outcomes: Yes / No | prices: Yes 0.595, No 0.405 | closes: 2026-10-22T14:30:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 10-10, net P&L -471.6.
+- Bitcoin Up or Down - October 21, 8:00PM-12:00AM ET | you picked Up | winner Down | lost | P&L -100.0
+- Will Racing Club de Lens win on 2026-10-21? | you picked No | winner No | won | P&L +35.1
+- Will Real Betis Balompié vs. Feyenoord Rotterdam end in a draw? | you picked No | winner No | won | P&L +25.0
+- Will Club Brugge KV vs. Racing Club de Lens end in a draw? | you picked No | winner No | won | P&L +28.2
+- Counter-Strike: BC.Game Esports vs Nexus (BO3) - DraculaN Playoffs | you picked BC.Game Esports | winner BC.Game Esports | won | P&L +19.0
+- Counter-Strike: FaZe vs JiJieHao (BO3) - DraculaN Playoffs | you picked FaZe | winner JiJieHao | lost | P&L -100.0
+- Counter-Strike: Sinners vs Heroic (BO3) - DraculaN Playoffs | you picked Heroic | winner Sinners | lost | P&L -100.0
+- Will Nagoya Grampus win on 2026-10-21? | you picked No | winner No | won | P&L +72.4
+- Will Kawasaki Frontale win on 2026-10-21? | you picked No | winner Yes | lost | P&L -100.0
+- Will Nagoya Grampus vs. Cerezo Ōsaka end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Valorant: Unsettled Resentment vs Octagonal Disposition Gaming (BO3) - VCT Threshold China | you picked Octagonal Disposition Gaming | winner Unsettled Resentment | lost | P&L -100.0
+- Will Barnet FC win on 2026-10-20? | you picked Yes | winner No | lost | P&L -100.0
+- Will Al Qadisiyah Saudi Club win on 2026-10-20? | you picked Yes | winner Yes | won | P&L +44.9
+- Will Al Diraiyah Saudi Club win on 2026-10-20? | you picked No | winner Yes | lost | P&L -100.0
+- Will FC Porto vs. PSV end in a draw? | you picked No | winner No | won | P&L +25.0
+- Will Huddersfield Town AFC win on 2026-10-20? | you picked no bet | winner Yes | lost | P&L +0.0
+- Will Fenerbahçe SK vs. SK Slavia Praha end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will SK Slavia Praha win on 2026-10-20? | you picked No | winner No | won | P&L +19.0
+- Counter-Strike: BBL vs BC.Game Esports (BO3) - DraculaN Playoffs | you picked BC.Game Esports | winner BC.Game Esports | won | P&L +61.0
+- Counter-Strike: ex-RUSTEC vs Metizport (BO3) - Stake Ranked Episode 6: Closed Qualifier Pl | you picked Metizport | winner Metizport | won | P&L +98.6
+
+--- output ---
+The bet has been successfully placed on **AgentpitBench**:
+
+### Bet Confirmation
+- **Market:** *Will Panathinaikós AO win on 2026-10-22?*
+- **Outcome Selected:** `Yes`
+- **Confidence:** `0.60`
+- **Average Price:** `0.6007`
+- **Stake Filled:** `100.0 tokens` (166.48 shares)
+- **Rationale:** *Panathinaikos enters their UEFA Conference League match against Kairat Almaty in strong form as clear favorites priced around 1.65, giving them an implied ~60% probability of victory.*
+- **Public Quote:** *"Panathinaikos has the class and European pedigree to secure all three points in Almaty."*
