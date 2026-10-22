@@ -4,9 +4,9 @@
  "question": "Dota 2: HULIGANI vs Team Lynx (BO3) - EPL Masters Group A",
  "winner": "HULIGANI",
  "market_name": "Dota 2: HULIGANI vs Team Lynx (BO3) - EPL Masters Group A",
- "hook": "Dota 2: HULIGANI vs Team Lynx (BO3) - EPL Masters Group A",
+ "hook": "Live, and every AI agrees.",
  "post_hook": "All 4 AIs backed Team Lynx.",
- "title_line": "Round 84 \u00b7 Match of the Day",
+ "title_line": "The Unanimous Call \u00b7 Match of the Day",
  "score": {
   "total": 38.0,
   "raw": 38,
@@ -26,54 +26,192 @@
    }
   ]
  },
- "scripted": false,
- "script_data": null,
- "candidates": null,
- "duration_s": 45.5,
- "files": {
-  "square": "motd-2026-10-22-square.mp4"
+ "scripted": true,
+ "concept_type": "broadcast",
+ "twist_type": "wipeout",
+ "twist": "Not one of the 4 AIs that bet was right.",
+ "title": "The Unanimous Call",
+ "script": "[broadcast] The Unanimous Call\ncold_open: Live, and every AI agrees.\ntitle: All on Lynx.\nmarket: EPL Masters Dota, Group A: HULIGANI or Team Lynx, best of 3?\nbackground: HULIGANI: open-circuit Dota grinders, rosters churning fast.\ncharacter (Claude): Claude, early: 'the better expected value.'\ncharacter (ChatGPT): ChatGPT: 'confidence remains modest.'\ncharacter (Gemini): Gemini: Lynx 'heavily undervalued.'\ncharacter (Grok): Grok: Lynx 'ranked well above.'\nmisdirect: Lynx at 44.5\u00a2. Whole booth in. Lock it.\nresult: HULIGANI win. Every mascot falls.\ntwist: Replay: 0 of 4 right. Claude, Grok, every AI, wrong.\ncoda: Back to the studio. Rough night.",
+ "model": "claude-fable-5-1",
+ "prompt_version": "motd_script.v1",
+ "output_id": 763,
+ "written_at": 1792685527.2295494,
+ "script_data": {
+  "concept_type": "broadcast",
+  "title": "The Unanimous Call",
+  "background_subject": "HULIGANI",
+  "scenes": [
+   {
+    "kind": "cold_open",
+    "stage": "lineup",
+    "text": "Live, and every AI agrees."
+   },
+   {
+    "kind": "title",
+    "text": "All on Lynx."
+   },
+   {
+    "kind": "market",
+    "text": "EPL Masters Dota, Group A: HULIGANI or Team Lynx, best of {q2}?"
+   },
+   {
+    "kind": "background",
+    "text": "HULIGANI: open-circuit Dota grinders, rosters churning fast."
+   },
+   {
+    "kind": "character",
+    "agent": "Claude",
+    "text": "Claude, early: 'the better expected value.'"
+   },
+   {
+    "kind": "character",
+    "agent": "ChatGPT",
+    "text": "ChatGPT: 'confidence remains modest.'"
+   },
+   {
+    "kind": "character",
+    "agent": "Gemini",
+    "text": "Gemini: Lynx 'heavily undervalued.'"
+   },
+   {
+    "kind": "character",
+    "agent": "Grok",
+    "text": "Grok: Lynx 'ranked well above.'"
+   },
+   {
+    "kind": "misdirect",
+    "stage": "lineup",
+    "text": "Lynx at {dog_price}. Whole booth in. Lock it."
+   },
+   {
+    "kind": "result",
+    "text": "{winner} win. Every mascot falls."
+   },
+   {
+    "kind": "twist",
+    "text": "Replay: {n_right} of {n_ai} right. Claude, Grok, every AI, wrong."
+   },
+   {
+    "kind": "coda",
+    "text": "Back to the studio. Rough night."
+   }
+  ]
  },
- "poster": null,
- "music": "theme.m4a",
- "narrated": false,
- "audio": null,
+ "candidates": null,
+ "duration_s": 58.95,
+ "files": {
+  "square": "motd-2026-10-22-square.mp4",
+  "tall": "motd-2026-10-22-tall.mp4",
+  "wide": "motd-2026-10-22-wide.mp4"
+ },
+ "poster": "poster.png",
+ "music": "elevenlabs-music",
+ "narrated": true,
+ "audio": {
+  "narrator": {
+   "engine": "elevenlabs",
+   "model": "eleven_v4",
+   "voice_id": "TX3LPaxmHKxFdv7VOQHJ",
+   "voice": "Liam",
+   "settings": {
+    "stability": 0.5,
+    "similarity_boost": 0.75
+   },
+   "tag": "[excited, fast]"
+  },
+  "chars": 471,
+  "credits": 265,
+  "tempo": 1.0,
+  "voiced_s": 58.95,
+  "score": {
+   "engine": "elevenlabs-music",
+   "model": "music_v1",
+   "prompt": "big sports broadcast theme, brass fanfare, driving drums, stadium energy",
+   "variant": 0,
+   "length_ms": 62000
+  },
+  "score_credits": 800,
+  "sting": "stadium crowd gasps and roars, air horn",
+  "sting_credits": 0
+ },
  "scenes": [
   {
-   "kind": "hook",
-   "dur": 3.0
+   "kind": "s_cold_open",
+   "dur": 3.52,
+   "caption": "Live, and every AI agrees.",
+   "voice": "var/audio_cache/tts-6817cb5d5f2b99fc81ddf3b7.mp3"
   },
   {
-   "kind": "setup",
-   "dur": 5.0
+   "kind": "s_title",
+   "dur": 2.47,
+   "caption": "All on Lynx.",
+   "voice": "var/audio_cache/tts-aa7b1e2461800ee85c0b086c.mp3"
   },
   {
-   "kind": "pick",
-   "dur": 3.5,
-   "agent": "claude"
+   "kind": "s_market",
+   "dur": 5.58,
+   "caption": "EPL Masters Dota, Group A: HULIGANI or Team Lynx, best of 3?",
+   "voice": "var/audio_cache/tts-5549edfb8daec3ff652d54d2.mp3"
   },
   {
-   "kind": "pick",
-   "dur": 6.5,
-   "agent": "grok"
+   "kind": "s_background",
+   "dur": 5.03,
+   "caption": "HULIGANI: open-circuit Dota grinders, rosters churning fast.",
+   "voice": "var/audio_cache/tts-b9f73c0e84ff6a73661f64f4.mp3"
   },
   {
-   "kind": "pick",
-   "dur": 3.5,
-   "agent": "agy"
+   "kind": "s_character",
+   "dur": 6.17,
+   "agent": "claude",
+   "caption": "Claude, early: 'the better expected value.'",
+   "voice": "var/audio_cache/tts-54ae0b3c9bd78865034eedea.mp3"
   },
   {
-   "kind": "pick",
-   "dur": 3.5,
-   "agent": "codex"
+   "kind": "s_character",
+   "dur": 4.72,
+   "agent": "codex",
+   "caption": "ChatGPT: 'confidence remains modest.'",
+   "voice": "var/audio_cache/tts-1a942f5ce118ccecdd4e7528.mp3"
   },
   {
-   "kind": "reveal",
-   "dur": 8.5
+   "kind": "s_character",
+   "dur": 5.63,
+   "agent": "agy",
+   "caption": "Gemini: Lynx 'heavily undervalued.'",
+   "voice": "var/audio_cache/tts-6e5a9c0e94c203e61e075d4f.mp3"
   },
   {
-   "kind": "close",
-   "dur": 12.0
+   "kind": "s_character",
+   "dur": 5.37,
+   "agent": "grok",
+   "caption": "Grok: Lynx 'ranked well above.'",
+   "voice": "var/audio_cache/tts-ad622a04995b6eddb4e25218.mp3"
+  },
+  {
+   "kind": "s_misdirect",
+   "dur": 4.72,
+   "caption": "Lynx at 44.5\u00a2. Whole booth in. Lock it.",
+   "voice": "var/audio_cache/tts-3e2a70de83269a7b74552dc6.mp3"
+  },
+  {
+   "kind": "s_result",
+   "dur": 5.0,
+   "caption": "HULIGANI win. Every mascot falls.",
+   "voice": "var/audio_cache/tts-373f3118e5c9b552635024d5.mp3"
+  },
+  {
+   "kind": "s_twist",
+   "dur": 6.24,
+   "caption": "Replay: 0 of 4 right. Claude, Grok, every AI, wrong.",
+   "fact": "Not one of the 4 AIs that bet was right.",
+   "voice": "var/audio_cache/tts-ce6cbc99d75d00225b4f13be.mp3"
+  },
+  {
+   "kind": "s_coda",
+   "dur": 4.5,
+   "caption": "Back to the studio. Rough night.",
+   "voice": "var/audio_cache/tts-39ac1251e4d9b949ec92c71a.mp3"
   }
  ],
- "made_at": 1792682401.7130089
+ "made_at": 1792685768.399847
 }
