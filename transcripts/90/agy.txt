@@ -1,0 +1,59 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Will AFC Ajax win on 2026-10-22?
+Outcomes: Yes / No | prices: Yes 0.445, No 0.555 | closes: 2026-10-22T19:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 10-10, net P&L -471.6.
+- Bitcoin Up or Down - October 21, 8:00PM-12:00AM ET | you picked Up | winner Down | lost | P&L -100.0
+- Will Racing Club de Lens win on 2026-10-21? | you picked No | winner No | won | P&L +35.1
+- Will Real Betis Balompié vs. Feyenoord Rotterdam end in a draw? | you picked No | winner No | won | P&L +25.0
+- Will Club Brugge KV vs. Racing Club de Lens end in a draw? | you picked No | winner No | won | P&L +28.2
+- Counter-Strike: BC.Game Esports vs Nexus (BO3) - DraculaN Playoffs | you picked BC.Game Esports | winner BC.Game Esports | won | P&L +19.0
+- Counter-Strike: FaZe vs JiJieHao (BO3) - DraculaN Playoffs | you picked FaZe | winner JiJieHao | lost | P&L -100.0
+- Counter-Strike: Sinners vs Heroic (BO3) - DraculaN Playoffs | you picked Heroic | winner Sinners | lost | P&L -100.0
+- Will Nagoya Grampus win on 2026-10-21? | you picked No | winner No | won | P&L +72.4
+- Will Kawasaki Frontale win on 2026-10-21? | you picked No | winner Yes | lost | P&L -100.0
+- Will Nagoya Grampus vs. Cerezo Ōsaka end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Valorant: Unsettled Resentment vs Octagonal Disposition Gaming (BO3) - VCT Threshold China | you picked Octagonal Disposition Gaming | winner Unsettled Resentment | lost | P&L -100.0
+- Will Barnet FC win on 2026-10-20? | you picked Yes | winner No | lost | P&L -100.0
+- Will Al Qadisiyah Saudi Club win on 2026-10-20? | you picked Yes | winner Yes | won | P&L +44.9
+- Will Al Diraiyah Saudi Club win on 2026-10-20? | you picked No | winner Yes | lost | P&L -100.0
+- Will FC Porto vs. PSV end in a draw? | you picked No | winner No | won | P&L +25.0
+- Will Huddersfield Town AFC win on 2026-10-20? | you picked no bet | winner Yes | lost | P&L +0.0
+- Will Fenerbahçe SK vs. SK Slavia Praha end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will SK Slavia Praha win on 2026-10-20? | you picked No | winner No | won | P&L +19.0
+- Counter-Strike: BBL vs BC.Game Esports (BO3) - DraculaN Playoffs | you picked BC.Game Esports | winner BC.Game Esports | won | P&L +61.0
+- Counter-Strike: ex-RUSTEC vs Metizport (BO3) - Stake Ranked Episode 6: Closed Qualifier Pl | you picked Metizport | winner Metizport | won | P&L +98.6
+
+--- output ---
+### Bet Placed
+
+- **Market**: Will AFC Ajax win on 2026-10-22?
+- **Outcome**: **`No`**
+- **Stake**: 100.0 tokens (178.5714 shares @ 0.56)
+- **Confidence**: 0.58
+- **Rationale**: With Ajax priced around 2.20 in 3-way markets, bookmakers imply only ~42% win probability against Atalanta. "No" covers both a draw and an Atalanta win, making it the highest probability outcome and positive EV.
+- **Quote**: `"You all forgot about the draw. Enjoy paying 45 cents for a 42% shot."`
+
+---
+
+### Analysis & Breakdown
+
+1. **Matchup Context**: AFC Ajax hosts Atalanta BC in UEFA Europa Conference League Matchday 2 at the Johan Cruyff ArenA.
+2. **Three-Way Probability vs. Binary Market**:
+   - The market resolves to **`Yes`** *only* if Ajax wins in regular + stoppage time.
+   - Any other result (Draw or Atalanta victory) resolves to **`No`**.
+   - Standard 1X2 market odds: Ajax (~2.15–2.28, ~42% fair implied prob), Draw (~3.40–3.60, ~27%), Atalanta (~3.00, ~31%).
+3. **Edge**:
+   - True probability of **`No`** (Draw + Atalanta win): **~58%**.
+   - At the ask price of 0.56, **`No`** offers both a >50% hit rate and positive expected value (+3.0% EV), whereas **`Yes`** at 0.45 has negative EV against its true ~42% win rate.
