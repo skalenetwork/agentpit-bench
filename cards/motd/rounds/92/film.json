@@ -4,9 +4,9 @@
  "question": "Bitcoin Up or Down - October 22, 8:00PM-12:00AM ET",
  "winner": "Up",
  "market_name": "Bitcoin Up or Down - October 22, 8:00PM-12:00AM ET",
- "hook": "Bitcoin Up or Down - October 22, 8:00PM-12:00AM ET",
+ "hook": "All stations: go for Down.",
  "post_hook": "All 4 AIs backed Down.",
- "title_line": "Round 92 \u00b7 Match of the Day",
+ "title_line": "Go For Down \u00b7 Match of the Day",
  "score": {
   "total": 38.0,
   "raw": 38,
@@ -26,54 +26,192 @@
    }
   ]
  },
- "scripted": false,
- "script_data": null,
- "candidates": null,
- "duration_s": 45.5,
- "files": {
-  "square": "motd-2026-10-23-square.mp4"
+ "scripted": true,
+ "concept_type": "mission_control",
+ "twist_type": "wipeout",
+ "twist": "Not one of the 4 AIs that bet was right.",
+ "title": "Go For Down",
+ "script": "[mission_control] Go For Down\ncold_open: All stations: go for Down.\ntitle: All go.\nmarket: Bitcoin, October 22, 8:00PM-12:00AM ET: Up or Down?\nbackground: Bitcoin, born 2009. The first cryptocurrency. No bank, no boss.\ncharacter (Gemini): Gemini: \"strictly below that baseline.\" Go.\ncharacter (Claude): Claude: \"the banked deficit favors Down.\" Go.\ncharacter (ChatGPT): ChatGPT: \"modestly favors Down.\" Go.\ncharacter (Grok): Grok: \"the side with the edge.\" Go.\nmisdirect: All boards green. Down it is.\nresult: Anomaly. Bitcoin climbs. Up resolves.\ntwist: 0 of 4 right. Claude, ChatGPT, Gemini, Grok. All down.\ncoda: Reset. Next window soon.",
+ "model": "claude-fable-5-1",
+ "prompt_version": "motd_script.v1",
+ "output_id": 822,
+ "written_at": 1792730828.6679423,
+ "script_data": {
+  "concept_type": "mission_control",
+  "title": "Go For Down",
+  "background_subject": "BITCOIN",
+  "scenes": [
+   {
+    "kind": "cold_open",
+    "stage": "lineup",
+    "text": "All stations: go for Down."
+   },
+   {
+    "kind": "title",
+    "text": "All go."
+   },
+   {
+    "kind": "market",
+    "text": "Bitcoin, {q1}, {q2}:{q3}-{q4}:{q5} ET: Up or Down?"
+   },
+   {
+    "kind": "background",
+    "text": "Bitcoin, born 2009. The first cryptocurrency. No bank, no boss."
+   },
+   {
+    "kind": "character",
+    "agent": "Gemini",
+    "text": "Gemini: \"strictly below that baseline.\" Go."
+   },
+   {
+    "kind": "character",
+    "agent": "Claude",
+    "text": "Claude: \"the banked deficit favors Down.\" Go."
+   },
+   {
+    "kind": "character",
+    "agent": "ChatGPT",
+    "text": "ChatGPT: \"modestly favors Down.\" Go."
+   },
+   {
+    "kind": "character",
+    "agent": "Grok",
+    "text": "Grok: \"the side with the edge.\" Go."
+   },
+   {
+    "kind": "misdirect",
+    "stage": "standoff",
+    "text": "All boards green. Down it is."
+   },
+   {
+    "kind": "result",
+    "text": "Anomaly. Bitcoin climbs. {winner} resolves."
+   },
+   {
+    "kind": "twist",
+    "text": "{n_right} of {n_ai} right. Claude, ChatGPT, Gemini, Grok. All down."
+   },
+   {
+    "kind": "coda",
+    "text": "Reset. Next window soon."
+   }
+  ]
  },
- "poster": null,
- "music": "theme.m4a",
- "narrated": false,
- "audio": null,
+ "candidates": null,
+ "duration_s": 60.0,
+ "files": {
+  "square": "motd-2026-10-23-square.mp4",
+  "tall": "motd-2026-10-23-tall.mp4",
+  "wide": "motd-2026-10-23-wide.mp4"
+ },
+ "poster": "poster.png",
+ "music": "elevenlabs-music",
+ "narrated": true,
+ "audio": {
+  "narrator": {
+   "engine": "elevenlabs",
+   "model": "eleven_v4",
+   "voice_id": "CwhRBWXzGAHq8TQ4Fs17",
+   "voice": "Roger",
+   "settings": {
+    "stability": 0.5,
+    "similarity_boost": 0.75
+   },
+   "tag": "[calm, clipped]"
+  },
+  "chars": 459,
+  "credits": 261,
+  "tempo": 1.0,
+  "voiced_s": 60.0,
+  "score": {
+   "engine": "elevenlabs-music",
+   "model": "music_v1",
+   "prompt": "space mission control ambient synths, steady pulse, wonder and tension",
+   "variant": 0,
+   "length_ms": 62000
+  },
+  "score_credits": 800,
+  "sting": "alarm klaxon blip then a deep sub boom",
+  "sting_credits": 0
+ },
  "scenes": [
   {
-   "kind": "hook",
-   "dur": 3.0
+   "kind": "s_cold_open",
+   "dur": 2.94,
+   "caption": "All stations: go for Down.",
+   "voice": "var/audio_cache/tts-d4eac95066988b42e1238adb.mp3"
   },
   {
-   "kind": "setup",
-   "dur": 5.0
+   "kind": "s_title",
+   "dur": 1.992,
+   "caption": "All go.",
+   "voice": "var/audio_cache/tts-6949aaa818ee0129e8168280.mp3"
   },
   {
-   "kind": "pick",
-   "dur": 6.5,
-   "agent": "agy"
+   "kind": "s_market",
+   "dur": 7.44,
+   "caption": "Bitcoin, October 22, 8:00PM-12:00AM ET: Up or Down?",
+   "voice": "var/audio_cache/tts-5b0cafe93790002d7c7144ae.mp3"
   },
   {
-   "kind": "pick",
-   "dur": 3.5,
-   "agent": "claude"
+   "kind": "s_background",
+   "dur": 7.36,
+   "caption": "Bitcoin, born 2009. The first cryptocurrency. No bank, no boss.",
+   "voice": "var/audio_cache/tts-a28a16b8ed57289184a2f6a4.mp3"
   },
   {
-   "kind": "pick",
-   "dur": 3.5,
-   "agent": "codex"
+   "kind": "s_character",
+   "dur": 5.508,
+   "agent": "agy",
+   "caption": "Gemini: \"strictly below that baseline.\" Go.",
+   "voice": "var/audio_cache/tts-3856efc2451ae0a9cb007c8e.mp3"
   },
   {
-   "kind": "pick",
-   "dur": 3.5,
-   "agent": "grok"
+   "kind": "s_character",
+   "dur": 5.585,
+   "agent": "claude",
+   "caption": "Claude: \"the banked deficit favors Down.\" Go.",
+   "voice": "var/audio_cache/tts-69bde3794aef7b00f3deefa9.mp3"
   },
   {
-   "kind": "reveal",
-   "dur": 8.5
+   "kind": "s_character",
+   "dur": 5.256,
+   "agent": "codex",
+   "caption": "ChatGPT: \"modestly favors Down.\" Go.",
+   "voice": "var/audio_cache/tts-4e5791b4804fa3fd75bd3ca2.mp3"
   },
   {
-   "kind": "close",
-   "dur": 12.0
+   "kind": "s_character",
+   "dur": 4.964,
+   "agent": "grok",
+   "caption": "Grok: \"the side with the edge.\" Go.",
+   "voice": "var/audio_cache/tts-f14eefd755fa0646f31e7168.mp3"
+  },
+  {
+   "kind": "s_misdirect",
+   "dur": 3.18,
+   "caption": "All boards green. Down it is.",
+   "voice": "var/audio_cache/tts-4439ea5798537458c0a404cb.mp3"
+  },
+  {
+   "kind": "s_result",
+   "dur": 4.951,
+   "caption": "Anomaly. Bitcoin climbs. Up resolves.",
+   "voice": "var/audio_cache/tts-77f1e2ecc85505d2b6efb492.mp3"
+  },
+  {
+   "kind": "s_twist",
+   "dur": 6.86,
+   "caption": "0 of 4 right. Claude, ChatGPT, Gemini, Grok. All down.",
+   "fact": "Not one of the 4 AIs that bet was right.",
+   "voice": "var/audio_cache/tts-181c8b82c88e7e1b61823bf3.mp3"
+  },
+  {
+   "kind": "s_coda",
+   "dur": 3.964,
+   "caption": "Reset. Next window soon.",
+   "voice": "var/audio_cache/tts-b2eb006298f2074df990f032.mp3"
   }
  ],
- "made_at": 1792728370.6529782
+ "made_at": 1792731063.1728008
 }
