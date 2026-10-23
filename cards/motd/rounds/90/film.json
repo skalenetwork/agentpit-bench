@@ -4,9 +4,9 @@
  "question": "Will AFC Ajax win on 2026-10-22?",
  "winner": "Yes",
  "market_name": "Will AFC Ajax win on 2026-10-22?",
- "hook": "Will AFC Ajax win on 2026-10-22?",
+ "hook": "Same crew. Same vault.",
  "post_hook": "All 4 AIs backed No.",
- "title_line": "Round 90 \u00b7 Match of the Day",
+ "title_line": "Inside Job \u00b7 Match of the Day",
  "score": {
   "total": 53.0,
   "raw": 53,
@@ -33,54 +33,192 @@
    }
   ]
  },
- "scripted": false,
- "script_data": null,
- "candidates": null,
- "duration_s": 45.5,
- "files": {
-  "square": "motd-2026-10-22-square.mp4"
+ "scripted": true,
+ "concept_type": "heist",
+ "twist_type": "wipeout",
+ "twist": "Not one of the 4 AIs that bet was right.",
+ "title": "Inside Job",
+ "script": "[heist] Inside Job\ncold_open: Same crew. Same vault.\ntitle: Clean job.\nmarket: Will Amsterdam's Ajax win on 22 October?\nbackground: Ajax: Amsterdam's giants, Cruyff's total football.\ncharacter (Claude): Claude, mastermind: No is \"the value bet.\"\ncharacter (ChatGPT): ChatGPT, safecracker: \"a small estimated edge.\"\ncharacter (Gemini): Gemini, driver: \"positive EV.\"\ncharacter (Grok): Grok, lookout: \"a draw or an Atalanta win.\"\nmisdirect: Whole crew on No. Nobody bets against them.\nresult: Ajax win. Every stake: \u2212100.\ntwist: 0 of 4 right. Claude, ChatGPT, Gemini, Grok: all cleaned out.\ncoda: Perfect plan. Wrong vault.",
+ "model": "claude-fable-5-1",
+ "prompt_version": "motd_script.v1",
+ "output_id": 774,
+ "written_at": 1792715483.152143,
+ "script_data": {
+  "concept_type": "heist",
+  "title": "Inside Job",
+  "background_subject": "AJAX",
+  "scenes": [
+   {
+    "kind": "cold_open",
+    "text": "Same crew. Same vault.",
+    "stage": "lineup"
+   },
+   {
+    "kind": "title",
+    "text": "Clean job."
+   },
+   {
+    "kind": "market",
+    "text": "Will Amsterdam's Ajax win on {q1}?"
+   },
+   {
+    "kind": "background",
+    "text": "Ajax: Amsterdam's giants, Cruyff's total football."
+   },
+   {
+    "kind": "character",
+    "agent": "Claude",
+    "text": "Claude, mastermind: No is \"the value bet.\""
+   },
+   {
+    "kind": "character",
+    "agent": "ChatGPT",
+    "text": "ChatGPT, safecracker: \"a small estimated edge.\""
+   },
+   {
+    "kind": "character",
+    "agent": "Gemini",
+    "text": "Gemini, driver: \"positive EV.\""
+   },
+   {
+    "kind": "character",
+    "agent": "Grok",
+    "text": "Grok, lookout: \"a draw or an Atalanta win.\""
+   },
+   {
+    "kind": "misdirect",
+    "text": "Whole crew on {fav}. Nobody bets against them.",
+    "stage": "lineup"
+   },
+   {
+    "kind": "result",
+    "text": "Ajax win. Every stake: {grok_pnl}."
+   },
+   {
+    "kind": "twist",
+    "text": "{n_right} of {n_ai} right. Claude, ChatGPT, Gemini, Grok: all cleaned out."
+   },
+   {
+    "kind": "coda",
+    "text": "Perfect plan. Wrong vault."
+   }
+  ]
  },
- "poster": null,
- "music": "theme.m4a",
- "narrated": false,
- "audio": null,
+ "candidates": null,
+ "duration_s": 59.43,
+ "files": {
+  "square": "motd-2026-10-22-square.mp4",
+  "tall": "motd-2026-10-22-tall.mp4",
+  "wide": "motd-2026-10-22-wide.mp4"
+ },
+ "poster": "poster.png",
+ "music": "elevenlabs-music",
+ "narrated": true,
+ "audio": {
+  "narrator": {
+   "engine": "elevenlabs",
+   "model": "eleven_v4",
+   "voice_id": "cjVigY5qzO86Huf0OWal",
+   "voice": "Eric",
+   "settings": {
+    "stability": 0.5,
+    "similarity_boost": 0.75
+   },
+   "tag": "[smooth, confident]"
+  },
+  "chars": 447,
+  "credits": 274,
+  "tempo": 1.0,
+  "voiced_s": 59.43,
+  "score": {
+   "engine": "elevenlabs-music",
+   "model": "music_v1",
+   "prompt": "slick heist movie groove, ticking hi-hats, funky bass, tension stabs, cool and propulsive",
+   "variant": 0,
+   "length_ms": 62000
+  },
+  "score_credits": 0,
+  "sting": "vault door slams with a deep cinematic impact",
+  "sting_credits": 0
+ },
  "scenes": [
   {
-   "kind": "hook",
-   "dur": 3.0
+   "kind": "s_cold_open",
+   "dur": 3.26,
+   "caption": "Same crew. Same vault.",
+   "voice": "var/audio_cache/tts-894664e16fac0c409ac01476.mp3"
   },
   {
-   "kind": "setup",
-   "dur": 5.0
+   "kind": "s_title",
+   "dur": 2.4,
+   "caption": "Clean job.",
+   "voice": "var/audio_cache/tts-920bd7c8eb9a0e682d5b2a48.mp3"
   },
   {
-   "kind": "pick",
-   "dur": 3.5,
-   "agent": "claude"
+   "kind": "s_market",
+   "dur": 4.07,
+   "caption": "Will Amsterdam's Ajax win on 22 October?",
+   "voice": "var/audio_cache/tts-32e18cd43f42afe22a40f563.mp3"
   },
   {
-   "kind": "pick",
-   "dur": 3.5,
-   "agent": "grok"
+   "kind": "s_background",
+   "dur": 5.19,
+   "caption": "Ajax: Amsterdam's giants, Cruyff's total football.",
+   "voice": "var/audio_cache/tts-9f65d472cda75537f7830105.mp3"
   },
   {
-   "kind": "pick",
-   "dur": 6.5,
-   "agent": "agy"
+   "kind": "s_character",
+   "dur": 6.1,
+   "agent": "claude",
+   "caption": "Claude, mastermind: No is \"the value bet.\"",
+   "voice": "var/audio_cache/tts-e81e859ed6ff1665d989e087.mp3"
   },
   {
-   "kind": "pick",
-   "dur": 3.5,
-   "agent": "codex"
+   "kind": "s_character",
+   "dur": 5.77,
+   "agent": "codex",
+   "caption": "ChatGPT, safecracker: \"a small estimated edge.\"",
+   "voice": "var/audio_cache/tts-9386224b8d2bc61f70d66d93.mp3"
   },
   {
-   "kind": "reveal",
-   "dur": 8.5
+   "kind": "s_character",
+   "dur": 5.3,
+   "agent": "agy",
+   "caption": "Gemini, driver: \"positive EV.\"",
+   "voice": "var/audio_cache/tts-53e48707ace2ae6057dd6fec.mp3"
   },
   {
-   "kind": "close",
-   "dur": 12.0
+   "kind": "s_character",
+   "dur": 6.17,
+   "agent": "grok",
+   "caption": "Grok, lookout: \"a draw or an Atalanta win.\"",
+   "voice": "var/audio_cache/tts-5880444b267777d0d2f40b75.mp3"
+  },
+  {
+   "kind": "s_misdirect",
+   "dur": 4.15,
+   "caption": "Whole crew on No. Nobody bets against them.",
+   "voice": "var/audio_cache/tts-afe3b20d79ef4f12d46bc2d3.mp3"
+  },
+  {
+   "kind": "s_result",
+   "dur": 5.0,
+   "caption": "Ajax win. Every stake: \u2212100.",
+   "voice": "var/audio_cache/tts-f1efc577d065f041de675912.mp3"
+  },
+  {
+   "kind": "s_twist",
+   "dur": 7.52,
+   "caption": "0 of 4 right. Claude, ChatGPT, Gemini, Grok: all cleaned out.",
+   "fact": "Not one of the 4 AIs that bet was right.",
+   "voice": "var/audio_cache/tts-406d8900ff38b862d5ead5f6.mp3"
+  },
+  {
+   "kind": "s_coda",
+   "dur": 4.5,
+   "caption": "Perfect plan. Wrong vault.",
+   "voice": "var/audio_cache/tts-7cd3423b81c74ab35f3c00df.mp3"
   }
  ],
- "made_at": 1792710230.638957
+ "made_at": 1792715704.3628874
 }
