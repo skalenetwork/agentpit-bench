@@ -1,0 +1,51 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Bitcoin Up or Down - October 22, 8:00PM-12:00AM ET
+Outcomes: Up / Down | prices: Up 0.445, Down 0.555 | closes: 2026-10-23T04:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 12-8, net P&L -195.2.
+- Will FC Twente win on 2026-10-22? | you picked Yes | winner Yes | won | P&L +23.5
+- Will AFC Ajax win on 2026-10-22? | you picked No | winner Yes | lost | P&L -100.0
+- Will Real Sociedad de Fútbol win on 2026-10-22? | you picked Yes | winner Yes | won | P&L +47.1
+- Will Ferencvárosi TC win on 2026-10-22? | you picked Yes | winner Yes | won | P&L +33.3
+- Will Panathinaikós AO win on 2026-10-22? | you picked Yes | winner Yes | won | P&L +66.5
+- Counter-Strike: BC.Game Esports vs FaZe (BO3) - DraculaN Playoffs | you picked BC.Game Esports | winner BC.Game Esports | won | P&L +122.9
+- Counter-Strike: Team Nemesis vs WW Team (BO3) - CIS LAN Championship Playoffs | you picked Team Nemesis | winner Team Nemesis | won | P&L +23.5
+- Dota 2: HULIGANI vs Team Lynx (BO3) - EPL Masters Group A | you picked Team Lynx | winner HULIGANI | lost | P&L -100.0
+- Valorant: KeepBest Gaming vs Wolves Esports (BO3) - VCT Threshold China Week 1 | you picked KeepBest Gaming | winner KeepBest Gaming | won | P&L +108.3
+- Bitcoin Up or Down - October 21, 8:00PM-12:00AM ET | you picked Up | winner Down | lost | P&L -100.0
+- Will Racing Club de Lens win on 2026-10-21? | you picked No | winner No | won | P&L +35.1
+- Will Real Betis Balompié vs. Feyenoord Rotterdam end in a draw? | you picked No | winner No | won | P&L +25.0
+- Will Club Brugge KV vs. Racing Club de Lens end in a draw? | you picked No | winner No | won | P&L +28.2
+- Counter-Strike: BC.Game Esports vs Nexus (BO3) - DraculaN Playoffs | you picked BC.Game Esports | winner BC.Game Esports | won | P&L +19.0
+- Counter-Strike: FaZe vs JiJieHao (BO3) - DraculaN Playoffs | you picked FaZe | winner JiJieHao | lost | P&L -100.0
+- Counter-Strike: Sinners vs Heroic (BO3) - DraculaN Playoffs | you picked Heroic | winner Sinners | lost | P&L -100.0
+- Will Nagoya Grampus win on 2026-10-21? | you picked No | winner No | won | P&L +72.4
+- Will Kawasaki Frontale win on 2026-10-21? | you picked No | winner Yes | lost | P&L -100.0
+- Will Nagoya Grampus vs. Cerezo Ōsaka end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Valorant: Unsettled Resentment vs Octagonal Disposition Gaming (BO3) - VCT Threshold China | you picked Octagonal Disposition Gaming | winner Unsettled Resentment | lost | P&L -100.0
+
+--- output ---
+I have analyzed the market and placed the bet on **Down**.
+
+### Market Analysis
+* **Benchmark Opening Price (8:00 PM ET / 00:00 UTC):** ~$81,306 (Coinbase) / $81,416 (Binance) / $81,314 (Kraken).
+* **Price Action & TWAP Status:** Over the first 35+ minutes of the 4-hour window, Bitcoin traded strictly below the opening price, creating an immediate TWAP deficit.
+* **Macro Momentum:** BTC experienced consistent downward pressure over the preceding 24 hours (dropping from ~$84.2k to ~$81.2k). For "Up" to resolve, Bitcoin would need an aggressive sustained breakout significantly above ~$81,350 for the remainder of the session to overcome the early deficit.
+
+### Bet Details
+* **Outcome:** `Down`
+* **Confidence:** `0.68`
+* **Shares Filled:** `182.7273` @ average price `0.5663`
+* **Rationale:** *Bitcoin opened the 8:00PM ET window near $81.3k-$81.4k and has traded strictly below that baseline for the entire first 35+ minutes. With an entrenched early TWAP deficit and continuous downward momentum over the last 24 hours, Down is most likely to resolve in profit.*
+* **Quote:** `"Enjoy holding that TWAP deficit while Bitcoin slides downhill."`
