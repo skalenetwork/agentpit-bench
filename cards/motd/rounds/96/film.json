@@ -4,9 +4,9 @@
  "question": "Will VfL Wolfsburg win on 2026-10-23?",
  "winner": "No",
  "market_name": "Will VfL Wolfsburg win on 2026-10-23?",
- "hook": "Will VfL Wolfsburg win on 2026-10-23?",
+ "hook": "Lights up in Bochum. Friday.",
  "post_hook": "All 4 AIs backed No.",
- "title_line": "Round 96 \u00b7 Match of the Day",
+ "title_line": "The Wolves Go to Bochum \u00b7 Match of the Day",
  "score": {
   "total": 13.0,
   "raw": 13,
@@ -26,59 +26,192 @@
    }
   ]
  },
- "scripted": false,
- "script_data": null,
- "candidates": null,
- "duration_s": 45.5,
- "files": {
-  "square": "motd-2026-10-23-square.mp4"
+ "scripted": true,
+ "concept_type": "broadcast",
+ "twist_type": "unanimous",
+ "twist": "All 4 AIs backed No, and all of them were paid.",
+ "title": "The Wolves Go to Bochum",
+ "script": "[broadcast] The Wolves Go to Bochum\ncold_open: Lights up in Bochum. Friday.\ntitle: Kickoff.\nmarket: Will Wolfsburg win at Bochum on 23 October?\nbackground: Wolfsburg: the Volkswagen club, German champions in 2009.\ncharacter (Gemini): Gemini, fastest: 'positive EV at current odds.'\ncharacter (Claude): Claude, early: 'the value side.'\ncharacter (Grok): Grok, chorus: 'the majority case.'\ncharacter (ChatGPT): ChatGPT, hedging: 'No covers both outcomes.'\nmisdirect: All No. Nobody fades the pack?\nresult: Full time. Wolfsburg don't win. No shirts bank +92.\ntwist: Replay: 4 AIs, 4 paid. Claude, ChatGPT, Gemini, Grok, same shirt.\ncoda: And back to the studio.",
+ "model": "claude-fable-5-1",
+ "prompt_version": "motd_script.v1",
+ "output_id": 865,
+ "written_at": 1792804532.6350913,
+ "script_data": {
+  "concept_type": "broadcast",
+  "title": "The Wolves Go to Bochum",
+  "background_subject": "WOLFSBURG",
+  "scenes": [
+   {
+    "kind": "cold_open",
+    "stage": "lineup",
+    "text": "Lights up in Bochum. Friday."
+   },
+   {
+    "kind": "title",
+    "text": "Kickoff."
+   },
+   {
+    "kind": "market",
+    "text": "Will Wolfsburg win at Bochum on {q1}?"
+   },
+   {
+    "kind": "background",
+    "text": "Wolfsburg: the Volkswagen club, German champions in 2009."
+   },
+   {
+    "kind": "character",
+    "agent": "Gemini",
+    "text": "Gemini, fastest: 'positive EV at current odds.'"
+   },
+   {
+    "kind": "character",
+    "agent": "Claude",
+    "text": "Claude, early: 'the value side.'"
+   },
+   {
+    "kind": "character",
+    "agent": "Grok",
+    "text": "Grok, chorus: 'the majority case.'"
+   },
+   {
+    "kind": "character",
+    "agent": "ChatGPT",
+    "text": "ChatGPT, hedging: 'No covers both outcomes.'"
+   },
+   {
+    "kind": "misdirect",
+    "stage": "lineup",
+    "text": "All No. Nobody fades the pack?"
+   },
+   {
+    "kind": "result",
+    "text": "Full time. Wolfsburg don't win. No shirts bank {claude_pnl}."
+   },
+   {
+    "kind": "twist",
+    "text": "Replay: {n_ai} AIs, {n_right} paid. Claude, ChatGPT, Gemini, Grok, same shirt."
+   },
+   {
+    "kind": "coda",
+    "text": "And back to the studio."
+   }
+  ]
  },
- "poster": null,
- "music": "theme.m4a",
- "narrated": false,
- "audio": null,
+ "candidates": null,
+ "duration_s": 57.87,
+ "files": {
+  "square": "motd-2026-10-23-square.mp4",
+  "tall": "motd-2026-10-23-tall.mp4",
+  "wide": "motd-2026-10-23-wide.mp4"
+ },
+ "poster": "poster.png",
+ "music": "elevenlabs-music",
+ "narrated": true,
+ "audio": {
+  "narrator": {
+   "engine": "elevenlabs",
+   "model": "eleven_v4",
+   "voice_id": "TX3LPaxmHKxFdv7VOQHJ",
+   "voice": "Liam",
+   "settings": {
+    "stability": 0.5,
+    "similarity_boost": 0.75
+   },
+   "tag": "[excited, fast]"
+  },
+  "chars": 481,
+  "credits": 269,
+  "tempo": 1.0,
+  "voiced_s": 57.87,
+  "score": {
+   "engine": "elevenlabs-music",
+   "model": "music_v1",
+   "prompt": "big sports broadcast theme, brass fanfare, driving drums, stadium energy",
+   "variant": 0,
+   "length_ms": 62000
+  },
+  "score_credits": 0,
+  "sting": "stadium crowd gasps and roars, air horn",
+  "sting_credits": 0
+ },
  "scenes": [
   {
-   "kind": "hook",
-   "dur": 3.0
+   "kind": "s_cold_open",
+   "dur": 3.1,
+   "caption": "Lights up in Bochum. Friday.",
+   "voice": "var/audio_cache/tts-7e369acf2c6cbe6d5aa12814.mp3"
   },
   {
-   "kind": "setup",
-   "dur": 5.0
+   "kind": "s_title",
+   "dur": 2.71,
+   "caption": "Kickoff.",
+   "voice": "var/audio_cache/tts-8eed555c8c8d9a2a356d8031.mp3"
   },
   {
-   "kind": "pick",
-   "dur": 6.5,
-   "agent": "agy"
+   "kind": "s_market",
+   "dur": 4.0,
+   "caption": "Will Wolfsburg win at Bochum on 23 October?",
+   "voice": "var/audio_cache/tts-30e655ded039c53a9f90c455.mp3"
   },
   {
-   "kind": "pick",
-   "dur": 3.5,
-   "agent": "claude"
+   "kind": "s_background",
+   "dur": 5.19,
+   "caption": "Wolfsburg: the Volkswagen club, German champions in 2009.",
+   "voice": "var/audio_cache/tts-18b9641e733ce0259d690586.mp3"
   },
   {
-   "kind": "pick",
-   "dur": 3.5,
-   "agent": "grok"
+   "kind": "s_character",
+   "dur": 6.27,
+   "agent": "agy",
+   "caption": "Gemini, fastest: 'positive EV at current odds.'",
+   "voice": "var/audio_cache/tts-70795db8b06e5507a4d65ab8.mp3"
   },
   {
-   "kind": "pick",
-   "dur": 3.5,
-   "agent": "codex"
+   "kind": "s_character",
+   "dur": 5.43,
+   "agent": "claude",
+   "caption": "Claude, early: 'the value side.'",
+   "voice": "var/audio_cache/tts-a9e4dc5d709fe06795453315.mp3"
   },
   {
-   "kind": "think",
-   "dur": 6.0,
-   "agent": "agy"
+   "kind": "s_character",
+   "dur": 5.57,
+   "agent": "grok",
+   "caption": "Grok, chorus: 'the majority case.'",
+   "voice": "var/audio_cache/tts-8d5a84c38d06b316fd350d40.mp3"
   },
   {
-   "kind": "reveal",
-   "dur": 6.0
+   "kind": "s_character",
+   "dur": 4.98,
+   "agent": "codex",
+   "caption": "ChatGPT, hedging: 'No covers both outcomes.'",
+   "voice": "var/audio_cache/tts-eff14d69b6889c50940712e5.mp3"
   },
   {
-   "kind": "close",
-   "dur": 8.5
+   "kind": "s_misdirect",
+   "dur": 3.52,
+   "caption": "All No. Nobody fades the pack?",
+   "voice": "var/audio_cache/tts-61cea9b0e06c36c73aad202e.mp3"
+  },
+  {
+   "kind": "s_result",
+   "dur": 5.5,
+   "caption": "Full time. Wolfsburg don't win. No shirts bank +92.",
+   "voice": "var/audio_cache/tts-feb332895bbbad13ea7e2251.mp3"
+  },
+  {
+   "kind": "s_twist",
+   "dur": 7.1,
+   "caption": "Replay: 4 AIs, 4 paid. Claude, ChatGPT, Gemini, Grok, same shirt.",
+   "fact": "All 4 AIs backed No, and all of them were paid.",
+   "voice": "var/audio_cache/tts-dc1a68e7b9241c6a5021b005.mp3"
+  },
+  {
+   "kind": "s_coda",
+   "dur": 4.5,
+   "caption": "And back to the studio.",
+   "voice": "var/audio_cache/tts-ba28dc8d262cf3c8ffb9552b.mp3"
   }
  ],
- "made_at": 1792787555.888087
+ "made_at": 1792804770.4965549
 }
