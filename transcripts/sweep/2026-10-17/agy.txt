@@ -1,0 +1,257 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+19755 | Will Minnesota United FC win on 2026-10-17? | Yes 0.335, No 0.665 | 2026-10-17T20:30:00Z
+19750 | KHL: Amur Khabarovsk vs. Salavat Yulaev Ufa | Amur Khabarovsk 0.445, Salavat Yulaev Ufa 0.555 | 2026-10-17T07:00:00Z
+19739 | Bitcoin Up or Down - October 17, 2AM ET | Up 0.735, Down 0.265 | 2026-10-17T07:00:00Z
+19441 | Will Daniel Fontaine win the 2026 New Westminster mayoral election? | Yes 0.292, No 0.708 | 2026-10-18T03:59:00Z
+19737 | Counter-Strike: BBL vs ex-RUSTEC (BO3) - PGL Bucharest Closed Qualifier Playoffs | BBL 0.550, ex-RUSTEC 0.450 | 2026-10-17T23:00:00Z
+17464 | Will China GDP growth in Q3 2026 be between 4.3% and 4.6%? | Yes 0.725, No 0.275 | 2026-10-21T03:59:00Z
+19752 | Will Norwich City FC win on 2026-10-17? | Yes 0.515, No 0.485 | 2026-10-17T14:00:00Z
+19738 | Will CF Monterrey vs. CF Pachuca end in a draw? | Yes 0.225, No 0.775 | 2026-10-19T01:00:00Z
+19688 | Bitcoin Up or Down - October 17, 12:00AM-4:00AM ET | Up 0.630, Down 0.370 | 2026-10-17T08:00:00Z
+19437 | Will Patrick Johnstone win the 2026 New Westminster mayoral election? | Yes 0.695, No 0.305 | 2026-10-18T03:59:00Z
+19736 | Counter-Strike: MIBR vs 100 Thieves - Map 2 Winner | MIBR 0.505, 100 Thieves 0.495 | 2026-10-17T17:00:00Z
+17448 | Will China GDP growth in Q3 2026 be between 4.6% and 4.9%? | Yes 0.165, No 0.835 | 2026-10-21T03:59:00Z
+19735 | Will Paksi FC win on 2026-10-17? | Yes 0.515, No 0.485 | 2026-10-17T15:00:00Z
+19725 | Cricket World Cup League 2: Canada vs Nepal | Canada 0.420, Nepal 0.580 | 2026-10-24T06:00:00Z
+19587 | Will Bitcoin dip to $81,000 on October 17? | Yes 0.335, No 0.665 | 2026-10-18T04:00:00Z
+19207 | Will Trump's approval rating be between 39.0 and 39.4 on October 23, 2026? | Yes 0.185, No 0.815 | 2026-10-24T03:59:00Z
+19661 | Overwatch: Crazy Raccoon vs Falcons (BO5) - OCS Korea Stage 3 Regular Season | Crazy Raccoon 0.820, Falcons 0.180 | 2026-10-17T13:30:00Z
+19730 | Will Jiangxi Dingnan United win on 2026-10-17? | Yes 0.375, No 0.625 | 2026-10-17T11:00:00Z
+19708 | Will FC Mito Holly Hock vs. Urawa Red Diamonds end in a draw? | Yes 0.285, No 0.715 | 2026-10-17T07:00:00Z
+19586 | Will Bitcoin reach $82,000 on October 17? | Yes 0.555, No 0.445 | 2026-10-18T04:00:00Z
+19206 | Will Trump's approval rating be between 38.5 and 38.9 on October 23, 2026? | Yes 0.300, No 0.700 | 2026-10-24T03:59:00Z
+19547 | Counter-Strike: Off Chops vs Rooster (BO3) - Logitech G Pro Series Playoffs | Off Chops 0.765, Rooster 0.235 | 2026-10-17T12:30:00Z
+19722 | Will HJK Helsinki win on 2026-10-17? | Yes 0.665, No 0.335 | 2026-10-17T13:00:00Z
+19660 | Penguins vs. Golden Knights | Penguins 0.335, Golden Knights 0.665 | 2026-10-18T02:00:00Z
+19573 | Will the price of Solana be above $105 on October 19? | Yes 0.490, No 0.510 | 2026-10-19T16:00:00Z
+19205 | Will Trump's approval rating be between 38.0 and 38.4 on October 23, 2026? | Yes 0.225, No 0.775 | 2026-10-24T03:59:00Z
+19545 | Counter-Strike: G2 Ares vs ex-6666 (BO3) - CCT Europe Series #11 Group Stage | G2 Ares 0.470, ex-6666 0.530 | 2026-10-17T14:00:00Z
+19721 | Will Hannover 96 win on 2026-10-17? | Yes 0.385, No 0.615 | 2026-10-17T18:30:00Z
+19534 | Stars vs. Blackhawks | Stars 0.645, Blackhawks 0.355 | 2026-10-17T23:00:00Z
+19256 | Will the price of Ethereum be between $2,500 and $2,600 on October 23? | Yes 0.190, No 0.810 | 2026-10-23T16:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{
+  "forecasts": [
+    {
+      "id": "19755",
+      "probabilities": {
+        "Yes": 0.34,
+        "No": 0.66
+      }
+    },
+    {
+      "id": "19750",
+      "probabilities": {
+        "Amur Khabarovsk": 0.44,
+        "Salavat Yulaev Ufa": 0.56
+      }
+    },
+    {
+      "id": "19739",
+      "probabilities": {
+        "Up": 0.74,
+        "Down": 0.26
+      }
+    },
+    {
+      "id": "19441",
+      "probabilities": {
+        "Yes": 0.29,
+        "No": 0.71
+      }
+    },
+    {
+      "id": "19737",
+      "probabilities": {
+        "BBL": 0.555,
+        "ex-RUSTEC": 0.445
+      }
+    },
+    {
+      "id": "17464",
+      "probabilities": {
+        "Yes": 0.735,
+        "No": 0.265
+      }
+    },
+    {
+      "id": "19752",
+      "probabilities": {
+        "Yes": 0.52,
+        "No": 0.48
+      }
+    },
+    {
+      "id": "19738",
+      "probabilities": {
+        "Yes": 0.235,
+        "No": 0.765
+      }
+    },
+    {
+      "id": "19688",
+      "probabilities": {
+        "Up": 0.635,
+        "Down": 0.365
+      }
+    },
+    {
+      "id": "19437",
+      "probabilities": {
+        "Yes": 0.7,
+        "No": 0.3
+      }
+    },
+    {
+      "id": "19736",
+      "probabilities": {
+        "MIBR": 0.505,
+        "100 Thieves": 0.495
+      }
+    },
+    {
+      "id": "17448",
+      "probabilities": {
+        "Yes": 0.155,
+        "No": 0.845
+      }
+    },
+    {
+      "id": "19735",
+      "probabilities": {
+        "Yes": 0.52,
+        "No": 0.48
+      }
+    },
+    {
+      "id": "19725",
+      "probabilities": {
+        "Canada": 0.415,
+        "Nepal": 0.585
+      }
+    },
+    {
+      "id": "19587",
+      "probabilities": {
+        "Yes": 0.345,
+        "No": 0.655
+      }
+    },
+    {
+      "id": "19207",
+      "probabilities": {
+        "Yes": 0.18,
+        "No": 0.82
+      }
+    },
+    {
+      "id": "19661",
+      "probabilities": {
+        "Crazy Raccoon": 0.825,
+        "Falcons": 0.175
+      }
+    },
+    {
+      "id": "19730",
+      "probabilities": {
+        "Yes": 0.37,
+        "No": 0.63
+      }
+    },
+    {
+      "id": "19708",
+      "probabilities": {
+        "Yes": 0.285,
+        "No": 0.715
+      }
+    },
+    {
+      "id": "19586",
+      "probabilities": {
+        "Yes": 0.565,
+        "No": 0.435
+      }
+    },
+    {
+      "id": "19206",
+      "probabilities": {
+        "Yes": 0.305,
+        "No": 0.695
+      }
+    },
+    {
+      "id": "19547",
+      "probabilities": {
+        "Off Chops": 0.77,
+        "Rooster": 0.23
+      }
+    },
+    {
+      "id": "19722",
+      "probabilities": {
+        "Yes": 0.67,
+        "No": 0.33
+      }
+    },
+    {
+      "id": "19660",
+      "probabilities": {
+        "Penguins": 0.33,
+        "Golden Knights": 0.67
+      }
+    },
+    {
+      "id": "19573",
+      "probabilities": {
+        "Yes": 0.49,
+        "No": 0.51
+      }
+    },
+    {
+      "id": "19205",
+      "probabilities": {
+        "Yes": 0.225,
+        "No": 0.775
+      }
+    },
+    {
+      "id": "19545",
+      "probabilities": {
+        "G2 Ares": 0.47,
+        "ex-6666": 0.53
+      }
+    },
+    {
+      "id": "19721",
+      "probabilities": {
+        "Yes": 0.385,
+        "No": 0.615
+      }
+    },
+    {
+      "id": "19534",
+      "probabilities": {
+        "Stars": 0.65,
+        "Blackhawks": 0.35
+      }
+    },
+    {
+      "id": "19256",
+      "probabilities": {
+        "Yes": 0.19,
+        "No": 0.81
+      }
+    }
+  ]
+}
