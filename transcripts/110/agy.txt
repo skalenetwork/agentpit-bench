@@ -1,0 +1,51 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Will FC Augsburg vs. 1. FC Union Berlin end in a draw?
+Outcomes: Yes / No | prices: Yes 0.235, No 0.765 | closes: 2026-10-24T13:30:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 16-4, net P&L +539.5.
+- Will Kashima Antlers win on 2026-10-24? | you picked No | winner No | won | P&L +69.5
+- Will Go Ahead Eagles win on 2026-10-23? | you picked Yes | winner Yes | won | P&L +63.9
+- Zalgiris Kaunas vs. ASVEL Lyon-Villeurbanne | you picked Zalgiris Kaunas | winner Zalgiris Kaunas | won | P&L +20.5
+- Will Stade Brestois 29 win on 2026-10-23? | you picked No | winner No | won | P&L +75.4
+- Will VfB Stuttgart vs. Borussia Mönchengladbach end in a draw? | you picked No | winner No | won | P&L +19.0
+- Will VfL Wolfsburg win on 2026-10-23? | you picked No | winner No | won | P&L +92.3
+- Will Al Nassr Saudi Club win on 2026-10-23? | you picked Yes | winner Yes | won | P&L +25.0
+- Ethereum Up or Down on October 23? | you picked Up | winner Up | won | P&L +79.7
+- Valorant: TEC Esports vs Unsettled Resentment (BO3) - VCT Threshold China Week 1 | you picked TEC Esports | winner TEC Esports | won | P&L +72.5
+- Dota 2: 1win vs OG - Game 1 Winner | you picked 1win | winner OG | lost | P&L -100.0
+- Bitcoin Up or Down - October 22, 8:00PM-12:00AM ET | you picked Down | winner Up | lost | P&L -103.5
+- Will FC Twente win on 2026-10-22? | you picked Yes | winner Yes | won | P&L +23.5
+- Will AFC Ajax win on 2026-10-22? | you picked No | winner Yes | lost | P&L -100.0
+- Will Real Sociedad de Fútbol win on 2026-10-22? | you picked Yes | winner Yes | won | P&L +47.1
+- Will Ferencvárosi TC win on 2026-10-22? | you picked Yes | winner Yes | won | P&L +33.3
+- Will Panathinaikós AO win on 2026-10-22? | you picked Yes | winner Yes | won | P&L +66.5
+- Counter-Strike: BC.Game Esports vs FaZe (BO3) - DraculaN Playoffs | you picked BC.Game Esports | winner BC.Game Esports | won | P&L +122.9
+- Counter-Strike: Team Nemesis vs WW Team (BO3) - CIS LAN Championship Playoffs | you picked Team Nemesis | winner Team Nemesis | won | P&L +23.5
+- Dota 2: HULIGANI vs Team Lynx (BO3) - EPL Masters Group A | you picked Team Lynx | winner HULIGANI | lost | P&L -100.0
+- Valorant: KeepBest Gaming vs Wolves Esports (BO3) - VCT Threshold China Week 1 | you picked KeepBest Gaming | winner KeepBest Gaming | won | P&L +108.3
+
+--- output ---
+Bet successfully placed on **No**.
+
+### Execution Summary
+* **Outcome Picked:** `No` (Match will NOT end in a draw)
+* **Stake Filled:** `100.0` tokens
+* **Shares Purchased:** `129.8701` @ `0.77` average price
+* **Confidence:** `0.77`
+* **Status:** Confirmed (`placed: true`)
+
+### Market & Match Analysis
+* **High Expected Goal Volume:** Augsburg matches this season have been open and volatile (all clearing Over 2.5 goals, with Over 2.5 priced around 1.48). Union Berlin holds the league's worst defensive record (17 goals conceded) while struggling to generate away offense.
+* **Bookmaker Odds:** Major bookmakers price the draw at ~4.20 (~21–23% implied probability with overround removed), giving a decisive outcome (home or away victory) a >76% likelihood of occurring.
+* **Selection:** `No` represents the outcome overwhelmingly most likely to pay off.
