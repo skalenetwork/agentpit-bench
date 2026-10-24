@@ -1,0 +1,617 @@
+$ codex exec <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+27000 | Will Beşiktaş JK win on 2026-10-22? | Yes 0.465, No 0.535 | 2026-10-22T19:00:00Z
+26788 | Lightning vs. Golden Knights | Lightning 0.485, Golden Knights 0.515 | 2026-10-21T02:30:00Z
+26997 | Ethereum Up or Down - October 20, 2AM ET | Up 0.395, Down 0.605 | 2026-10-20T07:00:00Z
+27024 | Will Trump say "America First" or "Gulf of America" during his Midterm Rally in North Carolina? | Yes 0.440, No 0.560 | 2026-10-20T23:05:00Z
+26934 | Counter-Strike: QUINTESSÊNCIA vs Los Niños - Map 1 Winner | QUINTESSÊNCIA 0.620, Los Niños 0.380 | 2026-10-21T01:00:00Z
+26909 | S&P 500 (SPY) closes above $765 on October 20? | Yes 0.690, No 0.310 | 2026-10-20T20:00:00Z
+26992 | Will Club León FC win on 2026-10-20? | Yes 0.245, No 0.755 | 2026-10-21T03:00:00Z
+26748 | Avalanche vs. Devils | Avalanche 0.505, Devils 0.495 | 2026-10-20T23:00:00Z
+26977 | Bitcoin Up or Down - October 20, 2AM ET | Up 0.565, Down 0.435 | 2026-10-20T07:00:00Z
+27023 | Will Trump say "Hormuz" or "Blockade" during his Midterm Rally in North Carolina? | Yes 0.480, No 0.520 | 2026-10-20T23:05:00Z
+26932 | Counter-Strike: Damajuana vs your end - Map 2 Winner | Damajuana 0.370, your end 0.630 | 2026-10-20T22:00:00Z
+26901 | S&P 500 (SPY) closes above $770 on October 20? | Yes 0.255, No 0.745 | 2026-10-20T20:00:00Z
+26985 | Rocket Lab (RKLB) Up or Down on October 20? | Up 0.400, Down 0.600 | 2026-10-20T20:00:00Z
+26621 | Will Real Racing Club vs. RCD Espanyol de Barcelona end in a draw? | Yes 0.265, No 0.735 | 2026-10-24T14:15:00Z
+26804 | Will Bitcoin dip to $81,000 on October 20? | Yes 0.530, No 0.470 | 2026-10-21T04:00:00Z
+27021 | Will Trump say "Two Percent" or "2%" during his Midterm Rally in North Carolina? | Yes 0.625, No 0.375 | 2026-10-20T23:05:00Z
+26900 | Counter-Strike: GenOne vs Bushido Wildcats (BO3) - NODWIN Clutch Series Group Stage | GenOne 0.685, Bushido Wildcats 0.315 | 2026-10-20T14:00:00Z
+26593 | Will S&P 500 (SPY) hit (LOW) $765 Week of October 19 2026? | Yes 0.805, No 0.195 | 2026-10-23T20:00:00Z
+26979 | Will Feyenoord Rotterdam win on 2026-10-21? | Yes 0.185, No 0.815 | 2026-10-21T19:00:00Z
+26599 | Wild vs. Oilers | Wild 0.435, Oilers 0.565 | 2026-10-21T01:00:00Z
+26802 | Will Bitcoin reach $83,000 on October 20? | Yes 0.300, No 0.700 | 2026-10-21T04:00:00Z
+27020 | Will Trump say "AI" or "Artificial Intelligence" during his Midterm Rally in North Carolina? | Yes 0.275, No 0.725 | 2026-10-20T23:05:00Z
+26741 | Dota 2: Power Rangers vs HULIGANI (BO3) - EPL Masters Group A | Power Rangers 0.355, HULIGANI 0.645 | 2026-10-20T15:00:00Z
+24245 | Will S&P 500 (SPY) hit (HIGH) $775 Week of October 19 2026? | Yes 0.435, No 0.565 | 2026-10-23T20:00:00Z
+26953 | Will Olympiakós SFP win on 2026-10-22? | Yes 0.645, No 0.355 | 2026-10-22T19:00:00Z
+26541 | Will Cúcuta Deportivo FC vs. Atlético Nacional end in a draw? | Yes 0.235, No 0.765 | 2026-10-20T23:30:00Z
+26793 | Solana Up or Down on October 20? | Up 0.565, Down 0.435 | 2026-10-20T16:00:00Z
+27019 | Will Trump say "Transgender" 7+ times during his Midterm Rally in North Carolina? | Yes 0.505, No 0.495 | 2026-10-20T23:05:00Z
+26655 | Counter-Strike: Damajuana vs your end (BO3) - CCT South America Series 7 Group Stage | Damajuana 0.390, your end 0.610 | 2026-10-20T22:00:00Z
+24231 | Will S&P 500 (SPY) hit (HIGH) $780 Week of October 19 2026? | Yes 0.195, No 0.805 | 2026-10-23T20:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+WARNING: proceeding, even though we could not create PATH aliases: Refusing to create helper binaries under temporary dir "/tmp" (codex_home: AbsolutePathBuf("/tmp/apbh-codex-4rytsnmf/.codex"))
+Reading additional input from stdin...
+OpenAI Codex v0.161.0
+--------
+workdir: /tmp/apb-sweep-codex-juonhwid
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: max
+reasoning summaries: none
+session id: 01a157fd-e2a7-7de3-9c2c-b853a9bdbcbe
+--------
+user
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+27000 | Will Beşiktaş JK win on 2026-10-22? | Yes 0.465, No 0.535 | 2026-10-22T19:00:00Z
+26788 | Lightning vs. Golden Knights | Lightning 0.485, Golden Knights 0.515 | 2026-10-21T02:30:00Z
+26997 | Ethereum Up or Down - October 20, 2AM ET | Up 0.395, Down 0.605 | 2026-10-20T07:00:00Z
+27024 | Will Trump say "America First" or "Gulf of America" during his Midterm Rally in North Carolina? | Yes 0.440, No 0.560 | 2026-10-20T23:05:00Z
+26934 | Counter-Strike: QUINTESSÊNCIA vs Los Niños - Map 1 Winner | QUINTESSÊNCIA 0.620, Los Niños 0.380 | 2026-10-21T01:00:00Z
+26909 | S&P 500 (SPY) closes above $765 on October 20? | Yes 0.690, No 0.310 | 2026-10-20T20:00:00Z
+26992 | Will Club León FC win on 2026-10-20? | Yes 0.245, No 0.755 | 2026-10-21T03:00:00Z
+26748 | Avalanche vs. Devils | Avalanche 0.505, Devils 0.495 | 2026-10-20T23:00:00Z
+26977 | Bitcoin Up or Down - October 20, 2AM ET | Up 0.565, Down 0.435 | 2026-10-20T07:00:00Z
+27023 | Will Trump say "Hormuz" or "Blockade" during his Midterm Rally in North Carolina? | Yes 0.480, No 0.520 | 2026-10-20T23:05:00Z
+26932 | Counter-Strike: Damajuana vs your end - Map 2 Winner | Damajuana 0.370, your end 0.630 | 2026-10-20T22:00:00Z
+26901 | S&P 500 (SPY) closes above $770 on October 20? | Yes 0.255, No 0.745 | 2026-10-20T20:00:00Z
+26985 | Rocket Lab (RKLB) Up or Down on October 20? | Up 0.400, Down 0.600 | 2026-10-20T20:00:00Z
+26621 | Will Real Racing Club vs. RCD Espanyol de Barcelona end in a draw? | Yes 0.265, No 0.735 | 2026-10-24T14:15:00Z
+26804 | Will Bitcoin dip to $81,000 on October 20? | Yes 0.530, No 0.470 | 2026-10-21T04:00:00Z
+27021 | Will Trump say "Two Percent" or "2%" during his Midterm Rally in North Carolina? | Yes 0.625, No 0.375 | 2026-10-20T23:05:00Z
+26900 | Counter-Strike: GenOne vs Bushido Wildcats (BO3) - NODWIN Clutch Series Group Stage | GenOne 0.685, Bushido Wildcats 0.315 | 2026-10-20T14:00:00Z
+26593 | Will S&P 500 (SPY) hit (LOW) $765 Week of October 19 2026? | Yes 0.805, No 0.195 | 2026-10-23T20:00:00Z
+26979 | Will Feyenoord Rotterdam win on 2026-10-21? | Yes 0.185, No 0.815 | 2026-10-21T19:00:00Z
+26599 | Wild vs. Oilers | Wild 0.435, Oilers 0.565 | 2026-10-21T01:00:00Z
+26802 | Will Bitcoin reach $83,000 on October 20? | Yes 0.300, No 0.700 | 2026-10-21T04:00:00Z
+27020 | Will Trump say "AI" or "Artificial Intelligence" during his Midterm Rally in North Carolina? | Yes 0.275, No 0.725 | 2026-10-20T23:05:00Z
+26741 | Dota 2: Power Rangers vs HULIGANI (BO3) - EPL Masters Group A | Power Rangers 0.355, HULIGANI 0.645 | 2026-10-20T15:00:00Z
+24245 | Will S&P 500 (SPY) hit (HIGH) $775 Week of October 19 2026? | Yes 0.435, No 0.565 | 2026-10-23T20:00:00Z
+26953 | Will Olympiakós SFP win on 2026-10-22? | Yes 0.645, No 0.355 | 2026-10-22T19:00:00Z
+26541 | Will Cúcuta Deportivo FC vs. Atlético Nacional end in a draw? | Yes 0.235, No 0.765 | 2026-10-20T23:30:00Z
+26793 | Solana Up or Down on October 20? | Up 0.565, Down 0.435 | 2026-10-20T16:00:00Z
+27019 | Will Trump say "Transgender" 7+ times during his Midterm Rally in North Carolina? | Yes 0.505, No 0.495 | 2026-10-20T23:05:00Z
+26655 | Counter-Strike: Damajuana vs your end (BO3) - CCT South America Series 7 Group Stage | Damajuana 0.390, your end 0.610 | 2026-10-20T22:00:00Z
+24231 | Will S&P 500 (SPY) hit (HIGH) $780 Week of October 19 2026? | Yes 0.195, No 0.805 | 2026-10-23T20:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+codex
+I’ll check for timely evidence, use the supplied prices as a baseline, and return probabilities for all 30 markets within the time limit.
+
+2026-10-20T06:27:05.702547Z ERROR codex_core::tools::router: error=unsupported call: tool_searchtool_search_tool
+web search: 
+web search: October 20 2026 SPY Bitcoin Trump North Carolina rally ...
+web search: 
+web search: SPY October 19 2026 close 767 October 20 premarket ...
+web search: 
+web search: "Ethereum Up or Down - October 20, 2AM ET" 2026 ...
+web search: 
+web search: "QUINTESSÊNCIA" "Los Niños" "2026" ...
+web search: 
+web search: site:polymarket.com/event/ "ethereum-up-or-down-october-20" ...
+web search: 
+web search: 
+web search: 
+web search: 
+web search: "GenOne" "Bushido Wildcats" "October 20" 2026 odds
+web search: "Damajuana" "your end" "20.10.2026" odds
+web search: S&P 500 futures October 20 2026 02:00 ET
+web search: Trump October 2026 rally transcript Arizona Montana "transgender"
+codex
+I’m checking dates carefully: some crypto search results are for last year. The [SPY price history](https://chartexchange.com/symbol/nyse-spy/historical/) puts Monday’s low at $765.84, so it does not show the weekly $765 threshold being hit yet.
+
+web search: 
+web search: 
+web search: 
+web search: 
+web search: Trump October 2026 Arizona Montana rally transcript
+web search: Olympiacos Sparta Prague October 22 2026 odds
+web search: Damajuana your end October 20 2026 betting odds
+web search: Besiktas Crystal Palace October 22 2026 odds
+web search: 
+web search: 
+web search: 
+web search: "Rocket Lab" "October 19, 2026" stock ...
+web search: https://rollcall.com/factbase/trump/transcript/donald-trump-speech-midterm-political-rally-bullhead-city-arizona-october-14-2026/
+web search: https://www.oddschecker.com/us/soccer/uefa-europa-league/besiktas-v-crystal-palace
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests, concurrent.futures, re
+from bs4 import BeautifulSoup
+urls={
+'az':'https://rollcall.com/factbase/trump/transcript/donald-trump-speech-midterm-political-rally-bullhead-city-arizona-october-14-2026/',
+'mt':'https://rollcall.com/factbase/trump/transcript/donald-trump-speech-midterm-political-rally-kalispell-montana-october-14-2026/',
+'btc':'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=8',
+'eth':'https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=1h&limit=8'
+}
+def fetch(item):
+ k,u=item
+ try:
+  r=requests.get(u, timeout=20)
+  if k in ['btc','eth']: return k,r.status_code,r.text[:5000]
+  s=BeautifulSoup(r.text,'html.parser')
+  for x in s(['script','style']): x.decompose()
+  t=s.get_text(' ',strip=True)
+  open('/tmp/forecast_'+k+'.txt','w').write(t)
+  pats=['America First','Gulf of America','Hormuz','Blockade','two percent','2%','artificial intelligence',r'\\bAI\\b','transgender']
+  matches={p:len(re.findall(p,t,re.I)) for p in pats}
+  snippets={p:[t[max(0,m.start()-60):m.end()+80] for m in re.finditer(p,t,re.I)][:12] for p in pats}
+  return k,r.status_code,len(t),matches,snippets
+ except Exception as e: return k,str(e)
+for result in concurrent.futures.ThreadPoolExecutor().map(fetch,urls.items()): print(result)
+PY" in /tmp/apb-sweep-codex-juonhwid
+ exited 1 in 0ms:
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+ModuleNotFoundError: No module named 'bs4'
+
+web search: 'Moneyline'
+web search: 
+web search: 
+web search: 
+web search: 
+web search: Lightning Golden Knights October 20 2026 moneyline odds
+web search: Wild Oilers October 20 2026 moneyline odds
+web search: Real Betis Feyenoord October 21 2026 odds
+web search: Avalanche Devils October 20 2026 moneyline odds
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests, concurrent.futures, re, html
+urls={
+'az':'https://rollcall.com/factbase/trump/transcript/donald-trump-speech-midterm-political-rally-bullhead-city-arizona-october-14-2026/',
+'mt':'https://rollcall.com/factbase/trump/transcript/donald-trump-speech-midterm-political-rally-kalispell-montana-october-14-2026/',
+'btc':'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=8',
+'eth':'https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=1h&limit=8'
+}
+def fetch(item):
+ k,u=item
+ try:
+  r=requests.get(u, timeout=20)
+  if k in ['btc','eth']: return k,r.status_code,r.text[:5000]
+  t=re.sub('<script.*?</script>|<style.*?</style>','',r.text,flags=re.S)
+  t=html.unescape(re.sub('<["'^>]+>'"',' ',t))
+  t=re.sub(r'\\s+',' ',t)
+  open('/tmp/forecast_'+k+'.txt','w').write(t)
+  pats=['America First','Gulf of America','Hormuz','Blockade','two percent','2%','artificial intelligence',r'\\bAI\\b','transgender']
+  matches={p:len(re.findall(p,t,re.I)) for p in pats}
+  snippets={p:[t[max(0,m.start()-60):m.end()+80] for m in re.finditer(p,t,re.I)][:15] for p in pats}
+  return k,r.status_code,len(t),matches,snippets
+ except Exception as e: return k,str(e)
+for result in concurrent.futures.ThreadPoolExecutor().map(fetch,urls.items()): print(result)
+PY" in /tmp/apb-sweep-codex-juonhwid
+ succeeded in 958ms:
+('az', 200, 268374, {'America First': 0, 'Gulf of America': 3, 'Hormuz': 0, 'Blockade': 1, 'two percent': 4, '2%': 1, 'artificial intelligence': 4, '\\bAI\\b': 1, 'transgender': 6}, {'America First': [], 'Gulf of America': [" boats, it comes in through the oceans and the seas and the Gulf of America. I love the Gulf of America. That's another little thing we did. I did that as ", "the oceans and the seas and the Gulf of America. I love the Gulf of America. That's another little thing we did. I did that as a little fly by. It always -", 'up Google Maps, very powerful, and they changed the name to Gulf of America. And -- and by the way, you should see the -- well, I did Lake Ontario to the L'], 'Hormuz': [], 'Blockade': [') --> Can you believe -- because our Navy -- And we did the blockade, and we did -- I call it the wall of steel. Our Navy is the greatest and our mi'], 'two percent': ["her guy, they cut off his wrist, animals. They're all gone. Two percent -- my favorite statistic because you can handle it. Two percent of the people c", 'percent -- my favorite statistic because you can handle it. Two percent of the people create 91 percent of the crime. We can handle two percent, and we', 'of the people create 91 percent of the crime. We can handle two percent, and we did. We got them the hell out of here. If it was 40 percent, 25 percent', "cent, 25 percent, 60 percent, you can't. But you can handle two percent real easy. Sentiment Readability Flesch-Kincaid Grade 2.6 Flesch-Kincaid Ease 9"], '2%': ['yd Mayweather talked 78 seconds of a total of 5970 seconds. 2% Andy Biggs Andy Biggs said 13 sentences of a total of 1520 sentences. 1% Andy B'], 'artificial intelligence': [" sort of the same thing. But that's why it didn't work with artificial intelligence -- it was always a terrible name. Sentiment Topics Topic: Science and Technolog", 'des/mediatopic/20001298 Wikidata_id: Q11660 Wikidata_label: artificial intelligence Source: IPTC Media Topic: Science and Technology Score: 0.737 Code: 13000000 Ur', "eading China. We're leading everybody with what they called artificial intelligence. But I said, it's not artificial, it's -- it's really super. It's superintellig", 'des/mediatopic/20001298 Wikidata_id: Q11660 Wikidata_label: artificial intelligence Source: IPTC Media Topic: Science and Technology > Technology and Engineering S'], '\\bAI\\b': ['y in Bullhead City, Arizona - October 14, 2026 Generated by AI Summary text goes here.Summary text goes here.Summary text goes here.Summary te'], 'transgender': ["stuff. They want to open your border. They want to have the transgender mutilization of your children. They want to have men play in women's sports. I ", "g borders. They like to see good education. They don't want transgender mutilization of your children, if that's ok. They don't want men playing in wom", '9 (39 sec) Weak (1.301) --> We got critical race theory and transgender insanity the hell out of our schools and military. And we banned men from playi', "est energy cost in American history. They voted in favor of transgender mutilation of your children, and in favor of men playing in women's sports. You", 'your property taxes, drive down the cost of energy, and end transgender insanity and crush violent crime. And, Andy, I watch you speak, and I want you ', 'ill enshrine in permanent law no men in women sports and no transgender mutilization of your children. So, ladies and gentlemen of Arizona, the golden ']})
+('mt', 200, 186466, {'America First': 0, 'Gulf of America': 0, 'Hormuz': 0, 'Blockade': 0, 'two percent': 0, '2%': 5, 'artificial intelligence': 1, '\\bAI\\b': 1, 'transgender': 5}, {'America First': [], 'Gulf of America': [], 'Hormuz': [], 'Blockade': [], 'two percent': [], '2%': ['me Kurt Alme said 13 sentences of a total of 983 sentences. 2% Kurt Alme said 160 words of a total of 11360 words. 2% Kurt Alme talked 95 seco', 'ces. 2% Kurt Alme said 160 words of a total of 11360 words. 2% Kurt Alme talked 95 seconds of a total of 4441 seconds. 3% Aaron Flint Aaron Fl', ' Aaron Flint said 13 sentences of a total of 983 sentences. 2% Aaron Flint said 149 words of a total of 11360 words. 2% Aaron Flint talked 69 ', 's. 2% Aaron Flint said 149 words of a total of 11360 words. 2% Aaron Flint talked 69 seconds of a total of 4441 seconds. 2% Table Of Contents ', '% Aaron Flint talked 69 seconds of a total of 4441 seconds. 2% Table Of Contents foo --> Full Transcript Stress Score Strong Weak Moderate -->'], 'artificial intelligence': ['des/mediatopic/20001298 Wikidata_id: Q11660 Wikidata_label: artificial intelligence Source: IPTC Media Readability Flesch-Kincaid Grade 5.1 Flesch-Kincaid Ease 76.'], '\\bAI\\b': ['Rally in Kalispell, Montana - October 14, 2026 Generated by AI Summary text goes here.Summary text goes here.Summary text goes here.Summary te'], 'transgender': ['out the federal government. We got critical race theory and transgender insanity out of our schools and out of the military. We made English the offici', "st energy costs in American history. They voted in favor of transgender mutilization of your children. They voted in favor of men in women's sports. So", 'thank you. Thank you. Forstag has personally fought for the transgender mutilization of Montana children, drag shows in Montana. Does anybody like the ', ' will not have men in women\'s sports, we will not allow the transgender mutilation of your children.\'" You know what that means? Sentiment Readability ', "e're down to the final 10%, no men in women's sports and no transgender mutilization of your children. So, ladies and gentlemen of Montana, the golden "]})
+('btc', 200, '[[1792450800000,"82055.36000000","82111.04000000","81936.92000000","81938.40000000","314.49269000",1792454399999,"25799050.81667560",48961,"167.63385000","13753924.37105350","0"],[1792454400000,"81938.39000000","82027.05000000","81459.54000000","81736.93000000","729.43175000",1792457999999,"59592224.18336750",163731,"330.33924000","26981647.75597030","0"],[1792458000000,"81736.94000000","81847.52000000","81200.00000000","81798.15000000","582.87331000",1792461599999,"47524223.48188770",170544,"287.67442000","23461495.64877680","0"],[1792461600000,"81798.15000000","81948.70000000","81542.16000000","81792.65000000","346.27430000",1792465199999,"28289959.24552720",124803,"184.20141000","15050379.48718020","0"],[1792465200000,"81792.65000000","82138.43000000","81778.42000000","82138.42000000","442.13177000",1792468799999,"36249159.74633890",111017,"248.21237000","20348167.24444570","0"],[1792468800000,"82138.43000000","82272.06000000","82050.94000000","82092.06000000","422.69435000",1792472399999,"34714349.09000160",93768,"204.37814000","16785127.62150130","0"],[1792472400000,"82092.07000000","82107.38000000","81717.68000000","81724.00000000","422.13568000",1792475999999,"34597907.83861770",89336,"197.57085000","16195794.01450450","0"],[1792476000000,"81724.01000000","81784.01000000","81620.35000000","81755.74000000","216.67286000",1792479599999,"17700814.69202190",57398,"89.17808000","7285454.28580300","0"]]')
+('eth', 200, '[[1792450800000,"2407.09000000","2411.96000000","2404.77000000","2408.01000000","3224.43280000",1792454399999,"7764868.86593600",53820,"1344.49650000","3237888.44863000","0"],[1792454400000,"2408.00000000","2409.92000000","2392.30000000","2401.95000000","5662.62810000",1792457999999,"13584917.86182100",144355,"2772.66550000","6650727.00855100","0"],[1792458000000,"2401.94000000","2402.13000000","2372.62000000","2399.25000000","10563.17700000",1792461599999,"25205845.79888500",213388,"5160.91680000","12319353.85331000","0"],[1792461600000,"2399.25000000","2407.03000000","2388.76000000","2400.92000000","5069.71050000",1792465199999,"12157395.86188300",129460,"2884.95590000","6918815.37870300","0"],[1792465200000,"2400.96000000","2415.50000000","2400.18000000","2415.01000000","5241.97980000",1792468799999,"12627596.31463900",106988,"2851.90760000","6869278.99739400","0"],[1792468800000,"2415.01000000","2417.66000000","2410.00000000","2412.65000000","3503.16230000",1792472399999,"8454081.24681600",81616,"1442.86970000","3482626.01915500","0"],[1792472400000,"2412.65000000","2413.78000000","2396.83000000","2396.84000000","3557.04400000",1792475999999,"8553882.94698700",99360,"1649.75540000","3967936.07848500","0"],[1792476000000,"2396.83000000","2398.06000000","2391.46000000","2396.40000000","2626.05160000",1792479599999,"6288543.63689300",68119,"1182.58800000","2832181.85666800","0"]]')
+
+web search: "Leon" "20 October 2026" odds ...
+web search: 
+web search: 
+web search: 
+web search: 
+web search: "Club Leon" "October 20, 2026"
+web search: "Power Rangers" "HULIGANI" "20 October 2026" odds
+web search: "GenOne" "Bushido Wildcats" odds "20/10/2026"
+web search: "QUINTESSÊNCIA" "Los Niños" "October 20" odds
+codex
+The sports odds I’ve found are mostly close to the supplied prices, so I’m keeping those adjustments modest. I’m also checking recent rally transcripts for phrase frequencies; the [Arizona speech](https://rollcall.com/factbase/trump/transcript/donald-trump-speech-midterm-political-rally-bullhead-city-arizona-october-14-2026/) and [Montana speech](https://rollcall.com/factbase/trump/transcript/donald-trump-speech-midterm-political-rally-kalispell-montana-october-14-2026/) differ substantially.
+
+web search: 
+web search: 
+web search: 
+web search: 
+web search: "Tigres" "Leon" "October 20" "2026" odds
+web search: "Real Betis" "Feyenoord" "2026" "21" "Match result"
+web search: "QUINTESSENCIA" "Los Ninos" "2026" "odds" "20"
+web search: site:rollcall.com/factbase/trump/transcript/ "Midterm Political Rally" "October" "2026"
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,re
+u='https://rollcall.com/factbase/trump/transcript/donald-trump-speech-midterm-political-rally-bullhead-city-arizona-october-14-2026/'
+t=requests.get(u,timeout=20).text
+open('/tmp/forecast_az.html','w').write(t)
+for pat in ['We got critical','Full Transcript','transgender']:
+ m=re.search(pat,t)
+ print(pat, t[m.start()-350:m.start()+600] if m else 'Not found')
+PY" in /tmp/apb-sweep-codex-juonhwid
+ succeeded in 862ms:
+We got critical             <i class="fa-solid fa-circle-plus text-[#2F3C4B] cursor-pointer fa-xl" x-show="! openDetails"></i>
+                                            </a> 
+                                        </div>-->
+                                    </div>
+                                    <div class=" flex-auto text-md text-gray-600 leading-loose">We got critical race theory and transgender insanity the hell out of our schools and military. And we banned men from playing in women's sports, if that's OK. And we won in the Supreme Court, the right for merit. This is such a big decision. You know, you'd have people applying from college, one of them had a C average and bad boards and a lot of bad stuff, and he'd get in. Another one had A, 1,600 on his boards and was perfect, and they had no chance of getting into the best colleges.</div>
+                                </div>
+                                
+                            </d
+Full Transcript :text-[#015582] cursor-pointer">
+                            foo
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            -->
+
+            <div class="w-full">
+                <div class="w-full border-b py-2 px-6 flex items-center">
+                    <div class="font-medium font-graphik flex-1">Full Transcript</div>
+
+                    <!-- <div class="border p-3 gap-2 items-center justify-center hidden sm:flex">
+                        <div class="uppercase font-graphik text-xs text-gray-700 ">Stress Score <i class="fa-solid fa-circle-info"></i></div>
+                        <div class="text-sm flex gap-1 flex items-center">
+                            <div class="bg-green-500 w-3 h-3 rounded-full"></div>
+                            <div class="font-graphik text-xs text-gray-700">Strong</div>
+                        </div>
+                        <div class="text-sm flex gap-1 flex
+transgender how="! openDetails"></i>
+                                            </a> 
+                                        </div>-->
+                                    </div>
+                                    <div class=" flex-auto text-md text-gray-600 leading-loose">They want to end all that stuff. They want to open your border. They want to have the transgender mutilization of your children. They want to have men play in women's sports. I mean, they can -- if they win, they can reinstitute the stuff. We have to be here a long time. We want to make it -- we want to make it so it never happens again, they can never destroy -- they destroyed our country.</div>
+                                </div>
+                                
+                            </div>
+                         
+                            <div class="" x-show="openDetails">
+                        
+                                <div class="">
+                 
+
+web search: site:rollcall.com/factbase/trump/transcript/ "rally" "October 13, 2026" ...
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,re,html,concurrent.futures,json
+slugs={
+'az14':'donald-trump-speech-midterm-political-rally-bullhead-city-arizona-october-14-2026',
+'mt14':'donald-trump-speech-midterm-political-rally-kalispell-montana-october-14-2026',
+'oh12':'donald-trump-speech-midterm-political-rally-youngstown-ohio-october-12-2026',
+'oh3':'donald-trump-speech-midterm-political-rally-vandalia-ohio-october-3-2026',
+'tx7':'donald-trump-speech-midterm-political-rally-san-antonio-texas-october-7-2026',
+'ne5':'donald-trump-speech-midterm-political-rally-grand-island-nebraska-october-5-2026',
+'ak13':'donald-trump-speech-midterm-political-rally-wasilla-alaska-october-13-2026',
+'nc16':'donald-trump-speech-political-address-gastonia-north-carolina-september-16-2026'
+}
+patterns=['America First','Gulf of America','Hormuz','Blockade','two percent',r'(?<"'!['"\\d.])2\\s?%',r'\\bA\\.?I\\.?\\b','artificial intelligence','transgender']
+def fetch(kv):
+ k,slug=kv
+ r=requests.get('https://rollcall.com/factbase/trump/transcript/'+slug+'/',timeout=20)
+ raw=re.sub(r'<"'!--.*?-->'"','',r.text,flags=re.S)
+ blocks=re.findall(r'<div class=\"["'^"]*flex-auto text-md text-gray-600 leading-loose[''^"]*">(.*?)</div>'"',raw,re.S)
+ t=' '.join(html.unescape(re.sub('<["'^>]*>'"',' ',x)) for x in blocks)
+ open('/tmp/rally_'+k+'.txt','w').write(t)
+ return {'key':k,'status':r.status_code,'words':len(t.split()),'counts':{p:len(re.findall(p,t,re.I)) for p in patterns},'transgender_contexts':[t[max(0,m.start()-100):m.end()+120] for m in re.finditer('transgender',t,re.I)] if k=='nc16' else []}
+for row in concurrent.futures.ThreadPoolExecutor(max_workers=8).map(fetch,slugs.items()):print(json.dumps(row))
+PY" in /tmp/apb-sweep-codex-juonhwid
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,json,concurrent.futures
+symbols=['SPY','RKLB','ES=F','"'^VIX'"']
+def f(s):
+ u='https://query1.finance.yahoo.com/v8/finance/chart/'+s
+ try:
+  r=requests.get(u,params={'range':'1mo','interval':'1d','includePrePost':'true'},headers={'User-Agent':'Mozilla/5.0'},timeout=20)
+  j=r.json()['chart']['result'][0]
+  return s,j['meta'],list(zip(j['timestamp'],j['indicators']['quote'][0]['close']))[-15:]
+ except Exception as e:return s,r.status_code,str(e),r.text[:150]
+for x in concurrent.futures.ThreadPoolExecutor().map(f,symbols): print(json.dumps(x))
+PY" in /tmp/apb-sweep-codex-juonhwid
+ succeeded in 238ms:
+["SPY", {"currency": "USD", "symbol": "SPY", "exchangeName": "PCX", "fullExchangeName": "NYSEArca", "instrumentType": "ETF", "firstTradeDate": 728317800, "regularMarketTime": 1792440000, "hasPrePostMarketData": true, "gmtoffset": -14400, "timezone": "EDT", "exchangeTimezoneName": "America/New_York", "regularMarketPrice": 766.48, "regularMarketChangePercent": 0.423, "fulldayPrice": 767.38, "fulldayChange": 4.13, "fulldayChangePercent": 0.541, "fiftyTwoWeekHigh": 781.62, "fiftyTwoWeekLow": 629.28, "regularMarketDayHigh": 770.46, "regularMarketDayLow": 765.824, "regularMarketVolume": 38390884, "longName": "State Street SPDR S&P 500 ETF Trust", "shortName": "State Street SPDR S&P 500 ETF T", "chartPreviousClose": 761.69, "priceHint": 2, "currentTradingPeriod": {"pre": {"timezone": "EDT", "start": 1792483200, "end": 1792503000, "gmtoffset": -14400}, "regular": {"timezone": "EDT", "start": 1792503000, "end": 1792526400, "gmtoffset": -14400}, "post": {"timezone": "EDT", "start": 1792526400, "end": 1792540800, "gmtoffset": -14400}}, "dataGranularity": "1d", "range": "1mo", "validRanges": ["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"]}, [[1790688600, 764.2000122070312], [1790775000, 762.6300048828125], [1790861400, 763.989990234375], [1790947800, 769.6400146484375], [1791207000, 774.8300170898438], [1791293400, 779.0900268554688], [1791379800, 777.219970703125], [1791466200, 773.9299926757812], [1791552600, 778.5700073242188], [1791811800, 778.0999755859375], [1791898200, 778.010009765625], [1791984600, 769.5999755859375], [1792071000, 771.7899780273438], [1792157400, 763.25], [1792416600, 766.47998046875]]]
+["RKLB", {"currency": "USD", "symbol": "RKLB", "exchangeName": "NMS", "fullExchangeName": "NasdaqGS", "instrumentType": "EQUITY", "firstTradeDate": 1606228200, "regularMarketTime": 1792440001, "hasPrePostMarketData": true, "gmtoffset": -14400, "timezone": "EDT", "exchangeTimezoneName": "America/New_York", "regularMarketPrice": 51.36, "regularMarketChangePercent": 1.023, "fulldayPrice": 51.0, "fulldayChange": 0.16, "fulldayChangePercent": 0.315, "fiftyTwoWeekHigh": 151.0, "fiftyTwoWeekLow": 37.57, "regularMarketDayHigh": 52.99, "regularMarketDayLow": 51.31, "regularMarketVolume": 16968066, "longName": "Rocket Lab Corporation", "shortName": "Rocket Lab Corporation", "chartPreviousClose": 64.57, "priceHint": 2, "currentTradingPeriod": {"pre": {"timezone": "EDT", "end": 1792503000, "start": 1792483200, "gmtoffset": -14400}, "regular": {"timezone": "EDT", "end": 1792526400, "start": 1792503000, "gmtoffset": -14400}, "post": {"timezone": "EDT", "end": 1792540800, "start": 1792526400, "gmtoffset": -14400}}, "dataGranularity": "1d", "range": "1mo", "validRanges": ["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"]}, [[1790688600, 69.69999694824219], [1790775000, 69.68000030517578], [1790861400, 70.45999908447266], [1790947800, 73.91999816894531], [1791207000, 73.0199966430664], [1791293400, 75.05999755859375], [1791379800, 71.91999816894531], [1791466200, 68.4000015258789], [1791552600, 68.20999908447266], [1791811800, 65.70999908447266], [1791898200, 64.22000122070312], [1791984600, 59.18000030517578], [1792071000, 55.25], [1792157400, 50.84000015258789], [1792416600, 51.36000061035156]]]
+["ES=F", {"currency": "USD", "symbol": "ES=F", "exchangeName": "CME", "fullExchangeName": "CME", "instrumentType": "FUTURE", "firstTradeDate": 969249600, "regularMarketTime": 1792477252, "hasPrePostMarketData": false, "gmtoffset": -14400, "timezone": "EDT", "exchangeTimezoneName": "America/New_York", "regularMarketPrice": 7740.75, "regularMarketChangePercent": 0.081, "fulldayPrice": 7740.75, "fulldayChange": 6.25, "fulldayChangePercent": 0.081, "fiftyTwoWeekHigh": 7897.5, "fiftyTwoWeekLow": 6353.25, "regularMarketDayHigh": 7752.75, "regularMarketDayLow": 7724.0, "regularMarketVolume": 92987, "shortName": "E-Mini S&P 500 Dec 26", "chartPreviousClose": 7833.5, "priceHint": 2, "currentTradingPeriod": {"pre": {"timezone": "EDT", "end": 1792468800, "start": 1792468800, "gmtoffset": -14400}, "regular": {"timezone": "EDT", "end": 1792555140, "start": 1792468800, "gmtoffset": -14400}, "post": {"timezone": "EDT", "end": 1792555140, "start": 1792555140, "gmtoffset": -14400}}, "dataGranularity": "1d", "range": "1mo", "validRanges": ["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"]}, [[1790740800, 7715.5], [1790827200, 7724.0], [1790913600, 7777.25], [1791172800, 7826.25], [1791259200, 7874.0], [1791345600, 7852.75], [1791432000, 7816.25], [1791518400, 7859.75], [1791777600, 7858.0], [1791864000, 7855.75], [1791950400, 7770.25], [1792036800, 7791.0], [1792123200, 7704.25], [1792382400, 7734.5], [1792468800, 7740.75]]]
+["^VIX", {"currency": "USD", "symbol": "^VIX", "exchangeName": "CXI", "fullExchangeName": "Cboe Indices", "instrumentType": "INDEX", "firstTradeDate": 631267200, "regularMarketTime": 1792440901, "hasPrePostMarketData": false, "gmtoffset": -18000, "timezone": "CDT", "exchangeTimezoneName": "America/Chicago", "regularMarketPrice": 18.44, "regularMarketChangePercent": -7.754, "fulldayPrice": 18.44, "fulldayChange": -1.55, "fulldayChangePercent": -7.754, "fiftyTwoWeekHigh": 35.3, "fiftyTwoWeekLow": 0.0, "regularMarketDayHigh": 0.0, "regularMarketDayLow": 0.0, "regularMarketVolume": 0, "longName": "CBOE Volatility Index", "shortName": "CBOE Volatility Index", "chartPreviousClose": 14.81, "priceHint": 2, "currentTradingPeriod": {"pre": {"timezone": "CDT", "start": 1792479600, "end": 1792479600, "gmtoffset": -18000}, "regular": {"timezone": "CDT", "start": 1792479600, "end": 1792527300, "gmtoffset": -18000}, "post": {"timezone": "CDT", "start": 1792527300, "end": 1792527300, "gmtoffset": -18000}}, "dataGranularity": "1d", "range": "1mo", "validRanges": ["1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"]}, [[1790665200, 16.040000915527344], [1790751600, 16.34000015258789], [1790838000, 16.389999389648438], [1790924400, 15.3100004196167], [1791183600, 15.520000457763672], [1791270000, 15.010000228881836], [1791356400, 15.079999923706055], [1791442800, 15.40999984741211], [1791529200, 14.84000015258789], [1791788400, 15.210000038146973], [1791874800, 15.270000457763672], [1791961200, 16.8700008392334], [1792047600, 16.459999084472656], [1792134000, 19.989999771118164], [1792393200, 18.440000534057617]]]
+
+ succeeded in 1493ms:
+{"key": "az14", "status": 200, "words": 16734, "counts": {"America First": 0, "Gulf of America": 3, "Hormuz": 0, "Blockade": 1, "two percent": 4, "(?<![\\d.])2\\s?%": 0, "\\bA\\.?I\\.?\\b": 0, "artificial intelligence": 2, "transgender": 6}, "transgender_contexts": []}
+{"key": "mt14", "status": 200, "words": 11496, "counts": {"America First": 0, "Gulf of America": 0, "Hormuz": 0, "Blockade": 0, "two percent": 0, "(?<![\\d.])2\\s?%": 0, "\\bA\\.?I\\.?\\b": 0, "artificial intelligence": 0, "transgender": 5}, "transgender_contexts": []}
+{"key": "oh12", "status": 200, "words": 12060, "counts": {"America First": 1, "Gulf of America": 0, "Hormuz": 0, "Blockade": 0, "two percent": 0, "(?<![\\d.])2\\s?%": 0, "\\bA\\.?I\\.?\\b": 0, "artificial intelligence": 0, "transgender": 4}, "transgender_contexts": []}
+{"key": "oh3", "status": 200, "words": 11661, "counts": {"America First": 1, "Gulf of America": 0, "Hormuz": 0, "Blockade": 2, "two percent": 0, "(?<![\\d.])2\\s?%": 0, "\\bA\\.?I\\.?\\b": 0, "artificial intelligence": 1, "transgender": 4}, "transgender_contexts": []}
+{"key": "tx7", "status": 200, "words": 13867, "counts": {"America First": 0, "Gulf of America": 1, "Hormuz": 1, "Blockade": 0, "two percent": 0, "(?<![\\d.])2\\s?%": 0, "\\bA\\.?I\\.?\\b": 0, "artificial intelligence": 1, "transgender": 7}, "transgender_contexts": []}
+{"key": "ne5", "status": 200, "words": 11918, "counts": {"America First": 0, "Gulf of America": 0, "Hormuz": 2, "Blockade": 1, "two percent": 0, "(?<![\\d.])2\\s?%": 1, "\\bA\\.?I\\.?\\b": 0, "artificial intelligence": 1, "transgender": 4}, "transgender_contexts": []}
+{"key": "ak13", "status": 200, "words": 13039, "counts": {"America First": 0, "Gulf of America": 0, "Hormuz": 0, "Blockade": 0, "two percent": 1, "(?<![\\d.])2\\s?%": 0, "\\bA\\.?I\\.?\\b": 0, "artificial intelligence": 0, "transgender": 8}, "transgender_contexts": []}
+{"key": "nc16", "status": 200, "words": 9863, "counts": {"America First": 0, "Gulf of America": 0, "Hormuz": 0, "Blockade": 2, "two percent": 0, "(?<![\\d.])2\\s?%": 4, "\\bA\\.?I\\.?\\b": 0, "artificial intelligence": 0, "transgender": 3}, "transgender_contexts": [" say it's a one-letter change, but they're \"Dumocrats\" because the, the worst policy, open borders, transgender for everybody, men playing in women's sports. But you're going to go and you're going to crush the communists, and that", "itizenship when you go to vote. They don't want it because they wanna cheat. They voted in favor of transgender everything, taxpayer-funded child mutilization [Audience boos] and men playing in women's sports. I mean, you figure th", "ID and proof of citizenship. And we will enshrine in permanent law, no men in women's sports and no transgender mutilization of your children. So ladies and gentlemen of North Carolina, a place that I really do love, I love it. The"]}
+
+web search: 
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import re
+s=open('/tmp/forecast_az.html').read()
+x=s.find(\"They want to end all that stuff\")
+print(s[x-3500:x-800])
+PY" in /tmp/apb-sweep-codex-juonhwid
+ succeeded in 0ms:
+                                   <div class="mb-4 flex gap-2">
+                                            <div class="mb-2">Sprache Readability Score</div>
+                                            <div class="mb-2">3.2</div>
+                                        </div>
+                                                                            <div class="mb-4 flex gap-2">
+                                            <div class="mb-2">Dale-Chall Difficult Word Score</div>
+                                            <div class="mb-2">9</div>
+                                        </div>
+                                                                            <div class="mb-4 flex gap-2">
+                                            <div class="mb-2">Sprache Difficult Word Count</div>
+                                            <div class="mb-2">11</div>
+                                        </div>
+                                                                    </div>
+                            </div>
+                        </div>
+                            
+                                            <a id="25"></a>
+                        <div id="dt47-26-4d6f733a-25" class="mb-4 border-b mx-6 my-4" x-data="{ openDetails: false }">
+                            
+                            <div class="flex gap-4 py-2">
+                                                                    <div class="w-8 pt-5">
+                                        <a class="transcript-play-video" data-seconds="527">
+                                            <i class="fa-solid fa-play text-[#2F3C4B] cursor-pointer fa-xl tooltip hover:text-gray-600" title="Play Clip"></i>
+                                        </a>
+                                    </div>
+                                                                <div class="w-full">
+                                    <div class="mb-2 flex">
+                                        <div class="flex-1">
+                                            <h2 class="text-md inline">Donald Trump</h2>
+                                                                                            <span class="text-xs text-gray-600 inline ml-2">00:08:47-00:09:11 (24 sec)</span>
+                                                                                    </div>
+                                                                                    <div class="hidden sm:block"><div>
+                    <div class="text-center border items-center flex border-red-600 bg-red-100 rounded-md p-1 text-red-600 text-xs uppercase font-semibold">Weak (1.321)</div></div></div>
+                                             
+
+web search: SPY Oct 20 2026 765 call option price ...
+web search: site:polymarket.com "Midterm Rally in North Carolina" "Transgender" ...
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,concurrent.futures,json,datetime,math,statistics
+from urllib.parse import quote
+
+def get_coin(symbol):
+ base='https://api.binance.com/api/v3/klines'
+ hrs=requests.get(base,params={'symbol':symbol,'interval':'1h','limit':72},timeout=20).json()
+ mins=requests.get(base,params={'symbol':symbol,'interval':'1m','limit':1000},timeout=20).json()
+ daily=requests.get(base,params={'symbol':symbol,'interval':'1d','limit':30},timeout=20).json()
+ vals=[float(x[4]) for x in mins]
+ changes=[math.log(vals[i]/vals[i-1]) for i in range(1,len(vals))]
+ hourly=[math.log(float(hrs[i][4])/float(hrs[i-1][4])) for i in range(1,len(hrs)-1)]
+ dailyret=[math.log(float(daily[i][4])/float(daily[i-1][4])) for i in range(1,len(daily)-1)]
+ out={'symbol':symbol,'hourly_recent':[(datetime.datetime.fromtimestamp(x[0]/1000,datetime.timezone.utc).isoformat(),x[1:5]) for x in hrs[-3:]],'minute_latest':mins[-1][:5], 'minute_sigma_60':statistics.stdev(changes[-60:]), 'minute_sigma_360':statistics.stdev(changes[-360:]),'hour_sigma':statistics.stdev(hourly),'day_sigma':statistics.stdev(dailyret),'today':daily[-1][:5]}
+ if symbol=='SOLUSDT':out['previous_16utc']=[x[:5] for x in hrs if datetime.datetime.fromtimestamp(x[0]/1000,datetime.timezone.utc).hour==16]
+ return out
+for x in concurrent.futures.ThreadPoolExecutor().map(get_coin,['BTCUSDT','ETHUSDT','SOLUSDT']):print(json.dumps(x))
+PY" in /tmp/apb-sweep-codex-juonhwid
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,re,html,concurrent.futures,json
+slugs={
+'ks19':'donald-trump-speech-midterm-political-rally-park-city-kansas-october-19-2026',
+'az14':'donald-trump-speech-midterm-political-rally-bullhead-city-arizona-october-14-2026',
+'mt14':'donald-trump-speech-midterm-political-rally-kalispell-montana-october-14-2026',
+'oh12':'donald-trump-speech-midterm-political-rally-youngstown-ohio-october-12-2026',
+'oh3':'donald-trump-speech-midterm-political-rally-vandalia-ohio-october-3-2026',
+'tx7':'donald-trump-speech-midterm-political-rally-san-antonio-texas-october-7-2026',
+'ne5':'donald-trump-speech-midterm-political-rally-grand-island-nebraska-october-5-2026',
+'ak13':'donald-trump-speech-midterm-political-rally-wasilla-alaska-october-13-2026',
+'nc16':'donald-trump-speech-political-address-gastonia-north-carolina-september-16-2026'
+}
+patterns={'america_gulf':r'America First|Gulf of America','hormuz_blockade':r'Hormuz|blockade','two_percent':r'(?<"'!['"\\d.])(?:\\b2|\\btwo)[ -]*(?:percent|per cent|%)','ai':r'\\bAI\\b|\\bA\\.I\\.|artificial intelligence','transgender':r'\\btransgender\\b'}
+def fetch(kv):
+ k,slug=kv
+ r=requests.get('https://rollcall.com/factbase/trump/transcript/'+slug+'/',timeout=20)
+ raw=re.sub(r'<"'!--.*?-->'"','',r.text,flags=re.S)
+ blocks=re.findall(r'<h2["'^>]*>(.*?)</h2>.*?<div class="[''^"]*flex-auto text-md text-gray-600 leading-loose[''^"]*">(.*?)</div>'"',raw,re.S)
+ t=' '.join(html.unescape(re.sub('<["'^>]*>'"',' ',x)) for speaker,x in blocks if speaker.strip()=='Donald Trump')
+ open('/tmp/trump_'+k+'.txt','w').write(t)
+ return {'key':k,'status':r.status_code,'words':len(t.split()),'counts':{p:len(re.findall(pat,t,re.I)) for p,pat in patterns.items()},'two_context':[t[max(0,m.start()-45):m.end()+75] for m in re.finditer(patterns['two_percent'],t,re.I)][:3]}
+for row in concurrent.futures.ThreadPoolExecutor(max_workers=9).map(fetch,slugs.items()):print(json.dumps(row))
+PY" in /tmp/apb-sweep-codex-juonhwid
+ succeeded in 1226ms:
+{"symbol": "BTCUSDT", "hourly_recent": [["2026-10-20T04:00:00+00:00", ["82138.43000000", "82272.06000000", "82050.94000000", "82092.06000000"]], ["2026-10-20T05:00:00+00:00", ["82092.07000000", "82107.38000000", "81717.68000000", "81724.00000000"]], ["2026-10-20T06:00:00+00:00", ["81724.01000000", "81852.01000000", "81620.35000000", "81828.00000000"]]], "minute_latest": [1792477860000, "81847.05000000", "81852.01000000", "81826.01000000", "81826.01000000"], "minute_sigma_60": 0.00042091061956598785, "minute_sigma_360": 0.00043861180289866074, "hour_sigma": 0.002522750604884165, "day_sigma": 0.011964697256778253, "today": [1792454400000, "81938.39000000", "82272.06000000", "81200.00000000", "81816.00000000"]}
+{"symbol": "ETHUSDT", "hourly_recent": [["2026-10-20T04:00:00+00:00", ["2415.01000000", "2417.66000000", "2410.00000000", "2412.65000000"]], ["2026-10-20T05:00:00+00:00", ["2412.65000000", "2413.78000000", "2396.83000000", "2396.84000000"]], ["2026-10-20T06:00:00+00:00", ["2396.83000000", "2399.81000000", "2391.46000000", "2398.68000000"]]], "minute_latest": [1792477860000, "2399.54000000", "2399.81000000", "2398.68000000", "2398.68000000"], "minute_sigma_60": 0.0006015719582111518, "minute_sigma_360": 0.0006816540086160876, "hour_sigma": 0.004552887116300848, "day_sigma": 0.016633969692211596, "today": [1792454400000, "2408.00000000", "2417.66000000", "2372.62000000", "2398.68000000"]}
+{"symbol": "SOLUSDT", "hourly_recent": [["2026-10-20T04:00:00+00:00", ["105.34000000", "105.50000000", "105.14000000", "105.23000000"]], ["2026-10-20T05:00:00+00:00", ["105.24000000", "105.27000000", "104.51000000", "104.56000000"]], ["2026-10-20T06:00:00+00:00", ["104.56000000", "104.81000000", "104.23000000", "104.74000000"]]], "minute_latest": [1792477860000, "104.81000000", "104.81000000", "104.73000000", "104.73000000"], "minute_sigma_60": 0.0007573023171790275, "minute_sigma_360": 0.0007527074680364738, "hour_sigma": 0.0053319618190786865, "day_sigma": 0.021603500959463454, "today": [1792454400000, "105.08000000", "105.50000000", "103.67000000", "104.73000000"], "previous_16utc": [[1792252800000, "103.62000000", "103.91000000", "103.06000000", "103.19000000"], [1792339200000, "102.22000000", "102.22000000", "101.82000000", "102.10000000"], [1792425600000, "104.15000000", "104.75000000", "103.94000000", "104.42000000"]]}
+
+ succeeded in 1442ms:
+{"key": "ks19", "status": 200, "words": 14213, "counts": {"america_gulf": 0, "hormuz_blockade": 0, "two_percent": 0, "ai": 0, "transgender": 12}, "two_context": []}
+{"key": "az14", "status": 200, "words": 16261, "counts": {"america_gulf": 3, "hormuz_blockade": 1, "two_percent": 4, "ai": 2, "transgender": 6}, "two_context": ["ut off his wrist, animals. They're all gone. Two percent -- my favorite statistic because you can handle it. Two percent of the peo", "avorite statistic because you can handle it. Two percent of the people create 91 percent of the crime. We can handle two percent, a", "reate 91 percent of the crime. We can handle two percent, and we did. We got them the hell out of here. If it was 40 percent, 25 pe"]}
+{"key": "mt14", "status": 200, "words": 10907, "counts": {"america_gulf": 0, "hormuz_blockade": 0, "two_percent": 0, "ai": 0, "transgender": 5}, "two_context": []}
+{"key": "oh12", "status": 200, "words": 10818, "counts": {"america_gulf": 1, "hormuz_blockade": 0, "two_percent": 0, "ai": 0, "transgender": 4}, "two_context": []}
+{"key": "oh3", "status": 200, "words": 10893, "counts": {"america_gulf": 0, "hormuz_blockade": 2, "two_percent": 0, "ai": 1, "transgender": 4}, "two_context": []}
+{"key": "tx7", "status": 200, "words": 11250, "counts": {"america_gulf": 1, "hormuz_blockade": 1, "two_percent": 0, "ai": 1, "transgender": 7}, "two_context": []}
+{"key": "ne5", "status": 200, "words": 11188, "counts": {"america_gulf": 0, "hormuz_blockade": 3, "two_percent": 1, "ai": 1, "transgender": 4}, "two_context": [" broke the record by many times, not by like 2%, by many, many times. But the fake news media refuses to talk about our re"]}
+{"key": "ak13", "status": 200, "words": 12049, "counts": {"america_gulf": 0, "hormuz_blockade": 0, "two_percent": 1, "ai": 0, "transgender": 8}, "two_context": ["happen. Because even if he gets a percent or two percent or three percent with the phony ranked choice stuff, you never know what t"]}
+{"key": "nc16", "status": 200, "words": 8959, "counts": {"america_gulf": 0, "hormuz_blockade": 2, "two_percent": 4, "ai": 0, "transgender": 3}, "two_context": ["ut Washington, D.C. and I learned something. 2%, think of it, 2% of the people create 91% of the crime. You can handle tha", "C. and I learned something. 2%, think of it, 2% of the people create 91% of the crime. You can handle that. Think of it, 2", "the crime. You can handle that. Think of it, 2%. And we now have Washington, which was one of the most dangerous cities an"]}
+
+web search: 
+web search: 
+web search: 
+web search: 
+web search: "Trump" "North Carolina" "October 20" "Transgender" "7"
+web search: "Will Bitcoin dip to $81,000 on October 20"
+web search: "Racing Santander" "Espanyol" "October 24" odds 2026
+web search: "Solana Up or Down on October 20" "2026"
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import re
+s=open('/tmp/trump_ks19.txt').read()
+for m in re.finditer('transgender',s,re.I): print(s[max(0,m.start()-100):m.end()+200])
+PY" in /tmp/apb-sweep-codex-juonhwid
+ succeeded in 0ms:
+at agenda, and I've used this name a lot because their policy is just so dumb. Men in women sports, transgender for everybody -- [Audience boos] The absolute mutilization of your children, where your son Timmy comes home five days later as Sarah and you don't even know about it. And people smile -- people smil
+t they want to shut down our power plants. They want to set loose the criminals, turn your children transgender, confiscate your money and raise up the Palestinian flag right in the middle of your wonderful state. [Audience boos] And at the same time, they're willing to defile our great and very beautiful Amer
+laces on earth, they can pour into Kansas. Adam Hamilton used church dollars to fund anti-religious transgender activity -- activities -- [Audience boos] I mean. And so, he used a lot of church money to fund all of this transgender crap that you're reading about, who openly mocks Jesus and he openly mocks Jesu
+ -- activities -- [Audience boos] I mean. And so, he used a lot of church money to fund all of this transgender crap that you're reading about, who openly mocks Jesus and he openly mocks Jesus. He promotes a document listing 125 different genders -- you think Talafreako's bad, he was only six -- and directs hi
+ko's bad, he was only six -- and directs his followers to seven different websites to make children transgender. He believes in letting children and making children transgender. Do you know that? I mean, I'm not saying this just out of the blue. Adam Hamilton stated that he believes America is systemically rac
+ifferent websites to make children transgender. He believes in letting children and making children transgender. Do you know that? I mean, I'm not saying this just out of the blue. Adam Hamilton stated that he believes America is systemically racist. He said that white people must repent. Repent all of you whi
+quity and inclusion policies throughout the federal government. And we got critical race theory and transgender insanity the hell out of our schools and out of our military. And we made English the official language of the United States of America. So we achieved more in two years than any other presidency in 
+hey voted in favor of the worst inflation and highest energy costs in American history, in favor of transgender mutilization of your children, and in favor of men playing in women's sports. On election night in Kansas, you're going to be going to really a place that -- a place that would be so beautiful. You'r
+ I had to stand here and say we will not allow men to play in women's sports, we will not allow the transgender mutilization of your children, we will allow open borders for the world to come pouring in, I mean, if I did that let's say ten years ago but certainly 12, 13, they would think that there's something
+we have to fight for this stuff. They have gone nuts. Well, we have to fight. We will not allow the transgender mutilization of your children. Unbelievable. Unbelievable. Who believes it? But Ty's opponent voted for men in women's sports and men in girls locker rooms. Oh, that's nice. [Audience boos] She said 
+rls locker rooms. Oh, that's nice. [Audience boos] She said that -- she said that Jesus was gay and transgender, and that her role model -- [Audience boos] And that her role model as governor would be Gavin Newscum. Now -- [Audience boos] You know, I used to get along very well with my first -- him, but, I mea
+ ID and proof of citizenship. And we will enshrine in permanent law no men in women's sports and no transgender mutilization of your children. So this has been a great honor for me. It's a great place. It's a great state. You have unbelievable spirit, people. Everything about -- everything about your state is 
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,json,concurrent.futures
+urls={
+'cboe':'https://cdn.cboe.com/api/global/delayed_quotes/options/SPY.json',
+'yahoo':'https://query1.finance.yahoo.com/v7/finance/options/SPY?date=1792454400',
+'chain':'https://stockoptionschannel.com/symbol/spy/?month=20261020&symbol=SPY&type=call'
+}
+def f(kv):
+ k,u=kv
+ try:
+  r=requests.get(u,headers={'User-Agent':'Mozilla/5.0'},timeout=15)
+  if k=='cboe':
+   j=r.json();data=j.get('data',{});opts=data.pop('options',[])
+   sel=[x for x in opts if x.get('option','').startswith('SPY261020') and any(z in x.get('option','') for z in ['00764000','00765000','00766000','00767000','00768000','00769000','00770000','00771000'])]
+   return k,r.status_code,j.get('timestamp'),data,sel
+  if k=='yahoo':return k,r.status_code,r.text[:1000]
+  open('/tmp/spy_options.html','w').write(r.text)
+  import re,html
+  text=html.unescape(re.sub('<["'^>]+>'"',' ',r.text));text=re.sub(r'\\s+',' ',text)
+  result=[]
+  for term in ['October 20','765.00','766.00','767.00','768.00','769.00','770.00']:
+   m=re.search(re.escape(term),text)
+   result.append([term,text[max(0,m.start()-50):m.end()+250] if m else None])
+  return k,r.status_code,result
+ except Exception as e:return k,str(e)
+for row in concurrent.futures.ThreadPoolExecutor().map(f,urls.items()):print(json.dumps(row))
+PY" in /tmp/apb-sweep-codex-juonhwid
+ succeeded in 1039ms:
+["cboe", 200, "2026-10-20 03:44:34", {"symbol": "SPY", "security_type": "stock", "exchange_id": 3, "current_price": 766.48, "price_change": 3.23, "price_change_percent": 0.4214, "bid": 767.5, "ask": 767.58, "bid_size": 200, "ask_size": 480, "open": 767.25, "high": 770.46, "low": 765.824, "close": 766.48, "prev_day_close": 766.48, "volume": 38634980, "iv30": 13.652, "iv30_change": 0.0, "iv30_change_percent": 0.0, "seqno": 8746693082, "last_trade_time": "2026-10-19T16:00:00", "tick": "up"}, [{"option": "SPY261020C00764000", "bid": 4.05, "bid_size": 30.0, "ask": 4.14, "ask_size": 32.0, "iv": 0.1423, "open_interest": 1322.0, "volume": 3444.0, "delta": 0.7001, "gamma": 0.0603, "vega": 0.1414, "theta": -1.088, "rho": 0.0146, "theo": 4.0944, "change": 1.0, "open": 4.92, "high": 7.01, "low": 3.84, "tick": "up", "last_trade_price": 4.16, "last_trade_time": "2026-10-19T16:13:42", "percent_change": 31.6456, "prev_day_close": 3.16000008583069}, {"option": "SPY261020P00764000", "bid": 1.09, "bid_size": 6.0, "ask": 1.1, "ask_size": 77.0, "iv": 0.1425, "open_interest": 1203.0, "volume": 26908.0, "delta": -0.3, "gamma": 0.0604, "vega": 0.1414, "theta": -1.0884, "rho": -0.0063, "theo": 1.091, "change": -3.695, "open": 1.64, "high": 2.07, "low": 0.62, "tick": "up", "last_trade_price": 1.1, "last_trade_time": "2026-10-19T16:14:59", "percent_change": -77.0594, "prev_day_close": 4.79500007629394}, {"option": "SPY261020C00765000", "bid": 3.36, "bid_size": 1.0, "ask": 3.39, "ask_size": 19.0, "iv": 0.1381, "open_interest": 2076.0, "volume": 7609.0, "delta": 0.641, "gamma": 0.0668, "vega": 0.1514, "theta": -1.3591, "rho": 0.0134, "theo": 3.3663, "change": 0.71, "open": 4.23, "high": 6.18, "low": 3.11, "tick": "down", "last_trade_price": 3.37, "last_trade_time": "2026-10-19T16:14:56", "percent_change": 26.6917, "prev_day_close": 2.66000008583069}, {"option": "SPY261020P00765000", "bid": 1.36, "bid_size": 13.0, "ask": 1.37, "ask_size": 41.0, "iv": 0.1383, "open_interest": 1491.0, "volume": 56474.0, "delta": -0.3593, "gamma": 0.067, "vega": 0.1514, "theta": -1.3596, "rho": -0.0075, "theo": 1.3629, "change": -3.95, "open": 1.88, "high": 2.41, "low": 0.74, "tick": "no_change", "last_trade_price": 1.36, "last_trade_time": "2026-10-19T16:14:59", "percent_change": -74.3879, "prev_day_close": 5.31000018119812}, {"option": "SPY261020C00766000", "bid": 2.7, "bid_size": 1.0, "ask": 2.71, "ask_size": 37.0, "iv": 0.134, "open_interest": 1735.0, "volume": 24069.0, "delta": 0.5745, "gamma": 0.0721, "vega": 0.1584, "theta": -1.6874, "rho": 0.012, "theo": 2.6987, "change": 0.485, "open": 3.49, "high": 5.38, "low": 2.41, "tick": "up", "last_trade_price": 2.7, "last_trade_time": "2026-10-19T16:14:54", "percent_change": 21.8962, "prev_day_close": 2.2150000333786}, {"option": "SPY261020P00766000", "bid": 1.69, "bid_size": 16.0, "ask": 1.7, "ask_size": 45.0, "iv": 0.1342, "open_interest": 2191.0, "volume": 52288.0, "delta": -0.4261, "gamma": 0.0725, "vega": 0.1584, "theta": -1.6881, "rho": -0.0088, "theo": 1.6955, "change": -4.23, "open": 2.23, "high": 2.8, "low": 0.92, "tick": "down", "last_trade_price": 1.68, "last_trade_time": "2026-10-19T16:14:57", "percent_change": -71.5736, "prev_day_close": 5.91000008583069}, {"option": "SPY261020C00767000", "bid": 2.1, "bid_size": 1.0, "ask": 2.11, "ask_size": 121.0, "iv": 0.1306, "open_interest": 1768.0, "volume": 46910.0, "delta": 0.5017, "gamma": 0.0755, "vega": 0.161, "theta": -1.9075, "rho": 0.0105, "theo": 2.1017, "change": 0.285, "open": 2.9, "high": 4.61, "low": 1.87, "tick": "up", "last_trade_price": 2.11, "last_trade_time": "2026-10-19T16:14:59", "percent_change": 15.6164, "prev_day_close": 1.82500004768372}, {"option": "SPY261020P00767000", "bid": 2.09, "bid_size": 37.0, "ask": 2.1, "ask_size": 2.0, "iv": 0.1301, "open_interest": 1299.0, "volume": 78051.0, "delta": -0.4996, "gamma": 0.0764, "vega": 0.1609, "theta": -1.9089, "rho": -0.0098, "theo": 2.0993, "change": -4.43, "open": 2.58, "high": 3.25, "low": 1.11, "tick": "down", "last_trade_price": 2.1, "last_trade_time": "2026-10-19T16:14:57", "percent_change": -67.8407, "prev_day_close": 6.52999997138977}, {"option": "SPY261020C00768000", "bid": 1.58, "bid_size": 42.0, "ask": 1.59, "ask_size": 7.0, "iv": 0.1269, "open_interest": 1894.0, "volume": 67313.0, "delta": 0.4248, "gamma": 0.0762, "vega": 0.1583, "theta": -1.5783, "rho": 0.0089, "theo": 1.5844, "change": 0.105, "open": 2.37, "high": 3.85, "low": 1.4, "tick": "no_change", "last_trade_price": 1.59, "last_trade_time": "2026-10-19T16:14:59", "percent_change": 7.07071, "prev_day_close": 1.48500001430511}, {"option": "SPY261020P00768000", "bid": 2.56, "bid_size": 19.0, "ask": 2.59, "ask_size": 1.0, "iv": 0.1269, "open_interest": 1667.0, "volume": 59896.0, "delta": -0.5779, "gamma": 0.0778, "vega": 0.1577, "theta": -1.5816, "rho": -0.0108, "theo": 2.584, "change": -4.645, "open": 3.05, "high": 3.75, "low": 1.36, "tick": "no_change", "last_trade_price": 2.55, "last_trade_time": "2026-10-19T16:14:44", "percent_change": -64.5587, "prev_day_close": 7.19500017166138}, {"option": "SPY261020C00769000", "bid": 1.15, "bid_size": 77.0, "ask": 1.16, "ask_size": 13.0, "iv": 0.1238, "open_interest": 1931.0, "volume": 66413.0, "delta": 0.3471, "gamma": 0.0737, "vega": 0.1498, "theta": -1.1505, "rho": 0.0072, "theo": 1.1532, "change": -0.045, "open": 1.86, "high": 3.13, "low": 1.01, "tick": "no_change", "last_trade_price": 1.15, "last_trade_time": "2026-10-19T16:14:59", "percent_change": -3.76569, "prev_day_close": 1.19500005245209}, {"option": "SPY261020P00769000", "bid": 3.13, "bid_size": 29.0, "ask": 3.16, "ask_size": 1.0, "iv": 0.1229, "open_interest": 1178.0, "volume": 24177.0, "delta": -0.6579, "gamma": 0.0761, "vega": 0.1482, "theta": -1.1578, "rho": -0.0115, "theo": 3.1567, "change": -4.775, "open": 3.52, "high": 4.34, "low": 1.68, "tick": "no_change", "last_trade_price": 3.12, "last_trade_time": "2026-10-19T16:14:48", "percent_change": -60.4813, "prev_day_close": 7.89499998092651}, {"option": "SPY261020C00770000", "bid": 0.81, "bid_size": 12.0, "ask": 0.82, "ask_size": 116.0, "iv": 0.1207, "open_interest": 4562.0, "volume": 73512.0, "delta": 0.2726, "gamma": 0.0677, "vega": 0.1357, "theta": -0.8074, "rho": 0.0057, "theo": 0.8093, "change": -0.135, "open": 1.43, "high": 2.51, "low": 0.71, "tick": "no_change", "last_trade_price": 0.81, "last_trade_time": "2026-10-19T16:14:59", "percent_change": -14.2857, "prev_day_close": 0.944999992847443}, {"option": "SPY261020P00770000", "bid": 3.78, "bid_size": 19.0, "ask": 3.84, "ask_size": 24.0, "iv": 0.1211, "open_interest": 2046.0, "volume": 19921.0, "delta": -0.7355, "gamma": 0.0709, "vega": 0.1329, "theta": -0.8214, "rho": -0.0116, "theo": 3.8195, "change": -4.925, "open": 4.15, "high": 4.99, "low": 2.06, "tick": "no_change", "last_trade_price": 3.77, "last_trade_time": "2026-10-19T16:14:46", "percent_change": -56.6417, "prev_day_close": 8.69499969482422}, {"option": "SPY261020C00771000", "bid": 0.55, "bid_size": 7.0, "ask": 0.56, "ask_size": 205.0, "iv": 0.1187, "open_interest": 1340.0, "volume": 48555.0, "delta": 0.2056, "gamma": 0.059, "vega": 0.1175, "theta": -0.5466, "rho": 0.0043, "theo": 0.5479, "change": -0.195, "open": 1.1, "high": 1.96, "low": 0.48, "tick": "down", "last_trade_price": 0.55, "last_trade_time": "2026-10-19T16:14:57", "percent_change": -26.1745, "prev_day_close": 0.745000004768372}, {"option": "SPY261020P00771000", "bid": 4.52, "bid_size": 50.0, "ask": 4.57, "ask_size": 1.0, "iv": 0.1177, "open_interest": 1485.0, "volume": 5671.0, "delta": -0.8062, "gamma": 0.0624, "vega": 0.1131, "theta": -0.5709, "rho": -0.0112, "theo": 4.5684, "change": -4.98, "open": 4.73, "high": 5.73, "low": 2.5, "tick": "up", "last_trade_price": 4.52, "last_trade_time": "2026-10-19T16:14:50", "percent_change": -52.4211, "prev_day_close": 9.5}]]
+["yahoo", 401, "{\"finance\":{\"result\":null,\"error\":{\"code\":\"Unauthorized\",\"description\":\"Invalid Crumb\"}}}"]
+["chain", 200, [["October 20", "6.60M \u2022 Call volume: 5.64M \u2022 Put:Call Ratio: 1.17 October 20, 2026 CALLS (0 days until expiration) Click any strike to open contract detail Strike / % Distance From 766.48 Bid YieldBoost ** at Bid Total / Annualized Ask Last Vol Open Interest Current Odds Call Expires Worthless Total Return If Called 748.00 /"], ["765.00", " 0.53% / 192.86% 4.14 4.16 3,444 1,322 31% +0.20% 765.00 / -0.19% 3.36 0.44% / 160.00% 3.39 3.37 7,609 2,076 37% +0.25% 766.00 / -0.06% 2.70 0.35% / 128.57% 2.71 2.70 24,072 1,735 43% +0.29% 767.00 / +0.07% 2.10 0.27% / 100.00% 2.11 2.11 46,912 1,768 50% +0.34% 768.00 / +0.20% 1.58 0.21% / 75.24% 1.59 1.5"], ["766.00", " 0.44% / 160.00% 3.39 3.37 7,609 2,076 37% +0.25% 766.00 / -0.06% 2.70 0.35% / 128.57% 2.71 2.70 24,072 1,735 43% +0.29% 767.00 / +0.07% 2.10 0.27% / 100.00% 2.11 2.11 46,912 1,768 50% +0.34% 768.00 / +0.20% 1.58 0.21% / 75.24% 1.59 1.59 67,313 1,894 58% +0.40% 769.00 / +0.33% 1.15 0.15% / 54.76% 1.16 1.1"], ["767.00", "0.35% / 128.57% 2.71 2.70 24,072 1,735 43% +0.29% 767.00 / +0.07% 2.10 0.27% / 100.00% 2.11 2.11 46,912 1,768 50% +0.34% 768.00 / +0.20% 1.58 0.21% / 75.24% 1.59 1.59 67,313 1,894 58% +0.40% 769.00 / +0.33% 1.15 0.15% / 54.76% 1.16 1.15 66,412 1,931 66% +0.48% 770.00 / +0.46% 0.81 0.11% / 38.57% 0.82 0.81"], ["768.00", "0.27% / 100.00% 2.11 2.11 46,912 1,768 50% +0.34% 768.00 / +0.20% 1.58 0.21% / 75.24% 1.59 1.59 67,313 1,894 58% +0.40% 769.00 / +0.33% 1.15 0.15% / 54.76% 1.16 1.15 66,412 1,931 66% +0.48% 770.00 / +0.46% 0.81 0.11% / 38.57% 0.82 0.81 73,568 4,562 73% +0.56% 771.00 / +0.59% 0.55 0.07% / 26.19% 0.56 0.55 "], ["769.00", " 0.21% / 75.24% 1.59 1.59 67,313 1,894 58% +0.40% 769.00 / +0.33% 1.15 0.15% / 54.76% 1.16 1.15 66,412 1,931 66% +0.48% 770.00 / +0.46% 0.81 0.11% / 38.57% 0.82 0.81 73,568 4,562 73% +0.56% 771.00 / +0.59% 0.55 0.07% / 26.19% 0.56 0.55 48,555 1,340 80% +0.66% 772.00 / +0.72% 0.36 0.05% / 17.14% 0.37 0.37 "], ["770.00", " 0.15% / 54.76% 1.16 1.15 66,412 1,931 66% +0.48% 770.00 / +0.46% 0.81 0.11% / 38.57% 0.82 0.81 73,568 4,562 73% +0.56% 771.00 / +0.59% 0.55 0.07% / 26.19% 0.56 0.55 48,555 1,340 80% +0.66% 772.00 / +0.72% 0.36 0.05% / 17.14% 0.37 0.37 43,517 2,038 85% +0.77% 773.00 / +0.85% 0.23 0.03% / 10.95% 0.24 0.23 "]]]
+
+web search: https://polymarkettrader.com/odds/solana-price-prediction/
+codex
+I’ve checked data for all 30 markets. I’m now reviewing the overlapping price thresholds and refreshing the hourly crypto prices, since those probabilities can change quickly before the 07:00 UTC close.
+
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,concurrent.futures,json,datetime,math,statistics
+
+def analyze(symbol):
+ base='https://api.binance.com/api/v3/klines'
+ rows=requests.get(base,params={'symbol':symbol,'interval':'1m','limit':1000},timeout=15).json()
+ hours=requests.get(base,params={'symbol':symbol,'interval':'1h','limit':2},timeout=15).json()
+ vals=[float(x[4]) for x in rows];ret=[math.log(vals[i]/vals[i-1]) for i in range(1,len(vals))]
+ current=float(hours[-1][4]);strike=float(hours[-1][1]);nowms=rows[-1][0]+60000;remaining=(hours[-1][6]+1-nowms)/60000
+ sigs=[statistics.stdev(ret[-n:]) for n in [60,180,360,999]]
+ probs=[0.5*(1+math.erf(math.log(current/strike)/(sig*math.sqrt(remaining)*math.sqrt(2)))) for sig in sigs]
+ return {'symbol':symbol,'time':datetime.datetime.fromtimestamp(nowms/1000,datetime.timezone.utc).isoformat(),'current':current,'hour_open':strike,'remaining_minutes':remaining,'sigma_1min_windows':sigs,'brownian_up':probs}
+for x in concurrent.futures.ThreadPoolExecutor().map(analyze,['BTCUSDT','ETHUSDT']):print(json.dumps(x))
+PY" in /tmp/apb-sweep-codex-juonhwid
+ succeeded in 599ms:
+{"symbol": "BTCUSDT", "time": "2026-10-20T06:34:00+00:00", "current": 81843.89, "hour_open": 81724.01, "remaining_minutes": 26.0, "sigma_1min_windows": [0.0004206591422167206, 0.00034100087929831433, 0.00043798171014395714, 0.00046062329734314654], "brownian_up": [0.7528163540538213, 0.8003906536842179, 0.7442008106352869, 0.7337152556986843]}
+{"symbol": "ETHUSDT", "time": "2026-10-20T06:34:00+00:00", "current": 2399.8, "hour_open": 2396.83, "remaining_minutes": 26.0, "sigma_1min_windows": [0.0005964635731579108, 0.0004946509307463406, 0.0006819640300024354, 0.0007198644264834431], "brownian_up": [0.658059778941392, 0.6882800932077702, 0.639126422801398, 0.6320828850295402]}
+
+web search: Trump October 19 2026 Hormuz Iran blockade latest ...
+web search: 
+web search: 
+web search: 
+web search: 
+web search: "Racing Santander" "Espanyol" "draw" "2026" "October 24"
+web search: "GenOne" "Bushido Wildcats" "OddsDigger" "20 Oct"
+web search: "Olympiacos" "Sparta Prague" "22" "2026" injuries
+web search: "Damajuana" "your end" "Map 2" odds
+web search: 
+web search: 
+web search: 
+web search: 
+web search: "GenOne" "Bushido Wildcats" "Match Winner Odds" "2026"
+web search: "Damajuana" "your end" "Map 2 Winner"
+web search: "GenOne" "Bushido Wildcats" "Match - Vainqueur"
+web search: site:bwin.com "Damajuana" "your end" "Map 2 - Vainqueur"
+web search: 
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,re,html,json
+u='https://www.bwin.com/fr/sports/tournois/quintess%C3%AAncia-los-ni%C3%B1os-5%3A1308322'
+r=requests.get(u,timeout=15)
+print(r.status_code)
+links=re.findall(r'href=[\\\"\\'](["'^'"\\\"\\']+)[\\\"\\']',r.text)
+print(json.dumps([html.unescape(x) for x in links if 'damajuana' in x.lower()]))
+PY" in /tmp/apb-sweep-codex-juonhwid
+ succeeded in 26ms:
+403
+[]
+
+web search: "SPY" "hit" "Week of October 19 2026" "775" ...
+web search: https://www.bwin.com/fr/sports/tournois/quintess%C3%AAncia-los-ni%C3%B1os-5%3A1308322
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,json,math,statistics,datetime,concurrent.futures
+
+def coin(sym):
+ base='https://api.binance.com/api/v3/klines'
+ h=requests.get(base,params={'symbol':sym,'interval':'1h','limit':72},timeout=15).json()
+ m=requests.get(base,params={'symbol':sym,'interval':'1m','limit':1000},timeout=15).json()
+ price=float(m[-1][4]);now=(m[-1][0]+60000)/1000
+ def phi(z):return .5*(1+math.erf(z/math.sqrt(2)))
+ ret=[math.log(float(m[i][4])/float(m[i-1][4])) for i in range(1,len(m))]
+ if sym in ['BTCUSDT','ETHUSDT']:
+  ref=float(h[-1][1]);rem=(h[-1][6]/1000-now)/60
+  sig=statistics.stdev(ret[-360:]);p=phi(math.log(price/ref)/(sig*math.sqrt(rem)))
+  result={'symbol':sym,'time':datetime.datetime.fromtimestamp(now,datetime.timezone.utc).isoformat(),'price':price,'hour_open':ref,'remaining_minutes':round(rem,2),'up_estimate':round(p,4)}
+ else:
+  start=int(datetime.datetime(2026,10,19,16,tzinfo=datetime.timezone.utc).timestamp()*1000)
+  refc=requests.get(base,params={'symbol':sym,'interval':'1m','startTime':start,'endTime':start+59999,'limit':1},timeout=15).json()
+  ref=float(refc[0][4]);end=datetime.datetime(2026,10,20,16,tzinfo=datetime.timezone.utc).timestamp();rem=(end-now)/3600
+  r=[math.log(float(h[i][4])/float(h[i-1][4])) for i in range(1,len(h)-1)]
+  sigma=statistics.stdev(r);p=phi(math.log(price/ref)/(sigma*math.sqrt(rem)))
+  result={'symbol':sym,'time':datetime.datetime.fromtimestamp(now,datetime.timezone.utc).isoformat(),'price':price,'noon_reference':ref,'remaining_hours':rem,'hour_sigma':sigma,'up_estimate':p}
+ return result
+for x in concurrent.futures.ThreadPoolExecutor().map(coin,['BTCUSDT','ETHUSDT','SOLUSDT']):print(json.dumps(x))
+PY" in /tmp/apb-sweep-codex-juonhwid
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,json,math
+j=requests.get('https://cdn.cboe.com/api/global/delayed_quotes/options/SPY.json',timeout=15).json()
+opts={x['option']:x for x in j['data']['options']}
+for exp in ['261020','261023']:
+ out=[]
+ for k in [765,767,770,775,780]:
+  key='SPY'+exp+'C'+f'{k*1000:08d}'
+  x=opts.get(key,{})
+  l=opts.get('SPY'+exp+'C'+f'{(k-1)*1000:08d}',{})
+  r=opts.get('SPY'+exp+'C'+f'{(k+1)*1000:08d}',{})
+  out.append({'strike':k,'iv':x.get('iv'),'delta':x.get('delta'),'prob_via_spread':((l.get('bid',0)+l.get('ask',0))-(r.get('bid',0)+r.get('ask',0)))/4 if l and r else None})
+ print(json.dumps({'exp':exp,'chain':out}))
+PY" in /tmp/apb-sweep-codex-juonhwid
+ succeeded in 148ms:
+{"exp": "261020", "chain": [{"strike": 765, "iv": 0.1381, "delta": 0.641, "prob_via_spread": 0.6949999999999998}, {"strike": 767, "iv": 0.1306, "delta": 0.5017, "prob_via_spread": 0.56}, {"strike": 770, "iv": 0.1207, "delta": 0.2726, "prob_via_spread": 0.2999999999999999}, {"strike": 775, "iv": 0.1159, "delta": 0.0471, "prob_via_spread": 0.04500000000000001}, {"strike": 780, "iv": 0.1336, "delta": 0.0092, "prob_via_spread": 0.0}]}
+{"exp": "261023", "chain": [{"strike": 765, "iv": 0.1479, "delta": 0.5854, "prob_via_spread": 0.6774999999999998}, {"strike": 767, "iv": 0.1419, "delta": 0.5201, "prob_via_spread": 0.6025}, {"strike": 770, "iv": 0.134, "delta": 0.4117, "prob_via_spread": 0.4850000000000001}, {"strike": 775, "iv": 0.1221, "delta": 0.2272, "prob_via_spread": 0.27749999999999997}, {"strike": 780, "iv": 0.1133, "delta": 0.0884, "prob_via_spread": 0.09999999999999998}]}
+
+ succeeded in 940ms:
+{"symbol": "BTCUSDT", "time": "2026-10-20T06:36:00+00:00", "price": 81816.01, "hour_open": 81724.01, "remaining_minutes": 24.0, "up_estimate": 0.7006}
+{"symbol": "ETHUSDT", "time": "2026-10-20T06:36:00+00:00", "price": 2398.45, "hour_open": 2396.83, "remaining_minutes": 24.0, "up_estimate": 0.5804}
+{"symbol": "SOLUSDT", "time": "2026-10-20T06:36:00+00:00", "price": 104.7, "noon_reference": 104.17, "remaining_hours": 9.4, "hour_sigma": 0.0053319618190786865, "up_estimate": 0.6218873801971673}
+
+codex
+{"forecasts":[{"id":"27000","probabilities":{"Yes":0.445,"No":0.555}},{"id":"26788","probabilities":{"Lightning":0.49,"Golden Knights":0.51}},{"id":"26997","probabilities":{"Up":0.58,"Down":0.42}},{"id":"27024","probabilities":{"Yes":0.4,"No":0.6}},{"id":"26934","probabilities":{"QUINTESSÊNCIA":0.62,"Los Niños":0.38}},{"id":"26909","probabilities":{"Yes":0.7,"No":0.3}},{"id":"26992","probabilities":{"Yes":0.24,"No":0.76}},{"id":"26748","probabilities":{"Avalanche":0.51,"Devils":0.49}},{"id":"26977","probabilities":{"Up":0.7,"Down":0.3}},{"id":"27023","probabilities":{"Yes":0.5,"No":0.5}},{"id":"26932","probabilities":{"Damajuana":0.4,"your end":0.6}},{"id":"26901","probabilities":{"Yes":0.28,"No":0.72}},{"id":"26985","probabilities":{"Up":0.44,"Down":0.56}},{"id":"26621","probabilities":{"Yes":0.26,"No":0.74}},{"id":"26804","probabilities":{"Yes":0.5,"No":0.5}},{"id":"27021","probabilities":{"Yes":0.59,"No":0.41}},{"id":"26900","probabilities":{"GenOne":0.705,"Bushido Wildcats":0.295}},{"id":"26593","probabilities":{"Yes":0.82,"No":0.18}},{"id":"26979","probabilities":{"Yes":0.18,"No":0.82}},{"id":"26599","probabilities":{"Wild":0.45,"Oilers":0.55}},{"id":"26802","probabilities":{"Yes":0.31,"No":0.69}},{"id":"27020","probabilities":{"Yes":0.3,"No":0.7}},{"id":"26741","probabilities":{"Power Rangers":0.38,"HULIGANI":0.62}},{"id":"24245","probabilities":{"Yes":0.445,"No":0.555}},{"id":"26953","probabilities":{"Yes":0.62,"No":0.38}},{"id":"26541","probabilities":{"Yes":0.23,"No":0.77}},{"id":"26793","probabilities":{"Up":0.59,"Down":0.41}},{"id":"27019","probabilities":{"Yes":0.45,"No":0.55}},{"id":"26655","probabilities":{"Damajuana":0.395,"your end":0.605}},{"id":"24231","probabilities":{"Yes":0.205,"No":0.795}}]}
+tokens used
+247,644
+{"forecasts":[{"id":"27000","probabilities":{"Yes":0.445,"No":0.555}},{"id":"26788","probabilities":{"Lightning":0.49,"Golden Knights":0.51}},{"id":"26997","probabilities":{"Up":0.58,"Down":0.42}},{"id":"27024","probabilities":{"Yes":0.4,"No":0.6}},{"id":"26934","probabilities":{"QUINTESSÊNCIA":0.62,"Los Niños":0.38}},{"id":"26909","probabilities":{"Yes":0.7,"No":0.3}},{"id":"26992","probabilities":{"Yes":0.24,"No":0.76}},{"id":"26748","probabilities":{"Avalanche":0.51,"Devils":0.49}},{"id":"26977","probabilities":{"Up":0.7,"Down":0.3}},{"id":"27023","probabilities":{"Yes":0.5,"No":0.5}},{"id":"26932","probabilities":{"Damajuana":0.4,"your end":0.6}},{"id":"26901","probabilities":{"Yes":0.28,"No":0.72}},{"id":"26985","probabilities":{"Up":0.44,"Down":0.56}},{"id":"26621","probabilities":{"Yes":0.26,"No":0.74}},{"id":"26804","probabilities":{"Yes":0.5,"No":0.5}},{"id":"27021","probabilities":{"Yes":0.59,"No":0.41}},{"id":"26900","probabilities":{"GenOne":0.705,"Bushido Wildcats":0.295}},{"id":"26593","probabilities":{"Yes":0.82,"No":0.18}},{"id":"26979","probabilities":{"Yes":0.18,"No":0.82}},{"id":"26599","probabilities":{"Wild":0.45,"Oilers":0.55}},{"id":"26802","probabilities":{"Yes":0.31,"No":0.69}},{"id":"27020","probabilities":{"Yes":0.3,"No":0.7}},{"id":"26741","probabilities":{"Power Rangers":0.38,"HULIGANI":0.62}},{"id":"24245","probabilities":{"Yes":0.445,"No":0.555}},{"id":"26953","probabilities":{"Yes":0.62,"No":0.38}},{"id":"26541","probabilities":{"Yes":0.23,"No":0.77}},{"id":"26793","probabilities":{"Up":0.59,"Down":0.41}},{"id":"27019","probabilities":{"Yes":0.45,"No":0.55}},{"id":"26655","probabilities":{"Damajuana":0.395,"your end":0.605}},{"id":"24231","probabilities":{"Yes":0.205,"No":0.795}}]}

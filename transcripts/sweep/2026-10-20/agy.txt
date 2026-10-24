@@ -1,0 +1,44 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+27000 | Will Beşiktaş JK win on 2026-10-22? | Yes 0.465, No 0.535 | 2026-10-22T19:00:00Z
+26788 | Lightning vs. Golden Knights | Lightning 0.485, Golden Knights 0.515 | 2026-10-21T02:30:00Z
+26997 | Ethereum Up or Down - October 20, 2AM ET | Up 0.395, Down 0.605 | 2026-10-20T07:00:00Z
+27024 | Will Trump say "America First" or "Gulf of America" during his Midterm Rally in North Carolina? | Yes 0.440, No 0.560 | 2026-10-20T23:05:00Z
+26934 | Counter-Strike: QUINTESSÊNCIA vs Los Niños - Map 1 Winner | QUINTESSÊNCIA 0.620, Los Niños 0.380 | 2026-10-21T01:00:00Z
+26909 | S&P 500 (SPY) closes above $765 on October 20? | Yes 0.690, No 0.310 | 2026-10-20T20:00:00Z
+26992 | Will Club León FC win on 2026-10-20? | Yes 0.245, No 0.755 | 2026-10-21T03:00:00Z
+26748 | Avalanche vs. Devils | Avalanche 0.505, Devils 0.495 | 2026-10-20T23:00:00Z
+26977 | Bitcoin Up or Down - October 20, 2AM ET | Up 0.565, Down 0.435 | 2026-10-20T07:00:00Z
+27023 | Will Trump say "Hormuz" or "Blockade" during his Midterm Rally in North Carolina? | Yes 0.480, No 0.520 | 2026-10-20T23:05:00Z
+26932 | Counter-Strike: Damajuana vs your end - Map 2 Winner | Damajuana 0.370, your end 0.630 | 2026-10-20T22:00:00Z
+26901 | S&P 500 (SPY) closes above $770 on October 20? | Yes 0.255, No 0.745 | 2026-10-20T20:00:00Z
+26985 | Rocket Lab (RKLB) Up or Down on October 20? | Up 0.400, Down 0.600 | 2026-10-20T20:00:00Z
+26621 | Will Real Racing Club vs. RCD Espanyol de Barcelona end in a draw? | Yes 0.265, No 0.735 | 2026-10-24T14:15:00Z
+26804 | Will Bitcoin dip to $81,000 on October 20? | Yes 0.530, No 0.470 | 2026-10-21T04:00:00Z
+27021 | Will Trump say "Two Percent" or "2%" during his Midterm Rally in North Carolina? | Yes 0.625, No 0.375 | 2026-10-20T23:05:00Z
+26900 | Counter-Strike: GenOne vs Bushido Wildcats (BO3) - NODWIN Clutch Series Group Stage | GenOne 0.685, Bushido Wildcats 0.315 | 2026-10-20T14:00:00Z
+26593 | Will S&P 500 (SPY) hit (LOW) $765 Week of October 19 2026? | Yes 0.805, No 0.195 | 2026-10-23T20:00:00Z
+26979 | Will Feyenoord Rotterdam win on 2026-10-21? | Yes 0.185, No 0.815 | 2026-10-21T19:00:00Z
+26599 | Wild vs. Oilers | Wild 0.435, Oilers 0.565 | 2026-10-21T01:00:00Z
+26802 | Will Bitcoin reach $83,000 on October 20? | Yes 0.300, No 0.700 | 2026-10-21T04:00:00Z
+27020 | Will Trump say "AI" or "Artificial Intelligence" during his Midterm Rally in North Carolina? | Yes 0.275, No 0.725 | 2026-10-20T23:05:00Z
+26741 | Dota 2: Power Rangers vs HULIGANI (BO3) - EPL Masters Group A | Power Rangers 0.355, HULIGANI 0.645 | 2026-10-20T15:00:00Z
+24245 | Will S&P 500 (SPY) hit (HIGH) $775 Week of October 19 2026? | Yes 0.435, No 0.565 | 2026-10-23T20:00:00Z
+26953 | Will Olympiakós SFP win on 2026-10-22? | Yes 0.645, No 0.355 | 2026-10-22T19:00:00Z
+26541 | Will Cúcuta Deportivo FC vs. Atlético Nacional end in a draw? | Yes 0.235, No 0.765 | 2026-10-20T23:30:00Z
+26793 | Solana Up or Down on October 20? | Up 0.565, Down 0.435 | 2026-10-20T16:00:00Z
+27019 | Will Trump say "Transgender" 7+ times during his Midterm Rally in North Carolina? | Yes 0.505, No 0.495 | 2026-10-20T23:05:00Z
+26655 | Counter-Strike: Damajuana vs your end (BO3) - CCT South America Series 7 Group Stage | Damajuana 0.390, your end 0.610 | 2026-10-20T22:00:00Z
+24231 | Will S&P 500 (SPY) hit (HIGH) $780 Week of October 19 2026? | Yes 0.195, No 0.805 | 2026-10-23T20:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"forecasts": [{"id": "27000", "probabilities": {"Yes": 0.445, "No": 0.555}}, {"id": "26788", "probabilities": {"Lightning": 0.505, "Golden Knights": 0.495}}, {"id": "26997", "probabilities": {"Up": 0.49, "Down": 0.51}}, {"id": "27024", "probabilities": {"Yes": 0.45, "No": 0.55}}, {"id": "26934", "probabilities": {"QUINTESSÊNCIA": 0.615, "Los Niños": 0.385}}, {"id": "26909", "probabilities": {"Yes": 0.695, "No": 0.305}}, {"id": "26992", "probabilities": {"Yes": 0.235, "No": 0.765}}, {"id": "26748", "probabilities": {"Avalanche": 0.505, "Devils": 0.495}}, {"id": "26977", "probabilities": {"Up": 0.61, "Down": 0.39}}, {"id": "27023", "probabilities": {"Yes": 0.485, "No": 0.515}}, {"id": "26932", "probabilities": {"Damajuana": 0.36, "your end": 0.64}}, {"id": "26901", "probabilities": {"Yes": 0.25, "No": 0.75}}, {"id": "26985", "probabilities": {"Up": 0.41, "Down": 0.59}}, {"id": "26621", "probabilities": {"Yes": 0.27, "No": 0.73}}, {"id": "26804", "probabilities": {"Yes": 0.545, "No": 0.455}}, {"id": "27021", "probabilities": {"Yes": 0.625, "No": 0.375}}, {"id": "26900", "probabilities": {"GenOne": 0.735, "Bushido Wildcats": 0.265}}, {"id": "26593", "probabilities": {"Yes": 0.82, "No": 0.18}}, {"id": "26979", "probabilities": {"Yes": 0.18, "No": 0.82}}, {"id": "26599", "probabilities": {"Wild": 0.45, "Oilers": 0.55}}, {"id": "26802", "probabilities": {"Yes": 0.29, "No": 0.71}}, {"id": "27020", "probabilities": {"Yes": 0.27, "No": 0.73}}, {"id": "26741", "probabilities": {"Power Rangers": 0.31, "HULIGANI": 0.69}}, {"id": "24245", "probabilities": {"Yes": 0.43, "No": 0.57}}, {"id": "26953", "probabilities": {"Yes": 0.59, "No": 0.41}}, {"id": "26541", "probabilities": {"Yes": 0.26, "No": 0.74}}, {"id": "26793", "probabilities": {"Up": 0.575, "Down": 0.425}}, {"id": "27019", "probabilities": {"Yes": 0.495, "No": 0.505}}, {"id": "26655", "probabilities": {"Damajuana": 0.36, "your end": 0.64}}, {"id": "24231", "probabilities": {"Yes": 0.19, "No": 0.81}}]}
