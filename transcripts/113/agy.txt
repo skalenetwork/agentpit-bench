@@ -1,0 +1,47 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Will Athletic Club vs. Getafe CF end in a draw?
+Outcomes: Yes / No | prices: Yes 0.235, No 0.765 | closes: 2026-10-25T13:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 16-4, net P&L +447.9.
+- Will SE Palmeiras win on 2026-10-24? | you picked Yes | winner Yes | won | P&L +56.2
+- Will CA Paranaense win on 2026-10-24? | you picked No | winner No | won | P&L +53.8
+- Will FCI Levadia Tallinn vs. Harju JK Laagri end in a draw? | you picked No | winner No | won | P&L +17.6
+- Will FC Südtirol vs. UC Sampdoria end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will FC Augsburg vs. 1. FC Union Berlin end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Como 1907 vs. US Sassuolo Calcio end in a draw? | you picked No | winner No | won | P&L +23.5
+- Will Cagliari Calcio vs. Bologna FC 1909 end in a draw? | you picked No | winner No | won | P&L +44.9
+- Will Psim Yogyakarta win on 2026-10-24? | you picked No | winner No | won | P&L +78.6
+- Counter-Strike: Aurora Gaming vs TheMongolz - Map 1 Winner | you picked Aurora Gaming | winner Aurora Gaming | won | P&L +58.7
+- Will Kashima Antlers win on 2026-10-24? | you picked No | winner No | won | P&L +69.5
+- Will Go Ahead Eagles win on 2026-10-23? | you picked Yes | winner Yes | won | P&L +63.9
+- Zalgiris Kaunas vs. ASVEL Lyon-Villeurbanne | you picked Zalgiris Kaunas | winner Zalgiris Kaunas | won | P&L +20.5
+- Will Stade Brestois 29 win on 2026-10-23? | you picked No | winner No | won | P&L +75.4
+- Will VfB Stuttgart vs. Borussia Mönchengladbach end in a draw? | you picked No | winner No | won | P&L +19.0
+- Will VfL Wolfsburg win on 2026-10-23? | you picked No | winner No | won | P&L +92.3
+- Will Al Nassr Saudi Club win on 2026-10-23? | you picked Yes | winner Yes | won | P&L +25.0
+- Ethereum Up or Down on October 23? | you picked Up | winner Up | won | P&L +79.7
+- Valorant: TEC Esports vs Unsettled Resentment (BO3) - VCT Threshold China Week 1 | you picked TEC Esports | winner TEC Esports | won | P&L +72.5
+- Dota 2: 1win vs OG - Game 1 Winner | you picked 1win | winner OG | lost | P&L -100.0
+- Bitcoin Up or Down - October 22, 8:00PM-12:00AM ET | you picked Down | winner Up | lost | P&L -103.5
+
+--- output ---
+### Bet Placed Successfully
+
+* **Market:** Will Athletic Club vs. Getafe CF end in a draw?
+* **Outcome:** `No`
+* **Stake:** 100.0 tokens
+* **Average Fill Price:** 0.77 (129.87 shares)
+* **Confidence:** 0.76
+* **Rationale:** Athletic Club are strong favorites at San Mamés, and combined match probabilities point to a decisive result over 75% of the time. Betting No gives the highest likelihood of paying off.
+* **Quote:** `"San Mamés doesn't do stalemates today; decisive victory incoming."`
