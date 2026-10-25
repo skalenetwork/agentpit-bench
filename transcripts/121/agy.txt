@@ -1,0 +1,60 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Will Aris Thessaloniki win on 2026-10-25?
+Outcomes: Yes / No | prices: Yes 0.585, No 0.415 | closes: 2026-10-25T17:30:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 17-3, net P&L +586.5.
+- Will Kawasaki Frontale vs. Fagiano Okayama end in a draw? | you picked No | winner No | won | P&L +35.1
+- Will SE Palmeiras win on 2026-10-24? | you picked Yes | winner Yes | won | P&L +56.2
+- Will CA Paranaense win on 2026-10-24? | you picked No | winner No | won | P&L +53.8
+- Will FCI Levadia Tallinn vs. Harju JK Laagri end in a draw? | you picked No | winner No | won | P&L +17.6
+- Will FC Südtirol vs. UC Sampdoria end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will FC Augsburg vs. 1. FC Union Berlin end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Como 1907 vs. US Sassuolo Calcio end in a draw? | you picked No | winner No | won | P&L +23.5
+- Will Cagliari Calcio vs. Bologna FC 1909 end in a draw? | you picked No | winner No | won | P&L +44.9
+- Will Psim Yogyakarta win on 2026-10-24? | you picked No | winner No | won | P&L +78.6
+- Counter-Strike: Aurora Gaming vs TheMongolz - Map 1 Winner | you picked Aurora Gaming | winner Aurora Gaming | won | P&L +58.7
+- Will Kashima Antlers win on 2026-10-24? | you picked No | winner No | won | P&L +69.5
+- Will Go Ahead Eagles win on 2026-10-23? | you picked Yes | winner Yes | won | P&L +63.9
+- Zalgiris Kaunas vs. ASVEL Lyon-Villeurbanne | you picked Zalgiris Kaunas | winner Zalgiris Kaunas | won | P&L +20.5
+- Will Stade Brestois 29 win on 2026-10-23? | you picked No | winner No | won | P&L +75.4
+- Will VfB Stuttgart vs. Borussia Mönchengladbach end in a draw? | you picked No | winner No | won | P&L +19.0
+- Will VfL Wolfsburg win on 2026-10-23? | you picked No | winner No | won | P&L +92.3
+- Will Al Nassr Saudi Club win on 2026-10-23? | you picked Yes | winner Yes | won | P&L +25.0
+- Ethereum Up or Down on October 23? | you picked Up | winner Up | won | P&L +79.7
+- Valorant: TEC Esports vs Unsettled Resentment (BO3) - VCT Threshold China Week 1 | you picked TEC Esports | winner TEC Esports | won | P&L +72.5
+- Dota 2: 1win vs OG - Game 1 Winner | you picked 1win | winner OG | lost | P&L -100.0
+
+--- output ---
+The bet has been placed.
+
+### Match & Market Analysis
+* **Event:** Aris Thessaloniki vs. Atromitos (Greek Stoiximan Super League, Round 8)
+* **Venue & Kickoff:** Kleanthis Vikelidis Stadium, 17:30 UTC
+* **Form & Context:** Aris sit 5th in the league table on back-to-back wins and are undefeated in their last 7 head-to-head encounters against Atromitos. Atromitos entered the round struggling in 13th position with only 2 points.
+* **Sportsbook Pricing:** Major bookmakers priced an Aris home victory around **1.66 – 1.74**, giving Aris an implied win probability of ~**56%–58%**.
+
+---
+
+### Executed Bet
+```bash
+bench bet --outcome Yes --confidence 0.58 \
+  --rationale 'Aris Thessaloniki host struggling Atromitos on a 7-match unbeaten H2H streak and back-to-back league wins. Priced near 1.70 across major sportsbooks, Aris are clear home favorites to claim all three points.' \
+  --quote 'Four models walk into a market, but only one leaves with 18 wins.'
+```
+
+**Order Confirmation:**
+* **Outcome:** `Yes`
+* **Average Fill Price:** `0.59`
+* **Shares Purchased:** `169.49`
+* **Stake Filled:** `100.0` tokens
