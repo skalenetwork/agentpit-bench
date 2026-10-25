@@ -1,0 +1,44 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+22026 | Will Molde FK win on 2026-10-18? | Yes 0.715, No 0.285 | 2026-10-18T15:00:00Z
+22016 | Bitcoin Up or Down - October 18, 2AM ET | Up 0.485, Down 0.515 | 2026-10-18T07:00:00Z
+22025 | Will FC Machida Zelvia vs. Avispa Fukuoka end in a draw? | Yes 0.275, No 0.725 | 2026-10-18T07:00:00Z
+22024 | Valorant: LOUD vs Team Vitality - Map 2 Winner | LOUD 0.465, Team Vitality 0.535 | 2026-10-18T10:00:00Z
+16159 | Will Trump's approval rating be at least 39.0 on October 23, 2026? | Yes 0.365, No 0.635 | 2026-10-24T03:59:00Z
+21968 | Will Union Pacific (UNP) beat quarterly earnings? | Yes 0.500, No 0.500 | 2026-10-22T13:00:00Z
+22019 | Will GAIS win on 2026-10-18? | Yes 0.625, No 0.375 | 2026-10-18T14:30:00Z
+21958 | Will Bitcoin dip to $81,000 on October 18? | Yes 0.445, No 0.555 | 2026-10-19T04:00:00Z
+22021 | Will Sisaket United FC vs. BG Pathum United end in a draw? | Yes 0.310, No 0.690 | 2026-10-18T11:00:00Z
+22023 | Counter-Strike: BC.Game Esports vs Drama eSports (BO1) - DraculaN Group B | BC.Game Esports 0.760, Drama eSports 0.240 | 2026-10-19T15:00:00Z
+12960 | Will Trump say "Osama Bin Laden" this week? | Yes 0.225, No 0.775 | 2026-10-19T03:59:00Z
+21625 | Will Procter & Gamble (PG) beat quarterly earnings? | Yes 0.325, No 0.675 | 2026-10-22T13:00:00Z
+22008 | Will FC Salzburg win on 2026-10-18? | Yes 0.715, No 0.285 | 2026-10-18T12:30:00Z
+21957 | Will Bitcoin reach $82,000 on October 18? | Yes 0.790, No 0.210 | 2026-10-19T04:00:00Z
+21980 | Yokohama B-Corsairs vs. Levanga Hokkaido | Yokohama B-Corsairs 0.260, Levanga Hokkaido 0.740 | 2026-10-25T06:05:00Z
+22022 | Counter-Strike: Falcons Force vs maybe (BO3) - CCT Europe Challengers Series Playoffs | Falcons Force 0.615, maybe 0.385 | 2026-10-18T17:00:00Z
+7494 | Will Donald Trump post 140-159 Truth Social posts from October 16 to October 23, 2026? | Yes 0.183, No 0.817 | 2026-10-23T16:00:00Z
+21624 | Will Tractor Supply (TSCO) beat quarterly earnings? | Yes 0.260, No 0.740 | 2026-10-22T13:00:00Z
+22005 | Will Orgryte IS win on 2026-10-18? | Yes 0.165, No 0.835 | 2026-10-18T14:30:00Z
+21956 | Will Bitcoin reach $83,000 on October 18? | Yes 0.205, No 0.795 | 2026-10-19T04:00:00Z
+21979 | Will Real Valladolid CF vs. CD Eldense end in a draw? | Yes 0.295, No 0.705 | 2026-10-18T16:30:00Z
+22020 | Valorant: LOUD vs Team Vitality - Map 3 Winner | LOUD 0.605, Team Vitality 0.395 | 2026-10-18T11:00:00Z
+7493 | Will Donald Trump post 120-139 Truth Social posts from October 16 to October 23, 2026? | Yes 0.190, No 0.810 | 2026-10-23T16:00:00Z
+21417 | Will Ally (ALLY) beat quarterly earnings? | Yes 0.385, No 0.615 | 2026-10-20T13:00:00Z
+21987 | Will Shaanxi Union FC win on 2026-10-18? | Yes 0.435, No 0.565 | 2026-10-18T08:00:00Z
+21911 | Will Ethereum dip to $2,350 on October 18? | Yes 0.200, No 0.800 | 2026-10-19T04:00:00Z
+21941 | Seoul Knights vs. Goyang | Seoul Knights 0.485, Goyang 0.515 | 2026-10-25T05:00:00Z
+21826 | Dota 2: ALOHADANCE Team vs Stariy bog Team - Game 1 Winner | ALOHADANCE Team 0.185, Stariy bog Team 0.815 | 2026-10-18T19:00:00Z
+7492 | Will Donald Trump post 100-119 Truth Social posts from October 16 to October 23, 2026? | Yes 0.253, No 0.747 | 2026-10-23T16:00:00Z
+20735 | Will Honeywell (HON) beat quarterly earnings? | Yes 0.815, No 0.185 | 2026-10-22T13:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"forecasts": [{"id": "22026", "probabilities": {"Yes": 0.73, "No": 0.27}}, {"id": "22016", "probabilities": {"Up": 0.51, "Down": 0.49}}, {"id": "22025", "probabilities": {"Yes": 0.27, "No": 0.73}}, {"id": "22024", "probabilities": {"LOUD": 0.46, "Team Vitality": 0.54}}, {"id": "16159", "probabilities": {"Yes": 0.33, "No": 0.67}}, {"id": "21968", "probabilities": {"Yes": 0.53, "No": 0.47}}, {"id": "22019", "probabilities": {"Yes": 0.59, "No": 0.41}}, {"id": "21958", "probabilities": {"Yes": 0.45, "No": 0.55}}, {"id": "22021", "probabilities": {"Yes": 0.29, "No": 0.71}}, {"id": "22023", "probabilities": {"BC.Game Esports": 0.76, "Drama eSports": 0.24}}, {"id": "12960", "probabilities": {"Yes": 0.08, "No": 0.92}}, {"id": "21625", "probabilities": {"Yes": 0.33, "No": 0.67}}, {"id": "22008", "probabilities": {"Yes": 0.73, "No": 0.27}}, {"id": "21957", "probabilities": {"Yes": 0.81, "No": 0.19}}, {"id": "21980", "probabilities": {"Yokohama B-Corsairs": 0.28, "Levanga Hokkaido": 0.72}}, {"id": "22022", "probabilities": {"Falcons Force": 0.62, "maybe": 0.38}}, {"id": "7494", "probabilities": {"Yes": 0.18, "No": 0.82}}, {"id": "21624", "probabilities": {"Yes": 0.24, "No": 0.76}}, {"id": "22005", "probabilities": {"Yes": 0.165, "No": 0.835}}, {"id": "21956", "probabilities": {"Yes": 0.2, "No": 0.8}}, {"id": "21979", "probabilities": {"Yes": 0.29, "No": 0.71}}, {"id": "22020", "probabilities": {"LOUD": 0.61, "Team Vitality": 0.39}}, {"id": "7493", "probabilities": {"Yes": 0.19, "No": 0.81}}, {"id": "21417", "probabilities": {"Yes": 0.39, "No": 0.61}}, {"id": "21987", "probabilities": {"Yes": 0.43, "No": 0.57}}, {"id": "21911", "probabilities": {"Yes": 0.2, "No": 0.8}}, {"id": "21941", "probabilities": {"Seoul Knights": 0.49, "Goyang": 0.51}}, {"id": "21826", "probabilities": {"ALOHADANCE Team": 0.18, "Stariy bog Team": 0.82}}, {"id": "7492", "probabilities": {"Yes": 0.25, "No": 0.75}}, {"id": "20735", "probabilities": {"Yes": 0.82, "No": 0.18}}]}

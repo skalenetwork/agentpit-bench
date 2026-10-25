@@ -1,0 +1,852 @@
+$ codex exec <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+22026 | Will Molde FK win on 2026-10-18? | Yes 0.715, No 0.285 | 2026-10-18T15:00:00Z
+22016 | Bitcoin Up or Down - October 18, 2AM ET | Up 0.485, Down 0.515 | 2026-10-18T07:00:00Z
+22025 | Will FC Machida Zelvia vs. Avispa Fukuoka end in a draw? | Yes 0.275, No 0.725 | 2026-10-18T07:00:00Z
+22024 | Valorant: LOUD vs Team Vitality - Map 2 Winner | LOUD 0.465, Team Vitality 0.535 | 2026-10-18T10:00:00Z
+16159 | Will Trump's approval rating be at least 39.0 on October 23, 2026? | Yes 0.365, No 0.635 | 2026-10-24T03:59:00Z
+21968 | Will Union Pacific (UNP) beat quarterly earnings? | Yes 0.500, No 0.500 | 2026-10-22T13:00:00Z
+22019 | Will GAIS win on 2026-10-18? | Yes 0.625, No 0.375 | 2026-10-18T14:30:00Z
+21958 | Will Bitcoin dip to $81,000 on October 18? | Yes 0.445, No 0.555 | 2026-10-19T04:00:00Z
+22021 | Will Sisaket United FC vs. BG Pathum United end in a draw? | Yes 0.310, No 0.690 | 2026-10-18T11:00:00Z
+22023 | Counter-Strike: BC.Game Esports vs Drama eSports (BO1) - DraculaN Group B | BC.Game Esports 0.760, Drama eSports 0.240 | 2026-10-19T15:00:00Z
+12960 | Will Trump say "Osama Bin Laden" this week? | Yes 0.225, No 0.775 | 2026-10-19T03:59:00Z
+21625 | Will Procter & Gamble (PG) beat quarterly earnings? | Yes 0.325, No 0.675 | 2026-10-22T13:00:00Z
+22008 | Will FC Salzburg win on 2026-10-18? | Yes 0.715, No 0.285 | 2026-10-18T12:30:00Z
+21957 | Will Bitcoin reach $82,000 on October 18? | Yes 0.790, No 0.210 | 2026-10-19T04:00:00Z
+21980 | Yokohama B-Corsairs vs. Levanga Hokkaido | Yokohama B-Corsairs 0.260, Levanga Hokkaido 0.740 | 2026-10-25T06:05:00Z
+22022 | Counter-Strike: Falcons Force vs maybe (BO3) - CCT Europe Challengers Series Playoffs | Falcons Force 0.615, maybe 0.385 | 2026-10-18T17:00:00Z
+7494 | Will Donald Trump post 140-159 Truth Social posts from October 16 to October 23, 2026? | Yes 0.183, No 0.817 | 2026-10-23T16:00:00Z
+21624 | Will Tractor Supply (TSCO) beat quarterly earnings? | Yes 0.260, No 0.740 | 2026-10-22T13:00:00Z
+22005 | Will Orgryte IS win on 2026-10-18? | Yes 0.165, No 0.835 | 2026-10-18T14:30:00Z
+21956 | Will Bitcoin reach $83,000 on October 18? | Yes 0.205, No 0.795 | 2026-10-19T04:00:00Z
+21979 | Will Real Valladolid CF vs. CD Eldense end in a draw? | Yes 0.295, No 0.705 | 2026-10-18T16:30:00Z
+22020 | Valorant: LOUD vs Team Vitality - Map 3 Winner | LOUD 0.605, Team Vitality 0.395 | 2026-10-18T11:00:00Z
+7493 | Will Donald Trump post 120-139 Truth Social posts from October 16 to October 23, 2026? | Yes 0.190, No 0.810 | 2026-10-23T16:00:00Z
+21417 | Will Ally (ALLY) beat quarterly earnings? | Yes 0.385, No 0.615 | 2026-10-20T13:00:00Z
+21987 | Will Shaanxi Union FC win on 2026-10-18? | Yes 0.435, No 0.565 | 2026-10-18T08:00:00Z
+21911 | Will Ethereum dip to $2,350 on October 18? | Yes 0.200, No 0.800 | 2026-10-19T04:00:00Z
+21941 | Seoul Knights vs. Goyang | Seoul Knights 0.485, Goyang 0.515 | 2026-10-25T05:00:00Z
+21826 | Dota 2: ALOHADANCE Team vs Stariy bog Team - Game 1 Winner | ALOHADANCE Team 0.185, Stariy bog Team 0.815 | 2026-10-18T19:00:00Z
+7492 | Will Donald Trump post 100-119 Truth Social posts from October 16 to October 23, 2026? | Yes 0.253, No 0.747 | 2026-10-23T16:00:00Z
+20735 | Will Honeywell (HON) beat quarterly earnings? | Yes 0.815, No 0.185 | 2026-10-22T13:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+WARNING: proceeding, even though we could not create PATH aliases: Refusing to create helper binaries under temporary dir "/tmp" (codex_home: AbsolutePathBuf("/tmp/apbh-codex-rxv84v9l/.codex"))
+Reading additional input from stdin...
+OpenAI Codex v0.161.0
+--------
+workdir: /tmp/apb-sweep-codex-g9fgdzxj
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: max
+reasoning summaries: none
+session id: 01a14da2-dbdd-7c00-9263-c0e7018ba148
+--------
+user
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+22026 | Will Molde FK win on 2026-10-18? | Yes 0.715, No 0.285 | 2026-10-18T15:00:00Z
+22016 | Bitcoin Up or Down - October 18, 2AM ET | Up 0.485, Down 0.515 | 2026-10-18T07:00:00Z
+22025 | Will FC Machida Zelvia vs. Avispa Fukuoka end in a draw? | Yes 0.275, No 0.725 | 2026-10-18T07:00:00Z
+22024 | Valorant: LOUD vs Team Vitality - Map 2 Winner | LOUD 0.465, Team Vitality 0.535 | 2026-10-18T10:00:00Z
+16159 | Will Trump's approval rating be at least 39.0 on October 23, 2026? | Yes 0.365, No 0.635 | 2026-10-24T03:59:00Z
+21968 | Will Union Pacific (UNP) beat quarterly earnings? | Yes 0.500, No 0.500 | 2026-10-22T13:00:00Z
+22019 | Will GAIS win on 2026-10-18? | Yes 0.625, No 0.375 | 2026-10-18T14:30:00Z
+21958 | Will Bitcoin dip to $81,000 on October 18? | Yes 0.445, No 0.555 | 2026-10-19T04:00:00Z
+22021 | Will Sisaket United FC vs. BG Pathum United end in a draw? | Yes 0.310, No 0.690 | 2026-10-18T11:00:00Z
+22023 | Counter-Strike: BC.Game Esports vs Drama eSports (BO1) - DraculaN Group B | BC.Game Esports 0.760, Drama eSports 0.240 | 2026-10-19T15:00:00Z
+12960 | Will Trump say "Osama Bin Laden" this week? | Yes 0.225, No 0.775 | 2026-10-19T03:59:00Z
+21625 | Will Procter & Gamble (PG) beat quarterly earnings? | Yes 0.325, No 0.675 | 2026-10-22T13:00:00Z
+22008 | Will FC Salzburg win on 2026-10-18? | Yes 0.715, No 0.285 | 2026-10-18T12:30:00Z
+21957 | Will Bitcoin reach $82,000 on October 18? | Yes 0.790, No 0.210 | 2026-10-19T04:00:00Z
+21980 | Yokohama B-Corsairs vs. Levanga Hokkaido | Yokohama B-Corsairs 0.260, Levanga Hokkaido 0.740 | 2026-10-25T06:05:00Z
+22022 | Counter-Strike: Falcons Force vs maybe (BO3) - CCT Europe Challengers Series Playoffs | Falcons Force 0.615, maybe 0.385 | 2026-10-18T17:00:00Z
+7494 | Will Donald Trump post 140-159 Truth Social posts from October 16 to October 23, 2026? | Yes 0.183, No 0.817 | 2026-10-23T16:00:00Z
+21624 | Will Tractor Supply (TSCO) beat quarterly earnings? | Yes 0.260, No 0.740 | 2026-10-22T13:00:00Z
+22005 | Will Orgryte IS win on 2026-10-18? | Yes 0.165, No 0.835 | 2026-10-18T14:30:00Z
+21956 | Will Bitcoin reach $83,000 on October 18? | Yes 0.205, No 0.795 | 2026-10-19T04:00:00Z
+21979 | Will Real Valladolid CF vs. CD Eldense end in a draw? | Yes 0.295, No 0.705 | 2026-10-18T16:30:00Z
+22020 | Valorant: LOUD vs Team Vitality - Map 3 Winner | LOUD 0.605, Team Vitality 0.395 | 2026-10-18T11:00:00Z
+7493 | Will Donald Trump post 120-139 Truth Social posts from October 16 to October 23, 2026? | Yes 0.190, No 0.810 | 2026-10-23T16:00:00Z
+21417 | Will Ally (ALLY) beat quarterly earnings? | Yes 0.385, No 0.615 | 2026-10-20T13:00:00Z
+21987 | Will Shaanxi Union FC win on 2026-10-18? | Yes 0.435, No 0.565 | 2026-10-18T08:00:00Z
+21911 | Will Ethereum dip to $2,350 on October 18? | Yes 0.200, No 0.800 | 2026-10-19T04:00:00Z
+21941 | Seoul Knights vs. Goyang | Seoul Knights 0.485, Goyang 0.515 | 2026-10-25T05:00:00Z
+21826 | Dota 2: ALOHADANCE Team vs Stariy bog Team - Game 1 Winner | ALOHADANCE Team 0.185, Stariy bog Team 0.815 | 2026-10-18T19:00:00Z
+7492 | Will Donald Trump post 100-119 Truth Social posts from October 16 to October 23, 2026? | Yes 0.253, No 0.747 | 2026-10-23T16:00:00Z
+20735 | Will Honeywell (HON) beat quarterly earnings? | Yes 0.815, No 0.185 | 2026-10-22T13:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+codex
+I’ll check the available news and event data, use the supplied prices as a baseline, and return forecasts for all 30 markets within the time limit.
+
+web search: 
+web search: Molde October 18 2026 match ...
+web search: 
+web search: 
+web search: 
+web search: 
+web search: "Molde" "Start" "18 October 2026" odds ...
+web search: "Bitcoin Up or Down" "October 18, 2AM ET" 2026 ...
+web search: "Union Pacific" "October 22, 2026" earnings estimates ...
+web search: "Ally" "October 20, 2026" earnings ...
+web search: 
+web search: 
+web search: 
+web search: 
+web search: Machida Zelvia Avispa Fukuoka October 18 2026 odds ...
+web search: site:polymarket.com "approval rating" "October 23, 2026" ...
+web search: LOUD Vitality October 18 2026 Valorant map 2 map 3 odds ...
+web search: Real Valladolid Eldense October 18 2026 odds ...
+codex
+I’ve found sportsbook comparisons for several matches and the approval market’s resolution source. I’m checking earnings thresholds and the overlapping crypto and posting markets next, so the forecasts remain consistent.
+
+web search: 
+web search: 
+web search: 
+web search: 
+web search: "Procter" "Gamble" "earnings" "October" "2026" expectations ...
+web search: "Salzburg" "18.10.2026" odds ...
+web search: site:binance.com "BTC" "81,6" "2026-10-18" ...
+web search: "Trump" "Osama Bin Laden" "this week" "October" "2026" Polymarket ...
+web search: 
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,json,datetime
+urls = {'btc':'https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT','eth':'https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT','btc_1h':'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=12'}
+for k,u in urls.items():
+ try:
+  r=urllib.request.urlopen(u,timeout=15)
+  print(k,r.read().decode()[:9000])
+ except Exception as e: print(k,str(e))
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+ succeeded in 947ms:
+btc {"symbol":"BTCUSDT","price":"81771.11000000"}
+eth {"symbol":"ETHUSDT","price":"2413.91000000"}
+btc_1h [[1792263600000,"81509.86000000","81659.06000000","81470.01000000","81600.00000000","362.28563000",1792267199999,"29554715.06954760",38906,"169.53854000","13831214.82114260","0"],[1792267200000,"81600.00000000","81658.98000000","81597.50000000","81657.86000000","458.94636000",1792270799999,"37461730.78709390",23181,"282.72092000","23077123.28962030","0"],[1792270800000,"81657.87000000","81700.00000000","80819.66000000","81139.36000000","681.75265000",1792274399999,"55367694.54068430",112529,"289.86901000","23539354.26845580","0"],[1792274400000,"81139.36000000","81458.01000000","81139.36000000","81355.91000000","248.53944000",1792277999999,"20208268.65862510",64372,"146.28179000","11893591.72997450","0"],[1792278000000,"81355.91000000","81494.01000000","81216.54000000","81491.04000000","180.26434000",1792281599999,"14665058.78165010",40497,"91.15320000","7416973.71913120","0"],[1792281600000,"81491.04000000","81599.51000000","81403.25000000","81542.73000000","346.88760000",1792285199999,"28262361.61615240",46229,"145.97239000","11894120.60818200","0"],[1792285200000,"81542.73000000","81897.89000000","81527.36000000","81657.38000000","380.98814000",1792288799999,"31127531.70698020",75452,"221.14560000","18069190.90398450","0"],[1792288800000,"81657.38000000","81839.34000000","81592.16000000","81830.84000000","538.61116000",1792292399999,"44012149.92487700",83414,"381.68564000","31187310.89856910","0"],[1792292400000,"81830.85000000","82078.00000000","81779.18000000","81960.00000000","343.08106000",1792295999999,"28101147.12921490",51020,"244.52845000","20029123.15239200","0"],[1792296000000,"81960.01000000","81960.01000000","81785.04000000","81801.00000000","210.68945000",1792299599999,"17249261.22800130",30537,"104.94169000","8591425.81787690","0"],[1792299600000,"81801.00000000","81872.63000000","81669.42000000","81734.46000000","190.36975000",1792303199999,"15563759.65583300",26116,"113.11940000","9248162.87915440","0"],[1792303200000,"81734.46000000","81788.54000000","81728.92000000","81771.11000000","84.10212000",1792306799999,"6875447.63077350",6033,"53.13564000","4343637.41920980","0"]]
+
+web search: https://polymarket.com/event/trump-approval-rating-at-least-on-october-23
+web search: Trump "October 17, 2026" "Osama" speech ...
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,urllib.parse,json,concurrent.futures
+queries=['Procter Gamble earnings','Ally earnings','Tractor Supply earnings','Union Pacific earnings','Honeywell earnings','Bitcoin October 18','Trump Osama this week','Donald Trump Truth Social October 16 October 23']
+def search(q):
+ try:
+  u='https://gamma-api.polymarket.com/public-search?'+urllib.parse.urlencode({'q':q,'limit_per_type':10})
+  data=json.load(urllib.request.urlopen(u,timeout=15))
+  out=[]
+  for e in data.get('events',[]):
+   out.append({'title':e.get('title'),'slug':e.get('slug'),'description':e.get('description'),'endDate':e.get('endDate'),'markets':[{'question':m.get('question'),'outcomes':m.get('outcomes'),'outcomePrices':m.get('outcomePrices'),'volume':m.get('volume'),'description':m.get('description')} for m in e.get('markets',[])][:20]})
+  return {'query':q,'events':out}
+ except Exception as e:return {'query':q,'error':str(e)}
+for x in concurrent.futures.ThreadPoolExecutor(max_workers=8).map(search,queries):print(json.dumps(x))
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+ succeeded in 29ms:
+{"query": "Procter Gamble earnings", "error": "HTTP Error 403: Forbidden"}
+{"query": "Ally earnings", "error": "HTTP Error 403: Forbidden"}
+{"query": "Tractor Supply earnings", "error": "HTTP Error 403: Forbidden"}
+{"query": "Union Pacific earnings", "error": "HTTP Error 403: Forbidden"}
+{"query": "Honeywell earnings", "error": "HTTP Error 403: Forbidden"}
+{"query": "Bitcoin October 18", "error": "HTTP Error 403: Forbidden"}
+{"query": "Trump Osama this week", "error": "HTTP Error 403: Forbidden"}
+{"query": "Donald Trump Truth Social October 16 October 23", "error": "HTTP Error 403: Forbidden"}
+
+web search: 
+web search: "Trump" "midterm convention" "September 9, 2026" ...
+web search: 
+web search: 
+web search: 
+web search: "Falcons Force" "maybe" "18.10.2026" ...
+web search: site:polymarket.com/event/ "procter" "10-22-2026" ...
+web search: "Yokohama B-Corsairs" "Levanga Hokkaido" "18 October 2026" score ...
+web search: 
+web search: 
+web search: 
+web search: "Procter" "beat quarterly earnings" "October" ...
+web search: "Procter" "October 15, 2026" "ESP" ...
+web search: https://polymarket.com/event/ally-quarterly-earnings-nongaap-eps-10-20-2026-1pt43?outcomeIndex=1
+web search: 
+web search: 
+web search: 
+web search: https://polymarket.com/pl/finance/stocks
+web search: https://www.sofascore.com/basketball/match/yokohamacorsairs-levanga-hokkaido/ewZsNQZ
+web search: site:realclearpolling.com "President Trump Job Approval" "38.7" "October" ...
+codex
+Several recently indexed pages describe older events, so I’m verifying event dates before using them. I’m also checking live scores where the listed market close falls after the match itself.
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,json,concurrent.futures
+urls={'basketball':'https://www.sofascore.com/api/v1/sport/basketball/scheduled-events/2026-10-18','basketball_api':'https://api.sofascore.com/api/v1/sport/basketball/scheduled-events/2026-10-18','poly_stocks':'https://polymarket.com/finance/stocks'}
+def get(kv):
+ k,u=kv
+ try:
+  raw=urllib.request.urlopen(u,timeout=15).read().decode()
+  if 'basketball' in k:
+   d=json.loads(raw)
+   return k,[e for e in d.get('events',[]) if any(x in str(e) for x in ['Yokohama','Goyang','Seoul SK'])]
+  import re
+  return k,sorted(set(x for x in re.findall(r'["'^'"\\s<>\"\\\\]+quarterly-earnings["'^'"\\s<>\"\\\\]+',raw)))
+ except Exception as e:return k,str(e)
+for r in concurrent.futures.ThreadPoolExecutor(max_workers=3).map(get,urls.items()):print(json.dumps(r))
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+ succeeded in 0ms:
+["basketball", "HTTP Error 403: Forbidden"]
+["basketball_api", "HTTP Error 403: Forbidden"]
+["poly_stocks", "HTTP Error 403: Forbidden"]
+
+web search: 
+web search: 
+web search: 
+web search: "Procter & Gamble" "October 22, 2026" "GAAP" ...
+web search: site:realclearpolling.com/polls/approval/donald-trump/approval-rating "October" "2026" "RCP Average" ...
+web search: "Tractor Supply" "October 22, 2026" "GAAP" ...
+web search: 
+web search: 
+web search: 
+web search: "Team alohadance" "Team Stariy bog" "18.10.2026" "П1" ...
+web search: "Yokohama" "Hokkaido" "18.10.2026" "live" ...
+web search: site:polymarket.com "Procter & Gamble" "Street consensus" "2026" ...
+web search: 
+web search: 
+web search: 
+web search: "ALOHADANCE Team" "Stariy bog Team" "odds" "October 18" ...
+web search: 横浜BC 北海道 2026 10 18 速報 ...
+web search: "Trump" "Truth Social" "October 16" "October 23" "2026" count posts ...
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,json,concurrent.futures
+urls={'trump_user':'https://xtracker.polymarket.com/api/users/realDonaldTrump','trump_trackings':'https://xtracker.polymarket.com/api/users/realDonaldTrump/trackings','xtracker_docs':'https://xtracker.polymarket.com/api/docs','bleague':'https://www.bleague.jp/game_detail/?ScheduleKey=506474&tab=1'}
+def get(kv):
+ k,u=kv
+ try:
+  s=urllib.request.urlopen(u,timeout=15).read().decode()
+  if k=='bleague':
+   import re
+   return k,{'size':len(s),'scripts':re.findall(r'<script["'^>]+src=['"\\\"\\'](["'^'"\\\"\\']+)',s),'scores':[m.group() for m in re.finditer(r'.{0,100}(?:HomeTeamScore|AwayTeamScore|ScoreTotal|506474|score|Score).{0,150}',s)][:50]}
+  return k,s[:18000]
+ except Exception as e:return k,str(e)
+for r in concurrent.futures.ThreadPoolExecutor(max_workers=4).map(get,urls.items()):print(json.dumps(r))
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+ succeeded in 479ms:
+["trump_user", "{\"success\":true,\"data\":{\"id\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"handle\":\"realDonaldTrump\",\"name\":\"Donald J. Trump\",\"platform\":\"TRUTH_SOCIAL\",\"platformId\":\"107780257626128497\",\"avatarUrl\":\"https://static-assets-1.truthsocial.com/tmtg:prime-ts-assets/accounts/avatars/107/780/257/626/128/497/original/454286ac07a6f6e6.jpeg\",\"bio\":\"<p></p>\",\"verified\":true,\"lastSync\":\"2026-10-18T06:12:28.821Z\",\"lastSyncError\":null,\"createdAt\":\"2026-01-21T16:44:31.437Z\",\"updatedAt\":\"2026-10-18T06:12:28.822Z\",\"trackings\":[{\"id\":\"3dce0717-0f38-4c6f-a332-4bb003177098\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts October 20 - October 27, 2026?\",\"startDate\":\"2026-10-20T16:00:00.000Z\",\"endDate\":\"2026-10-27T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-october-20-october-27-2026\",\"isActive\":true,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-10-17T04:00:03.157Z\",\"updatedAt\":\"2026-10-17T04:00:03.157Z\"},{\"id\":\"a8092236-aed7-404f-93b1-ea9c79466f2e\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts October 16 - October 23, 2026?\",\"startDate\":\"2026-10-16T16:00:00.000Z\",\"endDate\":\"2026-10-23T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-october-16-october-23-2026\",\"isActive\":true,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-10-13T04:00:05.224Z\",\"updatedAt\":\"2026-10-13T04:00:05.224Z\"},{\"id\":\"dbe94686-57bf-43a0-a6ed-0d708d3aee55\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts October 13 - October 20, 2026?\",\"startDate\":\"2026-10-13T16:00:00.000Z\",\"endDate\":\"2026-10-20T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-october-13-october-20-2026\",\"isActive\":true,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-10-10T04:00:03.411Z\",\"updatedAt\":\"2026-10-10T04:00:03.411Z\"}],\"_count\":{\"posts\":5667}}}"]
+["trump_trackings", "{\"success\":true,\"data\":[{\"id\":\"3dce0717-0f38-4c6f-a332-4bb003177098\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts October 20 - October 27, 2026?\",\"startDate\":\"2026-10-20T16:00:00.000Z\",\"endDate\":\"2026-10-27T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-october-20-october-27-2026\",\"isActive\":true,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-10-17T04:00:03.157Z\",\"updatedAt\":\"2026-10-17T04:00:03.157Z\"},{\"id\":\"a8092236-aed7-404f-93b1-ea9c79466f2e\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts October 16 - October 23, 2026?\",\"startDate\":\"2026-10-16T16:00:00.000Z\",\"endDate\":\"2026-10-23T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-october-16-october-23-2026\",\"isActive\":true,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-10-13T04:00:05.224Z\",\"updatedAt\":\"2026-10-13T04:00:05.224Z\"},{\"id\":\"dbe94686-57bf-43a0-a6ed-0d708d3aee55\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts October 13 - October 20, 2026?\",\"startDate\":\"2026-10-13T16:00:00.000Z\",\"endDate\":\"2026-10-20T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-october-13-october-20-2026\",\"isActive\":true,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-10-10T04:00:03.411Z\",\"updatedAt\":\"2026-10-10T04:00:03.411Z\"},{\"id\":\"145f8d12-0cc7-42c6-97c2-f8c3e519c944\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts October 9 - October 16, 2026?\",\"startDate\":\"2026-10-09T16:00:00.000Z\",\"endDate\":\"2026-10-16T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-october-9-october-16-2026\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-10-06T04:00:03.626Z\",\"updatedAt\":\"2026-10-16T16:00:26.821Z\"},{\"id\":\"56f42199-77ce-41ff-acf4-c40fd56de851\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts October 6 - October 13, 2026?\",\"startDate\":\"2026-10-06T16:00:00.000Z\",\"endDate\":\"2026-10-13T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-october-6-october-13-2026\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-10-03T04:00:03.984Z\",\"updatedAt\":\"2026-10-13T16:00:31.105Z\"},{\"id\":\"1f1a0254-7f71-447a-9a10-9be2b8d016de\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts October 2 - October 9, 2026?\",\"startDate\":\"2026-10-02T16:00:00.000Z\",\"endDate\":\"2026-10-09T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-october-2-october-9-2026\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-09-29T04:00:04.321Z\",\"updatedAt\":\"2026-10-09T16:00:26.416Z\"},{\"id\":\"6ae38c39-2b4f-4f29-919a-b2a96fe65961\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts September 29 - October 6, 2026?\",\"startDate\":\"2026-09-29T16:00:00.000Z\",\"endDate\":\"2026-10-06T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-september-29-october-6-2026\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-09-26T04:00:05.668Z\",\"updatedAt\":\"2026-10-06T16:00:29.203Z\"},{\"id\":\"724b988a-4930-4dae-bc87-77b37f185a0d\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts September 25 - October 2, 2026?\",\"startDate\":\"2026-09-25T16:00:00.000Z\",\"endDate\":\"2026-10-02T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-september-25-october-2-2026\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-09-22T04:00:04.501Z\",\"updatedAt\":\"2026-10-02T16:00:26.683Z\"},{\"id\":\"b227d84b-f6f8-4378-a4a8-1833b8c41ee4\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts September 22 - September 29, 2026?\",\"startDate\":\"2026-09-22T16:00:00.000Z\",\"endDate\":\"2026-09-29T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-september-22-september-29-2026\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-09-19T04:00:04.569Z\",\"updatedAt\":\"2026-09-29T16:00:26.533Z\"},{\"id\":\"351bf11c-49a1-4f17-9a4b-c6d1539808eb\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts September 18 - September 25, 2026?\",\"startDate\":\"2026-09-18T16:00:00.000Z\",\"endDate\":\"2026-09-25T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-september-18-september-25-2026\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-09-15T04:00:10.964Z\",\"updatedAt\":\"2026-09-25T16:00:26.311Z\"},{\"id\":\"8874e516-d855-4d8a-b821-e010aa1e166a\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts September 15 - September 22, 2026?\",\"startDate\":\"2026-09-15T16:00:00.000Z\",\"endDate\":\"2026-09-22T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-september-15-september-22-2026\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-09-12T04:00:03.893Z\",\"updatedAt\":\"2026-09-22T16:00:31.701Z\"},{\"id\":\"d24a9cce-797e-4b5b-969a-5be806d003f2\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts September 11 - September 18, 2026?\",\"startDate\":\"2026-09-11T16:00:00.000Z\",\"endDate\":\"2026-09-18T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-september-11-september-18-2026\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-09-08T04:00:09.065Z\",\"updatedAt\":\"2026-09-18T16:00:26.702Z\"},{\"id\":\"cc880733-45a3-4412-9df4-061469468874\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts September 8 - September 15, 2026?\",\"startDate\":\"2026-09-08T16:00:00.000Z\",\"endDate\":\"2026-09-15T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-september-8-september-15-2026\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-09-05T04:00:03.269Z\",\"updatedAt\":\"2026-09-15T16:00:27.501Z\"},{\"id\":\"7270bc06-a79d-48b7-b484-3f3f1e56a7bd\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts September 4 - September 11, 2026?\",\"startDate\":\"2026-09-04T16:00:00.000Z\",\"endDate\":\"2026-09-11T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-september-4-september-11-2026\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-09-01T04:00:03.889Z\",\"updatedAt\":\"2026-09-11T16:00:26.437Z\"},{\"id\":\"5a1f8b82-b058-4fca-8785-2fbe7b95799f\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts September 1 - September 8, 2026?\",\"startDate\":\"2026-09-01T16:00:00.000Z\",\"endDate\":\"2026-09-08T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-september-1-september-8-2026\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-08-29T04:00:03.180Z\",\"updatedAt\":\"2026-09-08T16:00:27.084Z\"},{\"id\":\"3573b835-6cc2-44dd-a80e-b58f72b09141\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts August 28 - September 4, 2026?\",\"startDate\":\"2026-08-28T16:00:00.000Z\",\"endDate\":\"2026-09-04T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-august-28-september-4-2026\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-08-25T04:00:04.053Z\",\"updatedAt\":\"2026-09-04T16:01:24.553Z\"},{\"id\":\"0c275343-db0e-4a23-a6cf-57f11c7b2305\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts August 25 - September 1, 2026?\",\"startDate\":\"2026-08-25T16:00:00.000Z\",\"endDate\":\"2026-09-01T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-august-25-september-1-2026\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-08-22T04:00:04.259Z\",\"updatedAt\":\"2026-09-01T16:00:28.475Z\"},{\"id\":\"f32041bd-b09a-4a6a-a281-2f031e100217\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts August 21 - August 28, 2026?\",\"startDate\":\"2026-08-21T16:00:00.000Z\",\"endDate\":\"2026-08-28T16:00:59.000Z\",\"target\":null,\"marketLink\":null,\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-08-19T22:06:13.375Z\",\"updatedAt\":\"2026-08-28T16:01:26.380Z\"},{\"id\":\"96ac4a99-36e3-4a45-9a1d-407d325a5452\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts August 18 - August 25, 2026?\",\"startDate\":\"2026-08-18T16:00:00.000Z\",\"endDate\":\"2026-08-25T16:00:59.000Z\",\"target\":null,\"marketLink\":null,\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-08-19T22:05:44.634Z\",\"updatedAt\":\"2026-08-25T16:01:32.714Z\"},{\"id\":\"18d9e3c9-84f6-45a9-876a-ef7ea8363b5a\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts August 14 - August 21, 2026?\",\"startDate\":\"2026-08-14T16:00:00.000Z\",\"endDate\":\"2026-08-21T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-august-14-august-21\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-08-11T04:00:09.765Z\",\"updatedAt\":\"2026-08-21T16:01:32.802Z\"},{\"id\":\"31497ae1-368a-45f6-811a-fbadb5f89edb\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts August 11 - August 18, 2026?\",\"startDate\":\"2026-08-11T16:00:00.000Z\",\"endDate\":\"2026-08-18T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-august-11-august-18\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-08-08T04:00:08.532Z\",\"updatedAt\":\"2026-08-18T16:01:32.346Z\"},{\"id\":\"142b9f2f-33b1-470e-8d41-e91dbee9e4ba\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts August 7 - August 14, 2026?\",\"startDate\":\"2026-08-07T16:00:00.000Z\",\"endDate\":\"2026-08-14T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-august-7-august-14\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-08-04T04:00:07.288Z\",\"updatedAt\":\"2026-08-14T16:00:32.609Z\"},{\"id\":\"60b8cc9f-b8de-4dcb-8d55-348a05cd074a\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts August 4 - August 11, 2026?\",\"startDate\":\"2026-08-04T16:00:00.000Z\",\"endDate\":\"2026-08-11T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-august-4-august-11\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-08-01T04:00:04.897Z\",\"updatedAt\":\"2026-08-11T16:01:25.037Z\"},{\"id\":\"99ef6b24-3ddc-42be-b3fe-702a37e0a27c\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts July 31 - August 7, 2026?\",\"startDate\":\"2026-07-31T16:00:00.000Z\",\"endDate\":\"2026-08-07T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-july-31-august-7\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-07-28T04:00:06.525Z\",\"updatedAt\":\"2026-08-07T16:00:33.709Z\"},{\"id\":\"429c4cc7-ef89-46b1-a2aa-6a81630f5285\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts July 28 - August 4, 2026?\",\"startDate\":\"2026-07-28T16:00:00.000Z\",\"endDate\":\"2026-08-04T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-july-28-august-4\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-07-25T04:00:09.037Z\",\"updatedAt\":\"2026-08-04T16:00:33.717Z\"},{\"id\":\"af8f6c16-0658-4658-91f2-efbaadb950b9\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts July 24 - July 31, 2026?\",\"startDate\":\"2026-07-24T16:00:00.000Z\",\"endDate\":\"2026-07-31T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-july-24-july-31\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-07-21T04:00:06.342Z\",\"updatedAt\":\"2026-07-31T16:01:32.097Z\"},{\"id\":\"d0fe17f5-e094-4c22-8f50-04e861a96fca\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts July 21 - July 28, 2026?\",\"startDate\":\"2026-07-21T16:00:00.000Z\",\"endDate\":\"2026-07-28T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-july-21-july-28\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-07-18T04:00:11.173Z\",\"updatedAt\":\"2026-07-28T16:00:59.785Z\"},{\"id\":\"f3c1b346-f664-4877-8afc-478e24060daa\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts July 17 - July 24, 2026?\",\"startDate\":\"2026-07-17T16:00:00.000Z\",\"endDate\":\"2026-07-24T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-july-17-july-24\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-07-14T04:00:09.095Z\",\"updatedAt\":\"2026-07-24T16:01:00.663Z\"},{\"id\":\"7d91c54b-7175-4a4b-87ee-d79ea56897b6\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts July 14 - July 21, 2026?\",\"startDate\":\"2026-07-14T16:00:00.000Z\",\"endDate\":\"2026-07-21T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-july-14-july-21\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-07-11T04:00:05.260Z\",\"updatedAt\":\"2026-07-21T16:01:05.018Z\"},{\"id\":\"c6e12959-e6fc-48ff-9473-989e9be487aa\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts July 10 - July 17, 2026?\",\"startDate\":\"2026-07-10T16:00:00.000Z\",\"endDate\":\"2026-07-17T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-july-10-july-17\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-07-07T04:00:07.678Z\",\"updatedAt\":\"2026-07-17T16:01:08.003Z\"},{\"id\":\"df95bff7-933a-4c87-815c-2820c05ce75e\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts July 7 - July 14, 2026?\",\"startDate\":\"2026-07-07T16:00:00.000Z\",\"endDate\":\"2026-07-14T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-july-7-july-14\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-07-04T04:00:05.357Z\",\"updatedAt\":\"2026-07-14T16:00:08.963Z\"},{\"id\":\"3345b60d-f07c-42a3-954b-a2881aa6528f\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts July 3 - July 10, 2026?\",\"startDate\":\"2026-07-03T16:00:00.000Z\",\"endDate\":\"2026-07-10T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-july-3-july-10\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-06-30T04:00:03.652Z\",\"updatedAt\":\"2026-07-10T16:00:09.527Z\"},{\"id\":\"fee3ccc6-eb9f-4ba8-b93b-8df42b455069\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts June 30 - July 7, 2026?\",\"startDate\":\"2026-06-30T16:00:00.000Z\",\"endDate\":\"2026-07-07T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-june-30-july-7\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-06-27T04:00:05.380Z\",\"updatedAt\":\"2026-07-07T16:01:03.424Z\"},{\"id\":\"21118f83-2770-4eac-b561-0c53a9af81a9\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts June 26 - July 3, 2026?\",\"startDate\":\"2026-06-26T16:00:00.000Z\",\"endDate\":\"2026-07-03T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-june-26-july-3\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-06-23T04:00:04.836Z\",\"updatedAt\":\"2026-07-03T16:00:08.565Z\"},{\"id\":\"65408ec6-28f0-4eb3-8531-a4ba8e90aec1\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts June 23 - June 30, 2026?\",\"startDate\":\"2026-06-23T16:00:00.000Z\",\"endDate\":\"2026-06-30T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-june-23-june-30\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-06-20T04:00:03.178Z\",\"updatedAt\":\"2026-06-30T16:01:04.946Z\"},{\"id\":\"00ff26d0-f686-4ba9-91c2-b6800f0e14da\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts June 19 - June 26, 2026?\",\"startDate\":\"2026-06-19T16:00:00.000Z\",\"endDate\":\"2026-06-26T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-june-19-june-26\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-06-16T04:00:04.189Z\",\"updatedAt\":\"2026-06-26T16:01:01.565Z\"},{\"id\":\"71e0d0fb-f3e8-42b6-a50d-f5fd77c01ad6\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts June 16 - June 23, 2026?\",\"startDate\":\"2026-06-16T16:00:00.000Z\",\"endDate\":\"2026-06-23T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-june-16-june-23\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-06-13T04:00:03.231Z\",\"updatedAt\":\"2026-06-23T16:00:08.582Z\"},{\"id\":\"ec8e221c-2450-496c-8b0c-66a40aa9c693\",\"userId\":\"d178fa75-3e53-4aae-a826-2128ba91823f\",\"title\":\"Donald Trump # Truth Social posts June 12 - June 19, 2026?\",\"startDate\":\"2026-06-12T16:00:00.000Z\",\"endDate\":\"2026-06-19T15:59:59.000Z\",\"target\":null,\"marketLink\":\"https://polymarket.com/event/donald-trump-of-truth-social-posts-june-12-june-19\",\"isActive\":false,\"metrics\":{},\"config\":{},\"createdAt\":\"2026-06-09T04:00:03.480Z\",\"updatedAt\":\"2026-06-19T"]
+["xtracker_docs", "HTTP Error 404: Not Found"]
+["bleague", {"size": 403640, "scripts": ["https://j.wovn.io/1", "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js", "https://cdn.jsdelivr.net/npm/lozad/dist/lozad.min.js", "https://cdn.jsdelivr.net/npm/micromodal/dist/micromodal.min.js", "https://unpkg.com/swiper@7.0.7/swiper-bundle.min.js", "https://bleague.bl.kuroco-img.app/v=1790669251/files/js/front/user/common_slider.js", "https://bleague.bl.kuroco-img.app/v=1790656676/files/js/front/user/function_new2208.js", "https://bleague.bl.kuroco-img.app/v=1790306790/files/js/front/user/genius_schedule.js", "https://bleague.bl.kuroco-img.app/v=1660118327/files/js/front/user/jquery.tablesorter.min.js", "https://bleague.bl.kuroco-img.app/v=1519293071/files/user/game/js.cookie.min.js", "https://bleague.bl.kuroco-img.app/v=1791416323/files/js/front/user/genius_game_new2208.js", "https://sdk.mvp.fan/web-sdk/0.36.3/index.js", "https://bleague.bl.kuroco-img.app/v=1746774799/files/js/front/user/lang.js"], "scores": ["<meta property=\"og:url\" content=\"https://www.bleague.jp/game_detail/?ScheduleKey=506474&amp;tab=1\">\r", "<script>window._defaultScoreboardTab = 'B1';</script>", " <div class=\"scoreboard js-scoreboard-swiper swiper is-active\"><div class=\"swiper-wrapper scoreboard__swiper\"><div class=\"scoreboard__leagues swiper-slide\"><button class=\"scoreboard__league-btn  font-blg\" data-tab=\"B1\">B.PREMIER</button><button ", "class=\"scoreboard__league-btn  font-blg\" data-tab=\"B2\">B.ONE</button><button class=\"scoreboard__league-btn  font-blg\" data-tab=\"B3\">B.NEXT</button></div><script>", "</script><div class=\"scoreboard__match-container swiper-slide scoreboard-b1\" data-match=\"1\" data-datetime=\"202610181405\" id=\"scoreboard_506475\"><div class=\"scoreboard__match scoreboard__match--live\"><script type=\"text", "};</script><div class=\"scoreboard-match__title\"></div><div class=\"scoreboard-match__top\"><div class=\"scoreboard-match__top-title\">\u5bcc\u5c71</div><div class=\"scoreboard-match__top-score font-blg \">32</div></div><div class=\"scoreb", "oard-match__bottom\"><div class=\"scoreboard-match__bottom-title\">\u4e09\u6cb3</div><div class=\"scoreboard-match__bottom-score font-blg scoreboard-match__bottom-score--lose\">43</div></div></div><div class=\"scoreboard__match scoreboard__match--back\"><a", " href=\"https://www.bleague.jp/game_detail/?ScheduleKey=506475&amp;tab=4\" class=\"scoreboard__match-back-link link-target\">\u30dc\u30c3\u30af\u30b9\u30b9\u30b3\u30a2</a><hr><a rel=\"noopener\" href=\"https://basketball.mb.softbank.jp/lives/506475/?utm_source=bleague&amp;utm_", "medium=bleague&amp;utm_campaign=bleague_bleague_033\" target=\"_blank\" class=\"scoreboard__match-back-link scoreboard__match-back-link--live\">\u30e9\u30a4\u30d6\u914d\u4fe1</a></div><a href=\"https://www.bleague.jp/game_detail/?ScheduleKey=506475&amp;tab=1\" cl", "ass=\"scoreboard__match scoreboard__match--link scoreboard__match--live\"><div class=\"scoreboard-match__title\"></div><div class=\"scoreboard-match__top\"><div class=\"scoreboard-match__top-title\">\u5bcc\u5c71</div><div class=\"scoreboard-match__top-score ", "font-blg \">32</div></div><div class=\"scoreboard-match__bottom\"><div class=\"scoreboard-match__bottom-title\">\u4e09\u6cb3</div><div class=\"scoreboard-match__bottom-score font-blg scoreboard-match__bottom-score--lose\">43</div></div></a></div><", "</script><div class=\"scoreboard__match-container swiper-slide scoreboard-b1\" data-match=\"1\" data-datetime=\"202610181435\" id=\"scoreboard_506476\"><div class=\"scoreboard__match scoreboard__match--live\"><script type=\"text", "};</script><div class=\"scoreboard-match__title\"></div><div class=\"scoreboard-match__top\"><div class=\"scoreboard-match__top-title\">\u4eac\u90fd</div><div class=\"scoreboard-match__top-score font-blg scoreboard-match__top-score--lose\"", ">41</div></div><div class=\"scoreboard-match__bottom\"><div class=\"scoreboard-match__bottom-title\">\u4f50\u8cc0</div><div class=\"scoreboard-match__bottom-score font-blg \">27</div></div></div><div class=\"scoreboard__match scoreboard_", "_match--back\"><a href=\"https://www.bleague.jp/game_detail/?ScheduleKey=506476&amp;tab=4\" class=\"scoreboard__match-back-link link-target\">\u30dc\u30c3\u30af\u30b9\u30b9\u30b3\u30a2</a><hr><a rel=\"noopener\" href=\"https://basketball.mb.softbank.jp/lives/506476/?utm_source=bleague&amp;utm_", "medium=bleague&amp;utm_campaign=bleague_bleague_033\" target=\"_blank\" class=\"scoreboard__match-back-link scoreboard__match-back-link--live\">\u30e9\u30a4\u30d6\u914d\u4fe1</a></div><a href=\"https://www.bleague.jp/game_detail/?ScheduleKey=506476&amp;tab=1\" cl", "ass=\"scoreboard__match scoreboard__match--link scoreboard__match--live\"><div class=\"scoreboard-match__title\"></div><div class=\"scoreboard-match__top\"><div class=\"scoreboard-match__top-title\">\u4eac\u90fd</div><div class=\"scoreboard-match__top-score ", "font-blg scoreboard-match__top-score--lose\">41</div></div><div class=\"scoreboard-match__bottom\"><div class=\"scoreboard-match__bottom-title\">\u4f50\u8cc0</div><div class=\"scoreboard-match__bottom-score font-blg \">27</div></div></a></div", "</script><div class=\"scoreboard__match-container swiper-slide scoreboard-b1\" data-match=\"1\" data-datetime=\"202610181505\" id=\"scoreboard_506473\"><div class=\"scoreboard__match scoreboard__match--live\"><script type=\"text", "};</script><div class=\"scoreboard-match__title\"></div><div class=\"scoreboard-match__top\"><div class=\"scoreboard-match__top-title\">\u8328\u57ce</div><div class=\"scoreboard-match__top-score font-blg \">5</div></div><div class=\"scorebo", "ard-match__bottom\"><div class=\"scoreboard-match__bottom-title\">\u5927\u962a</div><div class=\"scoreboard-match__bottom-score font-blg scoreboard-match__bottom-score--lose\">6</div></div></div><div class=\"scoreboard__match scoreboard__match--back\"><a ", "href=\"https://www.bleague.jp/game_detail/?ScheduleKey=506473&amp;tab=4\" class=\"scoreboard__match-back-link link-target\">\u30dc\u30c3\u30af\u30b9\u30b9\u30b3\u30a2</a><hr><a rel=\"noopener\" href=\"https://basketball.mb.softbank.jp/lives/506473/?utm_source=bleague&amp;utm_", "medium=bleague&amp;utm_campaign=bleague_bleague_033\" target=\"_blank\" class=\"scoreboard__match-back-link scoreboard__match-back-link--live\">\u30e9\u30a4\u30d6\u914d\u4fe1</a></div><a href=\"https://www.bleague.jp/game_detail/?ScheduleKey=506473&amp;tab=1\" cl", "ass=\"scoreboard__match scoreboard__match--link scoreboard__match--live\"><div class=\"scoreboard-match__title\"></div><div class=\"scoreboard-match__top\"><div class=\"scoreboard-match__top-title\">\u8328\u57ce</div><div class=\"scoreboard-match__top-score ", "font-blg \">5</div></div><div class=\"scoreboard-match__bottom\"><div class=\"scoreboard-match__bottom-title\">\u5927\u962a</div><div class=\"scoreboard-match__bottom-score font-blg scoreboard-match__bottom-score--lose\">6</div></div></a></div><s", "    _contexts_s3id[506474]=6;", "</script><div class=\"scoreboard__match-container swiper-slide scoreboard-b1\" data-match=\"1\" data-datetime=\"202610181505\" id=\"scoreboard_506474\"><div class=\"scoreboard__match scoreboard__match--live\"><script type=\"text", "/javascript\">schedule_contexts[506474] = {};schedule_contexts[506474].Event = \"2\";schedule_contexts[506474].Game = {", "    \"ScheduleKey\": \"506474\",", "};</script><div class=\"scoreboard-match__title\"></div><div class=\"scoreboard-match__top\"><div class=\"scoreboard-match__top-title\">\u6a2a\u6d5cBC</div><div class=\"scoreboard-match__top-score font-blg \">7</div></div><div class=\"score", "board-match__bottom\"><div class=\"scoreboard-match__bottom-title\">\u5317\u6d77\u9053</div><div class=\"scoreboard-match__bottom-score font-blg scoreboard-match__bottom-score--lose\">8</div></div></div><div class=\"scoreboard__match scoreboard__match--back\"><a ", "href=\"https://www.bleague.jp/game_detail/?ScheduleKey=506474&amp;tab=4\" class=\"scoreboard__match-back-link link-target\">\u30dc\u30c3\u30af\u30b9\u30b9\u30b3\u30a2</a><hr><a rel=\"noopener\" href=\"https://basketball.mb.softbank.jp/lives/506474/?utm_source=bleague&amp;utm_", "medium=bleague&amp;utm_campaign=bleague_bleague_033\" target=\"_blank\" class=\"scoreboard__match-back-link scoreboard__match-back-link--live\">\u30e9\u30a4\u30d6\u914d\u4fe1</a></div><a href=\"https://www.bleague.jp/game_detail/?ScheduleKey=506474&amp;tab=1\" cl", "ass=\"scoreboard__match scoreboard__match--link scoreboard__match--live\"><div class=\"scoreboard-match__title\"></div><div class=\"scoreboard-match__top\"><div class=\"scoreboard-match__top-title\">\u6a2a\u6d5cBC</div><div class=\"scoreboard-match__top-scor", "e font-blg \">7</div></div><div class=\"scoreboard-match__bottom\"><div class=\"scoreboard-match__bottom-title\">\u5317\u6d77\u9053</div><div class=\"scoreboard-match__bottom-score font-blg scoreboard-match__bottom-score--lose\">8</div></div></a></div><", "</script><div class=\"scoreboard__match-container swiper-slide scoreboard-b2\" data-datetime=\"202610181400\" data-match=\"1\" id=\"scoreboard_507266\"><div class=\"scoreboard__match scoreboard__match--live\"><script type=\"text", "};</script><div class=\"scoreboard-match__title\"></div><div class=\"scoreboard-match__top\"><div class=\"scoreboard-match__top-title\">\u718a\u672c</div><div class=\"scoreboard-match__top-score font-blg \">38</div></div><div class=\"scoreb", "oard-match__bottom\"><div class=\"scoreboard-match__bottom-title\">\u798f\u5ca1</div><div class=\"scoreboard-match__bottom-score font-blg scoreboard-match__bottom-score--lose\">45</div></div></div><div class=\"scoreboard__match scoreboard__match--back\"><a", " href=\"https://www.bleague.jp/game_detail/?ScheduleKey=507266&amp;tab=4\" class=\"scoreboard__match-back-link link-target\">\u30dc\u30c3\u30af\u30b9\u30b9\u30b3\u30a2</a><hr><a rel=\"noopener\" href=\"https://basketball.mb.softbank.jp/lives/507266/?utm_source=bleague&amp;utm_", "medium=bleague&amp;utm_campaign=bleague_bleague_033\" target=\"_blank\" class=\"scoreboard__match-back-link scoreboard__match-back-link--live\">\u30e9\u30a4\u30d6\u914d\u4fe1</a></div><a href=\"https://www.bleague.jp/game_detail/?ScheduleKey=507266&amp;tab=1\" cl", "ass=\"scoreboard__match scoreboard__match--link scoreboard__match--live\"><div class=\"scoreboard-match__title\"></div><div class=\"scoreboard-match__top\"><div class=\"scoreboard-match__top-title\">\u718a\u672c</div><div class=\"scoreboard-match__top-score ", "font-blg \">38</div></div><div class=\"scoreboard-match__bottom\"><div class=\"scoreboard-match__bottom-title\">\u798f\u5ca1</div><div class=\"scoreboard-match__bottom-score font-blg scoreboard-match__bottom-score--lose\">45</div></div></a></div><", "</script><div class=\"scoreboard__match-container swiper-slide scoreboard-b2\" data-datetime=\"202610181405\" data-match=\"1\" id=\"scoreboard_507244\"><div class=\"scoreboard__match scoreboard__match--live\"><script type=\"text", "};</script><div class=\"scoreboard-match__title\"></div><div class=\"scoreboard-match__top\"><div class=\"scoreboard-match__top-title\">\u57fc\u7389</div><div class=\"scoreboard-match__top-score font-blg scoreboard-match__top-score--lose\"", ">50</div></div><div class=\"scoreboard-match__bottom\"><div class=\"scoreboard-match__bottom-title\">\u9999\u5ddd</div><div class=\"scoreboard-match__bottom-score font-blg \">37</div></div></div><div class=\"scoreboard__match scoreboard_", "_match--back\"><a href=\"https://www.bleague.jp/game_detail/?ScheduleKey=507244&amp;tab=4\" class=\"scoreboard__match-back-link link-target\">\u30dc\u30c3\u30af\u30b9\u30b9\u30b3\u30a2</a><hr><a rel=\"noopener\" href=\"https://basketball.mb.softbank.jp/lives/507244/?utm_source=bleague&amp;utm_", "medium=bleague&amp;utm_campaign=bleague_bleague_033\" target=\"_blank\" class=\"scoreboard__match-back-link scoreboard__match-back-link--live\">\u30e9\u30a4\u30d6\u914d\u4fe1</a></div><a href=\"https://www.bleague.jp/game_detail/?ScheduleKey=507244&amp;tab=1\" cl", "ass=\"scoreboard__match scoreboard__match--link scoreboard__match--live\"><div class=\"scoreboard-match__title\"></div><div class=\"scoreboard-match__top\"><div class=\"scoreboard-match__top-title\">\u57fc\u7389</div><div class=\"scoreboard-match__top-score ", "font-blg scoreboard-match__top-score--lose\">50</div></div><div class=\"scoreboard-match__bottom\"><div class=\"scoreboard-match__bottom-title\">\u9999\u5ddd</div><div class=\"scoreboard-match__bottom-score font-blg \">37</div></div></a></div", "</script><div class=\"scoreboard__match-container swiper-slide scoreboard-b2\" data-datetime=\"202610181405\" data-match=\"1\" id=\"scoreboard_507250\"><div class=\"scoreboard__match scoreboard__match--live\"><script type=\"text"]}]
+
+web search: https://www.bleague.jp/game_detail/?ScheduleKey=506474&tab=1
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,json,concurrent.futures,datetime,re
+urls={'tracking_stats':'https://xtracker.polymarket.com/api/trackings/a8092236-aed7-404f-93b1-ea9c79466f2e?includeStats=true','posts':'https://xtracker.polymarket.com/api/users/realDonaldTrump/posts?startDate=2026-09-01T00:00:00Z&endDate=2026-10-18T06:15:00Z&limit=1000','bleague':'https://www.bleague.jp/game_detail/?ScheduleKey=506474&tab=1'}
+def get(kv):
+ k,u=kv
+ try:
+  raw=urllib.request.urlopen(u,timeout=15).read().decode()
+  if k=='bleague':
+   p=raw.find('schedule_contexts[506474].Game')
+   return k,raw[p:p+5500]
+  d=json.loads(raw)
+  if k=='posts':
+   if isinstance(d.get('data'),list):
+    ps=d['data'];return k,{'keys':list(d.keys()),'count':len(ps),'first':ps[:2],'last':ps[-2:]}
+   return k,str(d)[:10000]
+  return k,d
+ except Exception as e:return k,str(e)
+for r in concurrent.futures.ThreadPoolExecutor(max_workers=3).map(get,urls.items()):print(json.dumps(r,ensure_ascii=False))
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+ succeeded in 151ms:
+["tracking_stats", {"success": true, "data": {"id": "a8092236-aed7-404f-93b1-ea9c79466f2e", "userId": "d178fa75-3e53-4aae-a826-2128ba91823f", "title": "Donald Trump # Truth Social posts October 16 - October 23, 2026?", "startDate": "2026-10-16T16:00:00.000Z", "endDate": "2026-10-23T15:59:59.000Z", "target": null, "marketLink": "https://polymarket.com/event/donald-trump-of-truth-social-posts-october-16-october-23-2026", "isActive": true, "metrics": {}, "config": {}, "createdAt": "2026-10-13T04:00:05.224Z", "updatedAt": "2026-10-13T04:00:05.224Z", "user": {"id": "d178fa75-3e53-4aae-a826-2128ba91823f", "handle": "realDonaldTrump", "name": "Donald J. Trump", "platform": "TRUTH_SOCIAL", "platformId": "107780257626128497", "avatarUrl": "https://static-assets-1.truthsocial.com/tmtg:prime-ts-assets/accounts/avatars/107/780/257/626/128/497/original/454286ac07a6f6e6.jpeg", "bio": "<p></p>", "verified": true, "lastSync": "2026-10-18T06:12:28.821Z", "lastSyncError": null, "createdAt": "2026-01-21T16:44:31.437Z", "updatedAt": "2026-10-18T06:12:28.822Z"}, "stats": {"total": 18, "cumulative": 18, "pace": 63, "percentComplete": 29, "daysElapsed": 2, "daysRemaining": 6, "daysTotal": 7, "isComplete": false, "daily": [{"date": "2026-10-16T16:00:00.000Z", "count": 0, "cumulative": 0}, {"date": "2026-10-16T17:00:00.000Z", "count": 0, "cumulative": 0}, {"date": "2026-10-16T18:00:00.000Z", "count": 1, "cumulative": 1}, {"date": "2026-10-16T19:00:00.000Z", "count": 4, "cumulative": 5}, {"date": "2026-10-16T20:00:00.000Z", "count": 0, "cumulative": 5}, {"date": "2026-10-16T21:00:00.000Z", "count": 0, "cumulative": 5}, {"date": "2026-10-16T22:00:00.000Z", "count": 0, "cumulative": 5}, {"date": "2026-10-16T23:00:00.000Z", "count": 0, "cumulative": 5}, {"date": "2026-10-17T00:00:00.000Z", "count": 4, "cumulative": 9}, {"date": "2026-10-17T01:00:00.000Z", "count": 0, "cumulative": 9}, {"date": "2026-10-17T02:00:00.000Z", "count": 0, "cumulative": 9}, {"date": "2026-10-17T03:00:00.000Z", "count": 0, "cumulative": 9}, {"date": "2026-10-17T04:00:00.000Z", "count": 2, "cumulative": 11}, {"date": "2026-10-17T05:00:00.000Z", "count": 0, "cumulative": 11}, {"date": "2026-10-17T06:00:00.000Z", "count": 0, "cumulative": 11}, {"date": "2026-10-17T07:00:00.000Z", "count": 0, "cumulative": 11}, {"date": "2026-10-17T08:00:00.000Z", "count": 0, "cumulative": 11}, {"date": "2026-10-17T09:00:00.000Z", "count": 0, "cumulative": 11}, {"date": "2026-10-17T10:00:00.000Z", "count": 0, "cumulative": 11}, {"date": "2026-10-17T11:00:00.000Z", "count": 0, "cumulative": 11}, {"date": "2026-10-17T12:00:00.000Z", "count": 0, "cumulative": 11}, {"date": "2026-10-17T13:00:00.000Z", "count": 0, "cumulative": 11}, {"date": "2026-10-17T14:00:00.000Z", "count": 0, "cumulative": 11}, {"date": "2026-10-17T15:00:00.000Z", "count": 0, "cumulative": 11}, {"date": "2026-10-17T16:00:00.000Z", "count": 3, "cumulative": 14}, {"date": "2026-10-17T17:00:00.000Z", "count": 3, "cumulative": 17}, {"date": "2026-10-17T18:00:00.000Z", "count": 1, "cumulative": 18}, {"date": "2026-10-17T19:00:00.000Z", "count": 0, "cumulative": 18}, {"date": "2026-10-17T20:00:00.000Z", "count": 0, "cumulative": 18}, {"date": "2026-10-17T21:00:00.000Z", "count": 0, "cumulative": 18}, {"date": "2026-10-17T22:00:00.000Z", "count": 0, "cumulative": 18}, {"date": "2026-10-17T23:00:00.000Z", "count": 0, "cumulative": 18}, {"date": "2026-10-18T00:00:00.000Z", "count": 0, "cumulative": 18}, {"date": "2026-10-18T01:00:00.000Z", "count": 0, "cumulative": 18}, {"date": "2026-10-18T02:00:00.000Z", "count": 0, "cumulative": 18}, {"date": "2026-10-18T03:00:00.000Z", "count": 0, "cumulative": 18}, {"date": "2026-10-18T04:00:00.000Z", "count": 0, "cumulative": 18}, {"date": "2026-10-18T05:00:00.000Z", "count": 0, "cumulative": 18}, {"date": "2026-10-18T06:00:00.000Z", "count": 0, "cumulative": 18}]}}}]
+["posts", {"keys": ["success", "data"], "count": 946, "first": [{"id": "cmvcpyhje003rjk06nzq25fij", "userId": "d178fa75-3e53-4aae-a826-2128ba91823f", "platformId": "117457616533730418", "content": "<p><a href=\"https://www.youtube.com/live/CQU5WIRXRNQ?si=KJKwuJ_x72DQ8z2n\" rel=\"nofollow noopener noreferrer\" target=\"_blank\"><span class=\"invisible\">https://www.</span><span class=\"ellipsis\">youtube.com/live/CQU5WIRXRNQ?s</span><span class=\"invisible\">i=KJKwuJ_x72DQ8z2n</span></a></p>", "createdAt": "2026-10-17T18:16:34.472Z", "importedAt": "2026-10-17T18:17:36.074Z", "metrics": {"reblogs_count": 43, "replies_count": 8, "favourites_count": 102}}, {"id": "cmvcnmo9a009fl5062ssu44gq", "userId": "d178fa75-3e53-4aae-a826-2128ba91823f", "platformId": "117457348466973534", "content": "<p>James TalaFREAKO is a Radical Left Lunatic and Vegan who is the ANTITHESIS of Texas Values. Ken Paxton is the Greatest Attorney General in the History of Texas, and has my Complete and Total Endorsement to be the next U.S. Senator from Texas — HE WILL NEVER LET YOU DOWN! President DONALD J. TRUMP</p>", "createdAt": "2026-10-17T17:08:24.099Z", "importedAt": "2026-10-17T17:12:25.678Z", "metrics": {"reblogs_count": 150, "replies_count": 77, "favourites_count": 424}}], "last": [{"id": "cmtidbfox0001l40479dl6wh0", "userId": "d178fa75-3e53-4aae-a826-2128ba91823f", "platformId": "117194670372847111", "content": "<p>Chicago violence is unchecked and at record levels. It has never been worse! This weekend 41 people were shot, 3 DEAD. These numbers are becoming normalized. It is out of control! The city will die if the Federal Government, a fine tuned crime fighting machine, is not invited in, by the Mayor or Governor, to HELP. I am awaiting the call. Nobody should be forced to live under these conditions. Like D.C. and others, they will have almost no crime, FAST! The State and City can’t do what I do. Governor Pritzker, CALL!!! President DONALD J. TRUMP</p>", "createdAt": "2026-09-01T07:45:54.468Z", "importedAt": "2026-09-01T07:50:57.576Z", "metrics": {"reblogs_count": 48, "replies_count": 27, "favourites_count": 124}}, {"id": "cmti2f9r90003la04iex2ne0k", "userId": "d178fa75-3e53-4aae-a826-2128ba91823f", "platformId": "117193480976456985", "content": "<p>A great Senator and a great golfer!!! President DJT</p>", "createdAt": "2026-09-01T02:43:25.720Z", "importedAt": "2026-09-01T02:46:00.732Z", "metrics": {"reblogs_count": 63, "replies_count": 11, "favourites_count": 231}}]}]
+["bleague", "schedule_contexts[506474].Game = {\n    \"GameDateTime\": \"1792303500\",\n    \"ScheduleKey\": \"506474\",\n    \"ConventionKey\": \"521\",\n    \"HomeTeamID\": \"694\",\n    \"AwayTeamID\": \"702\",\n    \"GameEndedFlg\": \"0\",\n    \"RecordFixedFlg\": \"0\",\n    \"ScheduleState\": \"2\"\n};</script><div class=\"scoreboard-match__title\"></div><div class=\"scoreboard-match__top\"><div class=\"scoreboard-match__top-title\">横浜BC</div><div class=\"scoreboard-match__top-score font-blg \">7</div></div><div class=\"scoreboard-match__bottom\"><div class=\"scoreboard-match__bottom-title\">北海道</div><div class=\"scoreboard-match__bottom-score font-blg scoreboard-match__bottom-score--lose\">8</div></div></div><div class=\"scoreboard__match scoreboard__match--back\"><a href=\"https://www.bleague.jp/game_detail/?ScheduleKey=506474&amp;tab=4\" class=\"scoreboard__match-back-link link-target\">ボックススコア</a><hr><a rel=\"noopener\" href=\"https://basketball.mb.softbank.jp/lives/506474/?utm_source=bleague&amp;utm_medium=bleague&amp;utm_campaign=bleague_bleague_033\" target=\"_blank\" class=\"scoreboard__match-back-link scoreboard__match-back-link--live\">ライブ配信</a></div><a href=\"https://www.bleague.jp/game_detail/?ScheduleKey=506474&amp;tab=1\" class=\"scoreboard__match scoreboard__match--link scoreboard__match--live\"><div class=\"scoreboard-match__title\"></div><div class=\"scoreboard-match__top\"><div class=\"scoreboard-match__top-title\">横浜BC</div><div class=\"scoreboard-match__top-score font-blg \">7</div></div><div class=\"scoreboard-match__bottom\"><div class=\"scoreboard-match__bottom-title\">北海道</div><div class=\"scoreboard-match__bottom-score font-blg scoreboard-match__bottom-score--lose\">8</div></div></a></div><script>\n(function(j$){\n    if (typeof _contexts_s3id == \"undefined\") {\n        _contexts_s3id = {};\n    }\n    _contexts_s3id[507266]=62;\n})(jQuery);\n</script><div class=\"scoreboard__match-container swiper-slide scoreboard-b2\" data-datetime=\"202610181400\" data-match=\"1\" id=\"scoreboard_507266\"><div class=\"scoreboard__match scoreboard__match--live\"><script type=\"text/javascript\">schedule_contexts[507266] = {};schedule_contexts[507266].Event = \"7\";schedule_contexts[507266].Game = {\n    \"GameDateTime\": \"1792299600\",\n    \"ScheduleKey\": \"507266\",\n    \"ConventionKey\": \"522\",\n    \"HomeTeamID\": \"724\",\n    \"AwayTeamID\": \"753\",\n    \"GameEndedFlg\": \"0\",\n    \"RecordFixedFlg\": \"0\",\n    \"ScheduleState\": \"2\"\n};</script><div class=\"scoreboard-match__title\"></div><div class=\"scoreboard-match__top\"><div class=\"scoreboard-match__top-title\">熊本</div><div class=\"scoreboard-match__top-score font-blg \">38</div></div><div class=\"scoreboard-match__bottom\"><div class=\"scoreboard-match__bottom-title\">福岡</div><div class=\"scoreboard-match__bottom-score font-blg scoreboard-match__bottom-score--lose\">45</div></div></div><div class=\"scoreboard__match scoreboard__match--back\"><a href=\"https://www.bleague.jp/game_detail/?ScheduleKey=507266&amp;tab=4\" class=\"scoreboard__match-back-link link-target\">ボックススコア</a><hr><a rel=\"noopener\" href=\"https://basketball.mb.softbank.jp/lives/507266/?utm_source=bleague&amp;utm_medium=bleague&amp;utm_campaign=bleague_bleague_033\" target=\"_blank\" class=\"scoreboard__match-back-link scoreboard__match-back-link--live\">ライブ配信</a></div><a href=\"https://www.bleague.jp/game_detail/?ScheduleKey=507266&amp;tab=1\" class=\"scoreboard__match scoreboard__match--link scoreboard__match--live\"><div class=\"scoreboard-match__title\"></div><div class=\"scoreboard-match__top\"><div class=\"scoreboard-match__top-title\">熊本</div><div class=\"scoreboard-match__top-score font-blg \">38</div></div><div class=\"scoreboard-match__bottom\"><div class=\"scoreboard-match__bottom-title\">福岡</div><div class=\"scoreboard-match__bottom-score font-blg scoreboard-match__bottom-score--lose\">45</div></div></a></div><script>\n(function(j$){\n    if (typeof _contexts_s3id == \"undefined\") {\n        _contexts_s3id = {};\n    }\n    _contexts_s3id[507244]=52;\n})(jQuery);\n</script><div class=\"scoreboard__match-container swiper-slide scoreboard-b2\" data-datetime=\"202610181405\" data-match=\"1\" id=\"scoreboard_507244\"><div class=\"scoreboard__match scoreboard__match--live\"><script type=\"text/javascript\">schedule_contexts[507244] = {};schedule_contexts[507244].Event = \"7\";schedule_contexts[507244].Game = {\n    \"GameDateTime\": \"1792299900\",\n    \"ScheduleKey\": \"507244\",\n    \"ConventionKey\": \"522\",\n    \"HomeTeamID\": \"744\",\n    \"AwayTeamID\": \"722\",\n    \"GameEndedFlg\": \"0\",\n    \"RecordFixedFlg\": \"0\",\n    \"ScheduleState\": \"2\"\n};</script><div class=\"scoreboard-match__title\"></div><div class=\"scoreboard-match__top\"><div class=\"scoreboard-match__top-title\">埼玉</div><div class=\"scoreboard-match__top-score font-blg scoreboard-match__top-score--lose\">50</div></div><div class=\"scoreboard-match__bottom\"><div class=\"scoreboard-match__bottom-title\">香川</div><div class=\"scoreboard-match__bottom-score font-blg \">37</div></div></div><div class=\"scoreboard__match scoreboard__match--back\"><a href=\"https://www.bleague.jp/game_detail/?ScheduleKey=507244&amp;tab=4\" class=\"scoreboard__match-back-link link-target\">ボックススコア</a><hr><a rel=\"noopener\" href=\"https://basketball.mb.softbank.jp/lives/507244/?utm_source=bleague&amp;utm_medium=bleague&amp;utm_campaign=bleague_bleague_033\" target=\"_blank\" class=\"scoreboard__match-back-link scoreboard__match-back-link--live\">ライブ配信</a></div><a href=\"https://www.bleague.jp/game_detail/?ScheduleKey=507244&amp;tab=1\" class=\"scoreboard__match scoreboard__match--link scoreboard__match--live\"><div class=\"scoreboard-match__title\"></div><div class=\"sco"]
+
+web search: 
+web search: 'ban'
+codex
+The checks are turning up some useful differences from the supplied prices, particularly in esports. I also have the current Truth Social post count, which lets me estimate all three posting ranges from one distribution. [XTracker](https://xtracker.polymarket.com/?platform=TRUTH_SOCIAL)
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,json,datetime,collections,statistics,math,random
+u='https://xtracker.polymarket.com/api/users/realDonaldTrump/posts?startDate=2026-07-01T00:00:00Z&endDate=2026-10-18T06:20:00Z&limit=5000'
+d=json.load(urllib.request.urlopen(u,timeout=15));ps=d['data']
+open('/tmp/forecast_trump_posts.json','w').write(json.dumps(ps))
+ts=sorted(datetime.datetime.fromisoformat(p['createdAt'].replace('Z','+00:00')) for p in ps)
+c=collections.Counter((t-datetime.timedelta(hours=4)).date() for t in ts)
+print('total',len(ps),'first',str(ts[0]),'last',str(ts[-1]))
+for n in [14,30,60,100]:
+ dates=[datetime.date(2026,10,18)-datetime.timedelta(days=i) for i in range(1,n+1)]
+ a=[c[x] for x in dates]
+ print('days',n,'mean',statistics.mean(a),'median',statistics.median(a),'sd',statistics.stdev(a),'counts',list(zip(map(str,dates),a)) if n==30 else '')
+print('full_weeks')
+for i in range(1,14):
+ a=datetime.datetime(2026,10,16,16,tzinfo=datetime.timezone.utc)-datetime.timedelta(days=i*7)
+ b=a+datetime.timedelta(days=7)
+ print(str(a.date()),sum(a<=t<b for t in ts))
+print('same weekday remaining 5.4day samples')
+current=datetime.datetime(2026,10,18,6,20,tzinfo=datetime.timezone.utc)
+end=datetime.datetime(2026,10,23,16,tzinfo=datetime.timezone.utc)
+for i in range(1,14):
+ a=current-datetime.timedelta(days=i*7);b=end-datetime.timedelta(days=i*7)
+ print(str(a.date()),sum(a<=t<b for t in ts))
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+ succeeded in 265ms:
+total 2557 first 2026-07-01 01:31:20.643000+00:00 last 2026-10-17 18:16:34.472000+00:00
+days 14 mean 19.714285714285715 median 16.0 sd 11.090041072467269 counts 
+days 30 mean 20.6 median 19.0 sd 12.299705631464912 counts [('2026-10-17', 9), ('2026-10-16', 14), ('2026-10-15', 19), ('2026-10-14', 39), ('2026-10-13', 22), ('2026-10-12', 38), ('2026-10-11', 17), ('2026-10-10', 25), ('2026-10-09', 8), ('2026-10-08', 11), ('2026-10-07', 15), ('2026-10-06', 8), ('2026-10-05', 14), ('2026-10-04', 37), ('2026-10-03', 24), ('2026-10-02', 25), ('2026-10-01', 18), ('2026-09-30', 32), ('2026-09-29', 6), ('2026-09-28', 20), ('2026-09-27', 25), ('2026-09-26', 60), ('2026-09-25', 30), ('2026-09-24', 25), ('2026-09-23', 12), ('2026-09-22', 4), ('2026-09-21', 19), ('2026-09-20', 11), ('2026-09-19', 5), ('2026-09-18', 26)]
+days 60 mean 22.516666666666666 median 19.0 sd 15.492471289844842 counts 
+days 100 mean 23.08 median 19.5 sd 16.059661493092786 counts 
+full_weeks
+2026-10-09 170
+2026-10-02 132
+2026-09-25 193
+2026-09-18 102
+2026-09-11 93
+2026-09-04 170
+2026-08-28 168
+2026-08-21 267
+2026-08-14 145
+2026-08-07 173
+2026-07-31 215
+2026-07-24 162
+2026-07-17 128
+same weekday remaining 5.4day samples
+2026-10-11 140
+2026-10-04 88
+2026-09-27 106
+2026-09-20 73
+2026-09-13 81
+2026-09-06 152
+2026-08-30 121
+2026-08-23 188
+2026-08-16 83
+2026-08-09 126
+2026-08-02 178
+2026-07-26 152
+2026-07-19 117
+
+web search: 
+web search: 
+web search: "pg-quarterly-earnings-gaap-eps-10-22-2026" ...
+web search: "ALOHADANCE" "Stariy bog" "October 18" odds map ...
+web search: 
+web search: 
+web search: 
+web search: "Procter" "October 22, 2026" "market will resolve" ...
+web search: site:polymarket.com "Bitcoin" "October 18" "2026" "82,000" "12:00" ...
+web search: "Seoul Knights vs. Goyang" "Polymarket" ...
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import json,datetime,statistics,collections,math,random
+ps=json.load(open('/tmp/forecast_trump_posts.json'))
+ts=sorted(datetime.datetime.fromisoformat(p['createdAt'].replace('Z','+00:00')) for p in ps)
+end=datetime.datetime(2026,10,23,16,tzinfo=datetime.timezone.utc)
+cur=datetime.datetime(2026,10,18,6,17,tzinfo=datetime.timezone.utc)
+start=datetime.datetime(2026,10,16,16,tzinfo=datetime.timezone.utc)
+pairs=[]
+for i in range(1,16):
+ a=start-datetime.timedelta(days=i*7);b=cur-datetime.timedelta(days=i*7);e=end-datetime.timedelta(days=i*7)
+ if a<ts[0]:continue
+ p=sum(a<=t<b for t in ts);r=sum(b<=t<e for t in ts)
+ pairs.append((p,r))
+print('prefix, remaining',pairs)
+print('prefix_rem_corr',statistics.correlation([x[0] for x in pairs],[x[1] for x in pairs]))
+for bw in [15,25,40,100]:
+ ws=[math.exp(-i/8)*math.exp(-((p-18)/bw)**2/2) for i,(p,r) in enumerate(pairs)]
+ sm=sum(ws); mu=sum(w*(18+x[1]) for w,x in zip(ws,pairs))/sm
+ psout=[]
+ for lo,hi in [(100,119),(120,139),(140,159)]:
+  prob=sum(w*(math.erf((hi+.5-(18+x[1]))/(math.sqrt(2)*15))-math.erf((lo-.5-(18+x[1]))/(math.sqrt(2)*15)))/2 for w,x in zip(ws,pairs))/sm
+  psout.append(round(prob,4))
+ print('bandwidth',bw,'mean total',round(mu,2),'bin probabilities',psout)
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+ succeeded in 0ms:
+prefix, remaining [(30, 140), (44, 88), (87, 106), (29, 73), (12, 81), (18, 152), (47, 121), (79, 188), (62, 83), (47, 126), (37, 178), (10, 152), (11, 117), (38, 132), (33, 197)]
+prefix_rem_corr 0.026401267088093594
+bandwidth 15 mean total 138.59 bin probabilities [0.1467, 0.1011, 0.1892]
+bandwidth 25 mean total 137.6 bin probabilities [0.1625, 0.1221, 0.1909]
+bandwidth 40 mean total 137.36 bin probabilities [0.1747, 0.1388, 0.1852]
+bandwidth 100 mean total 137.73 bin probabilities [0.1863, 0.1597, 0.1756]
+
+web search: 
+web search: 
+web search: 
+web search: "Procter" "GAAP" "October" "2026" "restructuring" ...
+web search: "서울 SK" "고양 소노" "2026.10.18" ...
+web search: https://content.rollcall.com/factbase/trump/calendar/
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,json,math,statistics,datetime,concurrent.futures
+
+def get(sym):
+ d=json.load(urllib.request.urlopen('https://api.binance.com/api/v3/klines?symbol='+sym+'&interval=1h&limit=1000',timeout=15))
+ rows=[(datetime.datetime.fromtimestamp(x[0]/1000,datetime.timezone.utc),*[float(x[i]) for i in [1,2,3,4]]) for x in d]
+ last=rows[-1]
+ rets=[math.log(r[4]/r[1]) for r in rows[:-1]]
+ out={'symbol':sym,'latest':list(map(str,last)),'rv_daily':[ (str(n), math.sqrt(sum(x*x for x in rets[-n:])*24/n)) for n in [24,72,168,720]],'recent':list(map(lambda r: [str(x) for x in r],rows[-8:]))}
+ for wd in [5,6]:
+  rs=[math.log(r[4]/r[1]) for r in rows[:-1] if r[0].weekday()==wd]
+  out['weekend_'+str(wd)]=math.sqrt(statistics.mean(x*x for x in rs)*24)
+ return out
+for r in concurrent.futures.ThreadPoolExecutor(max_workers=2).map(get,['BTCUSDT','ETHUSDT']): print(json.dumps(r))
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+ succeeded in 644ms:
+{"symbol": "BTCUSDT", "latest": ["2026-10-18 06:00:00+00:00", "81734.46", "81788.54", "81726.48", "81726.48"], "rv_daily": [["24", 0.009297315468857058], ["72", 0.01795167054053088], ["168", 0.017918468012269664], ["720", 0.017945516607264792]], "recent": [["2026-10-17 23:00:00+00:00", "81355.91", "81494.01", "81216.54", "81491.04"], ["2026-10-18 00:00:00+00:00", "81491.04", "81599.51", "81403.25", "81542.73"], ["2026-10-18 01:00:00+00:00", "81542.73", "81897.89", "81527.36", "81657.38"], ["2026-10-18 02:00:00+00:00", "81657.38", "81839.34", "81592.16", "81830.84"], ["2026-10-18 03:00:00+00:00", "81830.85", "82078.0", "81779.18", "81960.0"], ["2026-10-18 04:00:00+00:00", "81960.01", "81960.01", "81785.04", "81801.0"], ["2026-10-18 05:00:00+00:00", "81801.0", "81872.63", "81669.42", "81734.46"], ["2026-10-18 06:00:00+00:00", "81734.46", "81788.54", "81726.48", "81726.48"]], "weekend_5": 0.007742734674785092, "weekend_6": 0.011188441178107744}
+{"symbol": "ETHUSDT", "latest": ["2026-10-18 06:00:00+00:00", "2411.43", "2414.05", "2411.24", "2411.94"], "rv_daily": [["24", 0.0215924311304825], ["72", 0.025732944202589172], ["168", 0.02585935962600747], ["720", 0.022386521894634075]], "recent": [["2026-10-17 23:00:00+00:00", "2393.33", "2404.31", "2391.71", "2402.82"], ["2026-10-18 00:00:00+00:00", "2402.81", "2407.85", "2398.19", "2405.85"], ["2026-10-18 01:00:00+00:00", "2405.84", "2420.99", "2404.84", "2408.49"], ["2026-10-18 02:00:00+00:00", "2408.5", "2417.43", "2405.2", "2416.99"], ["2026-10-18 03:00:00+00:00", "2417.0", "2430.0", "2415.86", "2425.53"], ["2026-10-18 04:00:00+00:00", "2425.54", "2426.51", "2415.5", "2416.88"], ["2026-10-18 05:00:00+00:00", "2416.89", "2417.83", "2407.19", "2411.44"], ["2026-10-18 06:00:00+00:00", "2411.43", "2414.05", "2411.24", "2411.94"]], "weekend_5": 0.011779168612191056, "weekend_6": 0.017668269766673277}
+
+web search: 
+web search: 
+web search: "What price will Bitcoin hit on October 18" "2026" ...
+web search: "Trump" "Osama" "Highland Heights" "2026" ...
+context compacted
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,json,re
+for s in ['BTCUSDT','ETHUSDT']:
+ u='https://api.binance.com/api/v3/klines?symbol='+s+'&interval=1h&limit=2'
+ try:
+  a=json.load(urllib.request.urlopen(u,timeout=15));print(s,a)
+ except Exception as e:print(s,str(e))
+u='https://www.bleague.jp/game_detail/?ScheduleKey=506474&tab=1'
+try:
+ a=urllib.request.urlopen(u,timeout=15).read().decode();p=a.find('schedule_contexts[506474].Game');print('BLeague',a[p:p+2200])
+except Exception as e:print(str(e))
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+ succeeded in 723ms:
+BTCUSDT [[1792299600000, '81801.00000000', '81872.63000000', '81669.42000000', '81734.46000000', '190.36975000', 1792303199999, '15563759.65583300', 26116, '113.11940000', '9248162.87915440', '0'], [1792303200000, '81734.46000000', '81788.54000000', '81687.60000000', '81699.34000000', '100.03462000', 1792306799999, '8177404.34235080', 9350, '60.78300000', '4968577.93258840', '0']]
+ETHUSDT [[1792299600000, '2416.89000000', '2417.83000000', '2407.19000000', '2411.44000000', '2972.30790000', 1792303199999, '7168302.98602700', 39753, '918.23770000', '2214720.34794000', '0'], [1792303200000, '2411.43000000', '2414.05000000', '2409.10000000', '2410.10000000', '5448.33370000', 1792306799999, '13140044.19559400', 14160, '999.66070000', '2411087.59353700', '0']]
+BLeague schedule_contexts[506474].Game = {
+    "GameDateTime": "1792303500",
+    "ScheduleKey": "506474",
+    "ConventionKey": "521",
+    "HomeTeamID": "694",
+    "AwayTeamID": "702",
+    "GameEndedFlg": "0",
+    "RecordFixedFlg": "0",
+    "ScheduleState": "2"
+};</script><div class="scoreboard-match__title"></div><div class="scoreboard-match__top"><div class="scoreboard-match__top-title">横浜BC</div><div class="scoreboard-match__top-score font-blg ">11</div></div><div class="scoreboard-match__bottom"><div class="scoreboard-match__bottom-title">北海道</div><div class="scoreboard-match__bottom-score font-blg scoreboard-match__bottom-score--lose">18</div></div></div><div class="scoreboard__match scoreboard__match--back"><a href="https://www.bleague.jp/game_detail/?ScheduleKey=506474&amp;tab=4" class="scoreboard__match-back-link link-target">ボックススコア</a><hr><a rel="noopener" href="https://basketball.mb.softbank.jp/lives/506474/?utm_source=bleague&amp;utm_medium=bleague&amp;utm_campaign=bleague_bleague_033" target="_blank" class="scoreboard__match-back-link scoreboard__match-back-link--live">ライブ配信</a></div><a href="https://www.bleague.jp/game_detail/?ScheduleKey=506474&amp;tab=1" class="scoreboard__match scoreboard__match--link scoreboard__match--live"><div class="scoreboard-match__title"></div><div class="scoreboard-match__top"><div class="scoreboard-match__top-title">横浜BC</div><div class="scoreboard-match__top-score font-blg ">11</div></div><div class="scoreboard-match__bottom"><div class="scoreboard-match__bottom-title">北海道</div><div class="scoreboard-match__bottom-score font-blg scoreboard-match__bottom-score--lose">18</div></div></a></div><script>
+(function(j$){
+    if (typeof _contexts_s3id == "undefined") {
+        _contexts_s3id = {};
+    }
+    _contexts_s3id[507266]=66;
+})(jQuery);
+</script><div class="scoreboard__match-container swiper-slide scoreboard-b2" data-datetime="202610181400" data-match="1" id="scoreboard_507266"><div class="scoreboard__match scoreboard__match--live"><script type="text/javascript">schedule_contexts[507266] = {};schedule_contexts[507266].Event = "7";schedule_contexts[507266].Game = {
+    "GameDateTime": "1792299600",
+    "ScheduleKey": "507266",
+
+
+codex
+I’m checking the live basketball scores and Bitcoin price before setting the final probabilities. Several games are already underway, so those updates matter more than the pregame estimates.
+
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,re
+for url in ['https://www.kbl.or.kr/','https://www.tving.com/sports/kbl','https://www.bleague.jp/game_detail/?ScheduleKey=506474&tab=1']:
+ try:
+  s=urllib.request.urlopen(url,timeout=12).read().decode();print('URL',url,'LEN',len(s));
+  if 'bleague' in url:
+   for term in ['game_detail_data','GameScore','Period','quarter','game-score','game_detail.json','schedule_contexts[506474]']:
+    p=s.find(term);print(term,s[max(0,p-150):p+400] if p>=0 else 'none')
+   print('scripts',re.findall(r'<script["'^>]+src="([''^"]+)'"',s)[-15:])
+  else:
+   print('scripts',re.findall(r'<script["'^>]+src="([''^"]+)'"',s)[-12:]);print(s[:500])
+ except Exception as e:print(url,str(e))
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+web search: 서울 SK 고양 소노 2026 10 18 라이브 스코어 15시 ...
+ succeeded in 2906ms:
+URL https://www.kbl.or.kr/ LEN 5229
+scripts ['/js/flutterHelper.js', 'https://mediaprosports.com/sdk/kpsa-media.js', '/assets/index-D16BHQ6q.js']
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0"><title>KBL 공식 홈페이지</title><link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg"><link rel="stylesheet" href="https://kbl-data.sports2i.com/kbl/main.css"><link rel="stylesheet" href="/assets/css/reset.css"><link rel="stylesheet" href="/assets/css/font.css"><link rel="stylesheet" href="/assets/css/ico.css"><link rel="stylesheet" href="/assets/
+URL https://www.tving.com/sports/kbl LEN 718
+scripts ['//image.tving.com/scripts/jquery-1.8.3.min.js', 'https://nsso.cjone.com/removeCookie.jsp?cjssoq=DJhRGGBcHzzZJkYXiZshFmk2wcHU1yuNdOBURXVW7K6nM%2B345%2Fs1eObqsU9e4iG1pQv4rHdFnDnEl4ObyoClr1B4T1lNdTNMKzBNVDNMdDEydy9FRkNVZGVXcElWMEp0aStOT0ZiYklkWTZoREFqZjI2MUd1Mk1xQ3YydVVqZlJvcTQ1bDhvUTJ4ST0%3D', 'https://bill.tving.com/bill/logout.tving']
+<script type="text/javascript" src="//image.tving.com/scripts/jquery-1.8.3.min.js"></script>
+<script type="text/javascript">
+    function cjssologoutCompleted() {
+        // no work!
+    }
+</script>
+<script type="text/javascript" src="https://nsso.cjone.com/removeCookie.jsp?cjssoq=DJhRGGBcHzzZJkYXiZshFmk2wcHU1yuNdOBURXVW7K6nM%2B345%2Fs1eObqsU9e4iG1pQv4rHdFnDnEl4ObyoClr1B4T1lNdTNMKzBNVDNMdDEydy9FRkNVZGVXcElWMEp0aStOT0ZiYklkWTZoREFqZjI2MUd1Mk1xQ3YydVVqZlJvcTQ1bDhvUTJ4ST0%3D"></script>
+<scri
+URL https://www.bleague.jp/game_detail/?ScheduleKey=506474&tab=1 LEN 403649
+game_detail_data none
+GameScore none
+Period none
+quarter none
+game-score p class="place">神奈川県｜横浜BT</p>              <p class="time">15:05 TIP OFF</p>
+                  <div class="result-box">
+                <div class="game-score-container">
+                  <div class="game-score-grid">
+                    <div class="game-score" id="game-score-top">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p class="status"></p>
+                </div>
+            <div class="team-wrap away">
+              <div class="team ">
+                <div c
+game_detail.json none
+schedule_contexts[506474] a-match="1" data-datetime="202610181505" id="scoreboard_506474"><div class="scoreboard__match scoreboard__match--live"><script type="text/javascript">schedule_contexts[506474] = {};schedule_contexts[506474].Event = "2";schedule_contexts[506474].Game = {
+    "GameDateTime": "1792303500",
+    "ScheduleKey": "506474",
+    "ConventionKey": "521",
+    "HomeTeamID": "694",
+    "AwayTeamID": "702",
+    "GameEndedFlg": "0",
+    "RecordFixedFlg": "0",
+    "ScheduleState": "2"
+};</script><div class="scoreboard-match__title"></div><div class="scoreboard-m
+scripts ['https://j.wovn.io/1', 'https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js', 'https://cdn.jsdelivr.net/npm/lozad/dist/lozad.min.js', 'https://cdn.jsdelivr.net/npm/micromodal/dist/micromodal.min.js', 'https://unpkg.com/swiper@7.0.7/swiper-bundle.min.js', 'https://bleague.bl.kuroco-img.app/v=1790669251/files/js/front/user/common_slider.js', 'https://bleague.bl.kuroco-img.app/v=1790656676/files/js/front/user/function_new2208.js', 'https://bleague.bl.kuroco-img.app/v=1790306790/files/js/front/user/genius_schedule.js', 'https://bleague.bl.kuroco-img.app/v=1660118327/files/js/front/user/jquery.tablesorter.min.js', 'https://bleague.bl.kuroco-img.app/v=1519293071/files/user/game/js.cookie.min.js', 'https://bleague.bl.kuroco-img.app/v=1791416323/files/js/front/user/genius_game_new2208.js', 'https://sdk.mvp.fan/web-sdk/0.36.3/index.js', 'https://bleague.bl.kuroco-img.app/v=1746774799/files/js/front/user/lang.js']
+
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,re
+u='https://www.kbl.or.kr/assets/index-D16BHQ6q.js'
+s=urllib.request.urlopen(u,timeout=12).read().decode();open('/tmp/kbl.js','w').write(s)
+for term in ['baseURL','sports2i','api.kbl','selectMatch','schedule','gameList','matchList','LIVE']:
+ a=[m.start() for m in re.finditer(re.escape(term),s)];print(term,len(a));
+ for p in a[:4]:print(s[max(0,p-150):p+280])
+u='https://bleague.bl.kuroco-img.app/v=1791416323/files/js/front/user/genius_game_new2208.js'
+s=urllib.request.urlopen(u,timeout=12).read().decode();open('/tmp/bleague_game.js','w').write(s)
+for term in ['https','json','clock','period']:
+ a=[m.start() for m in re.finditer(re.escape(term),s)];print(term,len(a))
+ for p in a[:4]:print(s[max(0,p-100):p+200])
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+ succeeded in 838ms:
+baseURL 4
+ame||"",Rt=a.auth.password?unescape(encodeURIComponent(a.auth.password)):"";st.set("Authorization","Basic "+btoa(jt+":"+Rt))}const xt=buildFullPath(a.baseURL,a.url);dt.open(a.method.toUpperCase(),buildURL(xt,a.params,a.paramsSerializer),!0),dt.timeout=a.timeout;function ht(){if(!dt)return;const jt=AxiosHeaders.from("getAllResponseHeaders"in dt&&dt.getAllResponseHeaders()),ft={data:!nt||nt==="text"||nt==="json"?dt.responseText:
+ 0,ct)}else return et(void 0,ut)}function rt(ct,ut,dt){if(dt in o)return et(ct,ut);if(dt in a)return et(void 0,ct)}const ot={url:st,method:st,data:st,baseURL:nt,transformRequest:nt,transformResponse:nt,paramsSerializer:nt,timeout:nt,timeoutMessage:nt,withCredentials:nt,withXSRFToken:nt,adapter:nt,responseType:nt,xsrfCookieName:nt,xsrfHeaderName:nt,onUploadProgress:nt,onDownloadProgress:nt,decompress:nt,maxContentLength:nt,maxB
+ise.reject(mt)}for(dt=0,xt=ct.length;dt<xt;)ut=ut.then(ct[dt++],ct[dt++]);return ut}getUri(o){o=mergeConfig(this.defaults,o);const _e=buildFullPath(o.baseURL,o.url);return buildURL(_e,o.params,o.paramsSerializer)}}utils$2.forEach(["delete","get","head","options"],function(o){Axios.prototype[o]=function(_e,et){return this.request(mergeConfig(et||{},{method:o,url:_e,data:(et||{}).data}))}});utils$2.forEach(["post","put","patch"]
+t$2=instance.t;instance.exists;instance.setDefaultNamespace;instance.hasLoadedNamespace;instance.loadNamespaces;instance.loadLanguages;axios.defaults.baseURL="https://api.kbl.or.kr";axios.defaults.headers.post["Content-Type"]="application/json";let processAwait=null;const init=async()=>{const a=instance.language;axios.interceptors.request.use(o=>{const _e=getMobileAppHeaderData();if(_e){o.headers.Channel=_e.channel,o.headers.T
+sports2i 3
+_YH:"youth.kbl.or.kr",VITE_APP_COOKIE_DOMAIN:"kbl.or.kr",VITE_APP_NETTHRU_URL:"https://log.kbl.or.kr/static/10004",VITE_APP_S2i_URL:"https://kbl-data.sports2i.com",BASE_URL:"/",MODE:"production",DEV:!1,PROD:!0,SSR:!1};const createStoreImpl=a=>{let o;const _e=new Set,et=(ut,dt)=>{const xt=typeof ut=="function"?ut(o):ut;if(!Object.is(xt,o)){const ht=o;o=dt??(typeof xt!="object"||xt===null)?xt:Object.assign({},o,xt),_e.forEach(mt
+_YH:"youth.kbl.or.kr",VITE_APP_COOKIE_DOMAIN:"kbl.or.kr",VITE_APP_NETTHRU_URL:"https://log.kbl.or.kr/static/10004",VITE_APP_S2i_URL:"https://kbl-data.sports2i.com",BASE_URL:"/",MODE:"production",DEV:!1,PROD:!0,SSR:!1};const{useDebugValue}=React$1,{useSyncExternalStoreWithSelector}=useSyncExternalStoreExports;let didWarnAboutEqualityFn=!1;const identity$2=a=>a;function useStore$2(a,o=identity$2,_e){(define_import_meta_env_defau
+_YH:"youth.kbl.or.kr",VITE_APP_COOKIE_DOMAIN:"kbl.or.kr",VITE_APP_NETTHRU_URL:"https://log.kbl.or.kr/static/10004",VITE_APP_S2i_URL:"https://kbl-data.sports2i.com",BASE_URL:"/",MODE:"production",DEV:!1,PROD:!0,SSR:!1};function createJSONStorage(a,o){let _e;try{_e=a()}catch{return}return{getItem:tt=>{var st;const nt=ot=>ot===null?null:JSON.parse(ot,void 0),rt=(st=_e.getItem(tt))!=null?st:null;return rt instanceof Promise?rt.the
+api.kbl 23
+ubstr(0,et)),a&&(o.pathname=a)}return o}var define_import_meta_env_default$2={VITE_APP_ENV:"production",VITE_BASE_URL:"/api",VITE_SERVER_URL:"https://api.kbl.or.kr",VITE_APP_DOMAIN_PREFIX:"https://",VITE_APP_DOMAIN:"kbl.or.kr",VITE_APP_SUB_DOMAIN_DB:"promy.kbl.or.kr",VITE_APP_SUB_DOMAIN_SS:"thunders.kbl.or.kr",VITE_APP_SUB_DOMAIN_SK:"knights.kbl.or.kr",VITE_APP_SUB_DOMAIN_LG:"sakers.kbl.or.kr",VITE_APP_SUB_DOMAIN_OR:"orions.kb
+faultExportFromCjs(withSelectorExports);var define_import_meta_env_default$1={VITE_APP_ENV:"production",VITE_BASE_URL:"/api",VITE_SERVER_URL:"https://api.kbl.or.kr",VITE_APP_DOMAIN_PREFIX:"https://",VITE_APP_DOMAIN:"kbl.or.kr",VITE_APP_SUB_DOMAIN_DB:"promy.kbl.or.kr",VITE_APP_SUB_DOMAIN_SS:"thunders.kbl.or.kr",VITE_APP_SUB_DOMAIN_SK:"knights.kbl.or.kr",VITE_APP_SUB_DOMAIN_LG:"sakers.kbl.or.kr",VITE_APP_SUB_DOMAIN_OR:"orions.kb
+main=".kbl.or.kr",_default$2.remove(a,o)};var define_import_meta_env_default={VITE_APP_ENV:"production",VITE_BASE_URL:"/api",VITE_SERVER_URL:"https://api.kbl.or.kr",VITE_APP_DOMAIN_PREFIX:"https://",VITE_APP_DOMAIN:"kbl.or.kr",VITE_APP_SUB_DOMAIN_DB:"promy.kbl.or.kr",VITE_APP_SUB_DOMAIN_SS:"thunders.kbl.or.kr",VITE_APP_SUB_DOMAIN_SK:"knights.kbl.or.kr",VITE_APP_SUB_DOMAIN_LG:"sakers.kbl.or.kr",VITE_APP_SUB_DOMAIN_OR:"orions.kb
+stance.exists;instance.setDefaultNamespace;instance.hasLoadedNamespace;instance.loadNamespaces;instance.loadLanguages;axios.defaults.baseURL="https://api.kbl.or.kr";axios.defaults.headers.post["Content-Type"]="application/json";let processAwait=null;const init=async()=>{const a=instance.language;axios.interceptors.request.use(o=>{const _e=getMobileAppHeaderData();if(_e){o.headers.Channel=_e.channel,o.headers.TeamCode=_e.teamCo
+selectMatch 0
+schedule 146
+jsxRuntime.exports=reactJsxRuntime_production_min;var jsxRuntimeExports=jsxRuntime.exports,client={},reactDom={exports:{}},reactDom_production_min={},scheduler={exports:{}},scheduler_production_min={};/**
+ * @license React
+ * scheduler.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this sourc
+tJsxRuntime_production_min;var jsxRuntimeExports=jsxRuntime.exports,client={},reactDom={exports:{}},reactDom_production_min={},scheduler={exports:{}},scheduler_production_min={};/**
+ * @license React
+ * scheduler.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */(function(a)
+untime.exports,client={},reactDom={exports:{}},reactDom_production_min={},scheduler={exports:{}},scheduler_production_min={};/**
+ * @license React
+ * scheduler.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */(function(a){function o(Dt,Nt){var qt=Dt.length;Dt.push(Nt);e:for
+hPriority=function(Dt,Nt){switch(Dt){case 1:case 2:case 3:case 4:case 5:break;default:Dt=3}var qt=xt;xt=Dt;try{return Nt()}finally{xt=qt}},a.unstable_scheduleCallback=function(Dt,Nt,qt){var Yt=a.unstable_now();switch(typeof qt=="object"&&qt!==null?(qt=qt.delay,qt=typeof qt=="number"&&0<qt?Yt+qt:Yt):qt=Yt,Dt){case 1:var Ot=-1;break;case 2:Ot=250;break;case 5:Ot=1073741823;break;case 4:Ot=1e4;break;default:Ot=5e3}return Ot=qt+Ot
+gameList 0
+matchList 4
+en:o==="en"?tt.stadiumNameEn:tt.stadiumName})]}),jsxRuntimeExports.jsxs("div",{children:[jsxRuntimeExports.jsx("ul",{className:"d-league",children:tt.matchList.length>0?tt.matchList.map((nt,rt)=>jsxRuntimeExports.jsxs("li",{children:[jsxRuntimeExports.jsx("p",{children:nt.gameTime}),jsxRuntimeExports.jsxs("ul",{className:"versus",children:[jsxRuntimeExports.jsxs("li",{children:[jsxRuntimeExports.jsx("p",{children:_e(`TeamName.
+NameEn:tt.stadiumName})]}),jsxRuntimeExports.jsxs("div",{children:[jsxRuntimeExports.jsx("ul",{className:"d-league",children:tt.matchList.length>0?tt.matchList.map((nt,rt)=>jsxRuntimeExports.jsxs("li",{children:[jsxRuntimeExports.jsx("p",{children:nt.gameTime}),jsxRuntimeExports.jsxs("ul",{className:"versus",children:[jsxRuntimeExports.jsxs("li",{children:[jsxRuntimeExports.jsx("p",{children:_e(`TeamName.${nt.homeTeamName}`)})
+yFn:()=>matchesDleague(It).then(Ot=>(ot(Ot),Ot)),cacheTime:0,staleTime:0});reactExports.useEffect(()=>{nt&&nt.length>0?wt(nt.filter(Ot=>rt===""?!0:Ot.matchList.reduce((Ut,Zt)=>Ut||Zt.homeTeamCode===rt||Zt.awayTeamCode===rt,!1))):wt([])},[rt,It,nt]),reactExports.useEffect(()=>{if(Pt){const Ot=document.getElementById(`dleague_${Bt.getFullYear()}${Bt.getMonth()+1}${Bt.getDay()}`);if(!Ot)return;isIE_1?document.documentElement.scro
+Ht,Vt,Wt)=>{const Ft={seasonCode:Ht,teamCode:Vt,gameCode:Wt};At.mutate(Ft)},At=useMutation({mutationFn:Ht=>getDirectViewList(Ht),onSuccess:Ht=>{Rt(Ht.matchList),jt(Ht.winRateInfo)}}),Bt=Ht=>{xt(Ht.currentTarget.value),Pt(Ht.currentTarget.value,ot,ct)},It=Ht=>{ht(Ht.currentTarget.value),Pt(rt,Ht.currentTarget.value,ct)},Jt=Ht=>{mt(Ht.currentTarget.value),Pt(rt,ot,Ht.currentTarget.value)};return bt?jsxRuntimeExports.jsx(Loading,
+LIVE 12
+,지원스태프:"지원스태프",응원단:"응원단",사무국:"사무국",소식:"소식",공지사항:"공지사항",보도자료:"보도자료",입찰공고:"입찰공고",채용안내:"채용안내","정관 및 규약":"정관 및 규약",대회참가신청:"대회참가신청",커뮤니티:"커뮤니티",미디어:"미디어","LIVE 중계":"LIVE 중계",다시보기:"다시보기",하이라이트:"하이라이트",기획영상:"기획영상",사진:"사진",게임노트:"게임노트",게임:"게임",이벤트:"이벤트",티켓:"티켓",티켓안내:"티켓안내",티켓내역:"티켓내역",구매내역:"구매내역",모바일시즌권:"모바일시즌권",선물함:"선물함",쿠폰함:"쿠폰함",정규시즌:"정규시즌",컵대회:"컵대회","OPEN MATCH DAY":"OPEN MATCH DAY",D리그:"D리그",올스타전:"올스타전",동아시아슈퍼리그:"동아시아슈퍼리그",스토어:"스토
+스태프",응원단:"응원단",사무국:"사무국",소식:"소식",공지사항:"공지사항",보도자료:"보도자료",입찰공고:"입찰공고",채용안내:"채용안내","정관 및 규약":"정관 및 규약",대회참가신청:"대회참가신청",커뮤니티:"커뮤니티",미디어:"미디어","LIVE 중계":"LIVE 중계",다시보기:"다시보기",하이라이트:"하이라이트",기획영상:"기획영상",사진:"사진",게임노트:"게임노트",게임:"게임",이벤트:"이벤트",티켓:"티켓",티켓안내:"티켓안내",티켓내역:"티켓내역",구매내역:"구매내역",모바일시즌권:"모바일시즌권",선물함:"선물함",쿠폰함:"쿠폰함",정규시즌:"정규시즌",컵대회:"컵대회","OPEN MATCH DAY":"OPEN MATCH DAY",D리그:"D리그",올스타전:"올스타전",동아시아슈퍼리그:"동아시아슈퍼리그",스토어:"스토어",포토스토어:"
+.","관심경기가 해제되었습니다.":"관심경기가 해제되었습니다.","등록된 관심경기가 없습니다.":"등록된 관심경기가 없습니다.","등록된 챌린지가 없습니다.":"등록된 챌린지가 없습니다.","업데이트 예정":"업데이트 예정",다시보기:"다시보기",프리뷰:"프리뷰","LIVE 중계":"LIVE 중계",기록:"기록",하이라이트:"하이라이트",티켓예매:"티켓예매","경기가 없습니다.":"경기가 없습니다.","오늘의 경기가 없습니다.":"오늘의 경기가 없습니다.","금주는 경기가 없습니다.":"금주는 경기가 없습니다.",경기없음:"경기없음",경기요약:"경기요약",경기기록:"경기기록",경기차트:"경기차트",문자중계:"문자중계",선수기록:"선수기록",팀기록:"팀기록","팀 간 비교":"팀 간 비교","올시즌 성적":"올시즌 성적","올시즌 상대성적":"올시즌 상대성적"
+해제되었습니다.":"관심경기가 해제되었습니다.","등록된 관심경기가 없습니다.":"등록된 관심경기가 없습니다.","등록된 챌린지가 없습니다.":"등록된 챌린지가 없습니다.","업데이트 예정":"업데이트 예정",다시보기:"다시보기",프리뷰:"프리뷰","LIVE 중계":"LIVE 중계",기록:"기록",하이라이트:"하이라이트",티켓예매:"티켓예매","경기가 없습니다.":"경기가 없습니다.","오늘의 경기가 없습니다.":"오늘의 경기가 없습니다.","금주는 경기가 없습니다.":"금주는 경기가 없습니다.",경기없음:"경기없음",경기요약:"경기요약",경기기록:"경기기록",경기차트:"경기차트",문자중계:"문자중계",선수기록:"선수기록",팀기록:"팀기록","팀 간 비교":"팀 간 비교","올시즌 성적":"올시즌 성적","올시즌 상대성적":"올시즌 상대성적","최근 5경기":
+https 32
+ts/" + _contexts.scheduleKey + "/latestid";
+                // テスト用 
+                //url_txt = "https://dev-bleague.kuroco-dev.jp/files/user/web_json/v2_genius_contexts/" + _contexts.scheduleKey + "/latestid"; 
+            }else{
+                //検証用URL
+                //url_txt = "http://de
+ts/" + _contexts.scheduleKey + "/latestid";
+                // テスト用 
+                //url_txt = "https://dev-bleague.kuroco-dev.jp/files/user/web_json/v2_genius_contexts/" + _contexts.scheduleKey + "/latestid"; 
+            }
+
+            $.ajax({
+                url: url_txt,
+              
+cheduleKey + "/" + (_contexts.maxId || 0) + ".json";
+            // テスト用
+            //url_txt = "https://dev-bleague.kuroco-dev.jp/files/user/web_json/v2_genius_contexts/" + _contexts.scheduleKey + "/" + (_contexts.maxId || 0) + ".json";
+        }else{
+            //検証用URL
+            //url_tx
+cheduleKey + "/" + (_contexts.maxId || 0) + ".json";
+            // テスト用
+            //url_txt = "https://dev-bleague.kuroco-dev.jp/files/user/web_json/v2_genius_contexts/" + _contexts.scheduleKey + "/" + (_contexts.maxId || 0) + ".json";
+        }
+
+        $.ajax({
+            url: url_txt,
+
+json 20
+0){
+                //検証用URL
+                //url_txt = "http://dev-bleague.s3.amazonaws.com/web_json/v2_genius_contexts/" + _contexts.scheduleKey + "/latestid";
+                //本番用URL
+                url_txt = "http://b-league.s3.amazonaws.com/web_json/v2_genius_contexts/" + _contexts.schedu
+testid";
+                //本番用URL
+                url_txt = "http://b-league.s3.amazonaws.com/web_json/v2_genius_contexts/" + _contexts.scheduleKey + "/latestid";
+                // テスト用 
+                //url_txt = "https://dev-bleague.kuroco-dev.jp/files/user/web_json/v2_genius_contexts/" + _c
+            // テスト用 
+                //url_txt = "https://dev-bleague.kuroco-dev.jp/files/user/web_json/v2_genius_contexts/" + _contexts.scheduleKey + "/latestid"; 
+            }else{
+                //検証用URL
+                //url_txt = "http://dev-bleague.s3.amazonaws.com/web_json/v1_contexts/"
+se{
+                //検証用URL
+                //url_txt = "http://dev-bleague.s3.amazonaws.com/web_json/v1_contexts/" + _contexts.scheduleKey + "/latestid";
+                //本番用URL
+                url_txt = "http://b-league.s3.amazonaws.com/web_json/v1_contexts/" + _contexts.scheduleKey + "/late
+clock 0
+period 175
+         _contexts_s3id.data.Game.GameDateTime = _contexts_s3id.data.GameDateTime;
+
+            //periods
+            var periods = getCurrentPeriods(_contexts_s3id.data.Game);
+            if (!_contexts.initialized) {
+                gameDetailInit(_contexts_s3id.data.Game, periods);
+        
+ata.Game.GameDateTime = _contexts_s3id.data.GameDateTime;
+
+            //periods
+            var periods = getCurrentPeriods(_contexts_s3id.data.Game);
+            if (!_contexts.initialized) {
+                gameDetailInit(_contexts_s3id.data.Game, periods);
+            }
+            buildC
+            if (!_contexts.initialized) {
+                gameDetailInit(_contexts_s3id.data.Game, periods);
+            }
+            buildContainer(_contexts_s3id.data.Game, periods);
+            //GameSummary
+            renderGameSummary(_contexts_s3id.data.Game, periods);
+            //Pl
+exts_s3id.data.Game, periods);
+            }
+            buildContainer(_contexts_s3id.data.Game, periods);
+            //GameSummary
+            renderGameSummary(_contexts_s3id.data.Game, periods);
+            //PlayByPlay
+            if (!!_contexts_s3id.data.Game.PlayByPlayExistsFlg && _co
+
+web search: "ALOHADANCE" "Stariy bog" "18" "коэффициенты" ...
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import re,urllib.request,json
+s=open('/tmp/kbl.js').read()
+for m in re.finditer(r'[\"\\x27](/api/["'^"'"\\x27]+)',s):
+ if any(t in m[1].lower() for t in ['game','schedule','match','main']):print(m[1][:250])
+for term in ['getSchedule','gameDate','todayGame','gameList','game-list','main/main','match/schedule']:
+ p=s.find(term);print(term,s[max(0,p-250):p+450] if p>=0 else 'none')
+u='https://b-league.s3.amazonaws.com/web_json/v2_genius_contexts/506474/latestid'
+try:
+ d=urllib.request.urlopen(u,timeout=10).read().decode();print('LATEST',d)
+ u='https://b-league.s3.amazonaws.com/web_json/v2_genius_contexts/506474/'+d.strip()+'.json';d=json.load(urllib.request.urlopen(u,timeout=10));open('/tmp/bleague_live.json','w').write(json.dumps(d));print('keys',str(d)[:2400])
+except Exception as e:print(e)
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+ succeeded in 1470ms:
+getSchedule none
+gameDate tchChartByGmkey"),get$3(`/match/${a}/match-chart`)),getTextCastByGmkey=async(a,o)=>(console.log("game.getTextCastByGmkey"),get$3(`/match/${a}/text-cast`,o)),getPreviewData=async a=>(console.log("game.getPreviewData"),get$3(`/match/getPreviewData/${a.gameDate}/${a.gmKey}`)),getMatchHighlightList=async(a,o)=>(console.log("game.getMatchHighlightList"),get$3(`/match/highlight/${a}/${o}`)),getMatchPhotoList=async a=>(console.log("game.getMatchPhotoList"),get$3(`/match/photo/${a}`)),nm="",v$2="5.5.2",ip=0,op=30,fr=30,w$1=100,h$3=100,assets=[],layers=[{ty:3,st:0,ip:0,op:30,w:100,h:100,ks:{ty:"tr"},ind:0,sr:1},{ty:3,st:0,ip:0,op:30,w:100,h:100,ks:{ty:"tr"},ind:1,sr:1,parent:0},{ty:3,st:0,ip:0,op:30,
+todayGame none
+gameList none
+game-list none
+main/main none
+match/schedule (!mt),children:Rt==="/match"?jsxRuntimeExports.jsxs("li",{children:[jsxRuntimeExports.jsx("p",{children:ct("Header.경기")}),jsxRuntimeExports.jsxs("ul",{children:[jsxRuntimeExports.jsx("li",{className:"active",children:jsxRuntimeExports.jsx(Link,{to:"/match/schedule",children:ct("Header.일정 및 결과")})}),jsxRuntimeExports.jsx("li",{children:jsxRuntimeExports.jsx(Link,{to:"/match/team-ranking",children:ct("Header.팀순위")})})]})]}):Rt==="/record"?jsxRuntimeExports.jsxs("li",{children:[jsxRuntimeExports.jsx("p",{children:ct("Header.기록")}),jsxRuntimeExports.jsxs("ul",{children:[jsxRuntimeExports.jsx("li",{children:jsxRuntimeExports.jsx(Link,{to:"/record/seasonLeader",children:ct("Header.시즌리더")})}),jsxRu
+LATEST 11
+'utf-8' codec can't decode byte 0x8b in position 1: invalid start byte
+
+codex
+The official live feed now has Yokohama trailing by seven, which lowers its win probability from my pregame estimate. I’m finishing the remaining checks and validating that all 30 markets have probabilities that sum to one.
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import re,json,urllib.request,gzip
+s=open('/tmp/kbl.js').read()
+for term in ['getTextCastByGmkey=','getMatchList','getMain','get"'$3='"']:
+ p=s.find(term);print(term,s[max(0,p-1800):p+450] if p>=0 else 'none')
+u='https://b-league.s3.amazonaws.com/web_json/v2_genius_contexts/506474/11.json'
+r=urllib.request.urlopen(u,timeout=10).read()
+if r[:2]==b'\\x1f\\x8b':r=gzip.decompress(r)
+d=json.loads(r);print('BLEAGUE',str(d)[:3500]);open('/tmp/bleague_live.json','w').write(json.dumps(d))
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+ succeeded in 678ms:
+getTextCastByGmkey= omise.all(_e.map(rt=>{if(rt=assetsURL(rt),rt in seen)return;seen[rt]=!0;const ot=rt.endsWith(".css"),ct=ot?'[rel="stylesheet"]':"";if(document.querySelector(`link[href="${rt}"]${ct}`))return;const ut=document.createElement("link");if(ut.rel=ot?"stylesheet":scriptRel,ot||(ut.as="script",ut.crossOrigin=""),ut.href=rt,nt&&ut.setAttribute("nonce",nt),document.head.appendChild(ut),ot)return new Promise((dt,xt)=>{ut.addEventListener("load",dt),ut.addEventListener("error",()=>xt(new Error(`Unable to preload CSS for ${rt}`)))})}))}return tt.then(()=>o()).catch(st=>{const nt=new Event("vite:preloadError",{cancelable:!0});if(nt.payload=st,window.dispatchEvent(nt),!nt.defaultPrevented)throw st})};var momentExports=requireMoment();const moment=getDefaultExportFromCjs(momentExports),getMatchList=async a=>(console.log("game.getMatchList"),get$3("/match/list",a)),getTodayMatchList=async a=>(console.log("game.getTodayMatchList"),get$3("/match/list/today",a)),addBookmark=async a=>(console.log("game.addBookmark"),post(`/match/bookmark/add/${a}`)),delBookmark=async a=>(console.log("game.delBookmark"),post(`/match/bookmark/del/${a}`)),getMatchYearList=async a=>(console.log("game.getMatchYearList"),get$3("/match/year",a)),getMatchInfo=async a=>(console.log("game.getMatchInfo"),get$3(`/match/${a}`)),getCompareTeamStatByGmkey=async(a="DefaultTeam",o)=>(console.log("game.getCompareTeamStatByGmkey"),get$3(`/league/${a}/vs/team-statsByGmKey`,o)),getPlayerStatByGmkey=async(a="DefaultTeam",o)=>(console.log("game.getPlayerStatByGmkey"),get$3(`/match/${a}/player-stat`,o)),getTeamRecordByGmkey=async(a="DefaultTeam",o)=>(console.log("game.getTeamRecordByGmkey"),get$3(`/match/${a}/team-record`,o)),getMatchChartByGmkey=async a=>(console.log("game.getMatchChartByGmkey"),get$3(`/match/${a}/match-chart`)),getTextCastByGmkey=async(a,o)=>(console.log("game.getTextCastByGmkey"),get$3(`/match/${a}/text-cast`,o)),getPreviewData=async a=>(console.log("game.getPreviewData"),get$3(`/match/getPreviewData/${a.gameDate}/${a.gmKey}`)),getMatchHighlightList=async(a,o)=>(console.log("game.getMatchHighlightList"),get$3(`/match/highlight/${a}/${o}`)),getMatchPhotoList=async a=>(console.log("game.getMatchPhotoList"),get$3(`/match/photo/${a}`)),nm="",v$2="5.5.2",ip
+getMatchList untimeExports.Fragment,{children:[jsxRuntimeExports.jsx(Header,{}),jsxRuntimeExports.jsx("main",{children:jsxRuntimeExports.jsx(Outlet,{})}),!getMobileAppHeaderData()&&jsxRuntimeExports.jsx(FooterMedia,{})]})}const LayoutWithSide=a=>{const{sideMenu:o}=a;return jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment,{children:[jsxRuntimeExports.jsx(Header,{}),jsxRuntimeExports.jsx("main",{children:jsxRuntimeExports.jsxs("div",{className:"layout grid-2",children:[jsxRuntimeExports.jsx(Outlet,{}),!getMobileAppHeaderData()&&jsxRuntimeExports.jsx("div",{className:"side",children:jsxRuntimeExports.jsx(SideView,{menuList:o})})]})}),!getMobileAppHeaderData()&&jsxRuntimeExports.jsx(FooterMedia,{})]})},scriptRel="modulepreload",assetsURL=function(a){return"/"+a},seen={},__vitePreload=function(o,_e,et){let tt=Promise.resolve();if(_e&&_e.length>0){document.getElementsByTagName("link");const st=document.querySelector("meta[property=csp-nonce]"),nt=(st==null?void 0:st.nonce)||(st==null?void 0:st.getAttribute("nonce"));tt=Promise.all(_e.map(rt=>{if(rt=assetsURL(rt),rt in seen)return;seen[rt]=!0;const ot=rt.endsWith(".css"),ct=ot?'[rel="stylesheet"]':"";if(document.querySelector(`link[href="${rt}"]${ct}`))return;const ut=document.createElement("link");if(ut.rel=ot?"stylesheet":scriptRel,ot||(ut.as="script",ut.crossOrigin=""),ut.href=rt,nt&&ut.setAttribute("nonce",nt),document.head.appendChild(ut),ot)return new Promise((dt,xt)=>{ut.addEventListener("load",dt),ut.addEventListener("error",()=>xt(new Error(`Unable to preload CSS for ${rt}`)))})}))}return tt.then(()=>o()).catch(st=>{const nt=new Event("vite:preloadError",{cancelable:!0});if(nt.payload=st,window.dispatchEvent(nt),!nt.defaultPrevented)throw st})};var momentExports=requireMoment();const moment=getDefaultExportFromCjs(momentExports),getMatchList=async a=>(console.log("game.getMatchList"),get$3("/match/list",a)),getTodayMatchList=async a=>(console.log("game.getTodayMatchList"),get$3("/match/list/today",a)),addBookmark=async a=>(console.log("game.addBookmark"),post(`/match/bookmark/add/${a}`)),delBookmark=async a=>(console.log("game.delBookmark"),post(`/match/bookmark/del/${a}`)),getMatchYearList=async a=>(console.log("game.getMatchYearList"),get$3("/match/year",a)),getMatchIn
+getMain none
+get$3= rt.AppVersion=`${ht.appVersion}`,rt.TeamCode=`${ht.teamCode}`):(setAccessToken(dt),setRefreshToken(xt)),console.log("[ Axios.interceptor ] :: ERR :: [/reissue] : 엑세스 토큰 갱신"),processAwait=null,rt.Authorization=getAccessToken();const mt=axios.create({headers:rt});if(nt.method==="get")return mt.get(nt.url);if(nt.method==="post")return mt.post(nt.url,nt.data);if(nt.method==="patch")return mt.patch(nt.url,nt.data);if(nt.method==="put")return mt.put(nt.url,nt.data);if(nt.method==="delete")return mt.delete(nt.url,{data:nt.data})}else processAwait=null,removeAuthTokens$1(),isReadyFlutter()?location.reload():location.href="/login",Promise.resolve(et)})}catch(ct){return removeAuthTokens$1(),isReadyFlutter()?location.reload():location.href="/login",Promise.reject(ct)}}else{await processAwait;let st=et.config,nt=st.headers;st.headers.Authorization=getAccessToken();const rt=axios.create({headers:nt});if(st.method==="get")return rt.get(st.url);if(st.method==="post")return rt.post(st.url,st.data);if(st.method==="patch")return rt.patch(st.url,st.data);if(st.method==="put")return rt.put(st.url,st.data);if(st.method==="delete")return rt.delete(st.url,{data:st.data})}else if(et.data.object===-1002)console.log("[ Axios.interceptor ] :: ERR :: [-1002] : WRONG TOKEN -> go login"),removeAuthTokens$1(),location.href="/";else return console.log("else"),Promise.resolve(et)}else{if(et.status===400)return((tt=o.config)==null?void 0:tt.method)==="patch"?Promise.reject(o):Promise.resolve(et);if(et.status===500)if(console.log("[ Axios.interceptor ] :: ERR :: [500] : TOKEN REMOVE -> go login"),console.log("[500 error -]"+et),et.data.object===-1002)(getAccessToken()!==null||getAccessToken()!==void 0)&&(removeAuthTokens$1(),isReadyFlutter()||(location.href="/login"));else return Promise.resolve(et)}})},get$3=async(a,o={})=>{console.log("=> Api.service:get"),await init();const _e=getQueryStringFromObject(o);return axios.get(a+_e).then(({status:et,data:tt})=>{if(et===200)return tt}).catch(errorHandler)},post=async(a,o)=>(console.log("=> Api.service:post"),await init(),axios.post(a,o).then(({status:_e,data:et})=>({status:_e,data:et})).catch(errorHandler)),put=async(a,o)=>(console.log("Api.service:put"),await init(),axios.put(a,o).then(({status:_e,
+BLEAGUE {'PlayByPlays': [{'Period': 1, 'Code': 546, 'ScheduleKey': 506474, 'TeamID': None, 'TeamNameJ': None, 'PlayerID1': None, 'PlayerNo1': '', 'PlayerNameJ1': '', 'No': 1000, 'RecordDateTime': '2026-10-18 06:10:30', 'RecordEditDateTime': None, 'RestTime': '10:00', 'Score': '0-0', 'PeriodEndRowFlg': False, 'GameEndRowFlg': False, 'ActionCD1': 80, 'ActionCD2': None, 'ActionCD3': None, 'Success': 1, 'Side': 'left', 'PlayText': '試合開始 '}, {'No': 2000, 'RecordDateTime': '2026-10-18 06:10:30', 'RecordEditDateTime': None, 'RestTime': '10:00', 'Code': 546, 'ScheduleKey': 506474, 'Period': 1, 'ActionCD1': 86, 'ActionCD2': None, 'ActionCD3': None, 'GameEndRowFlg': False, 'PeriodEndRowFlg': False, 'TeamID': '694', 'TeamNameJ': '横浜ビー・コルセアーズ', 'PlayerID1': '15811', 'PlayerNo1': '14', 'PlayerNameJ1': '佐藤 卓磨', 'HomeAway': 1, 'PlayText': '#14 佐藤 プレイヤーイン'}, {'No': 2000, 'RecordDateTime': '2026-10-18 06:10:30', 'RecordEditDateTime': None, 'RestTime': '10:00', 'Code': 546, 'ScheduleKey': 506474, 'Period': 1, 'ActionCD1': 86, 'ActionCD2': None, 'ActionCD3': None, 'GameEndRowFlg': False, 'PeriodEndRowFlg': False, 'TeamID': '694', 'TeamNameJ': '横浜ビー・コルセアーズ', 'PlayerID1': '51000394', 'PlayerNo1': '21', 'PlayerNameJ1': 'コッツァー マイク', 'HomeAway': 1, 'PlayText': '#21 コッツァー プレイヤーイン'}, {'No': 2000, 'RecordDateTime': '2026-10-18 06:10:30', 'RecordEditDateTime': None, 'RestTime': '10:00', 'Code': 546, 'ScheduleKey': 506474, 'Period': 1, 'ActionCD1': 86, 'ActionCD2': None, 'ActionCD3': None, 'GameEndRowFlg': False, 'PeriodEndRowFlg': False, 'TeamID': '694', 'TeamNameJ': '横浜ビー・コルセアーズ', 'PlayerID1': '32956', 'PlayerNo1': '30', 'PlayerNameJ1': '須藤 昂矢', 'HomeAway': 1, 'PlayText': '#30 須藤 プレイヤーイン'}, {'No': 2000, 'RecordDateTime': '2026-10-18 06:10:30', 'RecordEditDateTime': None, 'RestTime': '10:00', 'Code': 546, 'ScheduleKey': 506474, 'Period': 1, 'ActionCD1': 86, 'ActionCD2': None, 'ActionCD3': None, 'GameEndRowFlg': False, 'PeriodEndRowFlg': False, 'TeamID': '694', 'TeamNameJ': '横浜ビー・コルセアーズ', 'PlayerID1': '9489', 'PlayerNo1': '33', 'PlayerNameJ1': '並里 成', 'HomeAway': 1, 'PlayText': '#33 並里 プレイヤーイン'}, {'No': 2000, 'RecordDateTime': '2026-10-18 06:10:30', 'RecordEditDateTime': None, 'RestTime': '10:00', 'Code': 546, 'ScheduleKey': 506474, 'Period': 1, 'ActionCD1': 86, 'ActionCD2': None, 'ActionCD3': None, 'GameEndRowFlg': False, 'PeriodEndRowFlg': False, 'TeamID': '694', 'TeamNameJ': '横浜ビー・コルセアーズ', 'PlayerID1': '9435', 'PlayerNo1': '34', 'PlayerNameJ1': 'リチャードソン カイル', 'HomeAway': 1, 'PlayText': '#34 リチャードソン プレイヤーイン'}, {'No': 2000, 'RecordDateTime': '2026-10-18 06:10:30', 'RecordEditDateTime': None, 'RestTime': '10:00', 'Code': 546, 'ScheduleKey': 506474, 'Period': 1, 'ActionCD1': 86, 'ActionCD2': None, 'ActionCD3': None, 'GameEndRowFlg': False, 'PeriodEndRowFlg': False, 'TeamID': '702', 'TeamNameJ': 'レバンガ北海道', 'PlayerID1': '51000102', 'PlayerNo1': '2', 'PlayerNameJ1': 'ラモス ドワイト', 'HomeAway': 2, 'PlayText': '#2 ラモス プレイヤーイン'}, {'No': 2000, 'RecordDateTime': '2026-10-18 06:10:30', 'RecordEditDateTime': None, 'RestTime': '10:00', 'Code': 546, 'ScheduleKey': 506474, 'Period': 1, 'ActionCD1': 86, 'ActionCD2': None, 'ActionCD3': None, 'GameEndRowFlg': False, 'PeriodEndRowFlg': False, 'TeamID': '702', 'TeamNameJ': 'レバンガ北海道', 'PlayerID1': '51000406', 'PlayerNo1': '3', 'PlayerNameJ1': 'クラーク ゲイリー', 'HomeAway': 2, 'PlayText': '#3 クラーク プレイヤーイン'}, {'No': 2000, 'RecordDateTime': '2026-10-18 06:10:30', 'RecordEditDateTime': None, 'RestTime': '10:00', 'Code': 546, 'ScheduleKey': 506474, 'Period'
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,json,concurrent.futures,gzip
+urls=['https://api.kbl.or.kr/match/list/today','https://api.kbl.or.kr/match/list?seasonCode=S45&gameDate=20261018']
+def fetch(u):
+ try:return u,urllib.request.urlopen(urllib.request.Request(u,headers={'Origin':'https://www.kbl.or.kr','Referer':'https://www.kbl.or.kr/','Accept-Language':'ko'}),timeout=10).read().decode()[:10000]
+ except Exception as e:return u,str(e)
+for u,s in concurrent.futures.ThreadPoolExecutor(2).map(fetch,urls):print(u,s)
+d=json.load(open('/tmp/bleague_live.json'));print('Bleague keys',list(d));print('Game',str(d.get('Game'))[:5000]);print('LASTplays',str(d.get('PlayByPlays',[])[-4:]))
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+ succeeded in 847ms:
+https://api.kbl.or.kr/match/list/today HTTP Error 400: 
+https://api.kbl.or.kr/match/list?seasonCode=S45&gameDate=20261018 HTTP Error 400: 
+Bleague keys ['PlayByPlays', 'HomeBoxscores', 'AwayBoxscores', 'Summaries', 'Game']
+Game {'Code': 546, 'ScheduleKey': 506474, 'MaxPeriod': 4, 'BoxscoreExistsFlg': True, 'PlayByPlayExistsFlg': True, 'GameCurrentPeriod': 1, 'ConventionKey': '521', 'ConventionNameJ': 'りそなグループ B.LEAGUE 2026-27 B.LEAGUE PREMIER リーグ戦', 'ConventionNameE': 'Resona Group B.LEAGUE 2026-27 B.LEAGUE PREMIER LEAGUE GAME', 'Year': 2026, 'Setu': '0', 'StadiumCD': '100054', 'StadiumNameJ': '横浜BUNTAI', 'StadiumNameE': 'YOKOHAMA BUNTAI', 'CommissionerID': None, 'CommissionerNameJ': None, 'RefereeID': 1586065, 'RefereeNameJ': '阿部 聖', 'SubRefereeID1': 1586152, 'SubRefereeNameJ1': '平原 勇次', 'SubRefereeID2': 1586073, 'SubRefereeNameJ2': '井出 啓太', 'Attendance': None, 'GameEndedFlg': False, 'RecordFixedFlg': False, 'ConventionClass': 1, 'GameDateTime': '/Date(1792303500000+0900)/', 'HomeTeamID': '694', 'HomeTeamNameJ': '横浜ビー・コルセアーズ', 'HomeTeamNameE': 'YOKOHAMA B-CORSAIRS', 'HomeTeamShortNameJ': '横浜BC', 'HomeTeamShortNameE': 'YOKOHAMA-BC', 'HomeTeamScore01': 15, 'HomeTeamScore': 15, 'AwayTeamID': '702', 'AwayTeamNameJ': 'レバンガ北海道', 'AwayTeamNameE': 'LEVANGA HOKKAIDO', 'AwayTeamShortNameJ': '北海道', 'AwayTeamShortNameE': 'HOKKAIDO', 'AwayTeamScore01': 21, 'AwayTeamScore': 21}
+LASTplays [{'Period': 1, 'Code': 546, 'ScheduleKey': 506474, 'TeamID': '694', 'TeamNameJ': '横浜ビー・コルセアーズ', 'PlayerID1': '9435', 'PlayerNo1': '34', 'PlayerNameJ1': 'カイル・リチャードソン', 'No': 89002, 'RecordDateTime': '2026-10-18 06:19:44', 'RecordEditDateTime': None, 'RestTime': '4:06', 'Score': '11-18', 'PeriodEndRowFlg': False, 'GameEndRowFlg': False, 'HomeAway': 1, 'ActionCD1': 10, 'ActionCD2': None, 'ActionCD3': None, 'Success': 1, 'Side': 'left', 'PlayText': '#34 リチャードソン オフェンスリバウンド (1-0-1)'}, {'Period': 1, 'Code': 546, 'ScheduleKey': 506474, 'TeamID': '694', 'TeamNameJ': '横浜ビー・コルセアーズ', 'PlayerID1': '9435', 'PlayerNo1': '34', 'PlayerNameJ1': 'カイル・リチャードソン', 'No': 90000, 'RecordDateTime': '2026-10-18 06:19:45', 'RecordEditDateTime': '2026-10-18 06:19:46', 'RestTime': '4:05', 'Score': '13-18', 'PeriodEndRowFlg': False, 'GameEndRowFlg': False, 'HomeAway': 1, 'ActionCD1': 4, 'ActionCD2': 27, 'ActionCD3': 37, 'X': 8.289999961853027, 'Y': 50.72999954223633, 'AreaCD': 1, 'Success': 1, 'Side': 'left', 'PlayText': '#34 リチャードソン 2Pシュートインサイドペイント○  ジャンプショット  セカンドチャンス (4点)'}, {'Period': 1, 'Code': 546, 'ScheduleKey': 506474, 'TeamID': '702', 'TeamNameJ': 'レバンガ北海道', 'PlayerID1': '19755', 'PlayerNo1': '30', 'PlayerNameJ1': '富永 啓生', 'No': 91000, 'RecordDateTime': '2026-10-18 06:20:03', 'RecordEditDateTime': '2026-10-18 06:20:05', 'RestTime': '3:47', 'Score': '13-21', 'PeriodEndRowFlg': False, 'GameEndRowFlg': False, 'HomeAway': 2, 'ActionCD1': 1, 'ActionCD2': 27, 'ActionCD3': None, 'X': 68.4800033569336, 'Y': 40.849998474121094, 'AreaCD': 10, 'Success': 1, 'Side': 'right', 'PlayText': '#30 富永 3Pシュート○  ジャンプショット (11点)'}, {'Period': 1, 'Code': 546, 'ScheduleKey': 506474, 'TeamID': '694', 'TeamNameJ': '横浜ビー・コルセアーズ', 'PlayerID1': '32956', 'PlayerNo1': '30', 'PlayerNameJ1': '須藤 昂矢', 'No': 92000, 'RecordDateTime': '2026-10-18 06:20:22', 'RecordEditDateTime': '2026-10-18 06:20:24', 'RestTime': '3:28', 'Score': '15-21', 'PeriodEndRowFlg': False, 'GameEndRowFlg': False, 'HomeAway': 1, 'ActionCD1': 4, 'ActionCD2': 28, 'ActionCD3': None, 'X': 7.829999923706055, 'Y': 59.7599983215332, 'AreaCD': 2, 'Success': 1, 'Side': 'left', 'PlayText': '#30 須藤 2Pシュートインサイドペイント○  レイアップ (4点)'}]
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,urllib.error,re
+s=open('/tmp/kbl.js').read();p=s.find('axios.interceptors.request.use');print(s[p:p+2100])
+for m in list(re.finditer('getTodayMatchList\\\\(',s))[:8]:print(s[m.start()-180:m.start()+350])
+try:
+ print(urllib.request.urlopen('https://api.kbl.or.kr/match/list/today',timeout=10).read().decode()[:2000])
+except urllib.error.HTTPError as e:print(e.read().decode()[:4000])
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+ succeeded in 864ms:
+axios.interceptors.request.use(o=>{const _e=getMobileAppHeaderData();if(_e){o.headers.Channel=_e.channel,o.headers.TeamCode=_e.teamCode,o.headers.AppVersion=_e.appVersion,o.headers.Device=_e.device;const et=_e.accessToken;et!=null&&et!=="undefined"&&(o.headers.Authorization=`Bearer ${et}`)}else{const et=getAccessToken();et&&(o.headers.Authorization=`${et}`),o.headers.Channel="WEB",o.headers.TeamCode=getTeamCodeByDomain()}return o.headers["X-Requested-With"]="XMLHttpRequest",o.headers["Access-Control-Allow-Credentials"]=!0,o.headers["Access-Control-Allow-Origin"]="*",o.headers["Access-Control-Allow-Methods"]="GET, PUT, POST, DELETE, OPTIONS",o.headers["Cache-Control"]="no-cache",o.headers.Pragma="no-cache",o.headers.lang=a,console.log("[ Axios.interceptor ] :: processAwait "+processAwait),o},o=>{console.error(o),Promise.reject(o)}),axios.interceptors.response.use(o=>o,async o=>{var tt;const _e=o.config,et=o.response;if(console.log(`[ Axios.interceptor ] :: response [${_e.method}] ${_e.url}`),et.status===401){if(console.log("[ Axios.interceptor ] :: ERR :: [401]"),et.data.object===-1300)return console.log("[ Axios.interceptor ] :: ERR :: [401] : -1300 : "+et.data.message),Promise.resolve(et);if(et.data.object===-1001)if(processAwait==null){processAwait="temp",console.log("[ Axios.interceptor ] :: ERR :: [401] :  -1001 :  엑세스 토큰 만료 => 재발급 요청 :: "+processAwait!=null?"대기":"진입가능");let st=null,nt=et.config,rt=nt.headers;const ot=getMobileAppHeaderData();ot?(console.log("[ Axios interceptor ] response.data.object..................................... mobile "),rt.Authorization=`Bearer ${ot.refreshToken}`,rt.Channel=`${ot.channel}`,rt.Device=`${ot.device}`,rt.AppVersion=`${ot.appVersion}`,rt.TeamCode=`${ot.teamCode}`,st={accessToken:ot.accessToken,refreshToken:ot.refreshToken}):(console.log("[ Axios interceptor ] response.data.object..................................... WEB "),rt.Authorization=`${getRefreshToken()}`,st={accessToken:getAccessToken(),refreshToken:getRefreshToken()});try{processAwait=axios.create({headers:rt}).post("/reissue",st),await processAwait.then(({stat
+s)}),ct(xs)),xs}),select:Os=>Ks(Os),staleTime:5*60*1e3}),{isPending:an,isError:dn,error:qs,data:zs,refetch:Xs,isFetching:Zs}=useQuery({queryKey:[SCHEDULE_LIST,"today"],queryFn:()=>getTodayMatchList(nt||ls),staleTime:5*60*1e3});reactExports.useEffect(()=>{if(jt||(async()=>{const en=await getTeamSelectList("DefaultTeam",!0,2);Rt(en)})(),!ft){const sn=getNewSeasonCategorySelectList();yt([{key:"",value:"경기전체"}].concat(sn.filter(mn=>mn.key!=="ES")))}const{year:Os,month:xs,date:Js}=currentDate();Ut(`${Os+xs+Js}`)},[]),reactExports
+t=getDLeageTeamCode(ot);return ut&&ct.push(ut),ct}})(getTeamCodeByDomain())},{isPending:tt,isError:st,error:nt,data:rt}=useQuery({queryKey:[SCHEDULE_LIST,"side-today"],queryFn:()=>getTodayMatchList(et),staleTime:1*60*1e3});return tt?jsxRuntimeExports.jsx(Loading,{}):st?"An error has occurred : "+nt.message:jsxRuntimeExports.jsxs("div",{className:"cont-box",children:[jsxRuntimeExports.jsx("div",{className:"mid-title",children:jsxRuntimeExports.jsx("h3",{children:a("Schedule.오늘 경기")})}),jsxRuntimeExports.jsx("div",{className:"
+{"resultCode":"Fail","message":"필수 헤더 정보가 누락되었습니다.","object":-1101,"errorCode":400}
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import re,urllib.request,urllib.error,json
+s=open('/tmp/kbl.js').read();p=s.find('getTeamCodeByDomain=');print(s[p:p+950]);p=s.find('side-today');print(s[p-650:p+100])
+for tc in ['KBL','DefaultTeam']:
+ try:
+  r=urllib.request.urlopen(urllib.request.Request('https://api.kbl.or.kr/match/list/today',headers={'Channel':'WEB','TeamCode':tc,'lang':'ko','X-Requested-With':'XMLHttpRequest'}),timeout=10).read().decode();print(tc,r[:10000])
+ except urllib.error.HTTPError as e:print(tc,e.read().decode()[:1000])
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+ succeeded in 1769ms:
+getTeamCodeByDomain=()=>{const a=window.location.hostname;let o="";return a==="promy.kbl.or.kr"?o="16":a==="thunders.kbl.or.kr"?o="35":a==="knights.kbl.or.kr"?o="55":a==="sakers.kbl.or.kr"?o="50":a==="skygunners.kbl.or.kr"?o="66":a==="pegasus.kbl.or.kr"?o="64":a==="egis.kbl.or.kr"?o="60":a==="kgc.kbl.or.kr"?o="70":a==="sonicboom.kbl.or.kr"?o="06":a==="phoebus.kbl.or.kr"?o="10":a==="youth.kbl.or.kr"?o="YH":o="XX",o},getTeamClassByDomain=()=>{const a=window.location.hostname;let o="";return a==="promy.kbl.or.kr"?o="db":a==="thunders.kbl.or.kr"?o="ss":a==="knights.kbl.or.kr"?o="sk":a==="sakers.kbl.or.kr"?o="lg":a==="skygunners.kbl.or.kr"?o="or":a==="pegasus.kbl.or.kr"?o="el":a==="egis.kbl.or.kr"?o="kcc":a==="kgc.kbl.or.kr"?o="kgc":a==="sonicboom.kbl.or.kr"?o="kt":a==="phoebus.kbl.or.kr"?o="hd":a==="youth.kbl.or.kr"?o="youth":o="kbl",o},getTeamNameByDomain=()=>{const a=window.location.hostname;let o="";return a==="promy.kbl.or.kr"?o="프로미":a
+t.preventDefault(),_e(30),rt(30),ot.current=30,et()};return jsxRuntimeExports.jsxs("div",{className:`reset ${st}`,children:[jsxRuntimeExports.jsxs("span",{className:"label gray",children:["00:",nt<10?`0${nt}`:nt]}),jsxRuntimeExports.jsx("button",{title:"새로고침",onClick:ct,children:jsxRuntimeExports.jsx("i",{className:"ic-reset"})})]})},SideTodayMatch=()=>{const{t:a}=useTranslation(),o=instance.language,et={tcodeList:(ot=>{if(ot==="XX")return"all";{const ct=[ot];ot=="64"&&ct.push("65");const ut=getDLeageTeamCode(ot);return ut&&ct.push(ut),ct}})(getTeamCodeByDomain())},{isPending:tt,isError:st,error:nt,data:rt}=useQuery({queryKey:[SCHEDULE_LIST,"side-today"],queryFn:()=>getTodayMatchList(et),staleTime:1*60*1e3});return tt?jsxRuntimeExports.jsx(
+KBL [{"tv":"tvN SPORTS","glkey":"S49G01","tnameH":"서울 SK","seasonGrade":1,"gameDate":"20261018","bookmarkFlag":0,"scoreA":55,"challengeSq":566,"tnameA":"고양 소노","tnameFH":"서울 SK 나이츠","scoreH":57,"gameStart":"1400","gameTime":"","logoA":"sono","weekDay":"일","logoH":"sk","tcodeA":"66","isEnded":0,"artcSq":null,"gameNo":26,"tcodeH":"55","tvCode":"T36","gameEnd":"","seasonCode":49,"stadiumnameEn":"Jamsil Student Gymnasium","seasonCategoryName":"정규시즌","gmkey":"S49G01N26","stadiumname":"잠실학생","tnameFA":"고양 소노 스카이거너스","isStarted":1,"replayUrl":null,"seasonName1":"2026-2027","stadiumnameF":"잠실학생체육관","gameCode":"01","seasonCategory":"R","playingQuarter":"Q3"},{"tv":"IB SPORTS","glkey":"S49G01","tnameH":"수원 KT","seasonGrade":1,"gameDate":"20261018","bookmarkFlag":0,"scoreA":69,"challengeSq":567,"tnameA":"울산 현대모비스","tnameFH":"수원 KT 소닉붐","scoreH":52,"gameStart":"1400","gameTime":"","logoA":"hd","weekDay":"일","logoH":"kt","tcodeA":"10","isEnded":0,"artcSq":null,"gameNo":27,"tcodeH":"06","tvCode":"T21","gameEnd":"","seasonCode":49,"stadiumnameEn":"Suwon KT Sonicboom Arena","seasonCategoryName":"정규시즌","gmkey":"S49G01N27","stadiumname":"수원 KT 소닉붐 아레나","tnameFA":"울산 현대모비스 피버스","isStarted":1,"replayUrl":null,"seasonName1":"2026-2027","stadiumnameF":"수원 KT 소닉붐 아레나","gameCode":"01","seasonCategory":"R","playingQuarter":"Q3"},{"tv":"tvN SPORTS","glkey":"S49G01","tnameH":"안양 정관장","seasonGrade":1,"gameDate":"20261018","bookmarkFlag":0,"scoreA":null,"challengeSq":568,"tnameA":"부산 KCC","tnameFH":"안양 정관장 레드부스터스","scoreH":null,"gameStart":"1630","gameTime":"","logoA":"kcc","weekDay":"일","logoH":"kgc","tcodeA":"60","isEnded":0,"artcSq":null,"gameNo":28,"tcodeH":"70","tvCode":"T36","gameEnd":"","seasonCode":49,"stadiumnameEn":"Anyang Gymnasium","seasonCategoryName":"정규시즌","gmkey":"S49G01N28","stadiumname":"안양 정관장 아레나","tnameFA":"부산 KCC 이지스","isStarted":0,"replayUrl":null,"seasonName1":"2026-2027","stadiumnameF":"안양 정관장 아레나","gameCode":"01","seasonCategory":"R","playingQuarter":"X"}]
+DefaultTeam [{"tv":"tvN SPORTS","glkey":"S49G01","tnameH":"서울 SK","seasonGrade":1,"gameDate":"20261018","bookmarkFlag":0,"scoreA":55,"challengeSq":566,"tnameA":"고양 소노","tnameFH":"서울 SK 나이츠","scoreH":57,"gameStart":"1400","gameTime":"","logoA":"sono","weekDay":"일","logoH":"sk","tcodeA":"66","isEnded":0,"artcSq":null,"gameNo":26,"tcodeH":"55","tvCode":"T36","gameEnd":"","seasonCode":49,"stadiumnameEn":"Jamsil Student Gymnasium","seasonCategoryName":"정규시즌","gmkey":"S49G01N26","stadiumname":"잠실학생","tnameFA":"고양 소노 스카이거너스","isStarted":1,"replayUrl":null,"seasonName1":"2026-2027","stadiumnameF":"잠실학생체육관","gameCode":"01","seasonCategory":"R","playingQuarter":"Q3"},{"tv":"IB SPORTS","glkey":"S49G01","tnameH":"수원 KT","seasonGrade":1,"gameDate":"20261018","bookmarkFlag":0,"scoreA":69,"challengeSq":567,"tnameA":"울산 현대모비스","tnameFH":"수원 KT 소닉붐","scoreH":52,"gameStart":"1400","gameTime":"","logoA":"hd","weekDay":"일","logoH":"kt","tcodeA":"10","isEnded":0,"artcSq":null,"gameNo":27,"tcodeH":"06","tvCode":"T21","gameEnd":"","seasonCode":49,"stadiumnameEn":"Suwon KT Sonicboom Arena","seasonCategoryName":"정규시즌","gmkey":"S49G01N27","stadiumname":"수원 KT 소닉붐 아레나","tnameFA":"울산 현대모비스 피버스","isStarted":1,"replayUrl":null,"seasonName1":"2026-2027","stadiumnameF":"수원 KT 소닉붐 아레나","gameCode":"01","seasonCategory":"R","playingQuarter":"Q3"},{"tv":"tvN SPORTS","glkey":"S49G01","tnameH":"안양 정관장","seasonGrade":1,"gameDate":"20261018","bookmarkFlag":0,"scoreA":null,"challengeSq":568,"tnameA":"부산 KCC","tnameFH":"안양 정관장 레드부스터스","scoreH":null,"gameStart":"1630","gameTime":"","logoA":"kcc","weekDay":"일","logoH":"kgc","tcodeA":"60","isEnded":0,"artcSq":null,"gameNo":28,"tcodeH":"70","tvCode":"T36","gameEnd":"","seasonCode":49,"stadiumnameEn":"Anyang Gymnasium","seasonCategoryName":"정규시즌","gmkey":"S49G01N28","stadiumname":"안양 정관장 아레나","tnameFA":"부산 KCC 이지스","isStarted":0,"replayUrl":null,"seasonName1":"2026-2027","stadiumnameF":"안양 정관장 아레나","gameCode":"01","seasonCategory":"R","playingQuarter":"X"}]
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,json,concurrent.futures
+urls=['https://api.kbl.or.kr/match/S49G01N26','https://api.kbl.or.kr/match/S49G01N26/text-cast']
+def f(u):
+ try:
+  r=json.load(urllib.request.urlopen(urllib.request.Request(u,headers={'Channel':'WEB','TeamCode':'XX','lang':'ko','X-Requested-With':'XMLHttpRequest'}),timeout=10));open('/tmp/kbl-'+u.split('/')[-1]+'.json','w').write(json.dumps(r));return u,str(r)[:10000]
+ except Exception as e:return u,str(e)
+for r in concurrent.futures.ThreadPoolExecutor(2).map(f,urls):print(r)
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+ succeeded in 856ms:
+('https://api.kbl.or.kr/match/S49G01N26', "{'game': {'gmkey': 'S49G01N26', 'glkey': 'S49G01', 'seasonCode': 49, 'seasonGrade': 1, 'seasonCategoryName': '정규시즌', 'gameCode': '01', 'gameNo': 26, 'gameDate': '20261018', 'tcodeH': '55', 'tcodeA': '66', 'tnameH': '서울 SK', 'tnameA': '고양 소노', 'tnameFH': '서울 SK 나이츠', 'tnameFA': '고양 소노 스카이거너스', 'seasonName': '2026-2027', 'gameStart': '1400', 'gameEnd': '', 'isStarted': 1, 'isEnded': 0, 'playingQuarter': 'Q3', 'weekDay': '일', 'tv': 'tvN SPORTS', 'tvCode': 'T36', 'stadiumname': '잠실학생', 'stadiumnameF': '잠실학생체육관', 'stadiumnameEn': 'Jamsil Student Gymnasium', 'crowds': 0, 'judges': {'main': {'name': '이승무'}, 'sub': [{'name': '임진수'}, {'name': '맹진호'}, {'name': '이태희'}]}, 'tlogoH': 'sk', 'tlogoA': 'sono', 'detailUrl': '/game/record/S49G01N26', 'highlightUrl': 'https://m.sports.naver.com/game/202610185566490126'}, 'teams': {'home': {'tcode': '55', 'tname': '서울 SK', 'tnameF': '서울 SK 나이츠', 'staffs': {'manager': {'name': '전희철'}, 'coaches': [{'name': '김기만'}, {'name': '한상민'}, {'name': '김재환'}]}}, 'away': {'tcode': '66', 'tname': '고양 소노', 'tnameF': '고양 소노 스카이거너스', 'staffs': {'manager': {'name': '손창환'}, 'coaches': [{'name': '타일러 가틀린'}, {'name': '김강선'}, {'name': '박찬희'}]}}}, 'teamrecords': {'home': {'scoreq1': 19, 'scoreq2': 23, 'scoreq3': 15, 'scoreq4': 0, 'scoreeq': []}, 'away': {'scoreq1': 19, 'scoreq2': 24, 'scoreq3': 10, 'scoreq4': 0, 'scoreeq': []}}}")
+('https://api.kbl.or.kr/match/S49G01N26/text-cast', '[{\'n\': 305, \'m\': 10, \'s\': 0, \'p\': \'에디 다니엘\', \'e\': \'EDI DANIEL\', \'a\': \'101\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 306, \'m\': 10, \'s\': 0, \'p\': \'자밀 워니\', \'e\': \'Jameel Warney\', \'a\': \'101\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 307, \'m\': 10, \'s\': 0, \'p\': \'아이재아 힉스\', \'e\': \'Isaiah Hicks\', \'a\': \'101\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 308, \'m\': 10, \'s\': 0, \'p\': \'오재현\', \'e\': \'OH JAEHYUN\', \'a\': \'101\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 309, \'m\': 10, \'s\': 0, \'p\': \'안영준\', \'e\': \'AN YOUNGJUN\', \'a\': \'101\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 310, \'m\': 10, \'s\': 0, \'p\': \'스카티 제임스\', \'e\': \'David Scott James Jr\', \'a\': \'101\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 311, \'m\': 10, \'s\': 0, \'p\': \'케빈 켐바오\', \'e\': \'Karl Kevin Argana Quiambao\', \'a\': \'101\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 312, \'m\': 10, \'s\': 0, \'p\': \'임동섭\', \'e\': \'LIM DONG SEOP\', \'a\': \'101\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 313, \'m\': 10, \'s\': 0, \'p\': \'이정현\', \'e\': \'LEE JUNG HYUN\', \'a\': \'101\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 314, \'m\': 10, \'s\': 0, \'p\': \'자니 오브라이언트\', \'e\': "Johnny O\'Bryant III", \'a\': \'101\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 315, \'m\': 10, \'s\': 0, \'a\': \'001\', \'t\': \'\', \'q\': \'Q3\'}, {\'n\': 316, \'m\': 10, \'s\': 0, \'p\': \'오재현\', \'e\': \'OH JAEHYUN\', \'a\': \'102\', \'c\': \'101_0\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 317, \'m\': 10, \'s\': 0, \'p\': \'김낙현\', \'e\': \'KIM NAK HYEON\', \'a\': \'101\', \'c\': \'101_0\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 318, \'m\': 10, \'s\': 0, \'p\': \'임동섭\', \'e\': \'LIM DONG SEOP\', \'a\': \'102\', \'c\': \'101_0\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 319, \'m\': 10, \'s\': 0, \'p\': \'최승욱\', \'e\': \'CHOI SEUNG WOOK\', \'a\': \'101\', \'c\': \'101_0\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 320, \'m\': 9, \'s\': 38, \'p\': \'자니 오브라이언트\', \'e\': "Johnny O\'Bryant III", \'a\': \'201\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 321, \'m\': 9, \'s\': 20, \'p\': \'김낙현\', \'e\': \'KIM NAK HYEON\', \'a\': \'202\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 322, \'m\': 9, \'s\': 17, \'p\': \'김낙현\', \'e\': \'KIM NAK HYEON\', \'a\': \'209\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 323, \'m\': 9, \'s\': 13, \'p\': \'자밀 워니\', \'e\': \'Jameel Warney\', \'a\': \'202\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 324, \'m\': 9, \'s\': 12, \'p\': \'안영준\', \'e\': \'AN YOUNGJUN\', \'a\': \'209\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 325, \'m\': 9, \'s\': 12, \'p\': \'안영준\', \'e\': \'AN YOUNGJUN\', \'a\': \'201\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 326, \'m\': 9, \'s\': 12, \'p\': \'자니 오브라이언트\', \'e\': "Johnny O\'Bryant III", \'a\': \'215\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 327, \'m\': 9, \'s\': 12, \'a\': \'225\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 328, \'m\': 9, \'s\': 12, \'p\': \'안영준\', \'e\': \'AN YOUNGJUN\', \'a\': \'203\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 329, \'m\': 9, \'s\': 2, \'p\': \'스카티 제임스\', \'e\': \'David Scott James Jr\', \'a\': \'207\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 330, \'m\': 9, \'s\': 2, \'p\': \'자니 오브라이언트\', \'e\': "Johnny O\'Bryant III", \'a\': \'211\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 331, \'m\': 9, \'s\': 2, \'p\': \'이정현\', \'e\': \'LEE JUNG HYUN\', \'a\': \'226\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 332, \'m\': 8, \'s\': 45, \'p\': \'아이재아 힉스\', \'e\': \'Isaiah Hicks\', \'a\': \'205\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 333, \'m\': 8, \'s\': 45, \'p\': \'자밀 워니\', \'e\': \'Jameel Warney\', \'a\': \'211\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 334, \'m\': 8, \'s\': 35, \'p\': \'아이재아 힉스\', \'e\': \'Isaiah Hicks\', \'a\': \'227\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 335, \'m\': 8, \'s\': 35, \'p\': \'자니 오브라이언트\', \'e\': "Johnny O\'Bryant III", \'a\': \'216\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 336, \'m\': 8, \'s\': 35, \'a\': \'225\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 337, \'m\': 8, \'s\': 35, \'p\': \'자니 오브라이언트\', \'e\': "Johnny O\'Bryant III", \'a\': \'214\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 338, \'m\': 8, \'s\': 35, \'p\': \'에디 다니엘\', \'e\': \'EDI DANIEL\', \'a\': \'221\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 339, \'m\': 8, \'s\': 20, \'p\': \'안영준\', \'e\': \'AN YOUNGJUN\', \'a\': \'214\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 340, \'m\': 8, \'s\': 9, \'p\': \'스카티 제임스\', \'e\': \'David Scott James Jr\', \'a\': \'207\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 341, \'m\': 7, \'s\': 52, \'p\': \'김낙현\', \'e\': \'KIM NAK HYEON\', \'a\': \'206\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 342, \'m\': 7, \'s\': 51, \'p\': \'자밀 워니\', \'e\': \'Jameel Warney\', \'a\': \'209\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 343, \'m\': 7, \'s\': 46, \'p\': \'자밀 워니\', \'e\': \'Jameel Warney\', \'a\': \'202\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 344, \'m\': 7, \'s\': 45, \'p\': \'자밀 워니\', \'e\': \'Jameel Warney\', \'a\': \'209\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 345, \'m\': 7, \'s\': 43, \'p\': \'자밀 워니\', \'e\': \'Jameel Warney\', \'a\': \'201\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 346, \'m\': 7, \'s\': 31, \'p\': \'자니 오브라이언트\', \'e\': "Johnny O\'Bryant III", \'a\': \'201\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 347, \'m\': 7, \'s\': 31, \'p\': \'이정현\', \'e\': \'LEE JUNG HYUN\', \'a\': \'211\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 348, \'m\': 7, \'s\': 19, \'p\': \'김낙현\', \'e\': \'KIM NAK HYEON\', \'a\': \'206\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 349, \'m\': 7, \'s\': 17, \'p\': \'자니 오브라이언트\', \'e\': "Johnny O\'Bryant III", \'a\': \'210\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 350, \'m\': 7, \'s\': 7, \'p\': \'스카티 제임스\', \'e\': \'David Scott James Jr\', \'a\': \'206\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 351, \'m\': 7, \'s\': 6, \'p\': \'안영준\', \'e\': \'AN YOUNGJUN\', \'a\': \'210\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 352, \'m\': 6, \'s\': 59, \'p\': \'아이재아 힉스\', \'e\': \'Isaiah Hicks\', \'a\': \'201\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 353, \'m\': 6, \'s\': 59, \'p\': \'안영준\', \'e\': \'AN YOUNGJUN\', \'a\': \'211\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 354, \'m\': 6, \'s\': 46, \'p\': \'아이재아 힉스\', \'e\': \'Isaiah Hicks\', \'a\': \'216\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 355, \'m\': 6, \'s\': 46, \'a\': \'225\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 356, \'m\': 6, \'s\': 38, \'p\': \'스카티 제임스\', \'e\': \'David Scott James Jr\', \'a\': \'201\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 357, \'m\': 6, \'s\': 38, \'p\': \'자니 오브라이언트\', \'e\': "Johnny O\'Bryant III", \'a\': \'211\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 358, \'m\': 6, \'s\': 18, \'p\': \'아이재아 힉스\', \'e\': \'Isaiah Hicks\', \'a\': \'201\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 359, \'m\': 5, \'s\': 54, \'p\': \'케빈 켐바오\', \'e\': \'Karl Kevin Argana Quiambao\', \'a\': \'206\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 360, \'m\': 5, \'s\': 52, \'p\': \'아이재아 힉스\', \'e\': \'Isaiah Hicks\', \'a\': \'210\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 361, \'m\': 5, \'s\': 32, \'p\': \'자밀 워니\', \'e\': \'Jameel Warney\', \'a\': \'206\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 362, \'m\': 5, \'s\': 31, \'a\': \'218\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 363, \'m\': 5, \'s\': 31, \'p\': \'에디 다니엘\', \'e\': \'EDI DANIEL\', \'a\': \'216\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 364, \'m\': 5, \'s\': 31, \'a\': \'225\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 365, \'m\': 5, \'s\': 17, \'p\': \'에디 다니엘\', \'e\': \'EDI DANIEL\', \'a\': \'227\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 366, \'m\': 5, \'s\': 14, \'p\': \'케빈 켐바오\', \'e\': \'Karl Kevin Argana Quiambao\', \'a\': \'202\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 367, \'m\': 5, \'s\': 14, \'a\': \'229\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 368, \'m\': 5, \'s\': 14, \'a\': \'218\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 369, \'m\': 4, \'s\': 50, \'p\': \'자밀 워니\', \'e\': \'Jameel Warney\', \'a\': \'205\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 370, \'m\': 4, \'s\': 50, \'p\': \'안영준\', \'e\': \'AN YOUNGJUN\', \'a\': \'211\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 371, \'m\': 4, \'s\': 33, \'p\': \'에디 다니엘\', \'e\': \'EDI DANIEL\', \'a\': \'216\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 372, \'m\': 4, \'s\': 33, \'a\': \'225\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 373, \'m\': 4, \'s\': 33, \'p\': \'에디 다니엘\', \'e\': \'EDI DANIEL\', \'a\': \'102\', \'c\': \'101_0\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 374, \'m\': 4, \'s\': 33, \'p\': \'오재현\', \'e\': \'OH JAEHYUN\', \'a\': \'101\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 375, \'m\': 4, \'s\': 33, \'p\': \'최승욱\', \'e\': \'CHOI SEUNG WOOK\', \'a\': \'102\', \'c\': \'101_0\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 376, \'m\': 4, \'s\': 33, \'p\': \'이재도\', \'e\': \'LEE JAE DO\', \'a\': \'101\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 377, \'m\': 4, \'s\': 20, \'p\': \'자니 오브라이언트\', \'e\': "Johnny O\'Bryant III", \'a\': \'201\', \'t\': \'66\', \'q\': \'Q3\'}, {\'n\': 378, \'m\': 3, \'s\': 58, \'p\': \'자밀 워니\', \'e\': \'Jameel Warney\', \'a\': \'206\', \'t\': \'55\', \'q\': \'Q3\'}, {\'n\': 379, \'m\': 3, \'s\': 58, \'p\': \'자니 오브라이언트\', \'e\': "Johnny O\'Bryant III", \'a\': \'210\', \'t\': \'66\', \'q\': \'Q3\'}]')
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,json,urllib.parse,concurrent.futures
+qs=['Procter','Tractor Supply','Union Pacific','Honeywell']
+def f(q):
+ try:
+  u='https://gamma-api.polymarket.com/public-search?q='+urllib.parse.quote(q)+'&limit_per_type=30'
+  d=json.load(urllib.request.urlopen(u,timeout=12));out=[]
+  for e in d.get('events',[]):
+   if 'earning' in e.get('title','').lower():
+    out.append({'title':e.get('title'),'slug':e.get('slug'),'endDate':e.get('endDate'),'markets':[{'q':m.get('question'),'description':m.get('description'),'prices':m.get('outcomePrices')} for m in e.get('markets',[])]})
+  return q,out[:8]
+ except Exception as e:return q,str(e)
+for r in concurrent.futures.ThreadPoolExecutor(4).map(f,qs):print(json.dumps(r))
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+ succeeded in 0ms:
+["Procter", "HTTP Error 403: Forbidden"]
+["Tractor Supply", "HTTP Error 403: Forbidden"]
+["Union Pacific", "HTTP Error 403: Forbidden"]
+["Honeywell", "HTTP Error 403: Forbidden"]
+
+web search: 
+web search: site:realclearpolling.com/polls/approval/donald-trump/approval-rating "October" "38.7" ...
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,json,gzip,concurrent.futures,math
+headers={'Channel':'WEB','TeamCode':'XX','lang':'ko','X-Requested-With':'XMLHttpRequest'}
+def f(x):
+ try:
+  if x=='KBL':
+   d=json.load(urllib.request.urlopen(urllib.request.Request('https://api.kbl.or.kr/match/list/today',headers=headers),timeout=8));p=json.load(urllib.request.urlopen(urllib.request.Request('https://api.kbl.or.kr/match/S49G01N26/text-cast',headers=headers),timeout=8));return x,d[0],p[-2:]
+  if x=='BLeague':
+   base='https://b-league.s3.amazonaws.com/web_json/v2_genius_contexts/506474/'
+   i=urllib.request.urlopen(base+'latestid',timeout=8).read().decode().strip();r=urllib.request.urlopen(base+i+'.json',timeout=8).read();r=gzip.decompress(r) if r[:2]==b'\\x1f\\x8b' else r;d=json.loads(r);g=d['Game'];return x,{k:v for k,v in g.items() if 'Score' in k or 'CurrentPeriod' in k},d['PlayByPlays'][-1]
+  d=json.load(urllib.request.urlopen('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&limit=180',timeout=8));c=[float(z[4]) for z in d];rv=math.sqrt(sum(math.log(c[i]/c[i-1])**2 for i in range(1,len(c))));return x,'last',d[-1],'last3h_RV',rv,'last_hour_open',[z[1] for z in d if z[0]==1792303200000]
+ except Exception as e:return x,str(e)
+for r in concurrent.futures.ThreadPoolExecutor(3).map(f,['KBL','BLeague','BTC']):print(r)
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+ succeeded in 1802ms:
+('KBL', {'tv': 'tvN SPORTS', 'glkey': 'S49G01', 'tnameH': '서울 SK', 'seasonGrade': 1, 'gameDate': '20261018', 'bookmarkFlag': 0, 'scoreA': 57, 'challengeSq': 566, 'tnameA': '고양 소노', 'tnameFH': '서울 SK 나이츠', 'scoreH': 57, 'gameStart': '1400', 'gameTime': '', 'logoA': 'sono', 'weekDay': '일', 'logoH': 'sk', 'tcodeA': '66', 'isEnded': 0, 'artcSq': None, 'gameNo': 26, 'tcodeH': '55', 'tvCode': 'T36', 'gameEnd': '', 'seasonCode': 49, 'stadiumnameEn': 'Jamsil Student Gymnasium', 'seasonCategoryName': '정규시즌', 'gmkey': 'S49G01N26', 'stadiumname': '잠실학생', 'tnameFA': '고양 소노 스카이거너스', 'isStarted': 1, 'replayUrl': None, 'seasonName1': '2026-2027', 'stadiumnameF': '잠실학생체육관', 'gameCode': '01', 'seasonCategory': 'R', 'playingQuarter': 'Q3'}, [{'n': 378, 'm': 3, 's': 58, 'p': '자밀 워니', 'e': 'Jameel Warney', 'a': '206', 't': '55', 'q': 'Q3'}, {'n': 379, 'm': 3, 's': 58, 'p': '자니 오브라이언트', 'e': "Johnny O'Bryant III", 'a': '210', 't': '66', 'q': 'Q3'}])
+('BLeague', {'GameCurrentPeriod': 1, 'HomeTeamScore01': 15, 'HomeTeamScore': 15, 'AwayTeamScore01': 23, 'AwayTeamScore': 23}, {'Period': 1, 'Code': 546, 'ScheduleKey': 506474, 'TeamID': None, 'TeamNameJ': None, 'PlayerID1': None, 'PlayerNo1': '', 'PlayerNameJ1': '', 'No': 113000, 'RecordDateTime': '2026-10-18 06:22:33', 'RecordEditDateTime': None, 'RestTime': '2:41', 'Score': '15-23', 'PeriodEndRowFlg': False, 'GameEndRowFlg': False, 'ActionCD1': 84, 'ActionCD2': None, 'ActionCD3': None, 'Success': 1, 'Side': 'left', 'PlayText': 'タイムスタート '})
+('BTC', 'last', [1792304520000, '81713.33000000', '81713.33000000', '81700.00000000', '81702.00000000', '1.14892000', 1792304579999, '93873.55290650', 506, '0.43753000', '35746.95175430', '0'], 'last3h_RV', 0.0025502645758070934, 'last_hour_open', ['81734.46000000'])
+
+codex
+The research is complete. I’m incorporating the latest scores and price into the forecasts, then checking the outcome names and totals.
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import urllib.request,json,concurrent.futures,gzip
+def f(k):
+ try:
+  if k=='BTC':return k,json.load(urllib.request.urlopen('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT',timeout=8))
+  if k=='KBL':
+   d=json.load(urllib.request.urlopen(urllib.request.Request('https://api.kbl.or.kr/match/list/today',headers={'Channel':'WEB','TeamCode':'XX','lang':'ko','X-Requested-With':'XMLHttpRequest'}),timeout=8))[0];return k,{x:d[x] for x in ['scoreH','scoreA','playingQuarter']}
+  b='https://b-league.s3.amazonaws.com/web_json/v2_genius_contexts/506474/';n=urllib.request.urlopen(b+'latestid',timeout=8).read().decode().strip();d=urllib.request.urlopen(b+n+'.json',timeout=8).read();d=gzip.decompress(d) if d[:2]==b'\\x1f\\x8b' else d;d=json.loads(d);g=d['Game'];return k,{x:g[x] for x in ['HomeTeamScore','AwayTeamScore','GameCurrentPeriod']},d['PlayByPlays'][-1].get('RestTime')
+ except Exception as e:return k,str(e)
+for x in concurrent.futures.ThreadPoolExecutor(3).map(f,['BTC','KBL','BLeague']):print(x)
+PY" in /tmp/apb-sweep-codex-g9fgdzxj
+ succeeded in 1426ms:
+('BTC', {'symbol': 'BTCUSDT', 'price': '81718.99000000'})
+('KBL', {'scoreH': 60, 'scoreA': 57, 'playingQuarter': 'Q3'})
+('BLeague', {'HomeTeamScore': 15, 'AwayTeamScore': 23, 'GameCurrentPeriod': 1}, '2:41')
+
+codex
+{"forecasts":[{"id":"22026","probabilities":{"Yes":0.715,"No":0.285}},{"id":"22016","probabilities":{"Up":0.44,"Down":0.56}},{"id":"22025","probabilities":{"Yes":0.28,"No":0.72}},{"id":"22024","probabilities":{"LOUD":0.47,"Team Vitality":0.53}},{"id":"16159","probabilities":{"Yes":0.27,"No":0.73}},{"id":"21968","probabilities":{"Yes":0.54,"No":0.46}},{"id":"22019","probabilities":{"Yes":0.60,"No":0.40}},{"id":"21958","probabilities":{"Yes":0.45,"No":0.55}},{"id":"22021","probabilities":{"Yes":0.285,"No":0.715}},{"id":"22023","probabilities":{"BC.Game Esports":0.82,"Drama eSports":0.18}},{"id":"12960","probabilities":{"Yes":0.13,"No":0.87}},{"id":"21625","probabilities":{"Yes":0.35,"No":0.65}},{"id":"22008","probabilities":{"Yes":0.70,"No":0.30}},{"id":"21957","probabilities":{"Yes":0.77,"No":0.23}},{"id":"21980","probabilities":{"Yokohama B-Corsairs":0.28,"Levanga Hokkaido":0.72}},{"id":"22022","probabilities":{"Falcons Force":0.635,"maybe":0.365}},{"id":"7494","probabilities":{"Yes":0.18,"No":0.82}},{"id":"21624","probabilities":{"Yes":0.30,"No":0.70}},{"id":"22005","probabilities":{"Yes":0.19,"No":0.81}},{"id":"21956","probabilities":{"Yes":0.20,"No":0.80}},{"id":"21979","probabilities":{"Yes":0.28,"No":0.72}},{"id":"22020","probabilities":{"LOUD":0.60,"Team Vitality":0.40}},{"id":"7493","probabilities":{"Yes":0.20,"No":0.80}},{"id":"21417","probabilities":{"Yes":0.33,"No":0.67}},{"id":"21987","probabilities":{"Yes":0.43,"No":0.57}},{"id":"21911","probabilities":{"Yes":0.19,"No":0.81}},{"id":"21941","probabilities":{"Seoul Knights":0.65,"Goyang":0.35}},{"id":"21826","probabilities":{"ALOHADANCE Team":0.37,"Stariy bog Team":0.63}},{"id":"7492","probabilities":{"Yes":0.225,"No":0.775}},{"id":"20735","probabilities":{"Yes":0.83,"No":0.17}}]}
+tokens used
+318,503
+{"forecasts":[{"id":"22026","probabilities":{"Yes":0.715,"No":0.285}},{"id":"22016","probabilities":{"Up":0.44,"Down":0.56}},{"id":"22025","probabilities":{"Yes":0.28,"No":0.72}},{"id":"22024","probabilities":{"LOUD":0.47,"Team Vitality":0.53}},{"id":"16159","probabilities":{"Yes":0.27,"No":0.73}},{"id":"21968","probabilities":{"Yes":0.54,"No":0.46}},{"id":"22019","probabilities":{"Yes":0.60,"No":0.40}},{"id":"21958","probabilities":{"Yes":0.45,"No":0.55}},{"id":"22021","probabilities":{"Yes":0.285,"No":0.715}},{"id":"22023","probabilities":{"BC.Game Esports":0.82,"Drama eSports":0.18}},{"id":"12960","probabilities":{"Yes":0.13,"No":0.87}},{"id":"21625","probabilities":{"Yes":0.35,"No":0.65}},{"id":"22008","probabilities":{"Yes":0.70,"No":0.30}},{"id":"21957","probabilities":{"Yes":0.77,"No":0.23}},{"id":"21980","probabilities":{"Yokohama B-Corsairs":0.28,"Levanga Hokkaido":0.72}},{"id":"22022","probabilities":{"Falcons Force":0.635,"maybe":0.365}},{"id":"7494","probabilities":{"Yes":0.18,"No":0.82}},{"id":"21624","probabilities":{"Yes":0.30,"No":0.70}},{"id":"22005","probabilities":{"Yes":0.19,"No":0.81}},{"id":"21956","probabilities":{"Yes":0.20,"No":0.80}},{"id":"21979","probabilities":{"Yes":0.28,"No":0.72}},{"id":"22020","probabilities":{"LOUD":0.60,"Team Vitality":0.40}},{"id":"7493","probabilities":{"Yes":0.20,"No":0.80}},{"id":"21417","probabilities":{"Yes":0.33,"No":0.67}},{"id":"21987","probabilities":{"Yes":0.43,"No":0.57}},{"id":"21911","probabilities":{"Yes":0.19,"No":0.81}},{"id":"21941","probabilities":{"Seoul Knights":0.65,"Goyang":0.35}},{"id":"21826","probabilities":{"ALOHADANCE Team":0.37,"Stariy bog Team":0.63}},{"id":"7492","probabilities":{"Yes":0.225,"No":0.775}},{"id":"20735","probabilities":{"Yes":0.83,"No":0.17}}]}
