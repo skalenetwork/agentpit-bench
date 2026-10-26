@@ -1,0 +1,1113 @@
+$ codex exec <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Bitcoin Up or Down - October 25, 8:00PM-12:00AM ET
+Outcomes: Up / Down | prices: Up 0.460, Down 0.540 | closes: 2026-10-26T04:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 12-8, net P&L +33.3.
+- Will Hellas Verona FC vs. Pisa SC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Aris Thessaloniki win on 2026-10-25? | you picked No | winner Yes | lost | P&L -100.0
+- Will FK Zenit win on 2026-10-25? | you picked No | winner Yes | lost | P&L -100.0
+- Will Club Brugge win on 2026-10-25? | you picked Yes | winner Yes | won | P&L +38.9
+- Will Sunderland AFC vs. Leeds United FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Feyenoord Rotterdam win on 2026-10-25? | you picked No | winner No | won | P&L +42.9
+- Will Genoa CFC vs. Venezia FC end in a draw? | you picked No | winner No | won | P&L +40.8
+- Will Hull City AFC vs. Brentford FC end in a draw? | you picked Yes | winner Yes | won | P&L +316.7
+- Will Athletic Club vs. Getafe CF end in a draw? | you picked No | winner No | won | P&L +29.9
+- Will Kawasaki Frontale vs. Fagiano Okayama end in a draw? | you picked No | winner No | won | P&L +35.1
+- Will SE Palmeiras win on 2026-10-24? | you picked No | winner Yes | lost | P&L -100.0
+- Will CA Paranaense win on 2026-10-24? | you picked No | winner No | won | P&L +53.8
+- Will FCI Levadia Tallinn vs. Harju JK Laagri end in a draw? | you picked Yes | winner No | lost | P&L -100.0
+- Will FC Südtirol vs. UC Sampdoria end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will FC Augsburg vs. 1. FC Union Berlin end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Como 1907 vs. US Sassuolo Calcio end in a draw? | you picked No | winner No | won | P&L +23.5
+- Will Cagliari Calcio vs. Bologna FC 1909 end in a draw? | you picked No | winner No | won | P&L +44.9
+- Will Psim Yogyakarta win on 2026-10-24? | you picked No | winner No | won | P&L +78.6
+- Counter-Strike: Aurora Gaming vs TheMongolz - Map 1 Winner | you picked Aurora Gaming | winner Aurora Gaming | won | P&L +58.7
+- Will Kashima Antlers win on 2026-10-24? | you picked No | winner No | won | P&L +69.5
+
+--- output ---
+WARNING: proceeding, even though we could not create PATH aliases: Refusing to create helper binaries under temporary dir "/tmp" (codex_home: AbsolutePathBuf("/tmp/apbh-codex-jk793ca7/.codex"))
+Reading additional input from stdin...
+OpenAI Codex v0.161.0
+--------
+workdir: /tmp/apb-122-codex-f75cffrz
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: max
+reasoning summaries: none
+session id: 01a175b6-6451-7573-b634-00b3f222d964
+--------
+user
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Bitcoin Up or Down - October 25, 8:00PM-12:00AM ET
+Outcomes: Up / Down | prices: Up 0.460, Down 0.540 | closes: 2026-10-26T04:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 12-8, net P&L +33.3.
+- Will Hellas Verona FC vs. Pisa SC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Aris Thessaloniki win on 2026-10-25? | you picked No | winner Yes | lost | P&L -100.0
+- Will FK Zenit win on 2026-10-25? | you picked No | winner Yes | lost | P&L -100.0
+- Will Club Brugge win on 2026-10-25? | you picked Yes | winner Yes | won | P&L +38.9
+- Will Sunderland AFC vs. Leeds United FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Feyenoord Rotterdam win on 2026-10-25? | you picked No | winner No | won | P&L +42.9
+- Will Genoa CFC vs. Venezia FC end in a draw? | you picked No | winner No | won | P&L +40.8
+- Will Hull City AFC vs. Brentford FC end in a draw? | you picked Yes | winner Yes | won | P&L +316.7
+- Will Athletic Club vs. Getafe CF end in a draw? | you picked No | winner No | won | P&L +29.9
+- Will Kawasaki Frontale vs. Fagiano Okayama end in a draw? | you picked No | winner No | won | P&L +35.1
+- Will SE Palmeiras win on 2026-10-24? | you picked No | winner Yes | lost | P&L -100.0
+- Will CA Paranaense win on 2026-10-24? | you picked No | winner No | won | P&L +53.8
+- Will FCI Levadia Tallinn vs. Harju JK Laagri end in a draw? | you picked Yes | winner No | lost | P&L -100.0
+- Will FC Südtirol vs. UC Sampdoria end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will FC Augsburg vs. 1. FC Union Berlin end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Como 1907 vs. US Sassuolo Calcio end in a draw? | you picked No | winner No | won | P&L +23.5
+- Will Cagliari Calcio vs. Bologna FC 1909 end in a draw? | you picked No | winner No | won | P&L +44.9
+- Will Psim Yogyakarta win on 2026-10-24? | you picked No | winner No | won | P&L +78.6
+- Counter-Strike: Aurora Gaming vs TheMongolz - Map 1 Winner | you picked Aurora Gaming | winner Aurora Gaming | won | P&L +58.7
+- Will Kashima Antlers win on 2026-10-24? | you picked No | winner No | won | P&L +69.5
+
+codex
+I’ll check the market’s timing and resolution rules, then compare the available Bitcoin data before placing the 100-token bet.
+
+exec
+/usr/bin/zsh -lc 'bench --help' in /tmp/apb-122-codex-f75cffrz
+ succeeded in 0ms:
+usage: bench [-h] {market,book,history,bet} ...
+
+Inspect the market and place your one bet.
+
+positional arguments:
+  {market,book,history,bet}
+    market              Market snapshot: question, description, outcomes,
+                        prices, end date
+    book                Order book for one outcome
+    history             Price history for the market
+    bet                 Place your one 100-token bet. Works once.
+
+options:
+  -h, --help            show this help message and exit
+
+exec
+/usr/bin/zsh -lc 'bench book --help' in /tmp/apb-122-codex-f75cffrz
+ succeeded in 0ms:
+usage: bench book [-h] --outcome OUTCOME
+
+options:
+  -h, --help         show this help message and exit
+  --outcome OUTCOME
+
+exec
+/usr/bin/zsh -lc 'bench history --help' in /tmp/apb-122-codex-f75cffrz
+ succeeded in 0ms:
+usage: bench history [-h] --outcome OUTCOME
+
+options:
+  -h, --help         show this help message and exit
+  --outcome OUTCOME
+
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-122-codex-f75cffrz
+ succeeded in 2774ms:
+{
+  "question": "Bitcoin Up or Down - October 25, 8:00PM-12:00AM ET",
+  "description": "This market will resolve to \"Up\" if the time-weighted average price (TWAP) of Bitcoin, generated by Chainlink, of the time range specified in the title is greater than or equal to the price at the beginning of that range. Otherwise, it will resolve to \"Down\".\nThe resolution source for this market is information from Chainlink, specifically the BTC/USD TWAP data stream available at https://data.chain.link/streams/btc-usd-twap-60s-streams.\nPlease note that this market is about the price according to the TWAP Chainlink data stream for the asset pair BTC/USD, not according to any other sources or spot markets.",
+  "outcomes": [
+    "Up",
+    "Down"
+  ],
+  "prices": [
+    0.46,
+    0.54
+  ],
+  "best_bid": 0.45,
+  "best_ask": 0.47,
+  "end_date": "2026-10-26T04:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 287
+}
+
+web search: 
+exec
+/usr/bin/zsh -lc 'bench history --outcome Up' in /tmp/apb-122-codex-f75cffrz
+exec
+/usr/bin/zsh -lc 'bench book --outcome Up' in /tmp/apb-122-codex-f75cffrz
+exec
+/usr/bin/zsh -lc 'bench book --outcome Down' in /tmp/apb-122-codex-f75cffrz
+ succeeded in 716ms:
+{
+  "history": []
+}
+
+ succeeded in 899ms:
+{
+  "outcome": "Down",
+  "bids": [
+    {
+      "price": "0.53",
+      "size": "410"
+    },
+    {
+      "price": "0.52",
+      "size": "535"
+    },
+    {
+      "price": "0.51",
+      "size": "435"
+    },
+    {
+      "price": "0.5",
+      "size": "5"
+    },
+    {
+      "price": "0.49",
+      "size": "5"
+    },
+    {
+      "price": "0.48",
+      "size": "5"
+    },
+    {
+      "price": "0.47",
+      "size": "5"
+    },
+    {
+      "price": "0.46",
+      "size": "5"
+    },
+    {
+      "price": "0.45",
+      "size": "11.63"
+    },
+    {
+      "price": "0.44",
+      "size": "5"
+    },
+    {
+      "price": "0.43",
+      "size": "54.37"
+    },
+    {
+      "price": "0.42",
+      "size": "5"
+    },
+    {
+      "price": "0.22",
+      "size": "5"
+    },
+    {
+      "price": "0.15",
+      "size": "50"
+    },
+    {
+      "price": "0.14",
+      "size": "50"
+    }
+  ],
+  "asks": [
+    {
+      "price": "0.55",
+      "size": "20"
+    },
+    {
+      "price": "0.56",
+      "size": "26"
+    },
+    {
+      "price": "0.57",
+      "size": "5"
+    },
+    {
+      "price": "0.58",
+      "size": "5"
+    },
+    {
+      "price": "0.59",
+      "size": "95"
+    },
+    {
+      "price": "0.6",
+      "size": "55"
+    },
+    {
+      "price": "0.61",
+      "size": "190.18"
+    },
+    {
+      "price": "0.62",
+      "size": "805"
+    },
+    {
+      "price": "0.63",
+      "size": "405"
+    },
+    {
+      "price": "0.64",
+      "size": "5"
+    },
+    {
+      "price": "0.65",
+      "size": "5"
+    },
+    {
+      "price": "0.66",
+      "size": "5"
+    },
+    {
+      "price": "0.67",
+      "size": "59.88"
+    },
+    {
+      "price": "0.75",
+      "size": "200"
+    },
+    {
+      "price": "0.77",
+      "size": "110"
+    }
+  ],
+  "last_trade_price": "0.55"
+}
+
+ succeeded in 902ms:
+{
+  "outcome": "Up",
+  "bids": [
+    {
+      "price": "0.45",
+      "size": "20"
+    },
+    {
+      "price": "0.44",
+      "size": "26"
+    },
+    {
+      "price": "0.43",
+      "size": "5"
+    },
+    {
+      "price": "0.42",
+      "size": "5"
+    },
+    {
+      "price": "0.41",
+      "size": "95"
+    },
+    {
+      "price": "0.4",
+      "size": "55"
+    },
+    {
+      "price": "0.39",
+      "size": "190.18"
+    },
+    {
+      "price": "0.38",
+      "size": "805"
+    },
+    {
+      "price": "0.37",
+      "size": "405"
+    },
+    {
+      "price": "0.36",
+      "size": "5"
+    },
+    {
+      "price": "0.35",
+      "size": "5"
+    },
+    {
+      "price": "0.34",
+      "size": "5"
+    },
+    {
+      "price": "0.33",
+      "size": "59.88"
+    },
+    {
+      "price": "0.25",
+      "size": "200"
+    },
+    {
+      "price": "0.23",
+      "size": "110"
+    }
+  ],
+  "asks": [
+    {
+      "price": "0.47",
+      "size": "410"
+    },
+    {
+      "price": "0.48",
+      "size": "535"
+    },
+    {
+      "price": "0.49",
+      "size": "435"
+    },
+    {
+      "price": "0.5",
+      "size": "5"
+    },
+    {
+      "price": "0.51",
+      "size": "5"
+    },
+    {
+      "price": "0.52",
+      "size": "5"
+    },
+    {
+      "price": "0.53",
+      "size": "5"
+    },
+    {
+      "price": "0.54",
+      "size": "5"
+    },
+    {
+      "price": "0.55",
+      "size": "11.63"
+    },
+    {
+      "price": "0.56",
+      "size": "5"
+    },
+    {
+      "price": "0.57",
+      "size": "54.37"
+    },
+    {
+      "price": "0.58",
+      "size": "5"
+    },
+    {
+      "price": "0.78",
+      "size": "5"
+    },
+    {
+      "price": "0.85",
+      "size": "50"
+    },
+    {
+      "price": "0.86",
+      "size": "50"
+    }
+  ],
+  "last_trade_price": "0.45"
+}
+
+web search: Bitcoin price October 26 2026 00:00 UTC BTC USD
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,concurrent.futures
+urls={
+'coinbase_ticker':'https://api.exchange.coinbase.com/products/BTC-USD/ticker',
+'coinbase_candles':'https://api.exchange.coinbase.com/products/BTC-USD/candles?granularity=300&start=2026-10-26T00:00:00Z&end=2026-10-26T01:00:00Z',
+'binance':'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=5m&limit=15',
+'chainlink':'https://data.chain.link/streams/btc-usd-twap-60s-streams'
+}
+def go(x):
+ k,u=x
+ try:
+  r=requests.get(u,timeout=15)
+  return k,r.status_code,r.text[:18000]
+ except Exception as e:return k,str(e)
+for r in concurrent.futures.ThreadPoolExecutor().map(go,urls.items()):print(r)
+PY" in /tmp/apb-122-codex-f75cffrz
+ succeeded in 247ms:
+('coinbase_ticker', 200, '{"ask":"79986.11","bid":"79986.1","volume":"2151.23518883","trade_id":1110586655,"price":"79986.1","size":"0.00000015","time":"2026-10-26T00:57:56.025667618Z","rfq_volume":"59.765372"}')
+('coinbase_candles', 200, '[[1792976100,79793.24,79996.09,79857.31,79973,8.56172213],[1792975800,79857.31,79989.12,79916.22,79857.31,7.86263627],[1792975500,79835.5,80092.63,80069.06,79919.55,29.95616864],[1792975200,79991.94,80098.17,80077.67,80069.06,9.40922919],[1792974900,80072.48,80183.13,80183.12,80077.68,20.45896805],[1792974600,80130.62,80276.92,80162.89,80183.12,7.69797153],[1792974300,80008.28,80182.81,80022.59,80162.89,21.38517083],[1792974000,79932.05,80095.09,80009.07,80022.59,13.79978009],[1792973700,79915.3,80075,79991.94,80009.08,36.82964779],[1792973400,79991.94,80122.94,80037.49,79991.95,11.26885071],[1792973100,79915.29,80048,79916.98,80037.48,10.23622669],[1792972800,79887.78,80083.91,80053.16,79915.29,12.16239239]]')
+('binance', 200, '[[1792971900000,"80070.70000000","80085.37000000","79850.04000000","79896.36000000","49.45195000",1792972199999,"3954879.18975380",17959,"16.90865000","1352169.29979040","0"],[1792972200000,"79896.35000000","80108.34000000","79859.64000000","80074.37000000","36.88706000",1792972499999,"2950785.40374120",12487,"20.14774000","1611883.64561790","0"],[1792972500000,"80074.38000000","80203.68000000","80071.45000000","80154.09000000","44.95111000",1792972799999,"3603061.36321950",14880,"19.01686000","1524135.93211000","0"],[1792972800000,"80154.09000000","80194.01000000","80006.00000000","80022.01000000","66.61625000",1792973099999,"5335540.25648650",17334,"19.91175000","1594936.93654300","0"],[1792973100000,"80022.01000000","80159.19000000","80022.00000000","80148.66000000","57.41104000",1792973399999,"4597401.72764930",14660,"37.81317000","3027884.64036170","0"],[1792973400000,"80148.66000000","80226.00000000","80108.34000000","80108.39000000","54.60412000",1792973699999,"4378062.79103830",17648,"33.92031000","2719562.60056510","0"],[1792973700000,"80108.39000000","80184.01000000","80035.18000000","80128.00000000","60.08539000",1792973999999,"4813647.27505950",21453,"24.16596000","1935890.52360690","0"],[1792974000000,"80128.01000000","80206.00000000","80046.00000000","80128.00000000","46.81849000",1792974299999,"3750874.13670950",15990,"16.88414000","1352685.20878730","0"],[1792974300000,"80128.01000000","80289.99000000","80128.00000000","80272.85000000","37.84946000",1792974599999,"3036130.10861480",14291,"29.03148000","2328678.39386650","0"],[1792974600000,"80272.86000000","80386.01000000","80250.00000000","80293.42000000","27.60041000",1792974899999,"2216785.53485880",13738,"20.66114000","1659503.35853770","0"],[1792974900000,"80293.41000000","80293.41000000","80194.28000000","80194.29000000","58.70648000",1792975199999,"4710966.06904510",11751,"18.75427000","1504908.92076660","0"],[1792975200000,"80194.28000000","80209.24000000","80095.18000000","80170.00000000","24.33303000",1792975499999,"1950663.44426850",11119,"10.71104000","858589.54624180","0"],[1792975500000,"80170.01000000","80192.01000000","79960.01000000","80024.00000000","92.60040000",1792975799999,"7409356.42397830",18595,"31.43874000","2515902.48368410","0"],[1792975800000,"80024.00000000","80092.01000000","79962.63000000","79962.64000000","26.11000000",1792976099999,"2089340.09468820",15491,"9.01163000","721137.52960500","0"],[1792976100000,"79962.64000000","80096.01000000","79900.00000000","80095.45000000","27.06139000",1792976399999,"2164305.34367670",9467,"15.26352000","1220836.03636780","0"]]')
+('chainlink', 429, '<!DOCTYPE html><html lang="en" data-astro-cid-4wdtffzm><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#000"><link rel="icon" href="data:,"><title>Vercel Security Checkpoint</title><style>.spinner[data-astro-cid-ijmsm3te]{flex-direction:column;justify-content:center;align-items:center;display:flex}.spinner-circle[data-astro-cid-ijmsm3te]{transform-origin:50%;animation:1s step-start infinite spinner-circle-animate}rect[data-astro-cid-ijmsm3te]{fill:var(--ds-gray-900)}@keyframes spinner-circle-animate{0%{transform:rotate(0)}10%{transform:rotate(36deg)}20%{transform:rotate(72deg)}30%{transform:rotate(108deg)}40%{transform:rotate(144deg)}50%{transform:rotate(180deg)}60%{transform:rotate(216deg)}70%{transform:rotate(252deg)}80%{transform:rotate(288deg)}90%{transform:rotate(324deg)}to{transform:rotate(360deg)}}:root{--ds-gray-900:#666;--ds-gray-alpha-1000:#000000e8;--background-color:#fff;--link-color:#0070f3}@media (prefers-color-scheme:dark){:root{--ds-gray-900:#a1a1a1;--ds-gray-alpha-1000:#ffffffeb;--background-color:#0a0a0a;--link-color:#3291ff}}html{box-sizing:border-box}[data-astro-cid-4wdtffzm],[data-astro-cid-4wdtffzm]:after,[data-astro-cid-4wdtffzm]:before{box-sizing:inherit}body{word-break:break-word;font-kerning:auto;font-variant:normal;text-rendering:optimizelegibility;hyphens:auto;background-color:var(--background-color);height:100vh;max-height:100vh;color:var(--ds-gray-900);margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Noto Sans,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:1.2rem;line-height:1.65}.container[data-astro-cid-4wdtffzm]{flex-direction:column;justify-content:center;min-height:100%;display:flex}#root[data-astro-cid-4wdtffzm]{display:none}main[data-astro-cid-4wdtffzm]{text-align:center;max-width:80rem;margin:auto;padding:4rem 6rem}p[data-astro-cid-4wdtffzm]#header-text,p[data-astro-cid-4wdtffzm]#header-noscript-text{color:var(--ds-gray-alpha-1000);text-align:center;font-size:1.2rem;font-weight:500;line-height:32px}#fix-container[data-astro-cid-4wdtffzm]{flex-direction:column;align-items:center;display:flex}.fix-text[data-astro-cid-4wdtffzm]{color:var(--link-color);cursor:pointer;margin-top:0;font-family:ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace;font-size:.75rem;font-weight:200;line-height:1rem;text-decoration:underline}.metadata-text[data-astro-cid-4wdtffzm]{opacity:.7;margin-top:4px;font-family:ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace;font-size:.75rem;font-weight:200}footer[data-astro-cid-4wdtffzm]{color:var(--ds-gray-900);flex-direction:row;justify-content:center;align-items:center;padding-bottom:24px;font-family:ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace;font-size:.75rem;font-weight:200;line-height:1rem;display:flex}footer[data-astro-cid-4wdtffzm] div[data-astro-cid-4wdtffzm]{flex-direction:row;gap:3px;display:flex}@media (width<=600px){body{height:100dvh;max-height:100dvh}main[data-astro-cid-4wdtffzm]{padding:1rem 2rem}body{text-align:center;font-size:1.4rem;line-height:1.55}footer[data-astro-cid-4wdtffzm]{text-align:center;flex-direction:column;padding:24px 12px;display:flex;& .hide-mobile{display:none}}footer[data-astro-cid-4wdtffzm] p[data-astro-cid-4wdtffzm]{margin:6px auto}footer[data-astro-cid-4wdtffzm] div[data-astro-cid-4wdtffzm]{flex-direction:column;gap:0;display:flex}}\n</style></head><body data-astro-cid-4wdtffzm><div id="root" class="container" data-astro-cid-4wdtffzm><main data-astro-cid-4wdtffzm><div class="spinner" data-astro-cid-ijmsm3te><svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" data-astro-cid-ijmsm3te><g class="spinner-circle" data-astro-cid-ijmsm3te><rect x="11" y="1" width="2" height="6" opacity="1" data-astro-cid-ijmsm3te></rect><rect x="11" y="1" width="2" height="6" transform="rotate(36 12 12)" opacity=".1" data-astro-cid-ijmsm3te></rect><rect x="11" y="1" width="2" height="6" transform="rotate(72 12 12)" opacity=".2" data-astro-cid-ijmsm3te></rect><rect x="11" y="1" width="2" height="6" transform="rotate(108 12 12)" opacity=".3" data-astro-cid-ijmsm3te></rect><rect x="11" y="1" width="2" height="6" transform="rotate(144 12 12)" opacity=".4" data-astro-cid-ijmsm3te></rect><rect x="11" y="1" width="2" height="6" transform="rotate(180 12 12)" opacity=".5" data-astro-cid-ijmsm3te></rect><rect x="11" y="1" width="2" height="6" transform="rotate(216 12 12)" opacity=".6" data-astro-cid-ijmsm3te></rect><rect x="11" y="1" width="2" height="6" transform="rotate(252 12 12)" opacity=".7" data-astro-cid-ijmsm3te></rect><rect x="11" y="1" width="2" height="6" transform="rotate(288 12 12)" opacity=".8" data-astro-cid-ijmsm3te></rect><rect x="11" y="1" width="2" height="6" transform="rotate(324 12 12)" opacity=".9" data-astro-cid-ijmsm3te></rect></g></svg></div><p id="header-text" data-astro-cid-4wdtffzm>We\'re verifying your browser</p><div id="fix-container" style="display: none;" data-astro-cid-4wdtffzm><a id="fix-text" class="fix-text" href="https://vercel.link/security-checkpoint" target="_blank" rel="noopener noreferrer nofollow" data-astro-cid-4wdtffzm>Website owner? Click here to fix</a><p id="metadata-text" class="metadata-text" data-astro-cid-4wdtffzm></p></div><p id="failure-text" class="metadata-text" data-astro-cid-4wdtffzm></p></main><footer data-astro-cid-4wdtffzm><div data-astro-cid-4wdtffzm><p id="footer-text" data-astro-cid-4wdtffzm>Vercel Security Checkpoint</p><p class="hide-mobile" data-astro-cid-4wdtffzm>|</p><p data-astro-cid-4wdtffzm>cdg1::1792976277-vDuO7OhsjHIQornVQRFvgtrE8QKQEmF0</p></div></footer></div><noscript><div class="container" data-astro-cid-4wdtffzm><main data-astro-cid-4wdtffzm><div class="spinner" data-astro-cid-ijmsm3te><svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" data-astro-cid-ijmsm3te><g class="spinner-circle" data-astro-cid-ijmsm3te><rect x="11" y="1" width="2" height="6" opacity="1" data-astro-cid-ijmsm3te></rect><rect x="11" y="1" width="2" height="6" transform="rotate(36 12 12)" opacity=".1" data-astro-cid-ijmsm3te></rect><rect x="11" y="1" width="2" height="6" transform="rotate(72 12 12)" opacity=".2" data-astro-cid-ijmsm3te></rect><rect x="11" y="1" width="2" height="6" transform="rotate(108 12 12)" opacity=".3" data-astro-cid-ijmsm3te></rect><rect x="11" y="1" width="2" height="6" transform="rotate(144 12 12)" opacity=".4" data-astro-cid-ijmsm3te></rect><rect x="11" y="1" width="2" height="6" transform="rotate(180 12 12)" opacity=".5" data-astro-cid-ijmsm3te></rect><rect x="11" y="1" width="2" height="6" transform="rotate(216 12 12)" opacity=".6" data-astro-cid-ijmsm3te></rect><rect x="11" y="1" width="2" height="6" transform="rotate(252 12 12)" opacity=".7" data-astro-cid-ijmsm3te></rect><rect x="11" y="1" width="2" height="6" transform="rotate(288 12 12)" opacity=".8" data-astro-cid-ijmsm3te></rect><rect x="11" y="1" width="2" height="6" transform="rotate(324 12 12)" opacity=".9" data-astro-cid-ijmsm3te></rect></g></svg></div><p id="header-noscript-text" data-astro-cid-4wdtffzm>Enable JavaScript to continue</p></main><footer data-astro-cid-4wdtffzm><div data-astro-cid-4wdtffzm><p data-astro-cid-4wdtffzm>Vercel Security Checkpoint</p><p class="hide-mobile" data-astro-cid-4wdtffzm>|</p><p data-astro-cid-4wdtffzm>cdg1::1792976277-vDuO7OhsjHIQornVQRFvgtrE8QKQEmF0</p></div></footer></div></noscript></body></html><script type="module">function e(){let t=`ryS,ove,toS,2198946ZFSWEe,34wMtSbm,64qlCWCO,get,3967SCuVHV,con,rem,13896010HHgixx,3217459piqmbp,)+$,sty,12OBkHmR,884025wPpENq,rch,(((,ext,tBy,per,cto,40242KOVYOV,sea,tri,que,men,erT,app,Ele,.+),inn,457308CNSlCR`.split(`,`);return e=function(){return t},e()}(function(e,t){let n=i,r=e();for(;;)try{if(parseInt(n(261))/1*(-parseInt(n(258))/2)+parseInt(n(276))/3+-parseInt(n(268))/4*(-parseInt(n(269))/5)+parseInt(n(257))/6+parseInt(n(265))/7+-parseInt(n(259))/8*(-parseInt(n(253))/9)+-parseInt(n(264))/10===t)break;r.push(r.shift())}catch{r.push(r.shift())}})(e,319413);var t=function(){let e=!0;return function(t,n){let r=e?function(){let e=i;if(n){let r=n[e(282)+`ly`](t,arguments);return n=null,r}}:function(){};return e=!1,r}}()(void 0,function(){let e=i;return t[`toS`+e(278)+`ng`]()[e(277)+e(270)](e(271)+`.+)+)+)+$`)[e(256)+`tring`]()[e(262)+`structor`](t)[e(277)+`rch`](e(271)+e(284)+`+)+`+e(266))});t();function n(e,t){let n=i,r=document[n(260)+n(283)+n(280)+`tById`](e);r&&(r[n(285)+n(281)+n(272)]=t)}function r(e,t,n){let r=i;document[`get`+r(283)+r(280)+r(273)+`Id`](e)?.[r(267)+`le`][`setPro`+r(274)+`ty`](t,n)}function i(t,n){let r=e();return i=function(e,t){return e-=253,r[e]},i(t,n)}function a(e){let t=i;document[`get`+t(283)+t(280)+t(273)+`Id`](e)?.[t(263)+t(255)](),document[t(279)+t(254)+`ele`+t(275)+`r`](e)?.[`rem`+t(255)]()}function o(e,t){let n=d();return o=function(e,t){return e-=429,n[e]},o(e,t)}var s=o;(function(e,t){let n=o,r=e();for(;;)try{if(parseInt(n(1131))/1*(parseInt(n(531))/2)+parseInt(n(907))/3+-parseInt(n(1204))/4+parseInt(n(600))/5*(parseInt(n(514))/6)+-parseInt(n(672))/7*(parseInt(n(1079))/8)+parseInt(n(590))/9+parseInt(n(474))/10===t)break;r.push(r.shift())}catch{r.push(r.shift())}})(d,169684);var c={en:{header:s(591)+s(1061)+s(1251)+s(965)+`ing`+s(822)+s(539)+s(1235)+`wser`,footer:`Ver`+s(451)+` Se`+s(618)+s(758)+s(675)+s(843)+s(613)+`nt`,failed:s(898)+`led to`+s(783)+s(1165)+s(828)+s(902)+` br`+s(625)+`er`,blocked:s(1122)+s(603)+s(1183)+s(990)+s(535)+s(1004)+s(756)+s(747)+s(1249)+s(522)+`y t`+s(1232)+s(645)+s(1222)+`y`,fix:s(1047)+s(564)+s(1181)+s(808)+`r? `+s(713)+s(628)+s(1207)+s(1098)+s(923)+`ix`,code:s(1146)+`e`},zh:{header:`我们正在验证您的浏览器`,footer:`Vercel`+s(1011)+s(586),failed:s(1210)+`证您的浏览器`,blocked:s(563)+`验证被`+s(1029)+`阻止`,fix:`网站所`+s(441)+`点击此处修复`,code:`代码`},es:{header:s(788)+s(1082)+s(856)+s(990)+s(535)+s(1154)+s(954)+s(1073)+s(776)+s(642)+`or`,footer:s(779)+s(1167)+s(1174)+`con`+s(711)+s(1024)+`e s`+s(1065)+s(623)+`ad `+s(1174)+`Ver`+s(451),failed:s(1084)+`se `+s(740)+s(568)+s(990)+s(535)+s(886)+s(1144)+`navegador`,blocked:s(845)+s(1193)+s(1233)+s(920)+s(565)+s(775)+s(776)+s(642)+s(896)+`blo`+s(624)+`ada por t`+s(867)+s(489)+`s`,fix:s(678)+s(687)+s(597)+s(663)+s(565)+s(992)+`itio web?`+s(1104)+s(934)+s(796)+s(716)+s(801)+s(1149)+`ra `+s(734)+s(1216)+s(968)+`r`,code:`Cód`+s(587)},hi:{header:s(991)+s(498)+s(509)+`्राउज़`+s(877)+s(569)+`त्य`+s(438)+s(815)+s(1245)+s(931)+s(1189),footer:s(998)+`rce`+s(1136)+s(1236)+s(470)+s(721)+s(1010)+s(1208)+s(1206),failed:s(498)+s(509)+`्रा`+s(588)+s(877)+s(569)+`त्य`+s(438)+s(815)+s(1051)+s(667)+s(607)+s(1003)+s(1151)+`ा`,blocked:s(635)+s(1231)+s(1225)+`ष द`+s(841)+s(1130)+s(517)+s(752)+s(784)+s(641)+s(1179)+`न अ`+s(1067)+`द्ध`,fix:s(814)+s(440)+s(626)+s(929)+s(656)+s(743)+` कर`+s(658)+s(548)+s(631)+` यह`+s(727)+s(915)+s(944)+`करें`,code:s(1093)},ar:{header:`نحن`+s(827)+s(552)+s(1169)+s(888)+s(1250)+`ك`,footer:s(1220)+s(806)+`فتيش أ`+s(545)+s(778)+s(819)+`l`,failed:s(580)+` في`+s(937)+`تحق`+s(685)+`ن متصفحك`,blocked:s(1129)+`حظر`+s(937)+s(905)+s(685)+s(865)+s(715)+s(1250)+s(765)+s(906)+s(844)+s(971)+s(729)+`ث`,fix:s(874)+s(712)+s(912)+s(766)+s(924)+`قر `+s(553)+` للإصلاح`,rtl:!0,code:`كود`},bn:{header:s(1085)+`া আপনা`+s(771)+`্রাউজা`+s(744)+s(437)+s(1246)+s(1089),footer:s(845)+`cel`+s(1212)+s(858)+s(1097)+s(768)+s(649)+s(692)+s(831),failed:`আপনার `+s(468)+s(1058)+`ার `+s(1057)+s(617)+`করত`+s(659)+`্যর`+s(1162)+s(528)+s(554),blocked:s(494)+s(949)+s(952)+s(935)+`দ্ব`+s(910)+` ব্`+s(868)+s(1115)+s(717)+`চাইকরণ`+s(681)+s(456)+s(884)+`্ত`,fix:s(1113)+`েবস`+s(585)+s(466)+s(773)+`িক?`+s(1244)+s(795)+s(515)+s(1081)+s(770)+s(1092)+` ক্`+s(1126)+s(475)+`ুন`,code:`কোড`},pt:{header:s(788)+s(1082)+`s veri`+s(535)+s(1154)+s(592)+s(1028)+s(761)+s(1044)+s(709),footer:s(490)+s(1167)+s(1174)+s(1251)+s(1193)+`caç`+s(1041)+`de `+s(668)+`ura`+s(491)+s(502)+s(778)+s(819)+`l`,failed:s(1064)+`ha ao `+s(1251)+s(1193)+`car`+s(676)+s(1073)+s(776)+s(642)+`or`,blocked:s(845)+s(1193)+s(467)+s(1041)+s(574)+s(761)+s(1044)+s(709)+` bl`+s(1227)+s(488)+s(640)+s(896)+s(1118)+`cei`+s(1086),fix:s(798)+s(723)+s(511)+`rio`+s(669)+s(946)+s(1096)+s(654)+s(1119)+s(720)+s(1197)+s(1149)+s(1229)+s(444)+s(1039)+`ir`,code:`Código`},ru:{header:s(595)+`про`+s(525)+s(869)+s(453)+`ш б`+s(1053)+s(1214),footer:s(993)+s(433)+s(495)+s(1027)+`точ`+s(543)+`без`+s(1066)+s(696)+s(697)+` Ve`+s(819)+`l`,failed:s(538)+s(999)+s(1087)+`ь пров`+s(1117)+s(499)+s(506)+s(1240)+`аузер`,blocked:s(763)+s(525)+`ка `+s(772)+s(781)+`ра `+s(450)+`лок`+s(1055)+`ван`+s(643)+s(973)+s(1175)+s(722)+s(447)+s(627),fix:s(1127)+s(927)+s(852)+s(1166)+s(799)+s(660)+s(1143)+s(459)+s(926)+`сь,`+s(705)+s(541)+` ис`+s(804)+s(1005)+`ь`,code:s(930)},ja:{header:s(1108)+s(446)+`認して`+s(558),footer:s(845)+`cel`+s(1060)+s(903)+`ィチェックポ`+s(1016),failed:s(1108)+s(933)+`認に失`+s(1180)+`した`,blocked:s(1108)+s(933)+s(760)+s(726)+s(482)+`により`+s(555)+s(593)+s(512),fix:s(429)+`サイト`+s(854)+s(767)+s(534)+s(797)+`リックして修正`,code:s(735)},pa:{header:s(1182)+s(530)+`ੁਹਾ`+s(1230)+s(859)+s(436)+`਼ਰ `+s(1215)+s(537)+`਼ਟੀ`+s(1160)+s(484)+s(1219)+`ਾਂ`,footer:s(845)+s(451)+s(646)+`ਰੱਖ`+s(861)+s(963)+s(513)+`ਿੰਦੂ`,failed:s(1186)+s(802)+s(533)+`ਰਾਊ`+s(813)+s(1014)+s(1056)+s(977)+s(769)+s(1048)+s(1163)+s(1033)+s(455)+s(578)+`ਹਾ`,blocked:`ਬ੍ਰ`+s(436)+`਼ਰ ਪੁਸ`+s(1063)+s(839)+s(811)+s(596)+`ਧਿਰ ਦੁ`+s(829)+` ਬਲ`+s(519)+s(666)+s(957)+`ਿਆ`,fix:s(872)+`ਬਸਾ`+s(1217)+s(733)+s(1147)+s(616)+s(1160)+s(1043)+`ਈ ਇ`+s(837)+` ਕਲਿੱਕ`+s(1160)+`ੋ`,code:s(520)},de:{header:s(1013)+` üb`+s(664)+s(855)+s(683)+s(546)+s(683)+s(1122)+s(603)+`r`,footer:`Ver`+s(451)+s(630)+s(1200)+s(547)+s(789)+`kontro`+s(1107)+`unkt`,failed:s(899)+s(644)+s(1075)+s(913)+s(546)+s(876)+`Browse`+s(974)+s(908)+s(1176)+`schlagen`,blocked:s(1122)+`wse`+s(1171)+s(664)+s(855)+s(608)+s(940)+`rch`+s(698)+s(966)+s(1148)+s(1091)+s(1150)+`rt`,fix:s(1047)+s(564)+s(550)+s(691)+s(1121)+s(793)+`Kli`+s(1249)+s(700)+`ie hie`+s(1132)+s(448)+s(986)+s(780)+`obl`+s(701)+`zu `+s(791)+s(651)+`n`,code:`Code`},jv:{header:s(1196)+s(750)+s(1080)+s(783)+s(1165)+s(941)+s(1103)+`bro`+s(603)+`r s`+s(432)+`eyan`,footer:s(1e3)+`ik `+s(480)+s(862)+`san`+s(1052)+s(757)+s(917)+s(778)+s(819)+`l`,failed:`Gag`+s(1241)+`ver`+s(1193)+s(694)+s(1017)+s(984)+s(864)+` sampeyan`,blocked:s(845)+s(1193)+`kasi b`+s(984)+s(864)+s(893)+`blokir de`+s(469)+s(925)+s(985)+s(1123)+s(995)+`lu`,fix:s(570)+s(818)+s(1201)+s(1195)+s(958)+s(629)+s(1194)+s(823)+s(890)+`e k`+s(718)+s(1142)+s(579)+s(579)+`ni`,code:s(1238)+`e`},ko:{header:`브라우저를 `+s(947)+s(557)+s(639),footer:s(845)+s(451)+` 보안`+s(840)+`소`,failed:s(863)+s(1105)+`확인하`+s(1239)+`했습니다`,blocked:s(708)+`에 의`+s(786)+`라우저 확인`+s(904)+s(556)+`습니다`,fix:s(1074)+`트 소`+s(1226)+`신가요`+s(891)+s(724)+`클릭하`+s(816)+s(1152)+`요`,code:`코드`},fr:{header:s(1237)+s(856)+`éri`+s(674)+s(1243)+s(648)+`re `+s(761)+`iga`+s(1094)+`r`,footer:`Poi`+s(1156)+s(1174)+s(602)+s(661)+s(824)+`de `+s(561)+s(1198)+s(527)+`Ver`+s(451),failed:`Éch`+s(1124)+s(1174)+s(1078)+s(461)+s(1193)+`cat`+s(809)+s(565)+s(1111)+`tre`+s(472)+s(1223)+s(995)+`ur`,blocked:s(1068)+`ifi`+s(1083)+s(809)+s(940)+s(472)+s(1223)+`ate`+s(539)+s(747)+s(1110)+s(751)+s(886)+`un tiers`,fix:s(798)+s(723)+s(800)+s(943)+s(940)+s(946)+s(832)+s(504)+s(1125)+s(485)+s(1102)+s(702)+s(902)+` co`+s(1188)+s(634),code:s(1146)+`e`},te:{header:`మేమ`+s(684)+s(1002)+`్రౌ`+s(936)+s(677)+s(1153)+`వీక`+s(873)+s(792)+s(1157)+s(1021),footer:`Ver`+s(451)+s(725)+s(536)+s(748)+s(1177)+s(948)+`ేంద`+s(454),failed:s(699)+s(953)+s(921)+s(577)+`ు ధృవీ`+s(885)+s(1025)+`ంలో`+s(549)+`ఫలమైంది`,blocked:s(953)+s(921)+s(540)+s(492)+`కరణ`+s(882)+s(606)+s(704)+`షం `+s(741)+s(1116)+s(435)+s(997)+s(1099)+s(1209)+s(1034),fix:s(571)+`్\u200cస`+s(1049)+s(980)+s(479)+`ా? సరి`+s(1019)+s(1030)+`ికి`+s(647)+`్కడ`+s(825)+`లిక`+s(836)+s(945)+`డి`,code:`కోడ్`},mr:{header:s(881)+s(983)+s(1185)+s(846)+s(517)+s(445)+`र स`+s(848)+s(438)+s(815)+`रत `+s(901)+`त`,footer:s(845)+`cel`+s(739)+s(582)+`षा `+s(1095)+s(581)+` बि`+s(662),failed:s(1185)+`चा `+s(517)+s(445)+s(1109)+s(848)+s(438)+s(815)+s(1218)+`यात`+s(652)+s(1190)+`वी`,blocked:s(517)+s(445)+s(1109)+s(848)+`ापन`+s(487)+s(589)+s(916)+s(470)+s(875)+s(879)+s(970)+`रोधित`,fix:`वेब`+s(440)+s(626)+s(476)+`? द`+s(542)+s(787)+s(481)+s(894)+s(975)+`ठी `+s(759)+s(1133)+s(460)+s(731)+`रा`,code:s(1093)},tr:{header:`Tar`+s(950)+`cın`+s(1100)+s(669)+s(650)+s(1114)+`oruz`,footer:s(845)+`cel Gü`+s(1164)+`lik`+s(637)+s(960)+s(1018)+s(583)+s(853)+`ı`,failed:s(1106)+s(950)+s(473)+s(961)+s(805)+s(566)+s(1037)+s(594)+`ı`,blocked:`Tar`+s(950)+`cı `+s(805)+`rul`+s(757)+`sı üçü`+s(972)+` ta`+s(835)+` taraf`+s(987)+s(632)+s(501)+`ell`+s(889)+`i`,fix:s(1047)+s(946)+s(560)+s(478)+s(1161)+s(897)+s(619)+s(1141)+s(693)+s(688)+s(449)+s(1159)+s(657)+`in `+s(719)+s(880)+s(900)+s(665)+`yın`,code:s(1238)},ta:{header:s(1145)+s(1090)+` உல`+s(939)+`யை `+s(1046)+s(1035)+`்க்`+s(1234)+s(1054),footer:s(845)+s(451)+s(979)+`துக`+s(732)+s(576)+s(736)+s(610)+s(1015)+s(1202)+`ி`,failed:`உங்`+s(1090)+s(870)+s(939)+s(1248)+`சரி`+s(1035)+s(1221)+s(967)+s(754)+s(955)+`ல்லை`,blocked:`உலா`+s(777)+s(1046)+`பார`+s(1077)+`பு `+s(892)+`்றா`+s(746)+s(753)+`்பி`+s(834)+s(1172)+`தடு`+s(575)+s(1070)+s(679)+`து`,fix:s(860)+s(614)+s(463)+s(838)+s(989)+s(1178)+` சர`+s(1112)+s(850)+s(462)+`்கே`+s(1020)+s(755)+`் ச`+s(477)+s(1158)+`ம்`,code:s(636)+s(851)+`டு`},vi:{header:s(842)+`ng tôi`+s(962)+s(913)+s(452)+s(507)+`nh `+s(505)+s(500)+s(982)+s(544)+s(521)+` bạn`,footer:`Điể`+s(443)+s(821)+` tr`+s(1140)+`ảo `+s(510)+` Ve`+s(819)+`l`,failed:`Khô`+s(913)+`thể`+s(1038)+s(620)+s(604)+s(738)+`ình`+s(940)+`yệt của bạn`,blocked:s(1069)+` mi`+s(500)+`trì`+s(500)+`duy`+s(544)+s(1128)+s(503)+`n bởi `+s(790)+s(1138)+s(1155)+`a`,fix:s(1199)+s(738)+s(718)+s(439)+s(465)+s(524)+`p v`+s(914)+`đây`+s(615)+s(695)+`a`,code:`Mã`},ur:{header:`ہم `+s(572)+s(847)+`برا`+s(745)+s(1026)+` تص`+s(431)+s(994)+s(1242)+s(673)+`یں`,footer:s(845)+s(451)+s(653)+s(508)+s(1213)+` چی`+s(1205)+s(682)+`نٹ`,failed:s(572)+')
+
+web search: "Bitcoin Up or Down" "October 25" "8:00PM-12:00AM" 2026 ...
+web search: 
+exec
+/usr/bin/zsh -lc 'bench bet --help' in /tmp/apb-122-codex-f75cffrz
+ succeeded in 0ms:
+usage: bench bet [-h] --outcome OUTCOME --rationale RATIONALE --confidence
+                 CONFIDENCE [--max-price MAX_PRICE] [--quote QUOTE]
+
+options:
+  -h, --help            show this help message and exit
+  --outcome OUTCOME
+  --rationale RATIONALE
+  --confidence CONFIDENCE
+                        0 to 1
+  --max-price MAX_PRICE
+                        worst price you accept (default: best ask + 0.05)
+  --quote QUOTE         optional one-line trash talk for your rivals, shown on
+                        your card (max 120 chars, no links)
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,concurrent.futures,json,datetime,statistics,math
+urls={
+'gamma':'https://gamma-api.polymarket.com/events?slug=btc-updown-4h-1792972800',
+'poly_price':'https://polymarket.com/api/crypto/crypto-price?symbol=BTC&eventStartTime=2026-10-26T00:00:00Z&variant=fourhour&endDate=2026-10-26T04:00:00Z',
+'kraken':'https://api.kraken.com/0/public/OHLC?pair=XBTUSD&interval=5&since=1792972800',
+'binance_1m':'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&limit=240'
+}
+def go(x):
+ k,u=x
+ try:
+  r=requests.get(u,timeout=12)
+  d=r.json()
+  if k=='gamma':
+   d=[{q:e.get(q) for q in ['title','slug','eventMetadata','startDate','endDate','liquidity','volume','markets']} for e in d]
+  if k=='binance_1m':
+   rows=[x for x in d if x[0]>=1792972800000];rets=[math.log(float(d[i][4])/float(d[i-1][4])) for i in range(1,len(d))]
+   d={'first':rows[:3],'last':rows[-3:],'avg_closes':statistics.mean(float(x[4]) for x in rows),'sd_1m_pct':statistics.stdev(rets)*100,'start':rows[0][1],'last_close':rows[-1][4]}
+  return k,r.status_code,json.dumps(d)[:17000]
+ except Exception as e:return k,str(e)
+for r in concurrent.futures.ThreadPoolExecutor().map(go,urls.items()):print(r)
+PY" in /tmp/apb-122-codex-f75cffrz
+ succeeded in 642ms:
+('gamma', 200, '[{"title": "Bitcoin Up or Down - October 25, 8:00PM-12:00AM ET", "slug": "btc-updown-4h-1792972800", "eventMetadata": {"priceToBeat": 80042.76598989303}, "startDate": "2026-10-25T00:09:20.600066Z", "endDate": "2026-10-26T04:00:00Z", "liquidity": 2328.8756, "volume": 1784.428528, "markets": [{"id": "6165788", "question": "Bitcoin Up or Down - October 25, 8:00PM-12:00AM ET", "conditionId": "0x7e78d0e5eeba78e336637a6db3e69c5bd8cc64240c957286dd4c4bad18baf973", "slug": "btc-updown-4h-1792972800", "resolutionSource": "https://data.chain.link/streams/btc-usd-twap-60s-streams", "endDate": "2026-10-26T04:00:00Z", "liquidity": "2561.5716", "startDate": "2026-10-25T00:09:20.600066Z", "image": "https://polymarket-upload.s3.us-east-2.amazonaws.com/BTC+fullsize.png", "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/BTC+fullsize.png", "description": "This market will resolve to \\"Up\\" if the time-weighted average price (TWAP) of Bitcoin, generated by Chainlink, of the time range specified in the title is greater than or equal to the price at the beginning of that range. Otherwise, it will resolve to \\"Down\\".\\nThe resolution source for this market is information from Chainlink, specifically the BTC/USD TWAP data stream available at https://data.chain.link/streams/btc-usd-twap-60s-streams.\\nPlease note that this market is about the price according to the TWAP Chainlink data stream for the asset pair BTC/USD, not according to any other sources or spot markets.", "outcomes": "[\\"Up\\", \\"Down\\"]", "outcomePrices": "[\\"0.405\\", \\"0.595\\"]", "volume": "1934.493043", "active": true, "closed": false, "marketMakerAddress": "", "createdAt": "2026-10-25T00:07:29.937884Z", "updatedAt": "2026-10-26T00:52:38.047555Z", "new": false, "featured": false, "archived": false, "restricted": true, "groupItemThreshold": "0", "questionID": "0x49d5fa5d9432d13169c62f46c322cc7f51a1f831898e262f60ab9dbb4cac36fb", "enableOrderBook": true, "orderPriceMinTickSize": 0.01, "orderMinSize": 5, "volumeNum": 1934.493043, "liquidityNum": 2561.5716, "endDateIso": "2026-10-26", "startDateIso": "2026-10-25", "hasReviewedDates": true, "volume24hr": 2341.566375, "volume1wk": 2341.566375, "volume1mo": 2341.566375, "volume1yr": 2341.566375, "clobTokenIds": "[\\"26305602523453160017959898384980841278469047947816846992986208950149972435613\\", \\"3534107495717007442991315836031434415141957398826141952013555482823888045377\\"]", "comboStatus": "disabled", "volume24hrClob": 2341.566375, "volume1wkClob": 2341.566375, "volume1moClob": 2341.566375, "volume1yrClob": 2341.566375, "volumeClob": 1934.493043, "liquidityClob": 2561.5716, "makerBaseFee": 1000, "takerBaseFee": 1000, "acceptingOrders": true, "negRisk": false, "ready": false, "funded": false, "acceptingOrdersTimestamp": "2026-10-25T00:07:48Z", "cyom": false, "competitive": 0.9910557221079755, "approved": true, "rewardsMinSize": 50, "rewardsMaxSpread": 4.5, "spread": 0.01, "oneDayPriceChange": -0.095, "oneHourPriceChange": -0.11, "lastTradePrice": 0.61, "bestBid": 0.4, "bestAsk": 0.41, "automaticallyActive": true, "clearBookOnStart": false, "showGmpSeries": false, "showGmpOutcome": false, "manualActivation": false, "negRiskOther": false, "umaResolutionStatuses": "[]", "pendingDeployment": false, "deploying": false, "rfqEnabled": false, "eventStartTime": "2026-10-26T00:00:00Z", "holdingRewardsEnabled": false, "feesEnabled": true, "makerRebatesFeeShareBps": 10000, "feeType": "crypto_fees_v2", "feeSchedule": {"exponent": 1, "rate": 0.07, "takerOnly": true, "rebateRate": 0.2}, "cryptoMarketConfigId": "btc-4h-twap-60", "cryptoMarketConfig": {"id": "btc-4h-twap-60", "asset": "btc", "duration": "4h", "twapEnabled": true, "twapLookbackSeconds": 60}, "fallbackResolutionType": "none", "version": "v1"}]}]')
+('poly_price', 200, '{"openPrice": 80050.46159109066, "closePrice": null, "timestamp": 1792976290938, "completed": false, "incomplete": true, "cached": true}')
+('kraken', 200, '{"error": [], "result": {"XXBTZUSD": [[1792972800, "80048.7", "80077.1", "79892.6", "79922.1", "79972.5", "9.34365346", 1047], [1792973100, "79916.6", "80048.3", "79915.9", "80030.5", "79969.5", "15.81185661", 856], [1792973400, "80030.5", "80115.3", "79994.8", "80004.0", "80068.3", "9.81691548", 610], [1792973700, "80000.7", "80067.6", "79917.2", "80018.7", "80022.0", "15.62991624", 724], [1792974000, "80018.7", "80092.4", "79929.6", "80008.1", "79999.8", "7.87828198", 806], [1792974300, "80009.1", "80174.5", "80009.0", "80163.9", "80092.7", "13.88736611", 1028], [1792974600, "80160.7", "80267.1", "80137.0", "80181.6", "80193.7", "25.58396651", 918], [1792974900, "80181.6", "80181.6", "80077.2", "80084.0", "80112.4", "13.96273567", 762], [1792975200, "80077.4", "80087.7", "79980.9", "80062.0", "80052.2", "9.90087088", 830], [1792975500, "80062.0", "80076.1", "79841.7", "79909.2", "79926.0", "8.42782400", 1059], [1792975800, "79909.1", "79975.9", "79861.5", "79861.6", "79916.7", "9.45290825", 791], [1792976100, "79861.6", "79983.6", "79798.5", "79982.1", "79906.2", "10.63170943", 660]], "last": 1792975800}}')
+('binance_1m', 200, '{"first": [[1792972800000, "80154.09000000", "80177.93000000", "80117.24000000", "80155.53000000", "11.29956000", 1792972859999, "905585.10968650", 3894, "4.19840000", "336465.75152390", "0"], [1792972860000, "80155.52000000", "80194.01000000", "80114.46000000", "80136.76000000", "6.43607000", 1792972919999, "515924.63920830", 3051, "2.47652000", "198525.01123150", "0"], [1792972920000, "80136.77000000", "80150.85000000", "80062.67000000", "80086.07000000", "20.17733000", 1792972979999, "1616422.51289530", 3980, "5.51495000", "441825.37004950", "0"]], "last": [[1792976160000, "79961.51000000", "80096.01000000", "79959.59000000", "80087.57000000", "5.06897000", 1792976219999, "405631.84297840", 3277, "3.43942000", "275256.98192330", "0"], [1792976220000, "80087.57000000", "80095.46000000", "80065.42000000", "80095.45000000", "5.08087000", 1792976279999, "406872.86710080", 2163, "3.32809000", "266501.65101720", "0"], [1792976280000, "80095.45000000", "80095.45000000", "80075.02000000", "80094.00000000", "7.47797000", 1792976339999, "598871.06999650", 1002, "0.25861000", "20709.62304030", "0"]], "avg_closes": 80140.30389830508, "sd_1m_pct": 0.06038833262998678, "start": "80154.09000000", "last_close": "80094.00000000"}')
+
+web search: "Bitcoin Up or Down - October 25, 8:00PM-12:00AM ET"
+codex
+The opening reference is about $80,043, and exchange prices are slightly below it. Down is the slight favorite, but its order book is thin enough that filling 100 tokens would cost more than the displayed 54¢; I’m checking that against Up’s price.
+
+web search: 
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-122-codex-f75cffrz
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,concurrent.futures,json,statistics,math,datetime
+urls={
+'poly_page':'https://polymarket.com/event/btc-updown-4h-1792972800',
+'binance_5m':'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=5m&limit=1000',
+'coinbase_ticker':'https://api.exchange.coinbase.com/products/BTC-USD/ticker',
+'kraken_ticker':'https://api.kraken.com/0/public/Ticker?pair=XBTUSD',
+'coinbase_1m':'https://api.exchange.coinbase.com/products/BTC-USD/candles?granularity=60&start=2026-10-26T00:00:00Z&end=2026-10-26T01:00:00Z'
+}
+def go(x):
+ k,u=x
+ try:
+  r=requests.get(u,timeout=12)
+  if k=='poly_page':
+   import re
+   t=r.text
+   snippets=[t[max(0,m.start()-90):m.end()+180] for m in re.finditer('priceToBeat|currentPrice|openPrice|lastPrice|80042|799[0-9][0-9]',t)]
+   return k,r.status_code,snippets[:30]
+  d=r.json()
+  if k=='binance_5m':
+   p=[float(x[4]) for x in d];ret=[math.log(p[i]/p[i-1]) for i in range(1,len(p))]
+   out={}
+   for n in [12,48,288,999]:
+    out[str(n*5)+'mins']={'return_pct':(p[-1]/p[-min(n,len(p))]-1)*100,'sd_5m_pct':statistics.stdev(ret[-n:])*100,'predicted_3h_sd_pct':statistics.stdev(ret[-n:])*600}
+   out['last_12']=[{'time':datetime.datetime.fromtimestamp(x[0]/1000,datetime.timezone.utc).isoformat(),'open':x[1],'close':x[4],'vol':x[5]} for x in d[-12:]]
+   d=out
+  if k=='coinbase_1m':
+   d=sorted(d);openp=d[0][3];last=d[-1][4];rets=[math.log(d[i][4]/d[i-1][4]) for i in range(1,len(d))]
+   d={'first':d[:3],'last':d[-3:],'approx_avg':statistics.mean((x[1]+x[2]+x[3]+x[4])/4 for x in d),'open':openp,'close':last,'sd_1m_pct':100*statistics.stdev(rets)}
+  return k,r.status_code,d
+ except Exception as e:return k,str(e)
+for r in concurrent.futures.ThreadPoolExecutor().map(go,urls.items()):print(json.dumps(r))
+PY" in /tmp/apb-122-codex-f75cffrz
+ succeeded in 9ms:
+{
+  "question": "Bitcoin Up or Down - October 25, 8:00PM-12:00AM ET",
+  "description": "This market will resolve to \"Up\" if the time-weighted average price (TWAP) of Bitcoin, generated by Chainlink, of the time range specified in the title is greater than or equal to the price at the beginning of that range. Otherwise, it will resolve to \"Down\".\nThe resolution source for this market is information from Chainlink, specifically the BTC/USD TWAP data stream available at https://data.chain.link/streams/btc-usd-twap-60s-streams.\nPlease note that this market is about the price according to the TWAP Chainlink data stream for the asset pair BTC/USD, not according to any other sources or spot markets.",
+  "outcomes": [
+    "Up",
+    "Down"
+  ],
+  "prices": [
+    0.465,
+    0.535
+  ],
+  "best_bid": 0.45,
+  "best_ask": 0.48,
+  "end_date": "2026-10-26T04:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 222
+}
+
+ succeeded in 420ms:
+["poly_page", 200, ["\"Side\\\",\\\"pnl\\\":\\\"PnL\\\",\\\"spread\\\":\\\"Spread\\\",\\\"total\\\":\\\"Total\\\",\\\"sports\\\":\\\"Sports\\\",\\\"priceToBeat\\\":\\\"Price To Beat\\\",\\\"currentPrice\\\":\\\"Current Price\\\",\\\"endsIn\\\":\\\"Ends in\\\",\\\"yes\\\":\\\"Yes\\\",\\\"no\\\":\\\"No\\\",\\\"draw\\\":\\\"DRAW\\\",\\\"up\\\":\\\"Up\\\",\\\"down\\\":\\\"Down\\\",\\\"upOrDown\\\":\\\"Up or ", ":\\\"Spread\\\",\\\"total\\\":\\\"Total\\\",\\\"sports\\\":\\\"Sports\\\",\\\"priceToBeat\\\":\\\"Price To Beat\\\",\\\"currentPrice\\\":\\\"Current Price\\\",\\\"endsIn\\\":\\\"Ends in\\\",\\\"yes\\\":\\\"Yes\\\",\\\"no\\\":\\\"No\\\",\\\"draw\\\":\\\"DRAW\\\",\\\"up\\\":\\\"Up\\\",\\\"down\\\":\\\"Down\\\",\\\"upOrDown\\\":\\\"Up or Down\\\"},\\\"breaking\\\":{\\\"title\\\":\\\"B", "believe {cryptoName}'s price will finish above or below the opening \\\\\\\"Price to Beat\\\\\\\"{priceToBeatPart}{endTimePart}. Buy \\\\\\\"Up\\\\\\\" if you think the price will rise, or \\\\\\\"Down\\\\\\\" if you think it will fall. Enter your amount and click \\\\\\\"Trade.\\\\\\\" If your chosen outcome is", "to trade to stay informed. Each \\\\\\\"{title}\\\\\\\" page shows the live \\\\\\\"Price to Beat\\\\\\\"{priceToBeatPart} ({cryptoName}'s opening reference price for this window), the current live {cryptoName} price, and real-time Up/Down probabilities. Because each market window lasts {windowDu", "oName}'s price action unfolds toward the open.\\\"},\\\"fragments\\\":{\\\"ofPriceToBeat\\\":\\\" of {priceToBeat}\\\",\\\"byEndTime\\\":\\\" by {endTime}\\\",\\\"atEndTime\\\":\\\" at {endTime}\\\",\\\"beginningAtStartTime\\\":\\\" beginning at {startTime}\\\",\\\"approximatelyFromNow\\\":\\\" \u2014 approximately {timeRemainin", "at {startTime}\\\",\\\"approximatelyFromNow\\\":\\\" \u2014 approximately {timeRemaining} from now\\\",\\\"priceToBeatParens\\\":\\\" ({priceToBeat})\\\",\\\"theResolutionDate\\\":\\\"the resolution date\\\",\\\"theReferenceDate\\\":\\\"the reference date\\\"},\\\"resolutionSummary\\\":{\\\"chainlink\\\":\\\"whether the final Ch", "imatelyFromNow\\\":\\\" \u2014 approximately {timeRemaining} from now\\\",\\\"priceToBeatParens\\\":\\\" ({priceToBeat})\\\",\\\"theResolutionDate\\\":\\\"the resolution date\\\",\\\"theReferenceDate\\\":\\\"the reference date\\\"},\\\"resolutionSummary\\\":{\\\"chainlink\\\":\\\"whether the final Chainlink {cryptoTicker}/US", " final Chainlink {cryptoTicker}/USD price is above or below the opening Price to Beat of {priceToBeat}.\\\",\\\"hourly\\\":\\\"whether the Binance {cryptoTicker}/USDT 1-hour candle closing price is above or below its opening price.\\\",\\\"daily\\\":\\\"whether {cryptoName}'s Binance price at noo", "026-10-26T00:00:00Z\\\",\\\"estimateValue\\\":false,\\\"cantEstimate\\\":false,\\\"eventMetadata\\\":{\\\"priceToBeat\\\":80042.76598989303},\\\"tags\\\":[{\\\"id\\\":\\\"102127\\\",\\\"label\\\":\\\"Up or Down\\\",\\\"slug\\\":\\\"up-or-down\\\"},{\\\"id\\\":\\\"1312\\\",\\\"label\\\":\\\"Crypto Prices\\\",\\\"slug\\\":\\\"crypto-prices\\\"},{\\\"id\\", "0:00Z\\\",\\\"estimateValue\\\":false,\\\"cantEstimate\\\":false,\\\"eventMetadata\\\":{\\\"priceToBeat\\\":80042.76598989303},\\\"tags\\\":[{\\\"id\\\":\\\"102127\\\",\\\"label\\\":\\\"Up or Down\\\",\\\"slug\\\":\\\"up-or-down\\\"},{\\\"id\\\":\\\"1312\\\",\\\"label\\\":\\\"Crypto Prices\\\",\\\"slug\\\":\\\"crypto-prices\\\"},{\\\"id\\\":\\\"1021", "e\\\":{\\\"mutations\\\":[],\\\"queries\\\":[{\\\"dehydratedAt\\\":1792976299941,\\\"state\\\":{\\\"data\\\":{\\\"openPrice\\\":80042.76598989303,\\\"closePrice\\\":null},\\\"dataUpdateCount\\\":1,\\\"dataUpdatedAt\\\":1792976298846,\\\"error\\\":null,\\\"errorUpdateCount\\\":0,\\\"errorUpdatedAt\\\":0,\\\"fetchFailureCount\\\":0,\\", "ions\\\":[],\\\"queries\\\":[{\\\"dehydratedAt\\\":1792976299941,\\\"state\\\":{\\\"data\\\":{\\\"openPrice\\\":80042.76598989303,\\\"closePrice\\\":null},\\\"dataUpdateCount\\\":1,\\\"dataUpdatedAt\\\":1792976298846,\\\"error\\\":null,\\\"errorUpdateCount\\\":0,\\\"errorUpdatedAt\\\":0,\\\"fetchFailureCount\\\":0,\\\"fetchFa", "33536466566775283214077138\\\",\\\"63751228119555793197056009761873208655878266138689035511991799051403238601237\\\"],\\\"comboStatus\\\":\\\"disabled\\\",\\\"volume24hrClob\\\":74.605,\\\"volume1wkClob\\\":74.605,\\\"volume1moClob\\\":74.605,\\\"volume1yrClob\\\":74.605,\\\"volumeClob\\\":54.605000000000004", "iskAugmented\\\":false,\\\"pendingDeployment\\\":false,\\\"deploying\\\":false,\\\"eventMetadata\\\":{\\\"priceToBeat\\\":2326.9072290804074},\\\"version\\\":\\\"v1\\\"}],\\\"ready\\\":false,\\\"funded\\\":false,\\\"acceptingOrdersTimestamp\\\":\\\"2026-10-25T00:07:50Z\\\",\\\"cyom\\\":false,\\\"competitive\\\":0.9846153846153846", "iskAugmented\\\":false,\\\"pendingDeployment\\\":false,\\\"deploying\\\":false,\\\"eventMetadata\\\":{\\\"priceToBeat\\\":101.25140143166381},\\\"version\\\":\\\"v1\\\"}],\\\"ready\\\":false,\\\"funded\\\":false,\\\"acceptingOrdersTimestamp\\\":\\\"2026-10-25T00:07:39Z\\\",\\\"cyom\\\":false,\\\"competitive\\\":0.9996001599360256", "iskAugmented\\\":false,\\\"pendingDeployment\\\":false,\\\"deploying\\\":false,\\\"eventMetadata\\\":{\\\"priceToBeat\\\":1.2946915225397235},\\\"version\\\":\\\"v1\\\"}],\\\"ready\\\":false,\\\"funded\\\":false,\\\"acceptingOrdersTimestamp\\\":\\\"2026-10-25T00:08:11Z\\\",\\\"cyom\\\":false,\\\"competitive\\\":0.9964129135113591", "\":[{\\\"startTime\\\":\\\"2026-10-25T08:00:00.000Z\\\",\\\"endTime\\\":\\\"2026-10-25T12:00:00.000Z\\\",\\\"openPrice\\\":80567.86616163487,\\\"closePrice\\\":80486.1226614728,\\\"outcome\\\":\\\"down\\\",\\\"percentChange\\\":-0.10145918473015367},{\\\"startTime\\\":\\\"2026-10-25T12:00:00.000Z\\\",\\\"endTime\\\":\\\"2026-10-", "7},{\\\"startTime\\\":\\\"2026-10-25T12:00:00.000Z\\\",\\\"endTime\\\":\\\"2026-10-25T16:00:00.000Z\\\",\\\"openPrice\\\":80486.1226614728,\\\"closePrice\\\":80531.09196681868,\\\"outcome\\\":\\\"up\\\",\\\"percentChange\\\":0.05587212286897308},{\\\"startTime\\\":\\\"2026-10-25T16:00:00.000Z\\\",\\\"endTime\\\":\\\"2026-10-25T", "8},{\\\"startTime\\\":\\\"2026-10-25T16:00:00.000Z\\\",\\\"endTime\\\":\\\"2026-10-25T20:00:00.000Z\\\",\\\"openPrice\\\":80531.09196681868,\\\"closePrice\\\":80461.72828066052,\\\"outcome\\\":\\\"down\\\",\\\"percentChange\\\":-0.08613280220606188},{\\\"startTime\\\":\\\"2026-10-25T20:00:00.000Z\\\",\\\"endTime\\\":\\\"2026-10", "8},{\\\"startTime\\\":\\\"2026-10-25T20:00:00.000Z\\\",\\\"endTime\\\":\\\"2026-10-26T00:00:00.000Z\\\",\\\"openPrice\\\":80461.72828066052,\\\"closePrice\\\":80042.76598989303,\\\"outcome\\\":\\\"down\\\",\\\"percentChange\\\":-0.5206976033451586}],\\\"outcomesBySlug\\\":{\\\"btc-updown-4h-1792252800\\\":\\\"up\\\",\\\"btc-upd", "\",\\\"endTime\\\":\\\"2026-10-26T00:00:00.000Z\\\",\\\"openPrice\\\":80461.72828066052,\\\"closePrice\\\":80042.76598989303,\\\"outcome\\\":\\\"down\\\",\\\"percentChange\\\":-0.5206976033451586}],\\\"outcomesBySlug\\\":{\\\"btc-updown-4h-1792252800\\\":\\\"up\\\",\\\"btc-updown-4h-1792267200\\\":\\\"down\\\",\\\"btc-updown", "\"Side\\\",\\\"pnl\\\":\\\"PnL\\\",\\\"spread\\\":\\\"Spread\\\",\\\"total\\\":\\\"Total\\\",\\\"sports\\\":\\\"Sports\\\",\\\"priceToBeat\\\":\\\"Price To Beat\\\",\\\"currentPrice\\\":\\\"Current Price\\\",\\\"endsIn\\\":\\\"Ends in\\\",\\\"yes\\\":\\\"Yes\\\",\\\"no\\\":\\\"No\\\",\\\"draw\\\":\\\"DRAW\\\",\\\"up\\\":\\\"Up\\\",\\\"down\\\":\\\"Down\\\",\\\"upOrDown\\\":\\\"Up or ", ":\\\"Spread\\\",\\\"total\\\":\\\"Total\\\",\\\"sports\\\":\\\"Sports\\\",\\\"priceToBeat\\\":\\\"Price To Beat\\\",\\\"currentPrice\\\":\\\"Current Price\\\",\\\"endsIn\\\":\\\"Ends in\\\",\\\"yes\\\":\\\"Yes\\\",\\\"no\\\":\\\"No\\\",\\\"draw\\\":\\\"DRAW\\\",\\\"up\\\":\\\"Up\\\",\\\"down\\\":\\\"Down\\\",\\\"upOrDown\\\":\\\"Up or Down\\\"},\\\"breaking\\\":{\\\"title\\\":\\\"B", "believe {cryptoName}'s price will finish above or below the opening \\\\\\\"Price to Beat\\\\\\\"{priceToBeatPart}{endTimePart}. Buy \\\\\\\"Up\\\\\\\" if you think the price will rise, or \\\\\\\"Down\\\\\\\" if you think it will fall. Enter your amount and click \\\\\\\"Trade.\\\\\\\" If your chosen outcome is", "to trade to stay informed. Each \\\\\\\"{title}\\\\\\\" page shows the live \\\\\\\"Price to Beat\\\\\\\"{priceToBeatPart} ({cryptoName}'s opening reference price for this window), the current live {cryptoName} price, and real-time Up/Down probabilities. Because each market window lasts {windowDu", "oName}'s price action unfolds toward the open.\\\"},\\\"fragments\\\":{\\\"ofPriceToBeat\\\":\\\" of {priceToBeat}\\\",\\\"byEndTime\\\":\\\" by {endTime}\\\",\\\"atEndTime\\\":\\\" at {endTime}\\\",\\\"beginningAtStartTime\\\":\\\" beginning at {startTime}\\\",\\\"approximatelyFromNow\\\":\\\" \u2014 approximately {timeRemainin", "at {startTime}\\\",\\\"approximatelyFromNow\\\":\\\" \u2014 approximately {timeRemaining} from now\\\",\\\"priceToBeatParens\\\":\\\" ({priceToBeat})\\\",\\\"theResolutionDate\\\":\\\"the resolution date\\\",\\\"theReferenceDate\\\":\\\"the reference date\\\"},\\\"resolutionSummary\\\":{\\\"chainlink\\\":\\\"whether the final Ch", "imatelyFromNow\\\":\\\" \u2014 approximately {timeRemaining} from now\\\",\\\"priceToBeatParens\\\":\\\" ({priceToBeat})\\\",\\\"theResolutionDate\\\":\\\"the resolution date\\\",\\\"theReferenceDate\\\":\\\"the reference date\\\"},\\\"resolutionSummary\\\":{\\\"chainlink\\\":\\\"whether the final Chainlink {cryptoTicker}/US", " final Chainlink {cryptoTicker}/USD price is above or below the opening Price to Beat of {priceToBeat}.\\\",\\\"hourly\\\":\\\"whether the Binance {cryptoTicker}/USDT 1-hour candle closing price is above or below its opening price.\\\",\\\"daily\\\":\\\"whether {cryptoName}'s Binance price at noo", "026-10-26T00:00:00Z\\\",\\\"estimateValue\\\":false,\\\"cantEstimate\\\":false,\\\"eventMetadata\\\":{\\\"priceToBeat\\\":80042.76598989303},\\\"tags\\\":[{\\\"id\\\":\\\"102127\\\",\\\"label\\\":\\\"Up or Down\\\",\\\"slug\\\":\\\"up-or-down\\\"},{\\\"id\\\":\\\"1312\\\",\\\"label\\\":\\\"Crypto Prices\\\",\\\"slug\\\":\\\"crypto-prices\\\"},{\\\"id\\"]]
+["binance_5m", 200, {"60mins": {"return_pct": 0.043900421896436725, "sd_5m_pct": 0.11932639655595502, "predicted_3h_sd_pct": 0.7159583793357301}, "240mins": {"return_pct": -0.5088199981681973, "sd_5m_pct": 0.1541651255171714, "predicted_3h_sd_pct": 0.9249907531030285}, "1440mins": {"return_pct": -0.9397694509162391, "sd_5m_pct": 0.08295028423408665, "predicted_3h_sd_pct": 0.4977017054045199}, "4995mins": {"return_pct": -1.8768590256168727, "sd_5m_pct": 0.09128715861874913, "predicted_3h_sd_pct": 0.5477229517124947}, "last_12": [{"time": "2026-10-26T00:00:00+00:00", "open": "80154.09000000", "close": "80022.01000000", "vol": "66.61625000"}, {"time": "2026-10-26T00:05:00+00:00", "open": "80022.01000000", "close": "80148.66000000", "vol": "57.41104000"}, {"time": "2026-10-26T00:10:00+00:00", "open": "80148.66000000", "close": "80108.39000000", "vol": "54.60412000"}, {"time": "2026-10-26T00:15:00+00:00", "open": "80108.39000000", "close": "80128.00000000", "vol": "60.08539000"}, {"time": "2026-10-26T00:20:00+00:00", "open": "80128.01000000", "close": "80128.00000000", "vol": "46.81849000"}, {"time": "2026-10-26T00:25:00+00:00", "open": "80128.01000000", "close": "80272.85000000", "vol": "37.84946000"}, {"time": "2026-10-26T00:30:00+00:00", "open": "80272.86000000", "close": "80293.42000000", "vol": "27.60041000"}, {"time": "2026-10-26T00:35:00+00:00", "open": "80293.41000000", "close": "80194.29000000", "vol": "58.70648000"}, {"time": "2026-10-26T00:40:00+00:00", "open": "80194.28000000", "close": "80170.00000000", "vol": "24.33303000"}, {"time": "2026-10-26T00:45:00+00:00", "open": "80170.01000000", "close": "80024.00000000", "vol": "92.60040000"}, {"time": "2026-10-26T00:50:00+00:00", "open": "80024.00000000", "close": "79962.64000000", "vol": "26.11000000"}, {"time": "2026-10-26T00:55:00+00:00", "open": "79962.64000000", "close": "80057.14000000", "vol": "41.35931000"}]}]
+["coinbase_ticker", 200, {"ask": "79951.65", "bid": "79951.64", "volume": "2154.90014367", "trade_id": 1110586873, "price": "79951.64", "size": "0.00000023", "time": "2026-10-26T00:58:46.530383936Z", "rfq_volume": "59.761297"}]
+["kraken_ticker", 200, {"error": [], "result": {"XXBTZUSD": {"a": ["79960.40000", "1", "1.000"], "b": ["79960.30000", "1", "1.000"], "c": ["79960.40000", "0.00012810"], "v": ["151.77395341", "1005.68219226"], "p": ["80040.74689", "80330.51530"], "t": [10149, 81250], "l": ["79798.50000", "79750.00000"], "h": ["80267.10000", "80919.20000"], "o": "80048.70000"}}}]
+["coinbase_1m", 200, {"first": [[1792972800, 80007.27, 80074.87, 80053.16, 80042.62, 3.07629152], [1792972860, 80001, 80083.91, 80042.62, 80024, 1.08810673], [1792972920, 79948.38, 80044.28, 80024.01, 79971.41, 3.27904322]], "last": [[1792976100, 79793.24, 79879.06, 79857.31, 79845.34, 2.17404099], [1792976160, 79844.91, 79996.09, 79844.91, 79970.87, 3.86799869], [1792976220, 79948.27, 79984.53, 79970.87, 79971.09, 2.4591174]], "approx_avg": 80029.67573275862, "open": 80053.16, "close": 79971.09, "sd_1m_pct": 0.06221834934069535}]
+
+web search: Bitcoin October 26 2026 price news Asia October 25 80000 ...
+web search: 
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import json,time
+try:
+ import websocket
+ ws=websocket.create_connection('wss://ws-live-data.polymarket.com',timeout=8)
+ ws.send(json.dumps({'action':'subscribe','subscriptions':[{'topic':'crypto_prices_chainlink','type':'*','filters':json.dumps({'symbol':'btc/usd'})}]}))
+ for i in range(6):
+  v=ws.recv()
+  if v:print(v[:9000])
+ ws.close()
+except Exception as e:print(type(e).__name__,str(e))
+PY" in /tmp/apb-122-codex-f75cffrz
+exec
+/usr/bin/zsh -lc 'bench book --outcome Down' in /tmp/apb-122-codex-f75cffrz
+web search: https://polymarket.com/event/btc-updown-4h-1792972800
+ succeeded in 1329ms:
+{
+  "outcome": "Down",
+  "bids": [
+    {
+      "price": "0.49",
+      "size": "36"
+    },
+    {
+      "price": "0.48",
+      "size": "810"
+    },
+    {
+      "price": "0.47",
+      "size": "5"
+    },
+    {
+      "price": "0.46",
+      "size": "1005"
+    },
+    {
+      "price": "0.45",
+      "size": "5"
+    },
+    {
+      "price": "0.44",
+      "size": "5"
+    },
+    {
+      "price": "0.43",
+      "size": "5"
+    },
+    {
+      "price": "0.42",
+      "size": "5"
+    },
+    {
+      "price": "0.41",
+      "size": "56.25"
+    },
+    {
+      "price": "0.4",
+      "size": "5"
+    },
+    {
+      "price": "0.39",
+      "size": "5"
+    },
+    {
+      "price": "0.38",
+      "size": "5"
+    },
+    {
+      "price": "0.22",
+      "size": "5"
+    },
+    {
+      "price": "0.15",
+      "size": "30"
+    },
+    {
+      "price": "0.14",
+      "size": "30"
+    }
+  ],
+  "asks": [
+    {
+      "price": "0.51",
+      "size": "615"
+    },
+    {
+      "price": "0.52",
+      "size": "6"
+    },
+    {
+      "price": "0.53",
+      "size": "25"
+    },
+    {
+      "price": "0.54",
+      "size": "5"
+    },
+    {
+      "price": "0.55",
+      "size": "5"
+    },
+    {
+      "price": "0.56",
+      "size": "5"
+    },
+    {
+      "price": "0.57",
+      "size": "65"
+    },
+    {
+      "price": "0.58",
+      "size": "105"
+    },
+    {
+      "price": "0.59",
+      "size": "190.18"
+    },
+    {
+      "price": "0.6",
+      "size": "1205"
+    },
+    {
+      "price": "0.61",
+      "size": "5"
+    },
+    {
+      "price": "0.62",
+      "size": "5"
+    },
+    {
+      "price": "0.63",
+      "size": "5"
+    },
+    {
+      "price": "0.64",
+      "size": "56"
+    },
+    {
+      "price": "0.75",
+      "size": "200"
+    }
+  ],
+  "last_trade_price": "0.52"
+}
+
+ succeeded in 8472ms:
+{"payload":{"data":[{"timestamp":1792976296000,"value":79997.41863576505},{"timestamp":1792976297000,"value":79997.38981235719},{"timestamp":1792976298000,"value":79996.77556061946},{"timestamp":1792976299000,"value":79996.81994196255},{"timestamp":1792976300000,"value":79996.8474203647},{"timestamp":1792976301000,"value":79996.31934345},{"timestamp":1792976302000,"value":79995.63173118164},{"timestamp":1792976303000,"value":79995.43413386101},{"timestamp":1792976304000,"value":79995.57564224985},{"timestamp":1792976305000,"value":79995.75441359685},{"timestamp":1792976306000,"value":79996.19211203983},{"timestamp":1792976307000,"value":80004.85667353297},{"timestamp":1792976308000,"value":80007.50566211168},{"timestamp":1792976309000,"value":80010.43228809549},{"timestamp":1792976310000,"value":80010.82815702044},{"timestamp":1792976311000,"value":80009.63012594769},{"timestamp":1792976312000,"value":80002.02681077401},{"timestamp":1792976313000,"value":79999.66546860097},{"timestamp":1792976314000,"value":79999.2852046468},{"timestamp":1792976315000,"value":79997.61789365861},{"timestamp":1792976316000,"value":79989.87989327841},{"timestamp":1792976317000,"value":79985.41453111},{"timestamp":1792976318000,"value":79985.7729136744},{"timestamp":1792976319000,"value":79977.33258956244},{"timestamp":1792976320000,"value":79970.3417280223},{"timestamp":1792976321000,"value":79968.60197275942},{"timestamp":1792976322000,"value":79963.91234800594},{"timestamp":1792976323000,"value":79962.06197072053},{"timestamp":1792976324000,"value":79961.30478221207},{"timestamp":1792976325000,"value":79960.04361327396},{"timestamp":1792976326000,"value":79960.04553000841},{"timestamp":1792976327000,"value":79957.69974872898},{"timestamp":1792976328000,"value":79953.68536648691},{"timestamp":1792976329000,"value":79954.55686654104},{"timestamp":1792976330000,"value":79959.49507899373},{"timestamp":1792976331000,"value":79964.13539138625},{"timestamp":1792976332000,"value":79963.26094765165},{"timestamp":1792976333000,"value":79963.28916157421},{"timestamp":1792976334000,"value":79961.679237},{"timestamp":1792976335000,"value":79962.48333516986},{"timestamp":1792976336000,"value":79963.09858071095},{"timestamp":1792976337000,"value":79968.284560025},{"timestamp":1792976338000,"value":79971.11025320878},{"timestamp":1792976339000,"value":79970.58838222489},{"timestamp":1792976340000,"value":79969.68376214606},{"timestamp":1792976341000,"value":79973.77755742},{"timestamp":1792976342000,"value":79978.38310242235},{"timestamp":1792976343000,"value":79978.37182313467},{"timestamp":1792976344000,"value":79978.25317995108},{"timestamp":1792976345000,"value":79979.01476670739},{"timestamp":1792976346000,"value":79980.99965200778},{"timestamp":1792976347000,"value":79992.428656225},{"timestamp":1792976348000,"value":79994.12471231341},{"timestamp":1792976349000,"value":79996.90729007045},{"timestamp":1792976350000,"value":79998.09294550132},{"timestamp":1792976351000,"value":79998.65655624},{"timestamp":1792976352000,"value":80005.50113045964},{"timestamp":1792976353000,"value":80012.388944685},{"timestamp":1792976354000,"value":80014.81379260961}],"symbol":"btc/usd"},"timestamp":1792976355981,"topic":"crypto_prices","type":"subscribe"}
+WebSocketTimeoutException Connection timed out
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,concurrent.futures,json,statistics,math
+urls={
+'coinbase':'https://api.exchange.coinbase.com/products/BTC-USD/ticker',
+'kraken':'https://api.kraken.com/0/public/Ticker?pair=XBTUSD',
+'binance':'https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT',
+'kraken1h':'https://api.kraken.com/0/public/OHLC?pair=XBTUSD&interval=60'
+}
+def go(x):
+ k,u=x
+ try:
+  r=requests.get(u,timeout=8);d=r.json()
+  if k=='kraken1h':
+   a=d['result']['XXBTZUSD'];p=[float(x[4]) for x in a];r3=[math.log(p[i]/p[i-3]) for i in range(3,len(p))]
+   prev=[(math.log(p[i]/p[i-4]),math.log(p[i+3]/p[i])) for i in range(4,len(p)-3)]
+   neg=[y for x,y in prev if x<-.004];flat=[y for x,y in prev if -.007<x<-.002]
+   d={'all_n':len(r3),'3h_return_sd':statistics.stdev(r3),'mean':statistics.mean(r3),'down_freq':sum(x<0 for x in r3)/len(r3),'conditional_after_decline':{'n':len(neg),'down_prob':sum(y<0 for y in neg)/len(neg),'mean':statistics.mean(neg)},'conditional_similar':{'n':len(flat),'down_prob':sum(y<0 for y in flat)/len(flat),'mean':statistics.mean(flat)},'last':a[-3:]}
+  return k,d
+ except Exception as e:return k,str(e)
+for r in concurrent.futures.ThreadPoolExecutor().map(go,urls.items()):print(json.dumps(r))
+PY" in /tmp/apb-122-codex-f75cffrz
+ succeeded in 223ms:
+["coinbase", {"ask": "80017.33", "bid": "80017.32", "volume": "2157.03674078", "trade_id": 1110587072, "price": "80017.32", "size": "0.00000002", "time": "2026-10-26T00:59:29.132005895Z", "rfq_volume": "59.765372"}]
+["kraken", {"error": [], "result": {"XXBTZUSD": {"a": ["80014.90000", "1", "1.000"], "b": ["80014.80000", "1", "1.000"], "c": ["80013.60000", "0.00030000"], "v": ["152.89029336", "1006.26501684"], "p": ["80040.23762", "80329.87813"], "t": [10206, 81291], "l": ["79798.50000", "79750.00000"], "h": ["80267.10000", "80919.20000"], "o": "80048.70000"}}}]
+["binance", {"symbol": "BTCUSDT", "price": "80126.01000000"}]
+["kraken1h", {"all_n": 718, "3h_return_sd": 0.005502288675204664, "mean": -0.0001959740308415188, "down_freq": 0.5097493036211699, "conditional_after_decline": {"n": 148, "down_prob": 0.5, "mean": 7.90044073422491e-05}, "conditional_similar": {"n": 154, "down_prob": 0.4805194805194805, "mean": -0.0001576482913461229}, "last": [[1792965600, "80177.0", "80624.3", "80152.9", "80357.9", "80422.9", "48.49212679", 4945], [1792969200, "80358.0", "80374.3", "79750.0", "80048.5", "79958.8", "192.11728892", 7726], [1792972800, "80048.7", "80267.1", "79798.5", "80013.6", "80040.2", "152.89029336", 10206]]}]
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,concurrent.futures,json,math,statistics
+urls={'ticker':'https://api.exchange.coinbase.com/products/BTC-USD/ticker','history':'https://api.kraken.com/0/public/OHLC?pair=XBTUSD&interval=60'}
+def get(item):
+ k,u=item;return k,requests.get(u,timeout=8).json()
+d=dict(concurrent.futures.ThreadPoolExecutor().map(get,urls.items()))
+spot=float(d['ticker']['price']);strike=80042.76598989303
+p=[float(x[4]) for x in d['history']['result']['XXBTZUSD']][:-1]
+r=[math.log(p[i]/p[i-3]) for i in range(3,len(p))]
+threshold=math.log(strike/spot)
+print(json.dumps({'spot':spot,'timestamp':d['ticker']['time'],'strike':strike,'distance_usd':spot-strike,'past_30d_3h_sample_count':len(r),'empirical_down_fraction':sum(x<threshold for x in r)/len(r),'normal_zero_drift_down':0.5*(1+math.erf(threshold/statistics.stdev(r)/math.sqrt(2))),'normal_empirical_drift_down':0.5*(1+math.erf((threshold-statistics.mean(r))/statistics.stdev(r)/math.sqrt(2)))}))
+PY" in /tmp/apb-122-codex-f75cffrz
+exec
+/usr/bin/zsh -lc 'bench book --outcome Down' in /tmp/apb-122-codex-f75cffrz
+ succeeded in 21ms:
+{"spot": 80072.03, "timestamp": "2026-10-26T01:00:00.224642490Z", "strike": 80042.76598989303, "distance_usd": 29.26401010697009, "past_30d_3h_sample_count": 717, "empirical_down_fraction": 0.4602510460251046, "normal_zero_drift_down": 0.4735335772965914, "normal_empirical_drift_down": 0.48774153286273453}
+
+ succeeded in 4443ms:
+{
+  "outcome": "Down",
+  "bids": [
+    {
+      "price": "0.45",
+      "size": "51"
+    },
+    {
+      "price": "0.44",
+      "size": "410"
+    },
+    {
+      "price": "0.43",
+      "size": "5"
+    },
+    {
+      "price": "0.42",
+      "size": "5"
+    },
+    {
+      "price": "0.41",
+      "size": "5"
+    },
+    {
+      "price": "0.4",
+      "size": "5"
+    },
+    {
+      "price": "0.39",
+      "size": "5"
+    },
+    {
+      "price": "0.38",
+      "size": "5"
+    },
+    {
+      "price": "0.37",
+      "size": "11"
+    },
+    {
+      "price": "0.36",
+      "size": "5"
+    },
+    {
+      "price": "0.35",
+      "size": "5"
+    },
+    {
+      "price": "0.22",
+      "size": "5"
+    },
+    {
+      "price": "0.2",
+      "size": "50"
+    },
+    {
+      "price": "0.13",
+      "size": "40"
+    },
+    {
+      "price": "0.08",
+      "size": "15.74"
+    }
+  ],
+  "asks": [
+    {
+      "price": "0.48",
+      "size": "20"
+    },
+    {
+      "price": "0.49",
+      "size": "10"
+    },
+    {
+      "price": "0.5",
+      "size": "45"
+    },
+    {
+      "price": "0.51",
+      "size": "75"
+    },
+    {
+      "price": "0.52",
+      "size": "5"
+    },
+    {
+      "price": "0.53",
+      "size": "75"
+    },
+    {
+      "price": "0.54",
+      "size": "5"
+    },
+    {
+      "price": "0.55",
+      "size": "15"
+    },
+    {
+      "price": "0.56",
+      "size": "35"
+    },
+    {
+      "price": "0.57",
+      "size": "274.14"
+    },
+    {
+      "price": "0.58",
+      "size": "1205"
+    },
+    {
+      "price": "0.59",
+      "size": "48.5"
+    },
+    {
+      "price": "0.6",
+      "size": "16.28"
+    },
+    {
+      "price": "0.75",
+      "size": "200"
+    },
+    {
+      "price": "0.77",
+      "size": "110"
+    }
+  ],
+  "last_trade_price": "0.48"
+}
+
+codex
+Bitcoin has rebounded above the $80,043 opening reference, so the earlier Down lean has faded. Three hours remain, and recent volatility makes this a close call; I’m comparing the latest prices and fill costs for the final choice.
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,concurrent.futures,json,math,statistics,subprocess
+
+def fetch(k):
+ if k in ('Up','Down'):
+  return k,json.loads(subprocess.check_output(['bench','book','--outcome',k],text=True))
+ if k=='ticker':return k,requests.get('https://api.exchange.coinbase.com/products/BTC-USD/ticker',timeout=8).json()
+ return k,requests.get('https://api.kraken.com/0/public/OHLC?pair=XBTUSD&interval=60',timeout=8).json()
+d=dict(concurrent.futures.ThreadPoolExecutor().map(fetch,['Up','Down','ticker','history']))
+spot=float(d['ticker']['price']);strike=80042.76598989303
+p=[float(x[4]) for x in d['history']['result']['XXBTZUSD']][:-1]
+r=[math.log(p[i]/p[i-3]) for i in range(3,len(p))]
+t=math.log(strike/spot)
+pd_emp=sum(x<t for x in r)/len(r)
+pd_normal=.5*(1+math.erf(t/statistics.stdev(r)/math.sqrt(2)))
+pd=(pd_emp+pd_normal)/2
+out={'spot':spot,'timestamp':d['ticker']['time'],'strike':strike,'normal_down_prob':pd_normal,'empirical_down_prob':pd_emp,'estimated_down_prob':pd,'outcomes':{}}
+for name in ('Up','Down'):
+ cash=100;shares=0;levels=[]
+ for a in sorted(d[name]['asks'],key=lambda x:float(x['price'])):
+  price=float(a['price']);qty=min(float(a['size']),cash/price)
+  if qty>0:shares+=qty;cash-=price*qty;levels.append([price,qty])
+  if cash<1e-6:break
+ fair=pd if name=='Down' else 1-pd
+ out['outcomes'][name]={'fair_probability':fair,'estimated_avg_fill':100/shares,'expected_profit_before_fees':shares*fair-100,'levels':levels,'last_trade':d[name].get('last_trade_price')}
+print(json.dumps(out))
+PY" in /tmp/apb-122-codex-f75cffrz
+ succeeded in 173ms:
+{"spot": 80114.58, "timestamp": "2026-10-26T01:00:50.178221276Z", "strike": 80042.76598989303, "normal_down_prob": 0.43530700112356907, "empirical_down_prob": 0.4100418410041841, "estimated_down_prob": 0.4226744210638766, "outcomes": {"Up": {"fair_probability": 0.5773255789361234, "estimated_avg_fill": 0.6498084689537759, "expected_profit_before_fees": -11.154500669151574, "levels": [[0.57, 30.0], [0.58, 10.0], [0.59, 5.0], [0.6, 5.0], [0.61, 5.0], [0.62, 5.0], [0.63, 5.0], [0.64, 5.0], [0.65, 5.0], [0.66, 54.38], [0.78, 5.0], [0.8, 19.51150000000001]], "last_trade": "0.52"}, "Down": {"fair_probability": 0.4226744210638766, "estimated_avg_fill": 0.48594568842305863, "expected_profit_before_fees": -13.020234332051274, "levels": [[0.45, 40.0], [0.46, 20.0], [0.47, 5.0], [0.49, 15.0], [0.5, 105.0], [0.51, 20.784313725490197]], "last_trade": "0.48"}}}
+
+exec
+/usr/bin/zsh -lc 'bench market' in /tmp/apb-122-codex-f75cffrz
+ succeeded in 631ms:
+{
+  "question": "Bitcoin Up or Down - October 25, 8:00PM-12:00AM ET",
+  "description": "This market will resolve to \"Up\" if the time-weighted average price (TWAP) of Bitcoin, generated by Chainlink, of the time range specified in the title is greater than or equal to the price at the beginning of that range. Otherwise, it will resolve to \"Down\".\nThe resolution source for this market is information from Chainlink, specifically the BTC/USD TWAP data stream available at https://data.chain.link/streams/btc-usd-twap-60s-streams.\nPlease note that this market is about the price according to the TWAP Chainlink data stream for the asset pair BTC/USD, not according to any other sources or spot markets.",
+  "outcomes": [
+    "Up",
+    "Down"
+  ],
+  "prices": [
+    0.545,
+    0.455
+  ],
+  "best_bid": 0.53,
+  "best_ask": 0.56,
+  "end_date": "2026-10-26T04:00:00Z",
+  "stake": 100.0,
+  "seconds_left": 69
+}
+
+exec
+/usr/bin/zsh -lc 'bench book --outcome Up' in /tmp/apb-122-codex-f75cffrz
+ succeeded in 20ms:
+{
+  "outcome": "Up",
+  "bids": [
+    {
+      "price": "0.54",
+      "size": "40"
+    },
+    {
+      "price": "0.51",
+      "size": "75"
+    },
+    {
+      "price": "0.5",
+      "size": "100"
+    },
+    {
+      "price": "0.49",
+      "size": "15"
+    },
+    {
+      "price": "0.48",
+      "size": "190.18"
+    },
+    {
+      "price": "0.47",
+      "size": "518.96"
+    },
+    {
+      "price": "0.46",
+      "size": "405"
+    },
+    {
+      "price": "0.45",
+      "size": "405"
+    },
+    {
+      "price": "0.44",
+      "size": "5"
+    },
+    {
+      "price": "0.43",
+      "size": "5"
+    },
+    {
+      "price": "0.42",
+      "size": "5"
+    },
+    {
+      "price": "0.41",
+      "size": "55.99"
+    },
+    {
+      "price": "0.25",
+      "size": "200"
+    },
+    {
+      "price": "0.23",
+      "size": "110"
+    },
+    {
+      "price": "0.22",
+      "size": "105"
+    }
+  ],
+  "asks": [
+    {
+      "price": "0.55",
+      "size": "35"
+    },
+    {
+      "price": "0.58",
+      "size": "5"
+    },
+    {
+      "price": "0.59",
+      "size": "12"
+    },
+    {
+      "price": "0.6",
+      "size": "5"
+    },
+    {
+      "price": "0.61",
+      "size": "5"
+    },
+    {
+      "price": "0.62",
+      "size": "5"
+    },
+    {
+      "price": "0.63",
+      "size": "5"
+    },
+    {
+      "price": "0.64",
+      "size": "61"
+    },
+    {
+      "price": "0.65",
+      "size": "5"
+    },
+    {
+      "price": "0.66",
+      "size": "5"
+    },
+    {
+      "price": "0.78",
+      "size": "5"
+    },
+    {
+      "price": "0.8",
+      "size": "50"
+    },
+    {
+      "price": "0.92",
+      "size": "65.74"
+    },
+    {
+      "price": "0.93",
+      "size": "80"
+    },
+    {
+      "price": "0.95",
+      "size": "24"
+    }
+  ],
+  "last_trade_price": "0.58"
+}
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,concurrent.futures,json,math,statistics,subprocess
+
+def fetch(k):
+ if k in ('Up','Down'):return k,json.loads(subprocess.check_output(['bench','book','--outcome',k],text=True))
+ if k=='ticker':return k,requests.get('https://api.exchange.coinbase.com/products/BTC-USD/ticker',timeout=5).json()
+ return k,requests.get('https://api.kraken.com/0/public/OHLC?pair=XBTUSD&interval=60',timeout=5).json()
+d=dict(concurrent.futures.ThreadPoolExecutor().map(fetch,['Up','Down','ticker','history']))
+spot=float(d['ticker']['price']);strike=80042.76598989303
+p=[float(x[4]) for x in d['history']['result']['XXBTZUSD']][:-1]
+r=[math.log(p[i]/p[i-3]) for i in range(3,len(p))];t=math.log(strike/spot)
+pd=(sum(x<t for x in r)/len(r)+.5*(1+math.erf(t/statistics.stdev(r)/math.sqrt(2))))/2
+out={'spot':spot,'strike':strike,'time':d['ticker']['time'],'choices':[]}
+for name in ('Up','Down'):
+ cash=100;shares=0;worst=0
+ for a in sorted(d[name]['asks'],key=lambda x:float(x['price'])):
+  price=float(a['price']);qty=min(float(a['size']),cash/price)
+  if qty>0:shares+=qty;cash-=price*qty;worst=price
+  if cash<1e-6:break
+ fair=pd if name=='Down' else 1-pd
+ out['choices'].append({'outcome':name,'confidence':round(fair,2),'avg':100/shares,'expected_profit':shares*fair-100,'max_price':min(.99,round(worst+.03,2))})
+print(json.dumps(out))
+PY" in /tmp/apb-122-codex-f75cffrz
+ succeeded in 145ms:
+{"spot": 80098.43, "strike": 80042.76598989303, "time": "2026-10-26T01:02:13.831268786Z", "choices": [{"outcome": "Up", "confidence": 0.56, "avg": 0.5897051474262869, "expected_profit": -4.862213385969994, "max_price": 0.62}, {"outcome": "Down", "confidence": 0.44, "avg": 0.47370914258645197, "expected_profit": -7.33394487746952, "max_price": 0.53}]}
+
+exec
+/usr/bin/zsh -lc "bench bet --outcome Up --confidence 0.56 --max-price 0.62 --rationale 'BTC is around "'$80,098, above the $80,043 opening reference, with roughly three hours remaining; recent three-hour returns and volatility put Up near 56%. Comparing the full 100-token fills, Up offers the better estimated expected payout, though the edge is uncertain.'"'" in /tmp/apb-122-codex-f75cffrz
+ succeeded in 4479ms:
+{
+  "placed": true,
+  "outcome": "Up",
+  "avg_price": 0.5897,
+  "shares": 169.5763,
+  "stake_filled": 100.0,
+  "unspent": 0.0
+}
+
