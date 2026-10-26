@@ -1,0 +1,47 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+24498 | Will Manchester United FC win on 2026-10-21? | Yes 0.325, No 0.675 | 2026-10-21T16:45:00Z
+24496 | Cricket World Cup League 2: Oman vs Nepal | Oman 0.385, Nepal 0.615 | 2026-10-26T06:00:00Z
+24445 | Will Bitcoin dip to $78,000 October 19-25? | Yes 0.195, No 0.805 | 2026-10-26T04:00:00Z
+23843 | Will Trump say "Data Center" or "Electric" or "Electricity" during his Midterm Rally in Kansas? | Yes 0.380, No 0.620 | 2026-10-19T22:05:00Z
+24429 | Counter-Strike: Betclic Apogee Esports vs BBL (BO3) - PGL Bucharest Closed Qualifier Playoffs | Betclic Apogee Esports 0.445, BBL 0.555 | 2026-10-19T20:00:00Z
+24269 | S&P 500 (SPY) closes above $765 on October 19? | Yes 0.810, No 0.190 | 2026-10-19T20:00:00Z
+24497 | Will Aston Villa FC win on 2026-10-21? | Yes 0.785, No 0.215 | 2026-10-21T19:00:00Z
+24299 | Will Getafe CF vs. Rayo Vallecano de Madrid end in a draw? | Yes 0.325, No 0.675 | 2026-10-19T19:00:00Z
+24444 | Will Bitcoin dip to $80,000 October 19-25? | Yes 0.425, No 0.575 | 2026-10-26T04:00:00Z
+23787 | Will Trump say "SI" or "Super Intelligence" during his Midterm Rally in Kansas? | Yes 0.680, No 0.320 | 2026-10-19T22:05:00Z
+24351 | Counter-Strike: WBT vs Nexus (BO1) - DraculaN Group B | WBT 0.495, Nexus 0.505 | 2026-10-19T15:00:00Z
+24268 | S&P 500 (SPY) closes above $770 on October 19? | Yes 0.435, No 0.565 | 2026-10-19T20:00:00Z
+24490 | Will Robinhood Markets, Inc. (HOOD) hit (LOW) $90 Week of October 19 2026? | Yes 0.195, No 0.805 | 2026-10-23T20:00:00Z
+24214 | Atlanta Dream vs. Golden State Valkyries | Atlanta Dream 0.435, Golden State Valkyries 0.565 | 2026-10-20T00:00:00Z
+24443 | Will Bitcoin reach $84,000 October 19-25? | Yes 0.740, No 0.260 | 2026-10-26T04:00:00Z
+23693 | Will Trump say "America First" or "Gulf of America" during his Midterm Rally in Kansas? | Yes 0.615, No 0.385 | 2026-10-19T22:05:00Z
+24350 | Counter-Strike:  Phantom Academy vs Ryvex (BO3) - CCT Europe Challengers Series Playoffs |  Phantom Academy 0.835, Ryvex 0.165 | 2026-10-19T19:45:00Z
+24250 | Will S&P 500 (SPY) hit (LOW) $750 Week of October 19 2026? | Yes 0.200, No 0.800 | 2026-10-23T20:00:00Z
+24489 | Will Robinhood Markets, Inc. (HOOD) hit (LOW) $92.50 Week of October 19 2026? | Yes 0.310, No 0.690 | 2026-10-23T20:00:00Z
+24169 | Will Tottenham Hotspur FC vs. Coventry City FC end in a draw? | Yes 0.205, No 0.795 | 2026-10-19T19:00:00Z
+24442 | Will Bitcoin reach $86,000 October 19-25? | Yes 0.390, No 0.610 | 2026-10-26T04:00:00Z
+23661 | Will Trump say "Fertilizer" or "Rural" during his Midterm Rally in Kansas? | Yes 0.475, No 0.525 | 2026-10-19T22:05:00Z
+24349 | Counter-Strike: Spirit Academy vs Betclic Apogee Esports (BO3) - Stake Ranked Episode 6: Closed Qualifier Playoffs | Spirit Academy 0.255, Betclic Apogee Esports 0.745 | 2026-10-19T15:00:00Z
+24249 | Will S&P 500 (SPY) hit (LOW) $755 Week of October 19 2026? | Yes 0.305, No 0.695 | 2026-10-23T20:00:00Z
+24488 | Will Robinhood Markets, Inc. (HOOD) hit (LOW) $95 Week of October 19 2026? | Yes 0.460, No 0.540 | 2026-10-23T20:00:00Z
+24156 | Avalanche vs. Flyers | Avalanche 0.675, Flyers 0.325 | 2026-10-19T23:00:00Z
+24389 | Will the price of Solana be between $110 and $120 on October 20? | Yes 0.178, No 0.822 | 2026-10-20T16:00:00Z
+23471 | Will Trump say "Fentanyl" or "Deport" or "Deported" during his Midterm Rally in Kansas? | Yes 0.325, No 0.675 | 2026-10-19T22:05:00Z
+24281 | Dota 2: HULIGANI vs Nemiga Gaming (BO3) - EPL Masters Group A | HULIGANI 0.680, Nemiga Gaming 0.320 | 2026-10-19T18:00:00Z
+24248 | Will S&P 500 (SPY) hit (LOW) $760 Week of October 19 2026? | Yes 0.490, No 0.510 | 2026-10-23T20:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"forecasts": [{"id": "24498", "probabilities": {"Yes": 0.33, "No": 0.67}}, {"id": "24496", "probabilities": {"Oman": 0.36, "Nepal": 0.64}}, {"id": "24445", "probabilities": {"Yes": 0.205, "No": 0.795}}, {"id": "23843", "probabilities": {"Yes": 0.44, "No": 0.56}}, {"id": "24429", "probabilities": {"Betclic Apogee Esports": 0.46, "BBL": 0.54}}, {"id": "24269", "probabilities": {"Yes": 0.815, "No": 0.185}}, {"id": "24497", "probabilities": {"Yes": 0.79, "No": 0.21}}, {"id": "24299", "probabilities": {"Yes": 0.305, "No": 0.695}}, {"id": "24444", "probabilities": {"Yes": 0.45, "No": 0.55}}, {"id": "23787", "probabilities": {"Yes": 0.69, "No": 0.31}}, {"id": "24351", "probabilities": {"WBT": 0.55, "Nexus": 0.45}}, {"id": "24268", "probabilities": {"Yes": 0.455, "No": 0.545}}, {"id": "24490", "probabilities": {"Yes": 0.19, "No": 0.81}}, {"id": "24214", "probabilities": {"Atlanta Dream": 0.445, "Golden State Valkyries": 0.555}}, {"id": "24443", "probabilities": {"Yes": 0.75, "No": 0.25}}, {"id": "23693", "probabilities": {"Yes": 0.66, "No": 0.34}}, {"id": "24350", "probabilities": {"Phantom Academy": 0.825, "Ryvex": 0.175}}, {"id": "24250", "probabilities": {"Yes": 0.19, "No": 0.81}}, {"id": "24489", "probabilities": {"Yes": 0.305, "No": 0.695}}, {"id": "24169", "probabilities": {"Yes": 0.215, "No": 0.785}}, {"id": "24442", "probabilities": {"Yes": 0.4, "No": 0.6}}, {"id": "23661", "probabilities": {"Yes": 0.51, "No": 0.49}}, {"id": "24349", "probabilities": {"Spirit Academy": 0.26, "Betclic Apogee Esports": 0.74}}, {"id": "24249", "probabilities": {"Yes": 0.295, "No": 0.705}}, {"id": "24488", "probabilities": {"Yes": 0.47, "No": 0.53}}, {"id": "24156", "probabilities": {"Avalanche": 0.675, "Flyers": 0.325}}, {"id": "24389", "probabilities": {"Yes": 0.175, "No": 0.825}}, {"id": "23471", "probabilities": {"Yes": 0.35, "No": 0.65}}, {"id": "24281", "probabilities": {"HULIGANI": 0.685, "Nemiga Gaming": 0.315}}, {"id": "24248", "probabilities": {"Yes": 0.505, "No": 0.495}}]}
+```json
+{"forecasts": [{"id": "24498", "probabilities": {"Yes": 0.33, "No": 0.67}}, {"id": "24496", "probabilities": {"Oman": 0.36, "Nepal": 0.64}}, {"id": "24445", "probabilities": {"Yes": 0.205, "No": 0.795}}, {"id": "23843", "probabilities": {"Yes": 0.44, "No": 0.56}}, {"id": "24429", "probabilities": {"Betclic Apogee Esports": 0.46, "BBL": 0.54}}, {"id": "24269", "probabilities": {"Yes": 0.815, "No": 0.185}}, {"id": "24497", "probabilities": {"Yes": 0.79, "No": 0.21}}, {"id": "24299", "probabilities": {"Yes": 0.305, "No": 0.695}}, {"id": "24444", "probabilities": {"Yes": 0.45, "No": 0.55}}, {"id": "23787", "probabilities": {"Yes": 0.69, "No": 0.31}}, {"id": "24351", "probabilities": {"WBT": 0.55, "Nexus": 0.45}}, {"id": "24268", "probabilities": {"Yes": 0.455, "No": 0.545}}, {"id": "24490", "probabilities": {"Yes": 0.19, "No": 0.81}}, {"id": "24214", "probabilities": {"Atlanta Dream": 0.445, "Golden State Valkyries": 0.555}}, {"id": "24443", "probabilities": {"Yes": 0.75, "No": 0.25}}, {"id": "23693", "probabilities": {"Yes": 0.66, "No": 0.34}}, {"id": "24350", "probabilities": {"Phantom Academy": 0.825, "Ryvex": 0.175}}, {"id": "24250", "probabilities": {"Yes": 0.19, "No": 0.81}}, {"id": "24489", "probabilities": {"Yes": 0.305, "No": 0.695}}, {"id": "24169", "probabilities": {"Yes": 0.215, "No": 0.785}}, {"id": "24442", "probabilities": {"Yes": 0.4, "No": 0.6}}, {"id": "23661", "probabilities": {"Yes": 0.51, "No": 0.49}}, {"id": "24349", "probabilities": {"Spirit Academy": 0.26, "Betclic Apogee Esports": 0.74}}, {"id": "24249", "probabilities": {"Yes": 0.295, "No": 0.705}}, {"id": "24488", "probabilities": {"Yes": 0.47, "No": 0.53}}, {"id": "24156", "probabilities": {"Avalanche": 0.675, "Flyers": 0.325}}, {"id": "24389", "probabilities": {"Yes": 0.175, "No": 0.825}}, {"id": "23471", "probabilities": {"Yes": 0.35, "No": 0.65}}, {"id": "24281", "probabilities": {"HULIGANI": 0.685, "Nemiga Gaming": 0.315}}, {"id": "24248", "probabilities": {"Yes": 0.505, "No": 0.495}}]}
+```
