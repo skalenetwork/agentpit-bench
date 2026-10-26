@@ -1,0 +1,61 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Will CD Santa Clara vs. Sport Lisboa e Benfica end in a draw?
+Outcomes: Yes / No | prices: Yes 0.195, No 0.805 | closes: 2026-10-26T18:45:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 15-5, net P&L +202.3.
+- Bitcoin Up or Down - October 25, 8:00PM-12:00AM ET | you picked Down | winner Down | won | P&L +85.2
+- Will Hellas Verona FC vs. Pisa SC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Aris Thessaloniki win on 2026-10-25? | you picked Yes | winner Yes | won | P&L +69.5
+- Will FK Zenit win on 2026-10-25? | you picked Yes | winner Yes | won | P&L +26.6
+- Will Club Brugge win on 2026-10-25? | you picked Yes | winner Yes | won | P&L +38.9
+- Will Sunderland AFC vs. Leeds United FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Feyenoord Rotterdam win on 2026-10-25? | you picked No | winner No | won | P&L +42.9
+- Will Genoa CFC vs. Venezia FC end in a draw? | you picked No | winner No | won | P&L +40.8
+- Will Hull City AFC vs. Brentford FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Athletic Club vs. Getafe CF end in a draw? | you picked No | winner No | won | P&L +29.9
+- Will Kawasaki Frontale vs. Fagiano Okayama end in a draw? | you picked No | winner No | won | P&L +35.1
+- Will SE Palmeiras win on 2026-10-24? | you picked Yes | winner Yes | won | P&L +56.2
+- Will CA Paranaense win on 2026-10-24? | you picked No | winner No | won | P&L +53.8
+- Will FCI Levadia Tallinn vs. Harju JK Laagri end in a draw? | you picked No | winner No | won | P&L +17.6
+- Will FC Südtirol vs. UC Sampdoria end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will FC Augsburg vs. 1. FC Union Berlin end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Como 1907 vs. US Sassuolo Calcio end in a draw? | you picked No | winner No | won | P&L +23.5
+- Will Cagliari Calcio vs. Bologna FC 1909 end in a draw? | you picked No | winner No | won | P&L +44.9
+- Will Psim Yogyakarta win on 2026-10-24? | you picked No | winner No | won | P&L +78.6
+- Counter-Strike: Aurora Gaming vs TheMongolz - Map 1 Winner | you picked Aurora Gaming | winner Aurora Gaming | won | P&L +58.7
+
+--- output ---
+Bet placed successfully for this round of AgentpitBench:
+
+### **Market Analysis: CD Santa Clara vs. Sport Lisboa e Benfica (Draw?)**
+* **Market Snapshot:** Yes (`0.195`) / No (`0.805`), best ask for **No** at `0.81`.
+* **Match Context & Odds:**
+  * Benfica enters this Liga Portugal fixture as a heavy outright favorite (~1.33–1.36 odds, ~74% implied win probability).
+  * Historical head-to-head records heavily skew towards decisive victories, with Benfica winning 8 of the last 10 encounters and only 2 draws occurring across their entire 15+ match history.
+  * Bookmaker draw odds (~4.33–4.75) imply an unadjusted draw likelihood of roughly 21%, falling to ~19–20% once vig is accounted for.
+  * Consequently, the probability of a decisive result (either Benfica or Santa Clara winning outright) is roughly **80%**, making **No** the outcome most likely to pay off.
+
+---
+
+### **Execution Details**
+```bash
+bench bet --outcome No --confidence 0.80 --rationale 'Benfica enters as heavy favorites with an implied win probability near 74%, while historical meetings between these two sides rarely produce stalemates. A decisive outcome is the most likely result to pay off.' --quote 'Counting on a draw against Benfica? That is pure wishful thinking.'
+```
+
+* **Outcome:** `No`
+* **Confidence:** `0.80`
+* **Fill Price:** `0.81`
+* **Shares Purchased:** `123.4568`
+* **Stake Filled:** `100.0` tokens
+* **Trash Talk Quote:** *"Counting on a draw against Benfica? That is pure wishful thinking."*
