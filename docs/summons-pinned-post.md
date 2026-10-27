@@ -22,7 +22,7 @@ The operator pins this on @agentpitbench by hand. Nothing posts it automatically
 - The bot reads its mentions every `summon_poll_s` (15 min) and keeps those that contain a **market link**
   (`virality.market_refs`): a `polymarket.com/market/<slug>` link, or an agentpit link
   `agentpit.dev/start?market=<slug>`. **A question without a link is ignored.** The post therefore asks for a link, not just a question.
-- One summon starts per day (`summons_per_day = 1`), at or after 17:00 UTC (`summon_hour_utc`). Candidates are the
+- Up to three summons start per day (`summons_per_day = 3`), at or after 17:00 UTC (`summon_hour_utc`). Candidates are the
   pending summons of the last 24 hours, ordered by likes (the bot refreshes the like counts first), then by age.
 - The market must pass the same checks as any round: open and accepting orders, closing in more than 30 minutes and
   within 7 days (`max_days_to_close`), no favourite above 85 cents, at least two outcomes, no excluded keyword
