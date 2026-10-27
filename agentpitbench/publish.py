@@ -466,7 +466,11 @@ class BenchPublisher:
         if not self.s.challenge_link_in_results:
             return ""
         try:
-            m = challenge.member(rounds, round_id)
+            pre = None
+            if self.s.backend_enabled:   # the pre-lock sets the site uses too (docs/own-pick-spec.md Q1 b)
+                from .backend import challenge_pre
+                pre = challenge_pre(self.s)
+            m = challenge.member(rounds, round_id, pre=pre)
         except Exception:
             log.exception("challenge membership of round %s failed", round_id)
             return ""

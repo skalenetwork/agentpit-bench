@@ -10,19 +10,37 @@ export const ORIGIN = 'https://agentpitbench.org';
 export const CLIENT_ID = 'test-client.apps.googleusercontent.com';
 export const BENCH_KEY = 'test-bench-key';
 
-export async function applySchema() {
-  const stmts = schema
+// worker/migrations/*.sql in name order: applied on top of schema.sql, the way production gets them
+// (`wrangler d1 migrations apply`), so the tests prove every migration applies to the live v1 schema.
+const migrations = Object.entries(import.meta.glob('../migrations/*.sql', { query: '?raw', import: 'default', eager: true }))
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([, sql]) => sql);
+
+const statements = (sql) =>
+  sql
     .split('\n')
     .map((l) => l.replace(/--.*$/, ''))
     .join('\n')
     .split(';')
     .map((s) => s.trim())
     .filter(Boolean);
-  await env.DB.batch(stmts.map((s) => env.DB.prepare(s)));
+
+export async function applySchema() {
+  await env.DB.batch(statements(schema).map((s) => env.DB.prepare(s)));
+  for (const sql of migrations) {
+    for (const s of statements(sql)) {
+      try {
+        await env.DB.prepare(s).run();
+      } catch (e) {
+        // A test file that shares the database with another one has run this ALTER already.
+        if (!/duplicate column/i.test(String(e && e.message))) throw e;
+      }
+    }
+  }
 }
 
 export async function clearTables() {
-  for (const t of ['users', 'markets', 'picks', 'pick_vs', 'comments', 'likes', 'reports', 'rate']) {
+  for (const t of ['users', 'markets', 'picks', 'pick_vs', 'comments', 'likes', 'reports', 'rate', 'events']) {
     await env.DB.prepare(`DELETE FROM ${t}`).run();
   }
 }

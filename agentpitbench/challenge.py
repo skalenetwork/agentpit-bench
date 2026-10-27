@@ -12,6 +12,13 @@ accepted is never displaced, so a round that starts later can only be added, nev
 a capacity rule, not a re-sort: at most NONMATCH_CAP rounds that are not matches (at most UPDOWN_CAP of them crypto
 Up/Down), so at least SET_MAX - NONMATCH_CAP slots are kept for named-team matches. The set is shown matches
 first, then crypto Up/Down, then the rest, earlier start first. Fewer than SET_MIN members: no challenge that day.
+
+Pre-lock sets (docs/own-pick-spec.md v0.3, Q1 b; only with the backend on): the bot picks day D's set from the
+markets that close on D and have NOT locked yet (the `upcoming` list), with the same caps, in lock order, and
+persists it (backend.CHALLENGE_FILE), so every challenge pick is made before the AIs start and counts. `pre`
+({date: [market rows]}) then replaces the round-based set of each day it covers. A member is its round once the
+round exists, else a pending question (state 'upcoming', no AI entries). Each of its questions carries a stable
+`key` ('m:<market_id>'), the key of the visitor's pick, because the round id does not exist yet when the pick is made.
 """
 from __future__ import annotations
 
@@ -86,19 +93,73 @@ def display_order(members: list[dict]) -> list[dict]:
     return sorted(members, key=lambda r: (rank(r), r["started_at"], r["round_id"]))
 
 
-def sets(rounds: list[dict], today: str | None = None, keep: int = KEEP) -> list[dict]:
+# ---------- pre-lock sets (own-pick spec Q1 b) ----------
+
+PRE_FIELDS = ("market_id", "question", "event_title", "outcomes", "locks_at", "end_date", "url")
+
+
+def pick_pre(members: list[dict], candidates: list[dict]) -> list[dict]:
+    """Day D's pre-lock set grown by the candidates (markets closing on D, not locked yet), monotonic like pick_set:
+    the members stay, in their order; a candidate is accepted in lock order while there is room within the caps."""
+    out = [dict(m) for m in members]
+    ids = {str(m["market_id"]) for m in out}
+    nonmatch = sum(1 for m in out if kind(m) != "match")
+    updown = sum(1 for m in out if kind(m) == "crypto_updown")
+    for c in sorted(candidates, key=lambda c: (c["locks_at"], rank(c), str(c["market_id"]))):
+        if len(out) >= SET_MAX:
+            break
+        if str(c["market_id"]) in ids or not c.get("outcomes"):
+            continue
+        k = kind(c)
+        if k != "match":
+            if nonmatch >= NONMATCH_CAP or (k == "crypto_updown" and updown >= UPDOWN_CAP):
+                continue
+            nonmatch += 1
+            updown += k == "crypto_updown"
+        out.append({f: c.get(f) for f in PRE_FIELDS} | {"market_id": str(c["market_id"])})
+        ids.add(str(c["market_id"]))
+    return out
+
+
+def pre_member(m: dict, round_: dict | None) -> dict:
+    """A pre-lock member as a question source: its round when it exists (the AIs' picks and the result come from it),
+    else a pending question. Either way keyed by the market."""
+    if round_ is not None:
+        return {**round_, "key": f"m:{m['market_id']}", "locks_at": m.get("locks_at")}
+    return {"round_id": None, "market_id": str(m["market_id"]), "key": f"m:{m['market_id']}",
+            "question": m.get("question") or "", "event_title": m.get("event_title"),
+            "outcomes": list(m.get("outcomes") or []), "started_at": None, "end_date": m.get("end_date"),
+            "locks_at": m.get("locks_at"), "state": "upcoming", "entries": [], "winner": None, "revealed_at": None}
+
+
+def _pre_rounds(members: list[dict], rounds: list[dict]) -> list[dict]:
+    by_market: dict[str, dict] = {}
+    for r in sorted(rounds, key=lambda r: r["round_id"]):   # the newest round on a market wins
+        if r.get("market_id") is not None:
+            by_market[str(r["market_id"])] = r
+    out = [pre_member(m, by_market.get(str(m["market_id"]))) for m in members]
+    return sorted(out, key=lambda r: (rank(r), r.get("locks_at") or 0, r["key"]))
+
+
+def sets(rounds: list[dict], today: str | None = None, keep: int = KEEP, pre: dict | None = None) -> list[dict]:
     """[{date, n, rounds}] newest day first: every day from V2_START (up to `today`, and within the last `keep`
-    days of it) that has at least SET_MIN members. Built from every round, void ones too."""
+    days of it) that has at least SET_MIN members. Built from every round, void ones too. A day in `pre` (the
+    persisted pre-lock sets, backend on) takes its set from there instead, and is marked pre=True."""
     by_day: dict[str, list[dict]] = {}
     for r in rounds:
         if eligible(r):
             by_day.setdefault(close_day(r), []).append(r)
+    pre = {d: ms for d, ms in (pre or {}).items() if isinstance(ms, list)}
     lo = V2_START
     if today:
         lo = max(lo, (_date.fromisoformat(today) - timedelta(days=keep - 1)).isoformat())
     out = []
-    for d in sorted(by_day, reverse=True):
+    for d in sorted(set(by_day) | set(pre), reverse=True):
         if d < lo or (today and d > today):
+            continue
+        if d in pre:
+            if len(pre[d]) >= SET_MIN:
+                out.append({"date": d, "n": number(d), "rounds": _pre_rounds(pre[d], rounds), "pre": True})
             continue
         m = pick_set(by_day[d])
         if len(m) >= SET_MIN:
@@ -106,12 +167,18 @@ def sets(rounds: list[dict], today: str | None = None, keep: int = KEEP) -> list
     return out[:keep]
 
 
-def member(rounds: list[dict], round_id: int) -> dict | None:
-    """{date, n} of the day set the round is in, else None. The bot's results post and the site agree through this."""
-    for d in sets(rounds, keep=10 ** 4):
+def member(rounds: list[dict], round_id: int, pre: dict | None = None) -> dict | None:
+    """{date, n} of the day set the round is in, else None. The bot's results post and the site agree through this
+    (both pass the same pre-lock sets when the backend is on)."""
+    for d in sets(rounds, keep=10 ** 4, pre=pre):
         if any(r["round_id"] == round_id for r in d["rounds"]):
             return {"date": d["date"], "n": d["n"]}
     return None
+
+
+def qkey(q: dict) -> str:
+    """The key of a visitor's pick on a question: the market for a pre-lock set, else the round (v0.3)."""
+    return str(q["key"]) if q.get("key") else str(q["round_id"])
 
 
 def day_url(site_url: str, date: str, prefix: str = "") -> str:
@@ -120,27 +187,43 @@ def day_url(site_url: str, date: str, prefix: str = "") -> str:
 
 # ---------- page data ----------
 
-def question(r: dict, tq=lambda t: t) -> dict:
-    """One question's page data. While the round is sealed every AI pick is None, whatever the input holds."""
+def question(r: dict, tq=lambda t: t, market: bool = False) -> dict:
+    """One question's page data. While the round is sealed every AI pick is None, whatever the input holds; a
+    pending pre-lock question (state 'upcoming') has no AI entry at all. market=True (backend on) adds the market id
+    the visitor's pick is stored under; a pre-lock question always carries it, its key and its lock time."""
     sealed = seal(r)
     res = r["state"] == "resolved"
     ais = [{"agent": e["agent"], "name": e["name"], "outcome": None if sealed else e.get("outcome"),
             "won": None if sealed or not res else bool(e.get("won"))} for e in r["entries"]]
-    return {"round_id": r["round_id"], "question": r["question"], "q_local": tq(r["question"]),
-            "outcomes": list(r["outcomes"]), "outcomes_local": [tq(o) for o in r["outcomes"]],
-            "kind": kind(r), "start": r["started_at"], "end_date": r.get("end_date"), "state": r["state"],
-            "winner": r.get("winner") if res else None, "revealed_at": None if sealed else r.get("revealed_at"),
-            "sealed": sealed, "ais": ais}
+    out = {"round_id": r["round_id"], "question": r["question"], "q_local": tq(r["question"]),
+           "outcomes": list(r["outcomes"]), "outcomes_local": [tq(o) for o in r["outcomes"]],
+           "kind": kind(r), "start": r["started_at"], "end_date": r.get("end_date"), "state": r["state"],
+           "winner": r.get("winner") if res else None, "revealed_at": None if sealed else r.get("revealed_at"),
+           "sealed": sealed, "ais": ais}
+    if market or r.get("key"):
+        out["market_id"] = None if r.get("market_id") is None else str(r["market_id"])
+    if r.get("key"):
+        lk = r.get("locks_at")
+        out.update(key=r["key"], locks_at=lk,
+                   locks_utc=datetime.fromtimestamp(lk, timezone.utc).strftime("%Y-%m-%d %H:%M UTC") if lk else None)
+    return out
 
 
-def day_entry(day: dict, tq=lambda t: t) -> dict:
-    qs = [question(r, tq) for r in day["rounds"]]
+def day_entry(day: dict, tq=lambda t: t, market: bool = False, roster: list[dict] | None = None) -> dict:
+    """roster ([{agent, name}]): the AIs of a pre-lock day, whose questions may have no AI entry yet."""
+    qs = [question(r, tq, market) for r in day["rounds"]]
     agents: dict[str, str] = {}
+    if day.get("pre"):
+        for a in roster or []:
+            agents.setdefault(a["agent"], a["name"])
     for q in qs:
         for a in q["ais"]:
             agents.setdefault(a["agent"], a["name"])
-    return {"date": day["date"], "n": day["n"], "agents": [{"agent": k, "name": v} for k, v in agents.items()],
-            "questions": qs}
+    out = {"date": day["date"], "n": day["n"], "agents": [{"agent": k, "name": v} for k, v in agents.items()],
+           "questions": qs}
+    if day.get("pre"):
+        out["pre"] = True
+    return out
 
 
 def data(rounds: list[dict], today: str | None = None, tq=lambda t: t) -> list[dict]:
@@ -164,7 +247,7 @@ def result(day: dict, picks: dict | None = None) -> dict:
     ai_sq = {a["agent"]: "" for a in day["agents"]}
     ai_right = dict.fromkeys(ai_sq, 0)
     for q in qs:
-        mine = picks.get(str(q["round_id"]))
+        mine = picks.get(qkey(q))
         if scored(q):
             ok = mine is not None and mine == q["winner"]
             me_sq += SQ_RIGHT if ok else SQ_WRONG if mine is not None else SQ_NONE
@@ -185,7 +268,7 @@ def result(day: dict, picks: dict | None = None) -> dict:
     ais = [{"agent": a["agent"], "name": a["name"], "sq": ai_sq[a["agent"]], "right": ai_right[a["agent"]],
             "total": total} for a in day["agents"]]
     return {"me": me, "ais": ais, "beat": sum(1 for a in ais if me_right > a["right"]), "m": len(ais),
-            "resolved": sum(1 for q in qs if scored(q)), "played": any(str(q["round_id"]) in picks for q in qs)}
+            "resolved": sum(1 for q in qs if scored(q)), "played": any(qkey(q) in picks for q in qs)}
 
 
 def share_text(res: dict, number_: int, head: str, me_label: str, url: str | None = None) -> str:
@@ -217,8 +300,11 @@ def ai_scoreboard(day: dict) -> list[dict]:
 
 
 def status(q: dict, now: float) -> str:
-    """open (from the round's start until its market closes), soon (not started yet) or closed."""
+    """open (from the round's start until its market closes), soon (not started yet) or closed. A pre-lock
+    question (it has a key) is open until it locks (the AIs start), so every pick on it counts."""
     end = _ts(q.get("end_date"))
     if q["state"] in ("resolved", "void") or (end is not None and now >= end):
         return "closed"
+    if q.get("key"):
+        return "open" if q.get("locks_at") and now < q["locks_at"] else "closed"
     return "soon" if now < q["start"] else "open"

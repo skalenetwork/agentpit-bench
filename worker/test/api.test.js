@@ -305,15 +305,20 @@ describe('picks and lock times', () => {
     freezeAt(t0);
     await bench('POST', '/v1/ingest/markets', [market('m2', { opens_at: '2026-10-14T13:00:00Z', locks_at: '2026-10-14T18:00:00Z' })]);
     const a = await signIn(keyA, 'pc');
+    const b = await signIn(keyA, 'pc2');
     const r = await call('POST', '/v1/picks', { cookie: a.cookie, body: { market_id: 'm2', outcome: 'Yes' } });
     expect(r.status).toBe(409);
     expect(r.data.error).toBe('not_open');
+    // The lock moved into the past: a first pick is now a late one (own-pick spec §4), and it never changes.
     await bench('POST', '/v1/ingest/markets', [market('m2', { opens_at: null, locks_at: '2026-10-14T11:00:00Z' })]);
-    expect((await call('POST', '/v1/picks', { cookie: a.cookie, body: { market_id: 'm2', outcome: 'Yes' } })).status).toBe(409);
+    const late = await call('POST', '/v1/picks', { cookie: a.cookie, body: { market_id: 'm2', outcome: 'Yes' } });
+    expect(late.status).toBe(200);
+    expect(late.data.late).toBe(true);
     await bench('POST', '/v1/ingest/markets', [market('m2', { opens_at: null, locks_at: '2026-10-15T11:00:00Z' })]);
-    expect((await call('POST', '/v1/picks', { cookie: a.cookie, body: { market_id: 'm2', outcome: 'Yes' } })).status).toBe(200);
-    await bench('POST', '/v1/ingest/results', [{ market_id: 'm2', round_id: 'r-m2', winner: 'Yes', ai_picks: {} }]);
     expect((await call('POST', '/v1/picks', { cookie: a.cookie, body: { market_id: 'm2', outcome: 'No' } })).status).toBe(409);
+    expect((await call('POST', '/v1/picks', { cookie: b.cookie, body: { market_id: 'm2', outcome: 'Yes' } })).status).toBe(200);
+    await bench('POST', '/v1/ingest/results', [{ market_id: 'm2', round_id: 'r-m2', winner: 'Yes', ai_picks: {} }]);
+    expect((await call('POST', '/v1/picks', { cookie: b.cookie, body: { market_id: 'm2', outcome: 'No' } })).status).toBe(409);
   });
 });
 

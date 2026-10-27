@@ -698,6 +698,10 @@ def digest(s: Settings, db: DB, now: float | None = None) -> dict:
             out["api_usage"] = backend.api_usage(s, y0)
         except Exception:
             log.exception("API usage digest block failed")
+        try:   # docs/own-pick-spec.md §8: CTA clicks -> sign-ins -> picks -> shares -> referral picks, per day
+            out["own_picks"] = backend.funnel(s, y0)
+        except Exception:
+            log.exception("own picks funnel digest block failed")
     s.export_dir.mkdir(parents=True, exist_ok=True)
     (s.export_dir / "x-daily.json").write_text(json.dumps(out, indent=1))
     log.info("x-daily %s: %d posts, %d impressions, %d interactions, %d link clicks, followers %s (%s), "
@@ -712,6 +716,9 @@ def digest(s: Settings, db: DB, now: float | None = None) -> dict:
     if out.get("api_usage"):
         from .backend import api_usage_line
         log.info("x-daily: %s", api_usage_line(out["api_usage"]))
+    if out.get("own_picks"):
+        from .backend import funnel_line
+        log.info("x-daily: %s", funnel_line(out["own_picks"]))
     if out["visibility_drop"]:
         v = out["visibility_drop"]
         log.warning("x-daily: visibility drop on %s: last %d posts all under 20%% of the %s-impression baseline",
