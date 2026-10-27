@@ -1,5 +1,6 @@
 {% extends "base.html" %}{% import "_macros.html" as m with context %}{% import "_share.html" as sh with context %}{% import "_backend.html" as bkm with context %}
 {% block main %}
+{% if bk %}{{ bkm.refbar(r.market_id, r.market_name or r.question, 'resolved' if r.state == 'resolved' else 'locked') }}{% endif %}
 <div class="small mut">{{ _("Round {n}", n=r.round_id) }} · {{ _("started {date}", date=r.started_at|date) }} · {{ _("closes {date}", date=(r.end_date or '')[:10]) }}{% if r.split %} · <span class="tag">{{ _("Split") }}</span>{% endif %}{% if is_upset(r) %} · <span class="tag upset">{{ _("Upset") }}</span>{% endif %}{% if r.high_stakes %} · <span class="tag hs">{{ _("High Stakes") }}</span>{% endif %}{% if r.exhibition and r.exclusion != 'infra' %} · <span class="tag ex">{{ _("Exhibition") }}</span>{% endif %}</div>
 <div class="rh"><h1>{% if r.market_name and r.market_name != r.question %}{{ mq(r.event_title) }} · {% endif %}{{ mq(r.question) }}</h1><div class="ra"><button type="button" class="bm" data-bm="{{ r.round_id }}" aria-pressed="false" hidden>☆</button>{{ sh.menu(share, embed) }}</div></div>
 {% if r.newsworthiness and r.newsworthiness.model_score is not none %}<p class="small mut">{{ _(cat) }} · <a href="{{ root }}data/newsworthiness.json">{{ _("Newsworthiness {score}/100", score=r.newsworthiness.model_score) }}</a></p>{% endif %}
@@ -9,7 +10,11 @@
 {% elif r.state == 'void' and r.exclusion == 'infra' %}<p><span class="tag">{{ _("Void") }}</span> {{ _("Voided: an infrastructure failure stopped the agents. Nothing from this round counts.") }} <a href="{{ home }}incidents/">{{ _("Incidents") }}</a></p>
 {% elif r.state == 'void' %}<p><span class="tag">{{ _("Void") }}</span> {{ _("The market closed without a winner. No result this round.") }}</p>
 {% else %}{{ m.live_panel(r, home, api_url) }}{{ m.live_script(api_url) }}{% endif %}
-<div class="btns">{% if cta %}<a class="btn cta" href="{{ root }}go/round-cta/{{ cta.arm }}/{{ r.round_id }}/" target="_blank" rel="noopener">{{ cta.text or _("Bet against the AIs →") }}</a>{% else %}<a class="btn cta" href="{{ r.market_link }}" target="_blank" rel="noopener">{{ _("Bet against the AIs →") }}</a>{% endif %}</div>
+{% if bk %}{#- docs/own-pick-spec.md §2: the red button by round state opens a picker on this page (the A/B arm keeps its
+    text and is counted by the Worker); the agentpit market stays one small link away. Shown by the script. -#}
+<div class="btns">{% if r.state != 'void' %}<button type="button" class="btn cta" data-bkcta="{{ 'late' if r.sealed else 'next' }}" data-round="{{ r.round_id }}"{% if cta %} data-arm="{{ cta.arm }}"{% endif %} hidden>{{ cta.text if cta and cta.text else (_("Pick before the AIs reveal →") if r.sealed else _("Beat the AIs on the next one →")) }}</button>{% endif %}<a class="small" href="{{ r.market_link }}" target="_blank" rel="noopener">{{ _("Bet on agentpit") }}</a></div>
+{% if r.state != 'void' %}{{ bkm.next_one(nxt) }}{% endif %}
+{% else %}<div class="btns">{% if cta %}<a class="btn cta" href="{{ root }}go/round-cta/{{ cta.arm }}/{{ r.round_id }}/" target="_blank" rel="noopener">{{ cta.text or _("Bet against the AIs →") }}</a>{% else %}<a class="btn cta" href="{{ r.market_link }}" target="_blank" rel="noopener">{{ _("Bet against the AIs →") }}</a>{% endif %}</div>{% endif %}
 {% if r.round_id in ch_today %}<p><a class="btn" href="{{ home }}challenge/{{ ch_today[r.round_id] }}/">{{ _("Play this one in today's challenge") }}</a></p>{% endif %}
 {% if not grid %}{{ sh.row(share, extra=m.share_image(img), dark=true) }}{% endif %}
 {% if picks %}{{ m.pick_share(picks, cap_hit) }}{% endif %}
@@ -42,7 +47,7 @@
 {% if bk %}{#- the backend (docs/backend-api.md): your pick (closed once the AIs start: the counts, and after the result the
     share text), then the Discussion tab; both filled in the browser, never in the static page -#}
 {{ bkm.style() }}<section data-bkpick hidden><h2>{{ _("Humans vs the AIs") }}</h2>{{ bkm.auth() }}{% set aip = {} %}{% if r.state == 'resolved' %}{% for e in r.entries %}{% if aip.update({e.agent: e.outcome}) %}{% endif %}{% endfor %}{% endif %}
-{{ bkm.pick(r.market_id, r.outcomes, r.market_name or r.question, r.winner if r.state == 'resolved' else none, aip) }}</section>
+{{ bkm.pick(r.market_id, r.outcomes, r.market_name or r.question, r.winner if r.state == 'resolved' else none, aip, close=r.end_date, late=r.sealed) }}</section>
 {{ bkm.discussion(r.round_id) }}{% endif %}
 {% if same_cat %}<h2>{{ _("More markets in {category}", category=_(cat)) }}</h2><ul>{% for x in same_cat %}<li><a href="{{ home }}round/{{ x.round_id }}/">{{ mq(x.question) }}</a></li>{% endfor %}</ul>{% endif %}
 <p class="small">{% if prev_r %}<a href="{{ home }}round/{{ prev_r.round_id }}/" rel="prev">← {{ _("Previous round") }}</a>{% endif %}{% if prev_r and next_r %} · {% endif %}{% if next_r %}<a href="{{ home }}round/{{ next_r.round_id }}/" rel="next">{{ _("Next round") }} →</a>{% endif %}</p>

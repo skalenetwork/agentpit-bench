@@ -1296,10 +1296,18 @@ def _build(s: Settings) -> Path:
     # Beat the AIs (docs/daily-challenge-spec.md): the day's set is chosen from every round, void ones too, so a round that
     # later voids stays in its set; a sealed round's picks never reach the page, the previews or data/challenge.json
     today_utc = _today()
-    ch_sets = challenge.sets(all_rounds, today_utc)           # [{date, n, rounds}] newest first, >= 3 members each
-    ch_en = [challenge.day_entry(d) for d in ch_sets]         # untranslated: data/challenge.json and the previews
+    # with the backend on (docs/own-pick-spec.md Q1 b) a day's set comes from the markets that closed that day and were
+    # picked before they locked (the bot's persisted pre-lock sets), so every challenge pick counts; the questions
+    # then carry the market id the signed-in pick is stored under. Off: exactly the v0.3 sets.
+    ch_bk = bool(s.backend_enabled)
+    from . import backend as _backend
+    ch_pre = _backend.challenge_pre(s) if ch_bk else None
+    ch_roster = [{"agent": a, "name": AGENT_NAMES.get(a, a)} for a in s.agents]
+    ch_sets = challenge.sets(all_rounds, today_utc, pre=ch_pre)   # [{date, n, rounds}] newest first, >= 3 members each
+    ch_en = [challenge.day_entry(d, market=ch_bk, roster=ch_roster) for d in ch_sets]   # untranslated: data/challenge.json, previews
     ch_cur = ch_en[0] if ch_en else None
-    ch_today = {q["round_id"]: ch_cur["date"] for q in ch_cur["questions"]} if ch_cur and ch_cur["date"] == today_utc else {}
+    ch_today = ({q["round_id"]: ch_cur["date"] for q in ch_cur["questions"] if q["round_id"] is not None}
+                if ch_cur and ch_cur["date"] == today_utc else {})
     ch_card = None   # the home page's top card: today's set, n open / n resolved (the set of the day only)
     if ch_today:
         now_ts = time.time()
@@ -1329,7 +1337,6 @@ def _build(s: Settings) -> Path:
     n_resolved = sum(1 for r in all_rounds if discover.counts(r))  # the embeds' credibility line
     # the backend (docs/backend-api.md), off unless backend_enabled: "Coming up" (the bot's last upcoming list, picks
     # still open at build time), the cached "Humans vs the AIs" scoreboard, and the client-side pick/comment UI
-    from . import backend as _backend
     bk = backend_ctx(s) if s.backend_enabled else None
     upcoming = [{**x, "locks_utc": datetime.fromtimestamp(x["locks_at"], timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
                  "category": grid_category({"question": x.get("question") or "", "event_title": x.get("event_title")})}
@@ -1467,6 +1474,7 @@ def _build(s: Settings) -> Path:
                                   state_sig=f"{ar['state']}|{'true' if ar['sealed'] else 'false'}", every=60000)
             page(f"round/{rid}/index.html", "round.html", r=r, card=card, card_alt=card_alt(lr, _, ", ".join(names)),
                  film=film_of.get(rid), cta=cta if lang == "en" else None,
+                 nxt=[x for x in upcoming if str(x["market_id"]) != str(r.get("market_id"))][:3],
                  picks=pick_share(r, surl, _), wins=win_share(r, surl, _), cap_hit=cap_hit.get(rid),
                  grid=grid_share(r, surl, _), qshare=quote_shares(s, r, surl), share_url=surl,
                  img=share_image(card, f"round-{rid}", round_share(lr, _, vs), surl, "round"),
@@ -1517,7 +1525,7 @@ def _build(s: Settings) -> Path:
                  jsonld=crumbs(None, (_("Leaderboard"), "leaderboard/"), (bt, "best-at/"), (ct, rel)))
         # Beat the AIs v2 (docs/daily-challenge-spec.md v0.3): /challenge/ is the newest day's set, and every day of
         # the last 30 has its own page (and preview image). One template; each page inlines only its own day.
-        ch_pages = [challenge.day_entry(d, tq) for d in ch_sets]
+        ch_pages = [challenge.day_entry(d, tq, market=ch_bk, roster=ch_roster) for d in ch_sets]
         ch_dates = [d["date"] for d in ch_pages]
         ch_title = _("Beat the AIs")
         ch_desc = _("Up to 5 markets that close today. Lock in each pick before you see how the AIs bet, then compare as they resolve.")

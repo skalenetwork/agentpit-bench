@@ -79,6 +79,23 @@ describe('late picks (§4)', () => {
   });
 });
 
+describe('late picks stop at the reveal', () => {
+  it('no late pick (or late import) once the read model says the round on the market is unsealed', async () => {
+    freezeAt(Date.parse('2026-11-11T13:00:00Z'));
+    await bench('POST', '/v1/ingest/markets', [market('op-rv', { opens_at: null, locks_at: '2026-11-11T12:00:00Z' })]);
+    await env.DB.prepare(
+      "INSERT INTO api_rounds (round_id, market_id, state, sealed, counts, data, updated_at) VALUES (9901, 'op-rv', 'running', 1, 0, '{}', 0)",
+    ).run();
+    const u = await signIn(key, 'op-rv-1');
+    expect((await pick(u, 'op-rv', 'Yes')).data.late).toBe(true);
+    await env.DB.prepare("UPDATE api_rounds SET sealed = 0, state = 'awaiting_resolution' WHERE round_id = 9901").run();
+    const v = await signIn(key, 'op-rv-2');
+    expect((await pick(v, 'op-rv', 'Yes')).status).toBe(409);
+    const imp = await call('POST', '/v1/picks/import', { cookie: v.cookie, body: [{ market_id: 'op-rv', outcome: 'No' }] });
+    expect(imp.data).toMatchObject({ late: 0, dropped: 1 });
+  });
+});
+
 describe('import (§6)', () => {
   it('ignores the client time: counted before lock, late after, dropped after the result; existing picks win', async () => {
     freezeAt(Date.parse('2026-11-05T10:00:00Z'));

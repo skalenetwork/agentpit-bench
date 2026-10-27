@@ -120,6 +120,24 @@ CREATE TABLE IF NOT EXISTS humans (       -- followers' picks, replied to a roun
     won INTEGER,                       -- NULL until resolved
     PRIMARY KEY(round_id, user_id)
 );
+-- Signed-in site picks pulled from the Worker (docs/own-pick-spec.md §7): counted (made before the AIs started) and
+-- resolved only. Kept apart from `humans` (the X replies): the public humans leaderboard, the Crowd row, Week in the
+-- Pit and the winner cards read `humans`, and merging site picks into them is a methodology change that waits for
+-- the operator's approval (humans_sources). Until then these feed /me/ and the "Humans vs the AIs" scoreboard only.
+CREATE TABLE IF NOT EXISTS site_picks (
+    market_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,                 -- 'site:' + the Worker's public user id
+    round_id INTEGER,                      -- the round on the market, when the bench ran one
+    username TEXT,                         -- the generated (or chosen) display name
+    pick TEXT NOT NULL,
+    created_at REAL,
+    resolved_at REAL,
+    won INTEGER,                           -- NULL: void
+    x_user_id TEXT,                        -- the linked X account (Q2 b): its X-reply pick on the same market yields
+    x_username TEXT,
+    pulled_at REAL NOT NULL,
+    PRIMARY KEY(market_id, user_id)
+);
 CREATE TABLE IF NOT EXISTS summons (      -- tweets tagging the bench with a market link
     tweet_id TEXT PRIMARY KEY,
     author_id TEXT,

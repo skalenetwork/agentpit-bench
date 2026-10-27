@@ -9,6 +9,11 @@ before the AIs, comment, and are scored against the AIs. Off unless s.backend_en
 - Scoreboard (GET /scoreboard): fetched before a site build, cached in var/export/backend-scoreboard.json; a failure
   keeps the last copy. The build itself never touches the network.
 - Review (GET /admin/review): the comments list for the operator's daily digest.
+- Own picks (docs/own-pick-spec.md v0.3): the day's challenge set is chosen from the upcoming markets that close
+  today and have not locked yet (Q1 b), persisted in var/export/challenge-sets.json (membership only grows) and sent
+  with each market as challenge_day; the counted, resolved site picks are pulled (GET /admin/picks) into the
+  site_picks table (never `humans`: see db.py); "@agentpitbench link <code>" mentions link an X handle (POST
+  /admin/xlink, read by engage.poll_summons; nothing is posted); the digest gets the funnel line (GET /admin/funnel).
 - The free API's read model (POST /ingest/rounds, docs/free-api-spec.md): every round as the static
   /api/v1/rounds/{n}.json has it (discover.api_round: a running round's picks are null), re-sent when it changes, so
   /v2/ serves rounds, live, leaderboards and agent histories without reading the site. Picks of a round reach the
@@ -24,6 +29,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import time
 from datetime import datetime, timezone
 
@@ -38,6 +44,10 @@ log = logging.getLogger(__name__)
 KEY_ENV = "BENCH_INGEST_KEY"
 TIMEOUT_S = 10
 UPCOMING_FILE = "upcoming.json"
+CHALLENGE_FILE = "challenge-sets.json"  # {date: [market rows]}: the pre-lock challenge sets (own-pick spec Q1 b)
+SITE_PICKS_SINCE = "backend_site_picks_since"   # kv: resolved_at (epoch s) the next pull starts from
+SITE_PICKS_OVERLAP_S = 6 * 3600         # each pull re-reads this much (a late result ingest; upserts are idempotent)
+SITE_ALERTED = "backend_site_flagged"   # kv: flagged account ids the operator was already told about
 SCOREBOARD_FILE = "backend-scoreboard.json"
 SENT_RESULTS = "backend_results_sent"   # kv: round ids whose results the Worker has
 SENT_MARKETS = "backend_markets_sig"    # kv: {sig, at} of the last markets push
@@ -179,6 +189,37 @@ def started(s: Settings, db: DB) -> list[dict]:
 
 def _sig(items: list[dict]) -> str:
     return hashlib.sha256(json.dumps(items, sort_keys=True).encode()).hexdigest()
+
+
+def challenge_pre(s: Settings) -> dict[str, list[dict]]:
+    """The persisted pre-lock challenge sets {date: [market rows]} ({} when the bot has not written any)."""
+    try:
+        d = json.loads((s.export_dir / CHALLENGE_FILE).read_text())
+        return {k: v for k, v in d.items() if isinstance(v, list)} if isinstance(d, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def update_challenge_sets(s: Settings, items: list[dict], now: float) -> dict[str, str]:
+    """Grow today's pre-lock set from the upcoming items that close today and are still open (challenge.pick_pre:
+    the v0.3 caps, members never removed), keep the last challenge.KEEP days, write the file when it changed.
+    Returns {market_id: date} for every persisted member (the items' challenge_day)."""
+    from . import challenge
+    pre = challenge_pre(s)
+    today = challenge.day_of(now)
+    cand = [x for x in items if (x.get("locks_at") or 0) > now and x.get("outcomes")
+            and challenge.close_day({"end_date": x.get("end_date")}) == today]
+    cur = pre.get(today, [])
+    new = challenge.pick_pre(cur, cand)
+    if new != cur:
+        pre[today] = new
+        pre = dict(sorted(pre.items())[-challenge.KEEP:])
+        s.export_dir.mkdir(parents=True, exist_ok=True)
+        f = s.export_dir / CHALLENGE_FILE
+        tmp = f.with_suffix(".tmp")
+        tmp.write_text(json.dumps(pre, indent=1, ensure_ascii=False))
+        tmp.replace(f)
+    return {str(m["market_id"]): d for d, ms in pre.items() for m in ms}
 
 
 def write_upcoming(s: Settings, items: list[dict]) -> bool:
@@ -330,7 +371,12 @@ class Pusher:
 
     async def _markets(self, now: float) -> None:
         items = await upcoming(self.s, self.db, self.api, now)
-        changed = write_upcoming(self.s, items)
+        before = challenge_pre(self.s)
+        tags = update_challenge_sets(self.s, items, now)
+        for x in items:
+            if x["market_id"] in tags:
+                x["challenge_day"] = tags[x["market_id"]]
+        changed = write_upcoming(self.s, items) or challenge_pre(self.s) != before
         last = self.db.get(SENT_MARKETS) or {}
         sig = _sig(items)
         if items and (sig != last.get("sig") or now - last.get("at", 0) >= REPUSH_S):
@@ -338,6 +384,10 @@ class Pusher:
                 self.db.put(SENT_MARKETS, {"sig": sig, "at": now})
         if changed and self.on_change:
             self.on_change()
+        try:
+            await asyncio.to_thread(pull_site_picks, self.s, self.db, self.client, now)
+        except Exception as e:  # noqa: BLE001
+            log.warning("backend site picks pull failed: %s", e)
 
 
 # ---------------------------------------------------------------- site build + digest helpers
@@ -395,6 +445,122 @@ def review(s: Settings, since: float, client: Backend | None = None) -> dict:
     finally:
         if client is None:
             c.close()
+
+
+# ---------------------------------------------------------------- own picks: the site picks, X links, the funnel
+
+def pull_site_picks(s: Settings, db: DB, client: Backend, now: float | None = None) -> int:
+    """GET admin/picks?since= -> site_picks: counted (before the AIs started), resolved picks, 'site:'+id. Accounts
+    flagged for a sign-up burst are skipped, and the operator is alerted once per new batch of them. Returns the
+    number of rows written."""
+    now = time.time() if now is None else now
+    if not client._key():
+        return 0
+    mark = float(db.get(SITE_PICKS_SINCE, 0) or 0)
+    since = max(0.0, mark - SITE_PICKS_OVERLAP_S)
+    d = client.get("admin/picks", admin=True,
+                   since=datetime.fromtimestamp(since, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))
+    picks = d.get("picks", []) if isinstance(d, dict) else []
+    flagged = set(d.get("flagged") or []) if isinstance(d, dict) else set()
+    n, newest = 0, mark
+    for p in picks:
+        if p.get("late") or p.get("flagged") or p.get("user_public_id") in flagged:
+            continue
+        rid = p.get("round_id")
+        round_id = int(rid) if isinstance(rid, (int, str)) and str(rid).isdigit() else None
+        if round_id is None:
+            row = db.one("SELECT round_id FROM rounds WHERE market_id=? ORDER BY round_id DESC LIMIT 1", str(p["market_id"]))
+            round_id = row["round_id"] if row else None
+        res = _epoch(p.get("resolved_at"))
+        newest = max(newest, res or 0)
+        db.x("INSERT INTO site_picks(market_id,user_id,round_id,username,pick,created_at,resolved_at,won,x_user_id,"
+             "x_username,pulled_at) VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(market_id,user_id) DO UPDATE SET "
+             "round_id=excluded.round_id, username=excluded.username, pick=excluded.pick, won=excluded.won, "
+             "resolved_at=excluded.resolved_at, x_user_id=excluded.x_user_id, x_username=excluded.x_username, "
+             "pulled_at=excluded.pulled_at",
+             str(p["market_id"]), f"site:{p['user_public_id']}", round_id, p.get("name"), p["outcome"],
+             _epoch(p.get("created_at")), res, None if p.get("correct") is None else int(bool(p["correct"])),
+             p.get("x_user_id"), p.get("x_username"), now)
+        n += 1
+    db.put(SITE_PICKS_SINCE, newest)
+    told = set(db.get(SITE_ALERTED, []))
+    if flagged - told:
+        from . import alerts
+        bursts = ", ".join(f"{b.get('day')}: {b.get('accounts')} accounts" for b in d.get("bursts") or [])
+        alerts.send(s, db, "warn", "site_picks_burst", "Site picks: sign-up burst flagged",
+                    f"{len(flagged - told)} new account(s) from a burst of more than 20 sign-ups on one network in a "
+                    f"day ({bursts}); their picks are skipped.",
+                    action="their site picks are not pulled", resume="none needed; check the Worker's users table if it repeats")
+        db.put(SITE_ALERTED, sorted(told | flagged))
+    return n
+
+
+def _epoch(v) -> float | None:
+    if v is None:
+        return None
+    if isinstance(v, (int, float)):
+        return float(v) / (1000 if v > 1e12 else 1)
+    try:
+        return datetime.fromisoformat(str(v).replace("Z", "+00:00")).timestamp()
+    except ValueError:
+        return None
+
+
+def linked_once(x_rows: list[dict], site_rows: list[dict]) -> list[dict]:
+    """Q2 b, for the leaderboard merge (humans_sources = x,site; not wired until the operator approves it): one
+    person counts once. x_rows: X-reply picks {round_id, user_id (the X user id), ...}; site_rows: site picks {round_id,
+    x_user_id, ...}. A linked person's X-reply pick is dropped where they also have a site pick on that round."""
+    linked = {(r.get("round_id"), str(r["x_user_id"])) for r in site_rows if r.get("x_user_id")}
+    return [r for r in x_rows if (r.get("round_id"), str(r.get("user_id"))) not in linked] + list(site_rows)
+
+
+# the Worker's link codes: 8 characters of A-Z and 2-9 without I and O (worker/src/handlers.js LINK_ALPHABET)
+LINK_RE = re.compile(r"\blink\s+([A-HJ-NP-Z2-9]{8})\b", re.I)
+
+
+def link_code(text: str) -> str | None:
+    """The code in an '@agentpitbench link <code>' mention (case-insensitive), else None."""
+    m = LINK_RE.search(text or "")
+    return m.group(1).upper() if m else None
+
+
+def link_x(s: Settings, code: str, x_user_id: str, username: str, client: Backend | None = None) -> dict:
+    """POST admin/xlink: link the X account that posted the code to the site account that showed it. Nothing is
+    posted on X. {ok, user_id, ...} or {"error": "..."} (an unknown or expired code is 404)."""
+    c = client or Backend(s)
+    try:
+        return c.admin_post("admin/xlink", {"code": code, "x_user_id": str(x_user_id), "username": username or ""})
+    except httpx.HTTPStatusError as e:
+        return {"error": f"HTTP {e.response.status_code}"}
+    except Exception as e:  # noqa: BLE001
+        return {"error": str(e)[:200]}
+    finally:
+        if client is None:
+            c.close()
+
+
+def funnel(s: Settings, since: float, client: Backend | None = None) -> dict:
+    """The digest's funnel: GET admin/funnel?since=<day> -> {days: [...], total: {...}, arms: {...}} or {"error"}."""
+    c = client or Backend(s)
+    try:
+        d = c.get("admin/funnel", admin=True, since=datetime.fromtimestamp(since, timezone.utc).strftime("%Y-%m-%d"))
+        return d if isinstance(d, dict) else {"error": "unexpected answer"}
+    except Exception as e:  # noqa: BLE001
+        return {"error": str(e)[:200]}
+    finally:
+        if client is None:
+            c.close()
+
+
+def funnel_line(f: dict) -> str:
+    """One line for the digest log: CTA clicks -> sign-ins -> picks -> shares -> referral picks (spec §8)."""
+    if f.get("error"):
+        return f"Own picks: unavailable ({f['error']})"
+    t = f.get("total") or {}
+    arms = ", ".join(f"{a} {v.get('opens', 0)}/{v.get('picks', 0)}" for a, v in sorted((f.get("arms") or {}).items()))
+    return (f"Own picks: {t.get('cta', 0)} CTA clicks -> {t.get('signins', 0)} sign-ins -> {t.get('picks', 0)} picks "
+            f"({t.get('late_picks', 0)} late) -> {t.get('shares', 0)} shares -> {t.get('ref_picks', 0)} referral picks"
+            + (f"; arms (opens/picks): {arms}" if arms else ""))
 
 
 # ---------------------------------------------------------------- the free API: digest line and operator controls

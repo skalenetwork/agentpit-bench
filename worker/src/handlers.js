@@ -358,6 +358,13 @@ const isLocked = (ctx, m) => ctx.now >= m.locks_at || m.resolved_at !== null;
 
 const lockedError = (m) => new HttpError(409, 'locked', 'picks are locked for this market', { locks_at: iso(m.locks_at) });
 
+// A late pick is only for while the AIs' picks are sealed (spec §4). The read model (POST /v1/ingest/rounds) knows
+// when the bench revealed them: once its newest round on the market is unsealed, no more late picks.
+async function revealed(ctx, marketId) {
+  const r = await ctx.db.prepare('SELECT sealed FROM api_rounds WHERE market_id = ? ORDER BY round_id DESC LIMIT 1').bind(marketId).first();
+  return !!r && r.sealed === 0;
+}
+
 // A referral (spec §5): kept only on the person's first pick, never their own id, only an existing user.
 async function refFor(ctx, uid, raw) {
   if (typeof raw !== 'string' || !ID_RE.test(raw) || raw === uid) return null;
@@ -385,6 +392,7 @@ export async function postPick(ctx) {
   }
   const existing = await ctx.db.prepare('SELECT late FROM picks WHERE user_id = ? AND market_id = ?').bind(user.id, m.market_id).first();
   if (existing && (late || existing.late === 1)) throw lockedError(m);
+  if (late && (await revealed(ctx, m.market_id))) throw lockedError(m);
   const arm = typeof body.cta_arm === 'string' && ARM_RE.test(body.cta_arm) ? body.cta_arm : null;
   const ref = existing ? null : await refFor(ctx, user.id, body.ref);
   if (late) {
@@ -452,6 +460,10 @@ export async function importPicks(ctx) {
     const late = ctx.now >= m.locks_at ? 1 : 0;
     if (!late && m.opens_at !== null && ctx.now < m.opens_at) {
       out.unknown++;
+      continue;
+    }
+    if (late && (await revealed(ctx, id))) {
+      out.dropped++;
       continue;
     }
     out[late ? 'late' : 'counted']++;
