@@ -1017,6 +1017,58 @@ def pnl_chart(series: dict[str, list], width: int = 640, height: int = 220, crow
     return "".join(parts)
 
 
+def win_chart(agents: list[dict], crowd: dict | None = None, width: int = 640, _=Translator("en")) -> str:
+    """Inline SVG bars of each AI's win rate in a month (monthly report); the Crowd as a dashed bar. No JS."""
+    rows = [(a["name"], a["win_rate"], a["color"], f"{a['wins']}-{a['losses']}") for a in agents if a.get("win_rate") is not None]
+    if crowd and crowd.get("win_rate") is not None:
+        rows.append((_("The Crowd"), crowd["win_rate"], None, f"{crowd['wins']}-{crowd['losses']}"))
+    if not rows:
+        return ""
+    row_h, lab, h = 30, 120, 30 * len(rows) + 8
+    bw = width - lab - 90
+    parts = [f'<svg viewBox="0 0 {width} {h}" class="chart" role="img" aria-label="{escape(_("Win rate"))}">']
+    for i, (name, rate, color, wl) in enumerate(rows):
+        y = 4 + i * row_h
+        parts.append(f'<text x="2" y="{y + 18}" class="lbl" style="font-size:13px">{escape(name)}</text>')
+        fill = (f'fill="{color}"' if color else 'fill="none" stroke="#8a93a8" stroke-width="2" stroke-dasharray="5 3"')
+        cls = ' class="dkl"' if color and is_dark(color) else ""
+        parts.append(f'<rect{cls} x="{lab}" y="{y + 4}" width="{max(1.0, rate * bw):.1f}" height="18" {fill}/>')
+        parts.append(f'<text x="{lab + rate * bw + 6:.1f}" y="{y + 18}" class="lbl" style="font-size:13px">{rate * 100:.0f}% · {wl}</text>')
+    parts.append(f'<line x1="{lab}" x2="{lab}" y1="2" y2="{h - 2}" class="axis"/></svg>')
+    return "".join(parts)
+
+
+def calibration_chart(cal: list[dict], size: int = 360, _=Translator("en")) -> str:
+    """Inline SVG calibration plot of a month's bets: stated confidence (x) against the share that won (y), one dot
+    per confidence band (area = bets), the diagonal is perfect calibration."""
+    pts = [b for b in cal if b.get("n")]
+    if not pts:
+        return ""
+    pad = 36
+    lo, hi = 0.4, 1.0
+
+    def xy(x, y):
+        return pad + (x - lo) / (hi - lo) * (size - pad - 10), 10 + (hi - y) / (hi - lo) * (size - pad - 10)
+    (x0, y0), (x1, y1) = xy(lo, lo), xy(hi, hi)
+    parts = [f'<svg viewBox="0 0 {size} {size}" class="chart" style="max-width:{size}px" role="img" aria-label="{escape(_("Calibration"))}">',
+             f'<line x1="{pad}" x2="{size - 10}" y1="{size - pad:.1f}" y2="{size - pad:.1f}" class="axis"/>',
+             f'<line x1="{pad}" x2="{pad}" y1="10" y2="{size - pad:.1f}" class="axis"/>',
+             f'<line x1="{x0:.1f}" y1="{y0:.1f}" x2="{x1:.1f}" y2="{y1:.1f}" stroke="#8a93a8" stroke-width="1.5" stroke-dasharray="5 4"/>',
+             f'<text x="{size - 10}" y="{size - 6}" class="lbl" text-anchor="end">{escape(_("Stated confidence"))}</text>',
+             f'<text x="{pad + 6}" y="12" class="lbl">{escape(_("Won"))}</text>']
+    for v in (0.5, 0.75, 1.0):
+        gx, gy = xy(v, v)
+        parts.append(f'<text x="{gx:.1f}" y="{size - pad + 14:.1f}" class="lbl" text-anchor="middle">{v * 100:.0f}%</text>'
+                     f'<text x="{pad - 4}" y="{gy + 4:.1f}" class="lbl" text-anchor="end">{v * 100:.0f}%</text>')
+    for b in pts:
+        cx, cy = xy(min(max(b["conf"], lo), hi), min(max(b["win_rate"], lo), hi))
+        r = 4 + 2.2 * (b["n"] ** 0.5)
+        parts.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{min(r, 22):.1f}" fill="#4f7cff" fill-opacity=".65" stroke="#4f7cff">'
+                     f'<title>{escape(_("{n} bets", n=b["n"]))}: {b["conf"] * 100:.0f}% → {b["win_rate"] * 100:.0f}%</title></circle>')
+    parts.append("</svg>")
+    return "".join(parts)
+
+
 def badge_svg(board: list[dict], crowd: dict | None = None) -> str:
     """Shields-style badge: 'AgentpitBench | Claude 12-8 · ChatGPT 10-10 · Gemini 9-11'."""
     value = " · ".join(f"{b['name']} {b['wins']}-{b['losses']}" for b in board) or "no results yet"
@@ -1240,6 +1292,7 @@ def _build(s: Settings) -> Path:
     if s.site_hide_void:  # temporary while operations stabilise: void rounds get no page, row or feed item
         rounds = [r for r in rounds if r.get("state") != "void"]
     reports = json.loads((exp / "reports.json").read_text()) if (exp / "reports.json").exists() else []
+    months_all = json.loads((exp / "months.json").read_text()) if (exp / "months.json").exists() else []
     lb = json.loads((exp / "leaderboard.json").read_text()) if (exp / "leaderboard.json").exists() else {
         "agents": [], "series": {}, "season": "", "updated_at": time.time()}
     board = lb["agents"]
@@ -1296,10 +1349,18 @@ def _build(s: Settings) -> Path:
     # Beat the AIs (docs/daily-challenge-spec.md): the day's set is chosen from every round, void ones too, so a round that
     # later voids stays in its set; a sealed round's picks never reach the page, the previews or data/challenge.json
     today_utc = _today()
-    ch_sets = challenge.sets(all_rounds, today_utc)           # [{date, n, rounds}] newest first, >= 3 members each
-    ch_en = [challenge.day_entry(d) for d in ch_sets]         # untranslated: data/challenge.json and the previews
+    # with the backend on (docs/own-pick-spec.md Q1 b) a day's set comes from the markets that closed that day and were
+    # picked before they locked (the bot's persisted pre-lock sets), so every challenge pick counts; the questions
+    # then carry the market id the signed-in pick is stored under. Off: exactly the v0.3 sets.
+    ch_bk = bool(s.backend_enabled)
+    from . import backend as _backend
+    ch_pre = _backend.challenge_pre(s) if ch_bk else None
+    ch_roster = [{"agent": a, "name": AGENT_NAMES.get(a, a)} for a in s.agents]
+    ch_sets = challenge.sets(all_rounds, today_utc, pre=ch_pre)   # [{date, n, rounds}] newest first, >= 3 members each
+    ch_en = [challenge.day_entry(d, market=ch_bk, roster=ch_roster) for d in ch_sets]   # untranslated: data/challenge.json, previews
     ch_cur = ch_en[0] if ch_en else None
-    ch_today = {q["round_id"]: ch_cur["date"] for q in ch_cur["questions"]} if ch_cur and ch_cur["date"] == today_utc else {}
+    ch_today = ({q["round_id"]: ch_cur["date"] for q in ch_cur["questions"] if q["round_id"] is not None}
+                if ch_cur and ch_cur["date"] == today_utc else {})
     ch_card = None   # the home page's top card: today's set, n open / n resolved (the set of the day only)
     if ch_today:
         now_ts = time.time()
@@ -1307,6 +1368,15 @@ def _build(s: Settings) -> Path:
                    "open": sum(1 for q in ch_cur["questions"] if challenge.status(q, now_ts) == "open"),
                    "done": sum(1 for q in ch_cur["questions"] if challenge.scored(q))}
     previews = _previews(s, lb, rounds, cards, reports, ch_en)
+    # Monthly reports "Which AI is the best forecaster?" (monthly.py): a month's page exists once the month is over;
+    # its PDF and films (cards/report/<month>/, made by `report month` or the 1st-of-the-month job) are linked if present
+    from . import monthly, monthly_media
+    cur_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    months = [m for m in months_all if m["month"] < cur_month]
+    month_media = {r["month"]: r for r in monthly_media.records(s)}
+    # "Ask the AIs": the recent summoned rounds (a running one shows its question only, never a pick)
+    ask_rounds = sorted((r for r in rounds if r.get("exclusion") == "summon" and r.get("state") in ("running", "resolved")),
+                        key=lambda r: -(r.get("started_at") or 0))[:8]
     extra = _db_extras(s)
     cta = site_cta(s)                # A/B: the day's round-page CTA arm (English pages only)
     exp_ab = experiments_data(s)     # A/B: the public /experiments/ numbers (posts older than 7 days)
@@ -1329,7 +1399,6 @@ def _build(s: Settings) -> Path:
     n_resolved = sum(1 for r in all_rounds if discover.counts(r))  # the embeds' credibility line
     # the backend (docs/backend-api.md), off unless backend_enabled: "Coming up" (the bot's last upcoming list, picks
     # still open at build time), the cached "Humans vs the AIs" scoreboard, and the client-side pick/comment UI
-    from . import backend as _backend
     bk = backend_ctx(s) if s.backend_enabled else None
     upcoming = [{**x, "locks_utc": datetime.fromtimestamp(x["locks_at"], timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
                  "category": grid_category({"question": x.get("question") or "", "event_title": x.get("event_title")})}
@@ -1467,6 +1536,7 @@ def _build(s: Settings) -> Path:
                                   state_sig=f"{ar['state']}|{'true' if ar['sealed'] else 'false'}", every=60000)
             page(f"round/{rid}/index.html", "round.html", r=r, card=card, card_alt=card_alt(lr, _, ", ".join(names)),
                  film=film_of.get(rid), cta=cta if lang == "en" else None,
+                 nxt=[x for x in upcoming if str(x["market_id"]) != str(r.get("market_id"))][:3],
                  picks=pick_share(r, surl, _), wins=win_share(r, surl, _), cap_hit=cap_hit.get(rid),
                  grid=grid_share(r, surl, _), qshare=quote_shares(s, r, surl), share_url=surl,
                  img=share_image(card, f"round-{rid}", round_share(lr, _, vs), surl, "round"),
@@ -1517,7 +1587,7 @@ def _build(s: Settings) -> Path:
                  jsonld=crumbs(None, (_("Leaderboard"), "leaderboard/"), (bt, "best-at/"), (ct, rel)))
         # Beat the AIs v2 (docs/daily-challenge-spec.md v0.3): /challenge/ is the newest day's set, and every day of
         # the last 30 has its own page (and preview image). One template; each page inlines only its own day.
-        ch_pages = [challenge.day_entry(d, tq) for d in ch_sets]
+        ch_pages = [challenge.day_entry(d, tq, market=ch_bk, roster=ch_roster) for d in ch_sets]
         ch_dates = [d["date"] for d in ch_pages]
         ch_title = _("Beat the AIs")
         ch_desc = _("Up to 5 markets that close today. Lock in each pick before you see how the AIs bet, then compare as they resolve.")
@@ -1589,7 +1659,18 @@ def _build(s: Settings) -> Path:
              description=contrarian_share(lb.get("contrarian") or [], _)
              or _("Every time an AI forecast strayed far from the market price, and whether it was right."),
              og=previews["contrarian"])
-        page("reports/index.html", "reports.html", reports=reports, title=branded(_("Weekly reports")),
+        for rep in months:  # "Which AI is the best forecaster?", one page per finished month
+            mhead = monthly.headline(rep)
+            page(f"reports/{rep['month']}/index.html", "report_month.html", rep=rep, share_text=mhead, description=mhead,
+                 charts={"pnl": pnl_chart(rep["series"], crowd=rep["crowd"]["series"], _=_),
+                         "win": win_chart(rep["agents"], rep["crowd"], _=_),
+                         "cal": calibration_chart(rep["calibration"], _=_)},
+                 media=month_media.get(rep["month"]), blurb=monthly.blurb(rep, f"{base}/reports/{rep['month']}/"),
+                 title=branded(_("Which AI is the best forecaster?") + f" · {rep['label']}"))
+        page("ask/index.html", "ask.html", ask_rounds=ask_rounds, title=branded(_("Ask the AIs")),
+             description=_("Tag the AgentpitBench bot on X with a prediction market and the AIs may bet on it: how summons work and the rounds you summoned."),
+             share_text=_("Summon the AIs: tag @{handle} with a prediction market and see how Claude, ChatGPT, Gemini and Grok bet.", handle=s.x_username))
+        page("reports/index.html", "reports.html", reports=reports, months=months, title=branded(_("Weekly reports")),
              share_text=report_headline(reports[0], _) if reports else None,
              description=_("State of the AIs: a weekly report on how {names} forecast and bet.", names=", ".join(names)))
         for rep in reports:
@@ -1642,7 +1723,7 @@ def _build(s: Settings) -> Path:
     if host and not host.endswith(".github.io"):  # custom domain: GitHub Pages drops it without this file
         (out / "CNAME").write_text(host + "\n")
     d = out / "data"
-    for name in ("rounds.json", "leaderboard.json", "bets.csv", "metrics.json", "reports.json", "sealed.json",
+    for name in ("rounds.json", "leaderboard.json", "bets.csv", "metrics.json", "reports.json", "months.json", "sealed.json",
                  "experiments.json", "newsworthiness.json"):
         if (exp / name).exists():
             shutil.copy2(exp / name, d / name)

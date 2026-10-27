@@ -8,7 +8,8 @@ dependencies (WebCrypto for Google RS256 tokens and the HMAC session cookie).
 ```
 worker/
   wrangler.toml     name agentpitbench-api, D1 binding DB, vars, custom domain (commented)
-  schema.sql        D1 schema (idempotent; apply with wrangler d1 execute)
+  schema.sql        D1 schema v1 (idempotent; apply with wrangler d1 execute)
+  migrations/       additive changes after v1 (wrangler d1 migrations apply), e.g. 0001_own_pick.sql
   src/index.js      routing, CORS, CSRF guard, X-Bench-Key check
   src/handlers.js   endpoints (v1)
   src/v2.js         the free API: /v2/ reads, the embargo, keys, rate limits, /v1/ingest/rounds, operator controls
@@ -29,7 +30,8 @@ workerd. Nothing touches the network.
 
 Local server: create `worker/.dev.vars` (git-ignored) with `GOOGLE_CLIENT_ID=...`,
 `SESSION_SECRET=...`, `BENCH_INGEST_KEY=...`, `ALLOW_LOCALHOST=1`, then
-`npx wrangler d1 execute agentpitbench --local --file=schema.sql` and `npx wrangler dev`.
+`npx wrangler d1 execute agentpitbench --local --file=schema.sql`,
+`npx wrangler d1 migrations apply agentpitbench --local` and `npx wrangler dev`.
 
 ## Deploy (operator)
 
@@ -81,7 +83,10 @@ Google Cloud console: the OAuth client's "Authorized JavaScript origins" must in
 
 ### 4. Deploy
 
+Apply pending migrations first (additive columns with defaults: the live Worker keeps working), then deploy:
+
 ```sh
+npx wrangler d1 migrations apply agentpitbench --remote
 npx wrangler deploy
 ```
 

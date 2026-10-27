@@ -2,6 +2,10 @@
 {% block main %}
 <h1>{{ _("Weekly reports") }}</h1>
 {{ sh.row(share) }}
+{% if months %}<h2>{{ _("Monthly reports") }}</h2>
+{% for m in months %}<div class="box"><a href="{{ home }}reports/{{ m.month }}/"><b>{{ _("Which AI is the best forecaster?") }} · {{ m.label }}</b></a>
+<div class="small mut">{{ _("{n} betting rounds resolved", n=m.rounds) }}</div></div>{% endfor %}
+<h2>{{ _("Weekly reports") }}</h2>{% endif %}
 {% for rep in reports %}<div class="box"><a href="{{ home }}reports/{{ rep.week }}/"><b>{{ _("State of the AIs") }} · {{ rep.week }}</b></a>
 <div class="small mut">{{ _("{n} betting rounds resolved", n=rep.rounds) }}</div></div>
 {% else %}<p class="mut">{{ _("No reports yet.") }}</p>{% endfor %}

@@ -369,6 +369,7 @@ class Engage:
             return 0
         added = 0
         for tw in tweets:
+            await self._x_link(tw)
             urls = [u.get("expanded_url") or u.get("url", "") for u in (tw.get("entities") or {}).get("urls", [])]
             refs = market_refs(urls, tw.get("text", ""), self.s.market_url)
             if refs:
@@ -381,6 +382,21 @@ class Engage:
         if tweets:
             self.db.put("mentions_since", max((t["id"] for t in tweets), key=int))
         return added
+
+    async def _x_link(self, tw: dict) -> None:
+        """'@agentpitbench link <code>' (docs/own-pick-spec.md Q2 b): link the author's X account to the site account
+        that showed the code on /me/. The Worker does it (POST /v1/admin/xlink); nothing is ever posted back."""
+        if not self.s.backend_enabled or self.s.dry_run or not tw.get("author_id"):
+            return
+        from . import backend
+        code = backend.link_code(tw.get("text", ""))
+        if not code:
+            return
+        r = await asyncio.to_thread(backend.link_x, self.s, code, tw["author_id"], tw.get("username") or "")
+        if r.get("error"):
+            log.info("X link from @%s (code %s) not linked: %s", tw.get("username"), code, r["error"])
+        else:
+            log.info("X link: @%s linked to site account %s", tw.get("username"), r.get("user_id"))
 
     async def pick_summon(self, watcher, now: float | None = None) -> tuple[dict, dict] | None:
         """The most-liked pending summon from the last 24 h whose market is eligible, once its hour comes."""

@@ -50,6 +50,8 @@ SLOTS: dict[str, dict] = {
     # the round's opener: the split card (control) or a native X poll naming each side and its AIs (no media on X)
     "reveal.format": {"kind": "code", "codes": ["card", "poll"]},
     "results.media": {"kind": "code", "codes": ["clip", "still"]},
+    # art style of the AI scene on reveal / results posts (scenes.STYLES; docs/scene-images.md). Control: bold cartoon.
+    "image.style": {"kind": "code", "codes": ["cartoon", "clay", "popart", "film3d", "screenprint"]},
     "tags": {"kind": "code", "codes": ["", " #AI", " #PredictionMarkets"]},
     "tone": {"kind": "code", "codes": ["fun", "plain"]},
 }

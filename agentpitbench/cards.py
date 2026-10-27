@@ -18,6 +18,7 @@ from .mascots import mascot
 log = logging.getLogger(__name__)
 
 W, H = 1200, 675
+W_POSTER, H_POSTER = 1080, 1350   # 4:5 scene poster for X / Bluesky post images (scenes.py)
 
 
 def shrink_png(path: Path) -> None:
@@ -161,6 +162,44 @@ MOTD_JS = r"""
       const k = ease((t - parseFloat(el.dataset.in || 0)) / parseFloat(el.dataset.cd || 1));
       el.textContent = k >= 1 ? el.dataset.final : fmt[el.dataset.fmt || 'int'](parseFloat(el.dataset.to) * k);
     });
+  };
+})();
+"""
+
+
+# Poster loop (scenes / poster_clip): every term is periodic in the loop length D, so the last frame leads back into
+# the first. Ken Burns on .scene (the overlay is untouched); particles on a canvas, a seeded pseudo-random field.
+MOTION_JS = r"""
+(function(){
+  let D = 4, KIND = 'confetti', cv = null, ps = [];
+  const rnd = (i, k) => { const x = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return x - Math.floor(x); };
+  const COL = ['#ffd34d', '#ff5c7a', '#4dd2ff', '#7dff9a', '#ffffff', '#ff9ae0'];
+  window.__mvInit = (kind, d) => {
+    D = d; KIND = kind;
+    cv = document.createElement('canvas'); cv.width = 1080; cv.height = 1350;
+    cv.style.cssText = 'position:absolute;inset:0;pointer-events:none';
+    document.body.insertBefore(cv, document.querySelector('.shade'));   // above the scene, under the overlay text
+    ps = Array.from({length: kind === 'smoke' ? 26 : 70}, (_, i) => ({
+      x: rnd(i, 1), y: rnd(i, 2), s: 1 + Math.floor(rnd(i, 3) * 2), w: rnd(i, 4), r: rnd(i, 5), c: COL[i % COL.length]}));
+  };
+  window.__mv = t => {
+    const p = (t % D) / D, th = 2 * Math.PI * p;
+    const sc = document.querySelector('.scene');
+    sc.style.transform = `scale(${1.06 + 0.035 * (1 - Math.cos(th)) / 2}) translate(${14 * Math.sin(th)}px,${-8 * (1 - Math.cos(th)) / 2}px)`;
+    const g = cv.getContext('2d'); g.clearRect(0, 0, 1080, 1350);
+    ps.forEach((q, i) => {
+      const f = (q.y + q.s * p) % 1;             // q.s whole laps per loop: seamless
+      if (KIND === 'smoke') {
+        const y = 1350 * (1.1 - 1.2 * f), x = 1080 * q.x + 40 * Math.sin(th * q.s + q.w * 6), r = 70 + 90 * f;
+        g.globalAlpha = 0.20 * Math.sin(Math.PI * f); g.fillStyle = '#c9ccd6';
+        g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+      } else {
+        const y = 1500 * f - 80, x = 1080 * q.x + 36 * Math.sin(th * q.s + q.w * 6);
+        g.globalAlpha = 0.95; g.fillStyle = q.c; g.save(); g.translate(x, y);
+        g.rotate(th * q.s * (q.r > .5 ? 1 : -1) + q.w * 6); g.fillRect(-8, -4, 16, 8); g.restore();
+      }
+    });
+    g.globalAlpha = 1;
   };
 })();
 """
@@ -450,7 +489,7 @@ class CardRenderer:
             await self._pw.stop()
         self._browser = self._pw = None
 
-    async def render_html(self, html: str, out: Path, width: int = W, height: int = H) -> Path:
+    async def render_html(self, html: str, out: Path, width: int = W, height: int = H, shrink: bool = True) -> Path:
         out.parent.mkdir(parents=True, exist_ok=True)
         async with self._lock:
             browser = await self._ensure()
@@ -460,7 +499,8 @@ class CardRenderer:
                 await page.screenshot(path=str(out), clip={"x": 0, "y": 0, "width": width, "height": height})
             finally:
                 await page.close()
-        shrink_png(out)
+        if shrink:
+            shrink_png(out)
         return out
 
     def _dir(self, rnd: dict) -> Path:
@@ -527,6 +567,101 @@ class CardRenderer:
                       cast: str | None = None, top_humans: list[dict] | None = None, variant: str | None = None) -> Path:
         html = self._results_html(rnd, board, crowd, cast, top_humans, variant)
         return await self.render_html(html, self._dir(rnd) / "results.png")
+
+    def poster_html(self, rnd: dict, kind: str, scene: Path | bytes, fmt: str = "scene",
+                    gags: dict | None = None) -> str:
+        """The 4:5 scene poster (docs/scene-images.md): the scene full-bleed, our hook, the four real logos with
+        a right/wrong mark (results) or their pick (reveal), the market name small. `kind`: reveal | results.
+        `fmt`: scene | comic | movie | trading (scenes.FORMATS); every word, number and logo is ours, the model
+        only drew the picture. `gags`: scenes.gags_from_board(...), whose stats feed the trading card."""
+        import base64
+        from . import scenes
+        data = scene if isinstance(scene, bytes) else Path(scene).read_bytes()
+        mime = "image/jpeg" if data[:2] == b"\xff\xd8" else "image/png"
+        hook = scenes.poster_hook(rnd, kind)
+        by = {e["agent"]: e for e in rnd["entries"]}
+        cols = []
+        for a in [*scenes.ORDER, *[a for a in by if a not in scenes.ORDER]]:
+            e = by.get(a)
+            if not e:
+                continue
+            state = ("won" if e.get("won") else "lost") if kind == "results" and e.get("outcome") else None
+            cols.append({"agent": a, "name": AGENT_NAMES.get(a, a), "color": AGENT_COLORS.get(a),
+                         "state": state, "text": (e.get("outcome") or "No bet")})
+        tc = None
+        if fmt == "trading":
+            who, rare = scenes.featured_agent(rnd, kind, scenes.situation(rnd, kind), gags)
+            st = ((gags or {}).get("stats") or {}).get(who) or {}
+            if not who:
+                fmt = "scene"
+            else:
+                wl = f"{st.get('wins', 0)}-{st.get('losses', 0)}" if st else "—"
+                wr = f"{round((st.get('win_rate') or 0) * 100)}%" if st else "—"
+                pnl = signed(st.get("net_pnl")) if st.get("net_pnl") is not None else "—"
+                streak = st.get("streak") or 0
+                tc = {"agent": who, "name": AGENT_NAMES.get(who, who), "color": AGENT_COLORS.get(who),
+                      "persona": scenes.PERSONAS.get(who, ""), "rare": rare,
+                      "stats": [("W-L", wl), ("Win rate", wr), ("Tokens", pnl),
+                                ("Streak", f"{'W' if streak > 0 else 'L'}{abs(streak)}" if streak else "—")]}
+        n = len(hook)
+        hook_px = 150 if n <= 14 else 128 if n <= 24 else 104 if n <= 36 else 88
+        if fmt == "comic":
+            hook_px = min(hook_px, 96)
+        if fmt == "movie":
+            hook_px = min(hook_px, 112)
+        lines = max(1, -(-int(n * hook_px * 0.46) // (W_POSTER - 96)))   # rough wrapped line count
+        hook_h = int(lines * hook_px * 1.02) + 6
+        tag = round_banner(rnd) or {"reveal": "Picks are in", "results": "Final"}.get(kind)
+        return env.get_template("scene_poster.html").render(
+            scene=f"data:{mime};base64," + base64.b64encode(data).decode(), hook=hook, hook_px=hook_px,
+            hook_h=hook_h, tag=tag, tag_bg="#ffd34d" if kind == "reveal" else "#22c55e", cols=cols, fmt=fmt, tc=tc,
+            cols_top=H_POSTER - 560, market=" ".join((rnd.get("question") or "").split()),
+            url=f"{self.host}/round/{rnd['round_id']}", W=W_POSTER, H=H_POSTER)
+
+    async def poster(self, rnd: dict, kind: str, scene: Path | bytes, fmt: str = "scene",
+                     gags: dict | None = None) -> Path:
+        """Render the poster to cards/<round>/<split|results>-poster.png (1080x1350). The 1200x675 card stays as
+        it is: the site, OG previews and films keep using it."""
+        name = "split" if kind == "reveal" else "results"
+        return await self.render_html(self.poster_html(rnd, kind, scene, fmt, gags),
+                                      self._dir(rnd) / f"{name}-poster.png", W_POSTER, H_POSTER, shrink=False)
+
+    async def poster_clip(self, rnd: dict, kind: str, scene: Path | bytes, fmt: str = "scene",
+                          gags: dict | None = None, seconds: float = 4.0, fps: int = 12,
+                          particles: str | None = None) -> Path | None:
+        """A seamless 3-6 s loop of the poster: slow Ken Burns zoom and pan on the scene plus confetti or smoke
+        particles drawn here (canvas, MOTION_JS); the overlay stays still. MP4 via the film pipeline's ffmpeg.
+        None (callers keep the still) when ffmpeg is missing or anything fails."""
+        from . import media
+        if not media.ffmpeg_exe():
+            return None
+        name = "split" if kind == "reveal" else "results"
+        out_base = self._dir(rnd) / f"{name}-poster"
+        frames_dir = out_base.parent / f"{out_base.name}-frames"
+        shutil.rmtree(frames_dir, ignore_errors=True)
+        frames_dir.mkdir(parents=True, exist_ok=True)
+        seconds = max(3.0, min(6.0, seconds))
+        total = int(round(seconds * fps))
+        html = self.poster_html(rnd, kind, scene, fmt, gags)
+        async with self._lock:
+            browser = await self._ensure()
+            page = await browser.new_page(viewport={"width": W_POSTER, "height": H_POSTER}, device_scale_factor=1)
+            try:
+                await page.set_content(html, wait_until="load")
+                await page.evaluate("document.fonts && document.fonts.ready")
+                await page.add_script_tag(content=MOTION_JS)
+                await page.evaluate("([k, d]) => window.__mvInit(k, d)", [particles or "confetti", seconds])
+                for i in range(total):
+                    await page.evaluate("t => window.__mv(t)", i / fps)
+                    await page.screenshot(path=str(frames_dir / f"f{i:05d}.png"),
+                                          clip={"x": 0, "y": 0, "width": W_POSTER, "height": H_POSTER})
+            finally:
+                await page.close()
+        frames = sorted(frames_dir.glob("f*.png"))
+        try:
+            return await asyncio.to_thread(media.encode, frames, out_base, fps, False)
+        finally:
+            shutil.rmtree(frames_dir, ignore_errors=True)
 
     def _plain(self, url_path: str = "leaderboard/", agent: str | None = None, **kw) -> dict:
         return {"r": None, "board": [], "colors": AGENT_COLORS, "names": AGENT_NAMES, "models": AGENT_MODELS,
@@ -632,7 +767,9 @@ class CardRenderer:
             for i, sc in enumerate(scenes):
                 strip = self._strip(sc.get("url_path") or f"round/{sc['round_id']}", sc.get("agent"))
                 # w_: a Week in the Pit host scene (docs/week-in-the-pit-spec.md); s_: a scripted film scene
+                # m_: a monthly report film scene (monthly.scenes)
                 tpl = env.get_template("week.html" if sc["kind"].startswith("w_") else
+                                       "month.html" if sc["kind"].startswith("m_") else
                                        "motd_story.html" if sc["kind"].startswith("s_") else "motd.html")
                 html = tpl.render(sc=sc, fmt=fmt, w=width, h=height, idx=i, count=len(scenes),
                                   colors=AGENT_COLORS, names=AGENT_NAMES, **strip,

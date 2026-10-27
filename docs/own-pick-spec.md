@@ -184,6 +184,24 @@ pick.
   3. The leaderboard merge comes after the methodology approval.
 - **Out of scope:** email or push notifications, a generated per-user share image (contract v1), friends lists.
 
+## 9b. Build notes (2026-10-27)
+
+- **Worker:** D1 migration `worker/migrations/0001_own_pick.sql` (additive). Deploy order: `npx wrangler d1
+  migrations apply agentpitbench --remote`, then `npx wrangler deploy`, then the site build/ship.
+  `POST /v1/cta` also counts shares (`kind: "share"`). A late pick is refused once the read model
+  (`api_rounds`) says the bench revealed the round, so a late pick is never made with the AI picks visible.
+  `GET /v1/users/{id}?market=` serves the referral bar (the friend's pick only after lock).
+- **Q1 b:** the bot persists the pre-lock sets in `var/export/challenge-sets.json` (membership only grows) and tags
+  each pushed market with `challenge_day`; days covered there replace the round-based sets (site, data/challenge.json
+  and the results-post line agree through `challenge.member(..., pre=)`). Days before the switch keep v0.3 sets.
+- **§7, not yet merged:** site picks are pulled into a separate `site_picks` table, never into `humans`: `humans`
+  feeds the methodology-locked humans leaderboard, the Crowd row, Week in the Pit and the winner cards. The
+  `humans_sources` knob is **not** added: any key added to the methodology params changes `params_sha` and trips
+  `methodology.verify()`. TODO (operator): a methodology proposal that adds `humans_sources` and merges `site_picks`
+  (with `backend.linked_once`, the Q2 b rule that drops a linked person's X-reply pick when a site pick exists).
+- **Q2 b:** `/me/` shows a one-time code; the person posts "@agentpitbench link <code>"; `engage.poll_summons`
+  reads it from the mentions it already polls and calls `POST /v1/admin/xlink`. The bot never posts for it.
+
 ## 10. Virality check (filled per review)
 
 | # | Check | Status |

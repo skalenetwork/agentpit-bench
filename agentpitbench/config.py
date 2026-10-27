@@ -96,10 +96,26 @@ class Settings:
     week_episode_prep_hour_utc: int = 14    # from this hour: the writer (idle windows only), then the render
     week_episode_hour_utc: int = 18         # from this hour: the post (after that week's race/awards post)
     week_episode_fps: int = 15
+    # Monthly report "Which AI is the best forecaster?" (operator 2026-10-27 virality push): on the 1st (UTC), the
+    # report's film renders from the prep hour and the 4-post thread (kind "report_month") goes out from the post hour.
+    report_month_enabled: bool = False
+    report_month_prep_hour_utc: int = 12
+    report_month_hour_utc: int = 15
+    report_month_fps: int = 15
     week_episode_credit_budget: int = 4000  # ElevenLabs credits per episode for the host's uncached lines
     week_episode_calls_per_week: int = 1    # opai weekly_episode calls per ISO week (no retry: templated lines)
     opai_model_weekly_episode: str = "fable"
     opai_week_timeout_s: int = 360
+    # AI scene per post (docs/scene-images.md): our robot mascots in a Gemini-drawn scene behind the 4:5 poster card
+    # of the reveal and results posts. GEMINI_API_KEY in secrets.env; no key, cap reached or any failure = today's card.
+    scene_images_enabled: bool = False
+    scene_images_model: str = "gemini-3.1-flash-image"
+    scene_images_per_day: int = 30          # image attempts per UTC day (cached posts cost nothing)
+    scene_image_cost_usd: float = 0.067     # per 1K image for gemini-3.1-flash-image, Google's pricing page (2026-10-27)
+    scene_images_timeout_s: int = 90
+    scene_formats: list[str] = field(default_factory=lambda: ["scene", "comic", "movie", "trading"])
+    scene_loop_seconds: float = 4.0        # results posts: looping MP4 from the poster (0 = still only)
+    scene_images_references: bool = True    # send the approved cast sheet (static/scenes/) as a reference image
     sandbox: bool = True             # run agents inside bubblewrap (bwrap); never disable in production
     # independent-standard layer
     methodology_version: str = "1.0"
@@ -159,6 +175,13 @@ class Settings:
     reply_back_min_account_days: float = 7  # skip accounts younger than this
     reply_back_poll_s: int = 900
     reply_back_read_budget_usd: float = 0.50   # per UTC day, reply-back reads only: hard stop
+    # engage_x (operator 2026-10-27): likes on human pick replies, shout-outs, follow-backs. Off by default.
+    x_like_replies: bool = False
+    x_shoutouts: bool = False
+    x_follow_back: bool = False
+    x_like_daily_cap: int = 100
+    x_follow_daily_cap: int = 20
+    x_follow_min_picks: int = 2
     reply_back_exclude: list[str] = field(default_factory=list)   # operator exclusions: user ids or @handles
     agents: list[str] = field(default_factory=lambda: ["claude", "codex", "agy", "grok"])
     excluded_keywords: list[str] = field(default_factory=list)

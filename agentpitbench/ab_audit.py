@@ -21,7 +21,7 @@ from .db import DB
 SLOT_KINDS: dict[str, set[str]] = {
     "reveal.hook": {"reveal"}, "reveal.cta": {"reveal"}, "reveal.media": {"reveal"}, "reveal.format": {"reveal"},
     "results.hook": {"results"}, "results.cta": {"results"}, "results.media": {"results"}, "tone": {"results"},
-    "tags": {"reveal", "results"},
+    "tags": {"reveal", "results"}, "image.style": {"reveal", "results"},
     "press.head": {"press"},   # press statements are replies to the results post
     "generic.cta": set(ab.GENERIC_KINDS),
     "site.round_cta": {"site"},

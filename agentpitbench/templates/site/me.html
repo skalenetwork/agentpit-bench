@@ -11,20 +11,25 @@
 {{ bkm.auth() }}
 <section data-me hidden>
 <h2 data-name></h2>
-<form data-rename class="btns"><label class="small">{{ _("Display name") }} <input name="n" minlength="3" maxlength="24" required></label><button type="submit" class="bk-btn">{{ _("Rename") }}</button><span class="bk-err" data-rerr></span></form>
+<form data-rename id="rename" class="btns"><label class="small">{{ _("Display name") }} <input name="n" minlength="3" maxlength="24" required></label><button type="submit" class="bk-btn">{{ _("Rename") }}</button><span class="bk-err" data-rerr></span></form>
 <h2>{{ _("Record") }}</h2>
 <div class="scroll"><table><tr><th></th><th class="r">{{ _("This week") }}</th><th class="r">{{ _("Season") }}</th></tr>
 <tr><td>{{ _("Correct picks") }}</td><td class="r num" data-wk></td><td class="r num" data-ss></td></tr></table></div>
 <h2>{{ _("You vs each AI") }}</h2><p class="small mut">{{ _("W-L-T: rounds where you were right and the AI wrong, the other way round, and both the same.") }}</p>
 <div class="scroll"><table data-vs><tr><th>{{ _("Agent") }}</th><th class="r">{{ _("W-L-T") }}</th></tr></table></div>
+<p data-streak></p>
 <div class="btns" data-share></div>
 <h2>{{ _("Your picks") }}</h2><ul data-picks></ul>
+<h2>{{ _("Link your X handle") }}</h2><p class="small mut">{{ _("Your picks on X and here then count once. Get a code, then post it on X as shown; the bot reads it and never posts anything.") }}</p>
+<div data-x><p data-xstate></p><div class="btns"><button type="button" class="bk-btn" data-xcode>{{ _("Get a code") }}</button><a class="bk-btn" data-xpost target="_blank" rel="noopener" hidden>{{ _("Post it on X") }}</a><button type="button" class="bk-btn" data-xun hidden>{{ _("Unlink") }}</button></div></div>
 <div class="btns"><a class="btn" href="{{ home }}">{{ _("Coming up") }}</a><button type="button" class="bk-btn" data-out>{{ _("Sign out") }}</button><button type="button" class="bk-btn" data-del>{{ _("Delete my account") }}</button></div>
 <p class="small mut">{{ _("Deleting removes your account and picks; your comments stay, without your name.") }} <a href="{{ home }}privacy/">{{ _("Privacy") }}</a></p>
 </section>
 {{ sh.row(share) }}
 {%- set M = {"del": _("Delete your account? This cannot be undone."), "taken": _("That name is taken or not allowed."),
-  "mine": _("My record vs the AIs: {w}–{l} this week."), "nopicks": _("No picks yet."), "vs": _("vs {name}")} %}
+  "mine": _("My record vs the AIs: {w}–{l} this week · streak {n}."), "nopicks": _("No picks yet."), "vs": _("vs {name}"),
+  "stats": _("Streak {s} · days played {n} · best streak {b}"), "late": _("late pick"), "closes": _("closes {date}"),
+  "xcode": _("Post on X: @agentpitbench link {code}"), "xlinked": _("Linked to @{handle}"), "xnone": _("Not linked.")} %}
 <script>/* /me/: rendered from GET /v1/me by the backend script's hook */
 window.apbMe=function(m,k){var M={{ M|tojson }},s=document.querySelector("[data-me]"),u=new URLSearchParams(location.search).get("u");
 var other=u&&(!m.user||String(m.user.id)!==u);document.querySelector("[data-shared]").hidden=!other;
@@ -35,13 +40,21 @@ function cp(x){return x.correct!=null?x.correct+" / "+(x.picks||0):(x.w!=null?x.
 s.querySelector("[data-wk]").textContent=cp(wk);s.querySelector("[data-ss]").textContent=cp(ss);
 var t=s.querySelector("[data-vs]");[].slice.call(t.rows).slice(1).forEach(function(x){x.remove()});
 Object.keys(k.C.names).forEach(function(a){var v=(r.vs||{})[a]||{},tr=t.insertRow();tr.insertCell().textContent=k.C.names[a];var c=tr.insertCell();c.className="r num";c.textContent=(v.w||0)+"-"+(v.l||0)+"-"+(v.t||0)});
-var sh=s.querySelector("[data-share]");sh.textContent="";sh.appendChild(k.shareBtn(k.f(M.mine,k.rec(m)),k.C.base+"me/?u="+encodeURIComponent(m.user.id)));
-var ul=s.querySelector("[data-picks]");ul.textContent="";(m.pending||[]).concat(m.picks||[]).forEach(function(p){var li=k.el("li","",(p.question||p.market_id)+" · "+p.outcome);
+var ch=m.challenge||{streak:0,best:0,days_played:0},rw=k.rec(m);s.querySelector("[data-streak]").textContent=k.f(M.stats,{s:ch.streak,n:ch.days_played,b:ch.best});
+var sh=s.querySelector("[data-share]");sh.textContent="";sh.appendChild(k.shareBtn(k.f(M.mine,{w:rw.w,l:rw.l,n:ch.streak}),k.C.base+"me/?u="+encodeURIComponent(m.user.id)));
+var x=m.x||{},xs=s.querySelector("[data-xstate]"),xc=s.querySelector("[data-xcode]"),xp=s.querySelector("[data-xpost]"),xu=s.querySelector("[data-xun]");
+function xshow(code){xs.textContent=x.username?k.f(M.xlinked,{handle:x.username}):code?k.f(M.xcode,{code:code}):M.xnone;xu.hidden=!x.username;xp.hidden=!code;
+if(code)xp.href="https://x.com/intent/post?text="+encodeURIComponent("@agentpitbench link "+code)}xshow(x.code);
+var ul=s.querySelector("[data-picks]");ul.textContent="";var now=Date.now();(m.pending||[]).concat(m.picks||[]).forEach(function(p){var bits=[p.question||p.market_id,p.outcome];if(p.late)bits.push(M.late);
+var cl=p.closes_at&&Date.parse(p.closes_at);if(!p.resolved&&cl&&cl>now)bits.push(k.f(M.closes,{date:new Date(cl).toLocaleString(k.C.lang,{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}));
+var li=k.el("li","",bits.join(" · "));
 if(p.round_id){var a=k.el("a","",li.textContent);a.href={{ (home ~ "round/")|tojson }}+p.round_id+"/";li.textContent="";li.appendChild(a)}ul.appendChild(li)});
 if(!(m.picks||[]).length&&!(m.pending||[]).length)ul.appendChild(k.el("li","mut",M.nopicks));
 var f=s.querySelector("[data-rename]"),err=s.querySelector("[data-rerr]");f.n.value=m.user.name;if(!f.dataset.on){f.dataset.on=1;
 f.addEventListener("submit",function(e){e.preventDefault();err.textContent="";k.api("/me/name",{name:f.n.value.trim()}).then(function(){k.reset();k.refresh()}).catch(function(){err.textContent=M.taken})});
 s.querySelector("[data-out]").addEventListener("click",function(){k.api("/auth/logout",{}).then(function(){k.reset();k.refresh()})});
-s.querySelector("[data-del]").addEventListener("click",function(){if(confirm(M.del))k.api("/me/delete",{}).then(function(){k.reset();k.refresh()})})}};</script>
+s.querySelector("[data-del]").addEventListener("click",function(){if(confirm(M.del))k.api("/me/delete",{}).then(function(){k.reset();k.refresh()})});
+xc.addEventListener("click",function(){k.api("/me/xlink",{}).then(function(j){x.username=null;xshow(j.code)}).catch(function(){})});
+xu.addEventListener("click",function(){k.api("/me/xlink/remove",{}).then(function(){k.reset();k.refresh()}).catch(function(){})})}};</script>
 {{ bkm.script() }}
 {% endblock %}

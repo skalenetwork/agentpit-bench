@@ -1,6 +1,7 @@
-// Endpoint handlers for docs/backend-api.md (v1).
+// Endpoint handlers for docs/backend-api.md (v1) and docs/own-pick-spec.md (late picks, import, referrals, the
+// challenge streak, X handle links, the funnel counters).
 import {
-  HttpError, json, readJson, parseTime, iso, periodStart, weekStart, seasonStart, randomId, MAX_INGEST_BODY,
+  HttpError, json, readJson, parseTime, iso, periodStart, weekStart, seasonStart, randomId, MAX_INGEST_BODY, sha256hex,
 } from './util.js';
 import { verifyGoogleIdToken, makeSessionCookie, clearSessionCookie } from './auth.js';
 import { generateName, checkName, containsBlocked } from './words.js';
@@ -17,6 +18,32 @@ const COMMENT_LIMITS = [
 const REPORT_LIMITS = [{ windowMs: 86_400_000, max: 30, what: '30 reports per day' }];
 const RENAME_LIMITS = [{ windowMs: 86_400_000, max: 10, what: '10 renames per day' }];
 const ID_RE = /^[A-Za-z0-9._:-]{1,128}$/;
+const ARM_RE = /^[A-Za-z0-9._:-]{1,64}$/;
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+const IMPORT_MAX = 100;                 // picks per POST /v1/picks/import
+const IMPORT_LIMITS = [{ windowMs: 86_400_000, max: 20, what: '20 imports per day' }];
+const LINK_LIMITS = [{ windowMs: 86_400_000, max: 10, what: '10 link codes per day' }];
+const EVENT_LIMITS = [{ windowMs: 3_600_000, max: 120, what: '120 per hour' }];
+const LINK_TTL_MS = 24 * 3600_000;      // an X link code is valid for a day
+const LINK_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // no 0/O, 1/I: read off a screen, typed in a post
+const BURST_ACCOUNTS = 20;              // more new accounts than this per network per UTC day are flagged (spec §7)
+const CHALLENGE_MIN = 3;                // a challenge day needs 3 markets (docs/daily-challenge-spec.md)
+const EVENT_KINDS = new Set(['cta', 'share']);
+
+const utcDay = (ms) => new Date(ms).toISOString().slice(0, 10);
+
+// The caller's network (IPv4 /24, IPv6 /48), hashed with SESSION_SECRET: counts sign-ups per network, never stored raw.
+async function netHash(ctx) {
+  const ip = ctx.request.headers.get('CF-Connecting-IP');
+  if (!ip) return null;
+  const net = ip.includes(':') ? ip.toLowerCase().split(':').slice(0, 3).join(':') : ip.split('.').slice(0, 3).join('.');
+  return (await sha256hex(`${ctx.env.SESSION_SECRET || ''}|net|${net}`)).slice(0, 24);
+}
+
+async function ipKey(ctx) {
+  const ip = ctx.request.headers.get('CF-Connecting-IP') || 'unknown';
+  return (await sha256hex(`${ctx.env.SESSION_SECRET || ''}|${ip}`)).slice(0, 24);
+}
 
 const bad = (code, message) => new HttpError(400, code, message);
 
@@ -59,8 +86,8 @@ export async function authGoogle(ctx) {
       const name = generateName();
       try {
         await ctx.db
-          .prepare('INSERT INTO users (id, google_sub, name, name_lc, created_at) VALUES (?, ?, ?, ?, ?)')
-          .bind(id, claims.sub, name, name.toLowerCase(), ctx.now)
+          .prepare('INSERT INTO users (id, google_sub, name, name_lc, created_at, net) VALUES (?, ?, ?, ?, ?, ?)')
+          .bind(id, claims.sub, name, name.toLowerCase(), ctx.now, await netHash(ctx))
           .run();
         user = { id, name };
       } catch (e) {
@@ -90,7 +117,7 @@ async function recordFor(ctx, uid) {
         `SELECT COUNT(p.correct) AS picks, COALESCE(SUM(p.correct), 0) AS correct,
                 COALESCE(SUM(CASE WHEN m.resolved_at IS NULL THEN 1 ELSE 0 END), 0) AS pending
            FROM picks p JOIN markets m ON m.market_id = p.market_id
-          WHERE p.user_id = ? AND m.locks_at >= ?`,
+          WHERE p.user_id = ? AND m.locks_at >= ? AND p.late = 0`,
       )
       .bind(uid, start);
   const vsStmt = ctx.db
@@ -119,10 +146,38 @@ function publicMarket(m) {
     opens_at: iso(m.opens_at),
     locks_at: iso(m.locks_at),
     url: m.url,
+    closes_at: iso(m.closes_at),
+    challenge_day: m.challenge_day,
     resolved: m.resolved_at !== null,
     winner: m.resolved_at !== null ? m.winner : null,
     ai_picks: m.resolved_at !== null && m.ai_picks ? JSON.parse(m.ai_picks) : null,
   };
+}
+
+// The challenge (docs/daily-challenge-spec.md v0.3 rules, from D1): a day counts once it has CHALLENGE_MIN markets;
+// it is finished when every market of it has a result (or was voided); the streak is the run of finished days played
+// (any pick, late ones too), newest last; a finished day without a pick ends it; days with no set are skipped.
+async function challengeFor(ctx, uid) {
+  const rows = await ctx.db
+    .prepare(
+      `SELECT m.challenge_day AS day, COUNT(*) AS n,
+              SUM(CASE WHEN m.resolved_at IS NULL THEN 0 ELSE 1 END) AS done,
+              SUM(CASE WHEN p.user_id IS NULL THEN 0 ELSE 1 END) AS mine
+         FROM markets m LEFT JOIN picks p ON p.market_id = m.market_id AND p.user_id = ?
+        WHERE m.challenge_day IS NOT NULL GROUP BY m.challenge_day HAVING COUNT(*) >= ? ORDER BY m.challenge_day`,
+    )
+    .bind(uid, CHALLENGE_MIN)
+    .all();
+  let cur = 0;
+  let best = 0;
+  let played = 0;
+  for (const r of rows.results) {
+    if (r.mine > 0) played++;
+    if (r.done < r.n) continue; // not finished yet: neither extends nor ends the streak
+    cur = r.mine > 0 ? cur + 1 : 0;
+    best = Math.max(best, cur);
+  }
+  return { streak: cur, best, days_played: played };
 }
 
 export async function me(ctx) {
@@ -130,13 +185,14 @@ export async function me(ctx) {
   if (!user) return json({ user: null, picks: [], record: null });
   const rows = await ctx.db
     .prepare(
-      `SELECT p.market_id, p.outcome, p.correct, p.updated_at, m.round_id, m.question, m.event_title,
-              m.locks_at, m.resolved_at, m.winner
+      `SELECT p.market_id, p.outcome, p.correct, p.late, p.updated_at, m.round_id, m.question, m.event_title,
+              m.locks_at, m.closes_at, m.resolved_at, m.winner, m.challenge_day
          FROM picks p JOIN markets m ON m.market_id = p.market_id
         WHERE p.user_id = ? ORDER BY m.locks_at DESC LIMIT 500`,
     )
     .bind(user.id)
     .all();
+  const x = await ctx.db.prepare('SELECT x_username, link_code, link_code_exp FROM users WHERE id = ?').bind(user.id).first();
   const vsRows = await ctx.db.prepare('SELECT market_id, ai, result FROM pick_vs WHERE user_id = ?').bind(user.id).all();
   const vsBy = {};
   for (const r of vsRows.results) (vsBy[r.market_id] = vsBy[r.market_id] || {})[r.ai] = r.result;
@@ -147,20 +203,51 @@ export async function me(ctx) {
     event_title: r.event_title,
     outcome: r.outcome,
     locks_at: iso(r.locks_at),
+    closes_at: iso(r.closes_at),
     locked: ctx.now >= r.locks_at || r.resolved_at !== null,
+    late: r.late === 1,
     resolved: r.resolved_at !== null,
     winner: r.resolved_at !== null ? r.winner : null,
     correct: r.correct === null ? null : r.correct === 1,
     vs: vsBy[r.market_id] || {},
+    challenge_day: r.challenge_day,
     updated_at: iso(r.updated_at),
   }));
-  return json({ user, picks, record: await recordFor(ctx, user.id) });
+  const live = x && x.link_code && x.link_code_exp > ctx.now;
+  return json({
+    user,
+    picks,
+    record: await recordFor(ctx, user.id),
+    challenge: await challengeFor(ctx, user.id),
+    x: { username: (x && x.x_username) || null, code: live ? x.link_code : null, code_expires: live ? iso(x.link_code_exp) : null },
+  });
 }
 
+// A public profile: the name and record. With ?market=<id> (the referral bar, spec §5) also that person's pick on
+// the market, but only once the market has locked (a friend's open pick stays hidden), and whether it was right
+// once resolved. A late pick is never shown here.
 export async function publicUser(ctx, { id }) {
   const user = await ctx.db.prepare('SELECT id, name FROM users WHERE id = ?').bind(id).first();
   if (!user) throw new HttpError(404, 'not_found', 'no such user');
-  return json({ user, record: await recordFor(ctx, user.id) });
+  const out = { user, record: await recordFor(ctx, user.id) };
+  const mid = ctx.url.searchParams.get('market');
+  if (mid && ID_RE.test(mid)) {
+    const r = await ctx.db
+      .prepare(
+        `SELECT p.outcome, p.correct, m.locks_at, m.resolved_at FROM picks p JOIN markets m ON m.market_id = p.market_id
+          WHERE p.user_id = ? AND p.market_id = ? AND p.late = 0`,
+      )
+      .bind(user.id, mid)
+      .first();
+    const locked = r && (ctx.now >= r.locks_at || r.resolved_at !== null);
+    out.market = {
+      market_id: mid,
+      picked: !!r,
+      pick: locked ? r.outcome : null,
+      correct: r && r.resolved_at !== null && r.correct !== null ? r.correct === 1 : null,
+    };
+  }
+  return json(out);
 }
 
 export async function rename(ctx) {
@@ -191,7 +278,8 @@ export async function deleteAccount(ctx) {
     db.prepare('DELETE FROM likes WHERE user_id = ?').bind(uid),
     db.prepare('DELETE FROM pick_vs WHERE user_id = ?').bind(uid),
     db.prepare('DELETE FROM picks WHERE user_id = ?').bind(uid),
-    db.prepare("DELETE FROM rate WHERE key IN ('c:' || ?, 'r:' || ?, 'n:' || ?, 'k:' || ?)").bind(uid, uid, uid, uid),
+    db.prepare("DELETE FROM rate WHERE key IN ('c:' || ?, 'r:' || ?, 'n:' || ?, 'k:' || ?, 'i:' || ?, 'x:' || ?)").bind(uid, uid, uid, uid, uid, uid),
+    db.prepare('UPDATE picks SET ref_user = NULL WHERE ref_user = ?').bind(uid),
     // API keys (docs/free-api-spec.md) go with the account, and their usage rows with them.
     db.prepare('DELETE FROM api_usage WHERE key_id IN (SELECT id FROM api_keys WHERE user_id = ?)').bind(uid),
     db.prepare('DELETE FROM api_keys WHERE user_id = ?').bind(uid),
@@ -226,7 +314,12 @@ function validateMarket(raw, i) {
   const opens = parseTime(m.opens_at);
   if (opens === undefined) throw bad('bad_market', `${where}.opens_at invalid`);
   if (m.url != null && !str(m.url, 2000)) throw bad('bad_market', `${where}.url invalid`);
-  return { ...m, locks, opens };
+  if (m.challenge_day != null && (typeof m.challenge_day !== 'string' || !DAY_RE.test(m.challenge_day))) {
+    throw bad('bad_market', `${where}.challenge_day must be YYYY-MM-DD`);
+  }
+  // optional metadata: an unreadable end date is dropped, never a reason to refuse the whole push
+  const closes = parseTime(m.end_date) ?? null;
+  return { ...m, locks, opens, closes };
 }
 
 export async function ingestMarkets(ctx) {
@@ -237,15 +330,18 @@ export async function ingestMarkets(ctx) {
   const stmts = valid.map((m) =>
     ctx.db
       .prepare(
-        `INSERT INTO markets (market_id, round_id, question, event_title, outcomes, opens_at, locks_at, url, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `INSERT INTO markets (market_id, round_id, question, event_title, outcomes, opens_at, locks_at, url, updated_at,
+                              challenge_day, closes_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(market_id) DO UPDATE SET
            round_id = COALESCE(excluded.round_id, markets.round_id), question = excluded.question,
            event_title = excluded.event_title, outcomes = excluded.outcomes, opens_at = excluded.opens_at,
-           locks_at = excluded.locks_at, url = excluded.url, updated_at = excluded.updated_at`,
+           locks_at = excluded.locks_at, url = excluded.url, updated_at = excluded.updated_at,
+           challenge_day = COALESCE(excluded.challenge_day, markets.challenge_day),
+           closes_at = COALESCE(excluded.closes_at, markets.closes_at)`,
       )
       .bind(m.market_id, m.round_id ?? null, m.question, m.event_title ?? null, JSON.stringify(m.outcomes),
-        m.opens ?? null, m.locks, m.url ?? null, ctx.now),
+        m.opens ?? null, m.locks, m.url ?? null, ctx.now, m.challenge_day ?? null, m.closes ?? null),
   );
   for (let i = 0; i < stmts.length; i += 100) await ctx.db.batch(stmts.slice(i, i + 100));
   return json({ ok: true, upserted: stmts.length });
@@ -260,6 +356,27 @@ async function getMarketRow(ctx, id) {
 
 const isLocked = (ctx, m) => ctx.now >= m.locks_at || m.resolved_at !== null;
 
+const lockedError = (m) => new HttpError(409, 'locked', 'picks are locked for this market', { locks_at: iso(m.locks_at) });
+
+// A late pick is only for while the AIs' picks are sealed (spec §4). The read model (POST /v1/ingest/rounds) knows
+// when the bench revealed them: once its newest round on the market is unsealed, no more late picks.
+async function revealed(ctx, marketId) {
+  const r = await ctx.db.prepare('SELECT sealed FROM api_rounds WHERE market_id = ? ORDER BY round_id DESC LIMIT 1').bind(marketId).first();
+  return !!r && r.sealed === 0;
+}
+
+// A referral (spec §5): kept only on the person's first pick, never their own id, only an existing user.
+async function refFor(ctx, uid, raw) {
+  if (typeof raw !== 'string' || !ID_RE.test(raw) || raw === uid) return null;
+  const [first, ref] = await ctx.db.batch([
+    ctx.db.prepare('SELECT 1 AS x FROM picks WHERE user_id = ? LIMIT 1').bind(uid),
+    ctx.db.prepare('SELECT id FROM users WHERE id = ?').bind(raw),
+  ]);
+  return first.results.length === 0 && ref.results.length ? raw : null;
+}
+
+// One pick per user per market (spec §4). Before locks_at: stored or changed (a counted pick). From locks_at until the
+// result: stored once as a late pick (late = 1: the challenge only), never changed. After the result: 409 locked.
 export async function postPick(ctx) {
   const user = await ctx.requireUser();
   const body = await readJson(ctx.request);
@@ -268,21 +385,96 @@ export async function postPick(ctx) {
   const m = await getMarketRow(ctx, marketId);
   const outcomes = JSON.parse(m.outcomes);
   if (!outcomes.includes(body.outcome)) throw bad('bad_outcome', 'outcome must be one of the market outcomes');
-  if (isLocked(ctx, m)) throw new HttpError(409, 'locked', 'picks are locked for this market', { locks_at: iso(m.locks_at) });
-  if (m.opens_at !== null && ctx.now < m.opens_at) {
+  if (m.resolved_at !== null) throw lockedError(m);
+  const late = ctx.now >= m.locks_at;
+  if (!late && m.opens_at !== null && ctx.now < m.opens_at) {
     throw new HttpError(409, 'not_open', 'picks are not open yet', { opens_at: iso(m.opens_at) });
   }
-  await ctx.db
-    .prepare(
-      `INSERT INTO picks (user_id, market_id, outcome, created_at, updated_at) VALUES (?, ?, ?, ?, ?)
-       ON CONFLICT(user_id, market_id) DO UPDATE SET outcome = excluded.outcome, updated_at = excluded.updated_at`,
-    )
-    .bind(user.id, m.market_id, body.outcome, ctx.now, ctx.now)
-    .run();
+  const existing = await ctx.db.prepare('SELECT late FROM picks WHERE user_id = ? AND market_id = ?').bind(user.id, m.market_id).first();
+  if (existing && (late || existing.late === 1)) throw lockedError(m);
+  if (late && (await revealed(ctx, m.market_id))) throw lockedError(m);
+  const arm = typeof body.cta_arm === 'string' && ARM_RE.test(body.cta_arm) ? body.cta_arm : null;
+  const ref = existing ? null : await refFor(ctx, user.id, body.ref);
+  if (late) {
+    const ins = await ctx.db
+      .prepare(
+        `INSERT OR IGNORE INTO picks (user_id, market_id, outcome, created_at, updated_at, late, ref_user, cta_arm)
+         VALUES (?, ?, ?, ?, ?, 1, ?, ?)`,
+      )
+      .bind(user.id, m.market_id, body.outcome, ctx.now, ctx.now, ref, arm)
+      .run();
+    if (!ins.meta || ins.meta.changes === 0) throw lockedError(m); // a concurrent first pick won
+  } else {
+    await ctx.db
+      .prepare(
+        `INSERT INTO picks (user_id, market_id, outcome, created_at, updated_at, ref_user, cta_arm) VALUES (?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(user_id, market_id) DO UPDATE SET outcome = excluded.outcome, updated_at = excluded.updated_at,
+           cta_arm = COALESCE(picks.cta_arm, excluded.cta_arm)
+         WHERE picks.late = 0`,
+      )
+      .bind(user.id, m.market_id, body.outcome, ctx.now, ctx.now, ref, arm)
+      .run();
+  }
   const p = await ctx.db.prepare('SELECT * FROM picks WHERE user_id = ? AND market_id = ?').bind(user.id, m.market_id).first();
   return json({
-    pick: { market_id: p.market_id, outcome: p.outcome, created_at: iso(p.created_at), updated_at: iso(p.updated_at), locks_at: iso(m.locks_at) },
+    pick: {
+      market_id: p.market_id, outcome: p.outcome, created_at: iso(p.created_at), updated_at: iso(p.updated_at),
+      locks_at: iso(m.locks_at), closes_at: iso(m.closes_at), late: p.late === 1,
+    },
+    late: p.late === 1,
   });
+}
+
+// First sign-in imports the picks made on this device (spec §6). The client's time is never trusted: on the server's
+// clock a pick is counted before locks_at, late after it, dropped once the market has a result. Existing picks win.
+export async function importPicks(ctx) {
+  const user = await ctx.requireUser();
+  const body = await readJson(ctx.request);
+  const items = Array.isArray(body) ? body : body.picks;
+  if (!Array.isArray(items) || items.length > IMPORT_MAX) throw bad('bad_body', `expected an array of picks (max ${IMPORT_MAX})`);
+  const rate = await checkRate(ctx, `i:${user.id}`, IMPORT_LIMITS);
+  const out = { counted: 0, late: 0, dropped: 0, kept: 0, unknown: 0 };
+  const stmts = [...rate];
+  const seen = new Set();
+  for (const raw of items) {
+    const id = raw && typeof raw === 'object' ? asId(raw.market_id) : null;
+    if (typeof id !== 'string' || !ID_RE.test(id) || seen.has(id)) {
+      out.unknown++;
+      continue;
+    }
+    seen.add(id);
+    const m = await ctx.db.prepare('SELECT * FROM markets WHERE market_id = ?').bind(id).first();
+    if (!m || !JSON.parse(m.outcomes).includes(raw.outcome)) {
+      out.unknown++;
+      continue;
+    }
+    if (m.resolved_at !== null) {
+      out.dropped++;
+      continue;
+    }
+    const mine = await ctx.db.prepare('SELECT 1 AS x FROM picks WHERE user_id = ? AND market_id = ?').bind(user.id, id).first();
+    if (mine) {
+      out.kept++;
+      continue;
+    }
+    const late = ctx.now >= m.locks_at ? 1 : 0;
+    if (!late && m.opens_at !== null && ctx.now < m.opens_at) {
+      out.unknown++;
+      continue;
+    }
+    if (late && (await revealed(ctx, id))) {
+      out.dropped++;
+      continue;
+    }
+    out[late ? 'late' : 'counted']++;
+    stmts.push(
+      ctx.db
+        .prepare('INSERT OR IGNORE INTO picks (user_id, market_id, outcome, created_at, updated_at, late) VALUES (?, ?, ?, ?, ?, ?)')
+        .bind(user.id, id, raw.outcome, ctx.now, ctx.now, late),
+    );
+  }
+  await ctx.db.batch(stmts);
+  return json({ ok: true, ...out });
 }
 
 export async function getMarket(ctx, { id }) {
@@ -290,18 +482,25 @@ export async function getMarket(ctx, { id }) {
   const locked = isLocked(ctx, m);
   const user = await ctx.user();
   let myPick = null;
+  let myLate = false;
   if (user) {
-    const p = await ctx.db.prepare('SELECT outcome FROM picks WHERE user_id = ? AND market_id = ?').bind(user.id, m.market_id).first();
+    const p = await ctx.db.prepare('SELECT outcome, late FROM picks WHERE user_id = ? AND market_id = ?').bind(user.id, m.market_id).first();
     myPick = p ? p.outcome : null;
+    myLate = !!(p && p.late === 1);
   }
   let counts = null;
   if (locked) {
+    // counted picks only: a late pick never enters the split
     counts = {};
     for (const o of JSON.parse(m.outcomes)) counts[o] = 0;
-    const rows = await ctx.db.prepare('SELECT outcome, COUNT(*) AS n FROM picks WHERE market_id = ? GROUP BY outcome').bind(m.market_id).all();
+    const rows = await ctx.db
+      .prepare('SELECT outcome, COUNT(*) AS n FROM picks WHERE market_id = ? AND late = 0 GROUP BY outcome')
+      .bind(m.market_id)
+      .all();
     for (const r of rows.results) counts[r.outcome] = r.n;
   }
-  return json({ market: publicMarket(m), counts, my_pick: myPick, locked });
+  // late_open: the AIs have started and there is no result yet, so a late pick (the challenge only) can be stored
+  return json({ market: publicMarket(m), counts, my_pick: myPick, my_late: myLate, locked, late_open: locked && m.resolved_at === null });
 }
 
 export async function ingestResults(ctx) {
@@ -349,7 +548,7 @@ export async function ingestResults(ctx) {
               `INSERT INTO pick_vs (user_id, market_id, ai, result)
                SELECT user_id, market_id, ?,
                       CASE WHEN correct = 1 AND ? = 0 THEN 'w' WHEN correct = 0 AND ? = 1 THEN 'l' ELSE 't' END
-                 FROM picks WHERE market_id = ?`,
+                 FROM picks WHERE market_id = ? AND late = 0`,
             )
             .bind(ai, aiRight, aiRight, m.market_id),
         );
@@ -371,7 +570,7 @@ export async function scoreboard(ctx) {
     db
       .prepare(
         `SELECT COUNT(p.correct) AS picks, COALESCE(SUM(p.correct), 0) AS correct
-           FROM picks p JOIN markets m ON m.market_id = p.market_id WHERE m.locks_at >= ?`,
+           FROM picks p JOIN markets m ON m.market_id = p.market_id WHERE m.locks_at >= ? AND p.late = 0`,
       )
       .bind(start),
     db
@@ -384,7 +583,7 @@ export async function scoreboard(ctx) {
       .prepare(
         `SELECT u.id, u.name, COALESCE(SUM(p.correct), 0) AS correct, COUNT(p.correct) AS picks
            FROM picks p JOIN markets m ON m.market_id = p.market_id JOIN users u ON u.id = p.user_id
-          WHERE m.locks_at >= ? AND p.correct IS NOT NULL
+          WHERE m.locks_at >= ? AND p.correct IS NOT NULL AND p.late = 0
           GROUP BY u.id HAVING COUNT(p.correct) >= 5
           ORDER BY correct DESC, picks ASC, MIN(p.created_at) ASC LIMIT 20`,
       )
@@ -631,4 +830,166 @@ export async function adminComment(ctx, { id }) {
     throw bad('bad_action', 'action must be hide, restore or delete');
   }
   return json({ ok: true, id: n, action: body.action });
+}
+
+// ---------------------------------------------------------------- X handle link (own-pick spec, Q2 b)
+
+// A one-time code for /me/: the person posts "@agentpitbench link <code>" on X; the bot reads it from its mentions
+// and calls POST /v1/admin/xlink. The site never posts anything; the bot never replies to it.
+export async function xlinkCode(ctx) {
+  const user = await ctx.requireUser();
+  await readJson(ctx.request);
+  const rate = await checkRate(ctx, `x:${user.id}`, LINK_LIMITS);
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  const code = [...bytes].map((b) => LINK_ALPHABET[b % LINK_ALPHABET.length]).join('');
+  await ctx.db.batch([
+    ctx.db.prepare('UPDATE users SET link_code = ?, link_code_exp = ? WHERE id = ?').bind(code, ctx.now + LINK_TTL_MS, user.id),
+    ...rate,
+  ]);
+  return json({ code, code_expires: iso(ctx.now + LINK_TTL_MS) });
+}
+
+export async function xlinkRemove(ctx) {
+  const user = await ctx.requireUser();
+  await readJson(ctx.request);
+  await ctx.db
+    .prepare('UPDATE users SET x_user_id = NULL, x_username = NULL, link_code = NULL, link_code_exp = NULL WHERE id = ?')
+    .bind(user.id)
+    .run();
+  return json({ ok: true });
+}
+
+// The bot (bench key): link the X account that posted the code. One X account belongs to one site account: linking it
+// again moves it.
+export async function adminXlink(ctx) {
+  const body = await readJson(ctx.request);
+  const code = typeof body.code === 'string' ? body.code.trim().toUpperCase() : '';
+  const xid = asId(body.x_user_id);
+  const uname = typeof body.username === 'string' ? body.username.replace(/^@/, '') : '';
+  if (!/^[A-Z0-9]{6,12}$/.test(code)) throw bad('bad_code', 'code invalid');
+  if (typeof xid !== 'string' || !/^\d{1,32}$/.test(xid)) throw bad('bad_x_user', 'x_user_id must be numeric');
+  if (!/^[A-Za-z0-9_]{1,15}$/.test(uname)) throw bad('bad_x_user', 'username invalid');
+  const u = await ctx.db.prepare('SELECT id FROM users WHERE link_code = ? AND link_code_exp > ?').bind(code, ctx.now).first();
+  if (!u) throw new HttpError(404, 'unknown_code', 'no such code, or it expired');
+  await ctx.db.batch([
+    ctx.db.prepare('UPDATE users SET x_user_id = NULL, x_username = NULL WHERE x_user_id = ? AND id != ?').bind(xid, u.id),
+    ctx.db
+      .prepare('UPDATE users SET x_user_id = ?, x_username = ?, link_code = NULL, link_code_exp = NULL WHERE id = ?')
+      .bind(xid, uname, u.id),
+  ]);
+  return json({ ok: true, user_id: u.id, x_user_id: xid, username: uname });
+}
+
+// ---------------------------------------------------------------- funnel counters (spec §8)
+
+// POST /v1/cta {arm, round_id, kind?}: kind 'cta' (the default: a button open) or 'share' (a share sheet used); no sign-in, counted per UTC day (and per arm for 'cta'),
+// rate-limited per hashed IP. Nothing about the person is stored.
+export async function postEvent(ctx) {
+  const body = await readJson(ctx.request);
+  const kind = body.kind || 'cta';
+  if (!EVENT_KINDS.has(kind)) throw bad('bad_kind', 'kind must be cta or share');
+  const arm = kind === 'cta' && typeof body.arm === 'string' && ARM_RE.test(body.arm) ? body.arm : '';
+  const rate = await checkRate(ctx, `e:${await ipKey(ctx)}`, EVENT_LIMITS);
+  await ctx.db.batch([
+    ctx.db
+      .prepare('INSERT INTO events (day, kind, arm, n) VALUES (?, ?, ?, 1) ON CONFLICT(day, kind, arm) DO UPDATE SET n = n + 1')
+      .bind(utcDay(ctx.now), kind, arm),
+    ...rate,
+  ]);
+  return json({ ok: true });
+}
+
+function sinceParam(ctx, defaultDays) {
+  const parsed = parseTime(ctx.url.searchParams.get('since'));
+  if (parsed === undefined) throw bad('bad_since', 'since must be ISO 8601 or epoch');
+  return parsed ?? ctx.now - defaultDays * 86_400_000;
+}
+
+// The digest's funnel (bench key): per UTC day, CTA opens -> sign-ins -> picks -> shares -> referral picks, plus the
+// CTA arms' opens and the picks that carried each arm (sent by the client within 30 minutes of the click).
+export async function adminFunnel(ctx) {
+  const since = sinceParam(ctx, 7);
+  const day0 = utcDay(since);
+  const db = ctx.db;
+  const dayExpr = (col) => `strftime('%Y-%m-%d', ${col} / 1000, 'unixepoch')`;
+  const [ev, signins, picks, arms] = await db.batch([
+    db.prepare('SELECT day, kind, arm, n FROM events WHERE day >= ? ORDER BY day').bind(day0),
+    db.prepare(`SELECT ${dayExpr('created_at')} AS day, COUNT(*) AS n FROM users WHERE created_at >= ? GROUP BY day`).bind(since),
+    db
+      .prepare(
+        `SELECT ${dayExpr('created_at')} AS day, COUNT(*) AS n, SUM(late) AS late,
+                SUM(CASE WHEN ref_user IS NULL THEN 0 ELSE 1 END) AS ref, SUM(CASE WHEN cta_arm IS NULL THEN 0 ELSE 1 END) AS cta
+           FROM picks WHERE created_at >= ? GROUP BY day`,
+      )
+      .bind(since),
+    db.prepare('SELECT cta_arm AS arm, COUNT(*) AS n FROM picks WHERE created_at >= ? AND cta_arm IS NOT NULL GROUP BY cta_arm').bind(since),
+  ]);
+  const days = {};
+  const at = (d) => (days[d] = days[d] || { day: d, cta: 0, signins: 0, picks: 0, late_picks: 0, shares: 0, ref_picks: 0, cta_picks: 0 });
+  const byArm = {};
+  for (const r of ev.results) {
+    if (r.kind === 'cta') {
+      at(r.day).cta += r.n;
+      if (r.arm) (byArm[r.arm] = byArm[r.arm] || { opens: 0, picks: 0 }).opens += r.n;
+    } else if (r.kind === 'share') at(r.day).shares += r.n;
+  }
+  for (const r of signins.results) at(r.day).signins = r.n;
+  for (const r of picks.results) Object.assign(at(r.day), { picks: r.n, late_picks: r.late || 0, ref_picks: r.ref || 0, cta_picks: r.cta || 0 });
+  for (const r of arms.results) (byArm[r.arm] = byArm[r.arm] || { opens: 0, picks: 0 }).picks = r.n;
+  const list = Object.values(days).sort((a, b) => (a.day < b.day ? -1 : 1));
+  const total = { cta: 0, signins: 0, picks: 0, late_picks: 0, shares: 0, ref_picks: 0, cta_picks: 0 };
+  for (const d of list) for (const k of Object.keys(total)) total[k] += d[k];
+  return json({ since: iso(since), days: list, total, arms: byArm });
+}
+
+// ---------------------------------------------------------------- the bot's pull of site picks (spec §7)
+
+// Counted (late = 0, stored before locks_at), resolved picks whose market resolved at or after `since`. Accounts from
+// a burst of sign-ups (more than BURST_ACCOUNTS on one network in one UTC day) are flagged; the bot skips them.
+export async function adminPicks(ctx) {
+  const since = sinceParam(ctx, 7);
+  const db = ctx.db;
+  const [rows, bursts] = await db.batch([
+    db
+      .prepare(
+        `SELECT u.id AS uid, u.name, u.x_user_id, u.x_username, p.market_id, m.round_id, p.outcome, p.correct, p.created_at,
+                m.resolved_at, m.winner
+           FROM picks p JOIN users u ON u.id = p.user_id JOIN markets m ON m.market_id = p.market_id
+          WHERE p.late = 0 AND p.created_at < m.locks_at AND m.resolved_at IS NOT NULL AND m.resolved_at >= ?
+          ORDER BY m.resolved_at, p.created_at LIMIT 5000`,
+      )
+      .bind(since),
+    db
+      .prepare(
+        `SELECT net, strftime('%Y-%m-%d', created_at / 1000, 'unixepoch') AS day, COUNT(*) AS n,
+                json_group_array(id) AS ids
+           FROM users WHERE net IS NOT NULL GROUP BY net, day HAVING COUNT(*) > ?`,
+      )
+      .bind(BURST_ACCOUNTS),
+  ]);
+  const flagged = new Set();
+  const burstOut = [];
+  for (const b of bursts.results) {
+    for (const id of JSON.parse(b.ids || '[]')) flagged.add(id);
+    burstOut.push({ day: b.day, accounts: b.n });
+  }
+  return json({
+    since: iso(since),
+    picks: rows.results.map((r) => ({
+      user_public_id: r.uid,
+      name: r.name,
+      market_id: r.market_id,
+      round_id: r.round_id,
+      outcome: r.outcome,
+      created_at: iso(r.created_at),
+      resolved_at: iso(r.resolved_at),
+      correct: r.correct === null ? null : r.correct === 1,
+      late: false,
+      x_user_id: r.x_user_id || null,
+      x_username: r.x_username || null,
+      flagged: flagged.has(r.uid),
+    })),
+    flagged: [...flagged],
+    bursts: burstOut,
+  });
 }

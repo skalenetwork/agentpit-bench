@@ -33,18 +33,22 @@ ME_URL = "https://api.x.com/2/users/me"
 SEARCH_URL = "https://api.x.com/2/tweets/search/recent"
 TWEETS_URL = "https://api.x.com/2/tweets"
 MENTIONS_URL = "https://api.x.com/2/users/{id}/mentions"
+LIKES_URL = "https://api.x.com/2/users/{id}/likes"
+FOLLOWING_URL = "https://api.x.com/2/users/{id}/following"
 USER_TWEETS_URL = "https://api.x.com/2/users/{id}/tweets"
 CHUNK = 4 * 1024 * 1024
 NEEDED_SCOPES = {"tweet.write", "media.write", "users.read", "offline.access"}
+ENGAGE_SCOPES = {"like.write", "follows.write"}   # engage_x: likes and follow-backs (operator 2026-10-27)
 READ_SCOPES = {"tweet.read", "users.read"}   # replies, mentions, likes, metrics (docs/x-analytics-spec.md §1.3)
 URL_RE = re.compile(r"https?://\S+")
 MAX_LEN = 280
 TAG = "#AgentpitBench"
 # Vendor accounts, tagged only on results tweets for the round's winners (never on decisions or splits).
 REPLY_BACK = "reply-back"   # F2: an answer to someone who replied to our reveal/results post first
-# the only kinds that may reply while post_kinds is set (each still has to be listed there): F2 reply-back, the
+SHOUTOUT = "shoutout"       # engage_x: a human beat all the AIs; a reply under the results post
+# the only kinds that may reply while post_kinds is set (each still has to be listed there): F2 reply-back, the engage_x shout-out, the
 # posts-v3 debate thread under a reveal, and the monthly report's thread posts 2-4
-REPLY_KINDS = {REPLY_BACK, "debate", "report_month"}
+REPLY_KINDS = {REPLY_BACK, SHOUTOUT, "debate", "report_month"}
 VENDOR_HANDLES = {"claude": "@AnthropicAI", "codex": "@OpenAI", "agy": "@GoogleDeepMind", "grok": "@xai"}
 
 
@@ -527,7 +531,7 @@ class OAuth2Token:
             json.dump({"verifier": verifier, "state": state, "redirect_uri": redirect_uri}, f)
         return "https://x.com/i/oauth2/authorize?" + urlencode({
             "response_type": "code", "client_id": self.client_id, "redirect_uri": redirect_uri,
-            "scope": " ".join(sorted(NEEDED_SCOPES | READ_SCOPES)), "state": state,
+            "scope": " ".join(sorted(NEEDED_SCOPES | READ_SCOPES | ENGAGE_SCOPES)), "state": state,
             "code_challenge": challenge, "code_challenge_method": "S256"})
 
     def finish_login(self, redirected_url: str) -> set[str]:
@@ -593,12 +597,12 @@ class Poster:
         if self.s.post_kinds and (kind not in self.s.post_kinds or (reply_to and kind not in REPLY_KINDS)):
             log.info("[not posted] %s: only %s posts, no replies", post_key, "/".join(self.s.post_kinds))
             return None
-        if kind == REPLY_BACK and not self.s.post_kinds:   # never by default: only when listed in post_kinds
-            log.info("[not posted] %s: reply-back is not in post_kinds", post_key)
+        if kind in (REPLY_BACK, SHOUTOUT) and not self.s.post_kinds:   # never by default: only when listed
+            log.info("[not posted] %s: %s is not in post_kinds", post_key, kind)
             return None
         tweet_id = await self._post_x(post_key, kind, text, None if poll else image, reply_to, round_id, quote_of,
                                       poll)
-        if kind == REPLY_BACK:   # an answer on X only: never mirrored (two-posts rule on every channel)
+        if kind in (REPLY_BACK, SHOUTOUT):   # an answer on X only: never mirrored (two-posts rule on every channel)
             return tweet_id
         if tweet_id and self.bsky.enabled:
             try:
@@ -731,6 +735,14 @@ class Poster:
         if info and info.get("state") == "failed":
             raise PermanentError(f"media processing failed: {info}")
         return mid
+
+    def like(self, tweet_id: str) -> None:
+        """Like a post as the bench account (needs like.write). Raises PermanentError / RateLimited / TransientError."""
+        self._call("POST", LIKES_URL.format(id=self.my_user_id()), json={"tweet_id": str(tweet_id)})
+
+    def follow(self, user_id: str) -> None:
+        """Follow a user as the bench account (needs follows.write)."""
+        self._call("POST", FOLLOWING_URL.format(id=self.my_user_id()), json={"target_user_id": str(user_id)})
 
     # reads (X bills every post read; callers cap them)
     @property

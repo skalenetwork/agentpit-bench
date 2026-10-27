@@ -72,6 +72,31 @@ What feeds it and manages it is here, in v1:
   `{error: "rate_limited", retry_after}` with `Retry-After` and `X-RateLimit-*` headers.
 - New D1 tables: api_rounds, api_entries, api_keys, api_usage, api_counters, kv (re-run `schema.sql`).
 
+## Own picks (docs/own-pick-spec.md v0.3; added 2026-10-27)
+
+D1 migration `worker/migrations/0001_own_pick.sql` (additive; apply before deploying: `npx wrangler d1 migrations
+apply agentpitbench --remote`).
+
+- `POST /v1/picks` `{market_id, outcome, ref?, cta_arm?}`: before `locks_at` a counted pick (changeable); from
+  `locks_at` until the result a **late** pick, stored once (`late: true` in the answer; challenge only, never in the
+  record, the counts, the scoreboard, `pick_vs` or the admin pull); after the result 409 `locked`. `ref` (a user id)
+  is kept only on the person's first pick; `cta_arm` is the A/B arm when the client saw the click within 30 minutes.
+- `POST /v1/picks/import` `[{market_id, outcome, t}]` (max 100): `t` is ignored; counted before lock, late after,
+  dropped after the result, existing picks win → `{counted, late, dropped, kept, unknown}`.
+- `GET /v1/me` adds per pick `late`, `closes_at`, `challenge_day`; `challenge: {streak, best, days_played}` (days with
+  at least 3 markets tagged `challenge_day`, v0.3 rules); `x: {username, code, code_expires}`.
+- `GET /v1/markets/{id}` adds `my_late`, `late_open`; counts are counted picks only.
+- `GET /v1/users/{id}?market=` adds `{picked, pick (only once locked), correct (once resolved)}` for the referral bar.
+- `POST /v1/ingest/markets` items may carry `challenge_day` (YYYY-MM-DD, kept once set) and `end_date` (→ `closes_at`).
+- X link: `POST /v1/me/xlink` → `{code}` (8 characters, 24 h); `POST /v1/me/xlink/remove`; the bot reads
+  "@agentpitbench link <code>" from its mentions and calls `POST /v1/admin/xlink` `{code, x_user_id, username}` (bench
+  key). The bot never posts for this.
+- `POST /v1/cta` `{arm, round_id, kind: cta|share}`: no sign-in, per-IP rate limit, counted per UTC day.
+- Operator (bench key): `GET /v1/admin/picks?since=` (counted, resolved picks: `user_public_id, name, market_id,
+  round_id, outcome, created_at, correct, late:false, x_user_id, x_username, flagged`, plus `flagged` ids and `bursts`:
+  more than 20 sign-ups on one hashed /24 network in a UTC day); `GET /v1/admin/funnel?since=` (per day: cta, signins,
+  picks, late_picks, shares, ref_picks, cta_picks; per arm: opens, picks).
+
 ## Data and privacy
 
 - D1 tables: users, markets, picks, comments, likes, reports, rate (counters). Retention: picks and comments kept for the season; account deletion `POST /v1/me/delete` removes the user's row and anonymises their comments.

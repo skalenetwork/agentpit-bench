@@ -7,7 +7,7 @@
 // agent in it has finished. A round is sealed while its state is `running` or the bot marked it sealed; its entries
 // are stripped when it is ingested and again on every read, so a bug upstream cannot leak a pick through here.
 // No personal data: humans appear only as totals (/v2/humans); comments are not in the API.
-import { HttpError, json, readJson, parseTime, iso, weekStart, seasonStart, randomId, MAX_INGEST_BODY } from './util.js';
+import { HttpError, json, readJson, parseTime, iso, weekStart, seasonStart, randomId, MAX_INGEST_BODY, sha256hex } from './util.js';
 import { containsBlocked } from './words.js';
 import { checkRate } from './handlers.js';
 
@@ -79,11 +79,6 @@ export function cleanRound(r) {
 }
 
 // ---------------------------------------------------------------- helpers
-
-async function sha256hex(s) {
-  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
-  return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('');
-}
 
 const dayOf = (ms) => new Date(ms).toISOString().slice(0, 10);
 
@@ -515,7 +510,7 @@ export async function humans(ctx) {
   const [h, vs, people, polls] = await db.batch([
     db.prepare(
       `SELECT COUNT(p.correct) AS picks, COALESCE(SUM(p.correct), 0) AS correct
-         FROM picks p JOIN markets m ON m.market_id = p.market_id WHERE m.locks_at >= ? AND m.locks_at < ?`,
+         FROM picks p JOIN markets m ON m.market_id = p.market_id WHERE m.locks_at >= ? AND m.locks_at < ? AND p.late = 0`,
     ).bind(lo, hi),
     db.prepare(
       `SELECT v.ai, v.result, COUNT(*) AS n FROM pick_vs v JOIN markets m ON m.market_id = v.market_id
@@ -523,7 +518,7 @@ export async function humans(ctx) {
     ).bind(lo, hi),
     db.prepare(
       `SELECT COUNT(DISTINCT p.user_id) AS n, COUNT(DISTINCT p.market_id) AS markets FROM picks p JOIN markets m ON m.market_id = p.market_id
-        WHERE m.locks_at >= ? AND m.locks_at < ? AND p.correct IS NOT NULL`,
+        WHERE m.locks_at >= ? AND m.locks_at < ? AND p.correct IS NOT NULL AND p.late = 0`,
     ).bind(lo, hi),
     db.prepare('SELECT x_poll, winner FROM markets WHERE locks_at >= ? AND locks_at < ? AND x_poll IS NOT NULL AND winner IS NOT NULL')
       .bind(lo, hi),
