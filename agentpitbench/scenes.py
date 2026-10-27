@@ -19,6 +19,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import hashlib
+import json
 import logging
 import os
 import random
@@ -393,7 +394,7 @@ def _gag_text(gags: dict | None, fmt: str) -> list[str]:
 
 
 def build_prompt(rnd: dict, kind: str, has_refs: bool = False, fmt: str = "scene",
-                 gags: dict | None = None, style: str = "cartoon") -> str:
+                 gags: dict | None = None, style: str = "cartoon", movie: dict | None = None) -> str:
     """The prompt for one post in a format (FORMATS) with the recurring gags (gags_from_board). Raises SceneRefused
     for a kind that is not post-reveal. No text is ever requested: titles, stats and picks are our overlay."""
     if kind not in KINDS:
@@ -416,6 +417,10 @@ def build_prompt(rnd: dict, kind: str, has_refs: bool = False, fmt: str = "scene
     parts = [f"{phrase}, {STYLE_CORE}, " + (f"palette of {rng.choice(PALETTES)}, " if palette else "")
              + f"{rng.choice(LIGHTING)}, {rng.choice(CAMERAS)}.",
              f"Setting: {setting}, with {rng.choice(GLOOMY_EXTRAS if gloomy else EXTRAS)}."]
+    if movie:   # the market's movie (operator 2026-10-27): every post is a new frame from the same film
+        parts[1] = (f"This image is a new frame from the movie '{movie['title']}'. Its poster is the first attached image: "
+                    f"keep the poster's world, setting, lighting, colour palette and art style exactly, but compose a new "
+                    f"moment. The movie: {movie['visual']}")
     if fmt == "trading":
         who, rare = featured_agent(rnd, kind, sit, gags)
         if not who:
@@ -466,7 +471,10 @@ def build_prompt(rnd: dict, kind: str, has_refs: bool = False, fmt: str = "scene
                     "")
         elif fmt == "movie":
             comp += " Keep the top 28% as a moody, simple sky or backdrop for a title."
-    if has_refs:
+    if has_refs and movie:
+        parts.append("The second attached image is the character sheet of the four robots and The Boss: match their "
+                     "designs exactly and do not copy its plain background.")
+    elif has_refs:
         parts.append("The attached reference image is the character sheet of the four robots and The Boss: match their designs "
                      "exactly and do not copy their backgrounds.")
     parts += [comp, HARD_RULES]
@@ -575,6 +583,12 @@ def extract_image(body: dict) -> bytes | None:
     return None
 
 
+def _image_part(p: Path) -> dict:
+    data = p.read_bytes()
+    mime = "image/jpeg" if data[:2] == b"\xff\xd8" else "image/png"
+    return {"inlineData": {"mimeType": mime, "data": base64.b64encode(data).decode()}}
+
+
 def _ref_inputs(style: str = "cartoon") -> list[dict]:
     """The approved cast sheet as a generateContent image part (clay style: the clay sheet), so the four robots and
     The Boss keep their designs from post to post. Empty when the file is missing."""
@@ -583,6 +597,74 @@ def _ref_inputs(style: str = "cartoon") -> list[dict]:
         return []
     mime = "image/png" if p.suffix == ".png" else "image/jpeg"
     return [{"inlineData": {"mimeType": mime, "data": base64.b64encode(p.read_bytes()).decode()}}]
+
+
+TEXT_URL = API_URL
+MOVIE_PITCH = """You pitch fun, family-friendly animated movies. Write a movie idea about the subject of this prediction market.
+The cast is always the same five original robot characters:
+{cast}
+Market: {question}
+Event: {event}
+Rules: no real people; in "visual" never name real teams, clubs, players, brands or trademarks (describe them generically,
+e.g. "a club in red and white"); no written words, signs or logos in the image; do not say how the market ends.
+Return JSON only, with exactly these keys:
+{{"title": "a catchy movie title, at most 6 words",
+ "idea": "one paragraph of 60-90 words: the premise, the stakes, the robots' rivalry, a twist",
+ "visual": "one or two sentences describing the world and mood of the film for an illustrator"}}"""
+
+
+def movie_pitch_prompt(rnd: dict) -> str:
+    cast = "\n".join(f"- {ROBOTS[a][0]}: {ROBOTS[a][1]}" for a in ORDER) + f"\n- The Boss: {PIT_BOSS}"
+    return MOVIE_PITCH.format(cast=cast, question=" ".join((rnd.get("question") or "").split()),
+                              event=" ".join((rnd.get("event_title") or "").split()) or "-")
+
+
+def movie_poster_prompt(rnd: dict, movie: dict, style: str, has_refs: bool) -> str:
+    phrase, _ = STYLES[style]
+    parts = [f"{phrase}, {STYLE_CORE}.",
+             f"A dramatic movie poster key-art illustration for an animated film called '{movie['title']}'. "
+             f"{movie['visual']} The four robots (and The Boss, smaller, behind them) are the stars, posed heroically.",
+             f"Composition: portrait {ASPECT}; the robots in the middle; the top 20% and the bottom 30% darker and simpler "
+             "because titles and badges are added afterwards."]
+    if has_refs:
+        parts.append("The attached reference image is the character sheet of the four robots and The Boss: match their "
+                     "designs exactly and do not copy its plain background.")
+    parts.append(HARD_RULES)
+    prompt = " ".join(parts)
+    assert_sealed(rnd, prompt)   # the poster never carries an outcome label
+    return prompt
+
+
+class TextClient:
+    """One JSON text request (generateContent, responseMimeType JSON) for the movie pitch."""
+
+    def __init__(self, s: Settings, api_key: str, transport: httpx.AsyncBaseTransport | None = None):
+        self.s, self.key, self.transport = s, api_key, transport
+
+    async def json(self, prompt: str) -> dict:
+        body = {"contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"responseMimeType": "application/json", "temperature": 1.0}}
+        async with httpx.AsyncClient(timeout=self.s.scene_images_timeout_s, transport=self.transport) as c:
+            r = await c.post(TEXT_URL.format(model=self.s.scene_text_model), json=body, headers={"x-goog-api-key": self.key})
+        if r.status_code == 429:
+            raise SceneQuota("HTTP 429 on the movie pitch")
+        if r.status_code >= 400:
+            raise SceneError(f"pitch HTTP {r.status_code}: {r.text[:200]}")
+        parts = r.json()["candidates"][0]["content"]["parts"]
+        return json.loads("".join(p.get("text", "") for p in parts))
+
+
+def check_pitch(d: dict) -> dict:
+    """title / idea / visual present and sane; raises SceneRefused otherwise."""
+    if not isinstance(d, dict):
+        raise SceneRefused("pitch is not an object")
+    out = {}
+    for k, lo, hi in (("title", 2, 60), ("idea", 120, 900), ("visual", 20, 500)):
+        v = " ".join(str(d.get(k) or "").split())
+        if not lo <= len(v) <= hi:
+            raise SceneRefused(f"pitch {k} has {len(v)} chars")
+        out[k] = v
+    return out
 
 
 class SceneClient:
@@ -683,11 +765,56 @@ class SceneService:
             log.info("%s: scene cap (%s a day) reached; plain card", post_key, self.s.scene_images_per_day)
             return None
         refs = _ref_inputs(style) if self.s.scene_images_references else []
-        prompt = build_prompt(rnd, kind, has_refs=bool(refs), fmt=fmt, gags=gags, style=style)
+        movie = await self.movie(rnd, style, key) if self.s.scene_movie else None
+        if movie:   # step 3: the post image starts from the market's movie poster, in the poster's style
+            style = movie["style"]
+            refs = [_image_part(self.movie_poster(rnd["round_id"]))] + (_ref_inputs(style) if self.s.scene_images_references else [])
+        prompt = build_prompt(rnd, kind, has_refs=bool(refs), fmt=fmt, gags=gags, style=style, movie=movie)
         made = await self._make(post_key, prompt, refs, out, key)
         if made:
             made.with_suffix(".fmt").write_text(fmt)
         return made
+
+    def movie_meta(self, round_id) -> Path:
+        return self.dir / f"movie-r{round_id}.json"
+
+    def movie_poster(self, round_id) -> Path:
+        return self.dir / f"movie-r{round_id}.png"
+
+    def movie_of(self, round_id) -> dict | None:
+        """The market's movie (title, idea, visual, style) once its poster exists, else None."""
+        try:
+            m = json.loads(self.movie_meta(round_id).read_text())
+            return m if self.movie_poster(round_id).exists() else None
+        except (OSError, ValueError):
+            return None
+
+    async def movie(self, rnd: dict, style: str, key: str) -> dict | None:
+        """Steps 1 and 2 of the operator's flow (2026-10-27), once per market: a one-paragraph movie idea about the
+        market's subject (Gemini text), then that movie's poster (Gemini image, the cast sheet as reference). Every
+        post image of the market then starts from the poster. None on any failure: the post falls back to a plain
+        scene."""
+        rid = rnd.get("round_id")
+        have = self.movie_of(rid)
+        if have:
+            return have
+        try:
+            pitch = check_pitch(await asyncio.wait_for(TextClient(self.s, key, self.transport).json(movie_pitch_prompt(rnd)),
+                                                       timeout=self.s.scene_images_timeout_s + 10))
+            refs = _ref_inputs(style) if self.s.scene_images_references else []
+            prompt = movie_poster_prompt(rnd, pitch, style, bool(refs))
+        except SceneQuota:
+            SceneService.quota_until = time.time() + QUOTA_BACKOFF_S
+            return None
+        except Exception as e:
+            log.warning("round %s: movie pitch failed (%r); plain scene", rid, e)
+            return None
+        if not await self._make(f"movie-r{rid}", prompt, refs, self.movie_poster(rid), key):
+            return None
+        meta = {**pitch, "style": style, "round_id": rid, "created_at": time.time()}
+        self.movie_meta(rid).write_text(json.dumps(meta, ensure_ascii=False, indent=1))
+        log.info("round %s: movie '%s' (%s)", rid, pitch["title"], style)
+        return meta
 
     async def _make(self, post_key: str, prompt: str, refs: list[dict], out: Path, key: str) -> Path | None:
         row = self.db.x("INSERT INTO scene_images(post_key,day,model,status,cost_usd,created_at,prompt) "

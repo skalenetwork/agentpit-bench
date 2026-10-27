@@ -110,6 +110,8 @@ class Settings:
     # of the reveal and results posts. GEMINI_API_KEY in secrets.env; no key, cap reached or any failure = today's card.
     scene_images_enabled: bool = False
     scene_images_model: str = "gemini-3.1-flash-image"
+    scene_text_model: str = "gemini-flash-latest"   # the movie pitch (scenes.movie)
+    scene_movie: bool = False   # operator 2026-10-27: per market a movie idea -> its poster -> every post image starts from it
     scene_images_per_day: int = 30          # image attempts per UTC day (cached posts cost nothing)
     scene_image_cost_usd: float = 0.067     # per 1K image for gemini-3.1-flash-image, Google's pricing page (2026-10-27)
     scene_images_timeout_s: int = 90

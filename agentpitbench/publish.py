@@ -87,10 +87,14 @@ class BenchPublisher:
                 gags = scenes.gags_from_board(board, self.db.get("scene_leader"))
             fmt = fmt or scenes.choose_format(rnd, kind, gags, tuple(self.s.scene_formats))
             style = "cartoon"
-            try:   # image.style is an A/B slot (control: bold cartoon): the bandit assigns an arm per post
-                style = ab.choose(self.db, self.s, "image.style", post_key, kind=kind).key or "cartoon"
-            except Exception:
-                log.exception("A/B for %s image.style failed; bold cartoon", post_key)
+            movie = self.scenes.movie_of(rnd.get("round_id")) if self.s.scene_movie else None
+            if movie:   # the market's movie fixed its style at its first post (the A/B arm counts once per market)
+                style = movie.get("style") or style
+            else:
+                try:   # image.style is an A/B slot (control: bold cartoon): the bandit assigns an arm per market
+                    style = ab.choose(self.db, self.s, "image.style", post_key, kind=kind).key or "cartoon"
+                except Exception:
+                    log.exception("A/B for %s image.style failed; bold cartoon", post_key)
             scene = await self.scenes.scene(rnd, kind, post_key, fmt, gags, style)
             if not scene:   # no image went out: the card is not a style arm, so the draw earns no reward
                 self.db.x("DELETE FROM ab_assignments WHERE post_key=? AND slot='image.style'", post_key)
