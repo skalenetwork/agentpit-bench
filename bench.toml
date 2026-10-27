@@ -36,7 +36,11 @@ dry_run = true
 posting_paused = false
 # operator 2026-10-13: two posts per market on X (and its mirrors): the opening (reveal) and the closing
 # (results). No replies, no press, films, replays, awards, reports or other extra posts.
-post_kinds = ["reveal", "results", "week", "motd", "reply-back"]   # + weekly episode, daily film, F2 reply-back (operator 2026-10-13; X "Automated" label set)
+post_kinds = ["reveal", "results", "week", "motd", "reply-back", "shoutout"]   # + weekly episode, daily film, F2 reply-back (operator 2026-10-13; X "Automated" label set)
+# operator 2026-10-27 engagement: like human pick replies, shout out a human who beat all the AIs, follow back
+x_like_replies = true
+x_shoutouts = true
+x_follow_back = true
 reveal_window = true      # virality-2 F1: the reveal waits for its live window (T-3h .. T-15min before kickoff)
 
 agents = ["claude", "codex", "agy", "grok"]

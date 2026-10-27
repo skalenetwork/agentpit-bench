@@ -133,6 +133,13 @@ class Settings:
     reply_back_min_account_days: float = 7  # skip accounts younger than this
     reply_back_poll_s: int = 900
     reply_back_read_budget_usd: float = 0.50   # per UTC day, reply-back reads only: hard stop
+    # engage_x (operator 2026-10-27): likes on human pick replies, shout-outs, follow-backs. Off by default.
+    x_like_replies: bool = False
+    x_shoutouts: bool = False
+    x_follow_back: bool = False
+    x_like_daily_cap: int = 100
+    x_follow_daily_cap: int = 20
+    x_follow_min_picks: int = 2
     reply_back_exclude: list[str] = field(default_factory=list)   # operator exclusions: user ids or @handles
     agents: list[str] = field(default_factory=lambda: ["claude", "codex", "agy", "grok"])
     excluded_keywords: list[str] = field(default_factory=list)
