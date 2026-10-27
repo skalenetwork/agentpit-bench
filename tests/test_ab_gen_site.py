@@ -75,7 +75,7 @@ async def test_generator_valid_output_live_queued_and_tagged(gen):
     assert "reveal.hook" in prompt and "{lone}" in prompt and "copy variants" in prompt
     rows = db.q("SELECT * FROM operator_ai_outputs WHERE purpose LIKE 'ab:%'")
     assert len(rows) == 7 and {r["model"] for r in rows} == {"claude-sonnet-fake"}
-    assert {r["prompt_version"] for r in rows} == {ab_gen.AB_PROMPT_VERSION} == {"ab.v1"}
+    assert {r["prompt_version"] for r in rows} == {ab_gen.AB_PROMPT_VERSION} == {"ab.v2"}
     assert {r["call_id"] for r in rows} == {db.one("SELECT call_id FROM ai_calls")["call_id"]}
     assert sum(1 for r in rows if not r["accepted"]) == 2 and all(r["reject_reason"] for r in rows if not r["accepted"])
     st = [a["status"] for a in ab.arms(db, "reveal.cta", None) if not a["is_control"]]
