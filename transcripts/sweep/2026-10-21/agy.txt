@@ -1,0 +1,257 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+29560 | Will Kagoshima United win on 2026-10-21? | Yes 0.665, No 0.335 | 2026-10-21T10:00:00Z
+29520 | Will Real Betis Balompié vs. Feyenoord Rotterdam end in a draw? | Yes 0.205, No 0.795 | 2026-10-21T19:00:00Z
+29529 | Will Flávio Bolsonaro win the second round of the 2026 Brazilian presidential election by less than 2%? | Yes 0.170, No 0.830 | 2026-10-26T03:59:00Z
+29498 | Ethereum Up or Down - October 21, 12:00AM-4:00AM ET | Up 0.310, Down 0.690 | 2026-10-21T08:00:00Z
+29557 | Counter-Strike: Just Players vs Fire Flux Esports (BO3) - NODWIN Clutch Series Group Stage | Just Players 0.505, Fire Flux Esports 0.495 | 2026-10-21T17:00:00Z
+28674 | S&P 500 (SPX) Up or Down on October 21? | Up 0.685, Down 0.315 | 2026-10-21T20:00:00Z
+29542 | Will Sanfrecce Hiroshima win on 2026-10-21? | Yes 0.675, No 0.325 | 2026-10-21T10:00:00Z
+29448 | Will FC Bayern München vs. Arsenal FC end in a draw? | Yes 0.245, No 0.755 | 2026-10-21T19:00:00Z
+29524 | Will Flávio Bolsonaro win the second round of the 2026 Brazilian presidential election by 4–6%? | Yes 0.285, No 0.715 | 2026-10-26T03:59:00Z
+29469 | Bitcoin Up or Down - October 21, 12:00AM-4:00AM ET | Up 0.440, Down 0.560 | 2026-10-21T08:00:00Z
+29523 | Counter-Strike:  Phantom Academy vs Bebop (BO3) - CCT Europe Challengers Series Playoffs |  Phantom Academy 0.460, Bebop 0.540 | 2026-10-21T19:45:00Z
+23732 | Will Moody's (MCO) beat quarterly earnings? | Yes 0.790, No 0.210 | 2026-10-21T13:00:00Z
+29521 | Will SE Palmeiras win on 2026-10-21? | Yes 0.485, No 0.515 | 2026-10-22T00:30:00Z
+29420 | Will Nagoya Grampus vs. Cerezo Ōsaka end in a draw? | Yes 0.265, No 0.735 | 2026-10-21T10:00:00Z
+29522 | Will Flávio Bolsonaro win the second round of the 2026 Brazilian presidential election by 2–4%? | Yes 0.245, No 0.755 | 2026-10-26T03:59:00Z
+29459 | Will Ethereum dip to $2,400 on October 21? | Yes 0.435, No 0.565 | 2026-10-22T04:00:00Z
+29496 | Counter-Strike: UNiTY esports vs FOKUS - Map 2 Winner | UNiTY esports 0.365, FOKUS 0.635 | 2026-10-21T15:00:00Z
+20081 | Will Meta (META) beat quarterly earnings? | Yes 0.207, No 0.792 | 2026-10-21T21:00:00Z
+29518 | Will Fluminense FC win on 2026-10-21? | Yes 0.225, No 0.775 | 2026-10-22T00:30:00Z
+29383 | Will Kawasaki Frontale vs. Vissel Kōbe end in a draw? | Yes 0.265, No 0.735 | 2026-10-21T10:00:00Z
+29373 | Will Jo-Dee Burbach win the 2026 Stratford mayoral election? | Yes 0.155, No 0.845 | 2026-10-27T03:59:00Z
+29457 | Will Ethereum reach $2,500 on October 21? | Yes 0.230, No 0.770 | 2026-10-22T04:00:00Z
+29475 | Counter-Strike: BIG vs PARIVISION - Map 1 Winner | BIG 0.465, PARIVISION 0.535 | 2026-10-21T19:00:00Z
+11606 | Will S&P Global (SPGI) Q3 Rating revenues be above $1.35B? | Yes 0.230, No 0.770 | 2026-10-27T13:30:00Z
+29451 | Will Kashima Antlers win on 2026-10-21? | Yes 0.495, No 0.505 | 2026-10-21T10:00:00Z
+29349 | Panthers vs. Penguins | Panthers 0.505, Penguins 0.495 | 2026-10-22T23:00:00Z
+29365 | Will Andrea Horwath win the 2026 Hamilton, Ontario mayoral election? | Yes 0.215, No 0.785 | 2026-10-27T03:59:00Z
+29436 | Will Bitcoin dip to $81,000 on October 21? | Yes 0.195, No 0.805 | 2026-10-22T04:00:00Z
+29354 | Counter-Strike: BakS eSports vs Sökerorg (BO3) - CCT Europe Series #12 Group Stage | BakS eSports 0.745, Sökerorg 0.255 | 2026-10-21T14:00:00Z
+11605 | Will S&P Global (SPGI) Q3 Rating revenues be above $1.3B? | Yes 0.630, No 0.370 | 2026-10-27T13:30:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{
+  "forecasts": [
+    {
+      "id": "29560",
+      "probabilities": {
+        "Yes": 0.68,
+        "No": 0.32
+      }
+    },
+    {
+      "id": "29520",
+      "probabilities": {
+        "Yes": 0.21,
+        "No": 0.79
+      }
+    },
+    {
+      "id": "29529",
+      "probabilities": {
+        "Yes": 0.185,
+        "No": 0.815
+      }
+    },
+    {
+      "id": "29498",
+      "probabilities": {
+        "Up": 0.3,
+        "Down": 0.7
+      }
+    },
+    {
+      "id": "29557",
+      "probabilities": {
+        "Just Players": 0.51,
+        "Fire Flux Esports": 0.49
+      }
+    },
+    {
+      "id": "28674",
+      "probabilities": {
+        "Up": 0.69,
+        "Down": 0.31
+      }
+    },
+    {
+      "id": "29542",
+      "probabilities": {
+        "Yes": 0.695,
+        "No": 0.305
+      }
+    },
+    {
+      "id": "29448",
+      "probabilities": {
+        "Yes": 0.25,
+        "No": 0.75
+      }
+    },
+    {
+      "id": "29524",
+      "probabilities": {
+        "Yes": 0.27,
+        "No": 0.73
+      }
+    },
+    {
+      "id": "29469",
+      "probabilities": {
+        "Up": 0.435,
+        "Down": 0.565
+      }
+    },
+    {
+      "id": "29523",
+      "probabilities": {
+        "Phantom Academy": 0.455,
+        "Bebop": 0.545
+      }
+    },
+    {
+      "id": "23732",
+      "probabilities": {
+        "Yes": 0.81,
+        "No": 0.19
+      }
+    },
+    {
+      "id": "29521",
+      "probabilities": {
+        "Yes": 0.49,
+        "No": 0.51
+      }
+    },
+    {
+      "id": "29420",
+      "probabilities": {
+        "Yes": 0.26,
+        "No": 0.74
+      }
+    },
+    {
+      "id": "29522",
+      "probabilities": {
+        "Yes": 0.255,
+        "No": 0.745
+      }
+    },
+    {
+      "id": "29459",
+      "probabilities": {
+        "Yes": 0.42,
+        "No": 0.58
+      }
+    },
+    {
+      "id": "29496",
+      "probabilities": {
+        "UNiTY esports": 0.36,
+        "FOKUS": 0.64
+      }
+    },
+    {
+      "id": "20081",
+      "probabilities": {
+        "Yes": 0.215,
+        "No": 0.785
+      }
+    },
+    {
+      "id": "29518",
+      "probabilities": {
+        "Yes": 0.22,
+        "No": 0.78
+      }
+    },
+    {
+      "id": "29383",
+      "probabilities": {
+        "Yes": 0.26,
+        "No": 0.74
+      }
+    },
+    {
+      "id": "29373",
+      "probabilities": {
+        "Yes": 0.15,
+        "No": 0.85
+      }
+    },
+    {
+      "id": "29457",
+      "probabilities": {
+        "Yes": 0.225,
+        "No": 0.775
+      }
+    },
+    {
+      "id": "29475",
+      "probabilities": {
+        "BIG": 0.46,
+        "PARIVISION": 0.54
+      }
+    },
+    {
+      "id": "11606",
+      "probabilities": {
+        "Yes": 0.235,
+        "No": 0.765
+      }
+    },
+    {
+      "id": "29451",
+      "probabilities": {
+        "Yes": 0.495,
+        "No": 0.505
+      }
+    },
+    {
+      "id": "29349",
+      "probabilities": {
+        "Panthers": 0.515,
+        "Penguins": 0.485
+      }
+    },
+    {
+      "id": "29365",
+      "probabilities": {
+        "Yes": 0.21,
+        "No": 0.79
+      }
+    },
+    {
+      "id": "29436",
+      "probabilities": {
+        "Yes": 0.19,
+        "No": 0.81
+      }
+    },
+    {
+      "id": "29354",
+      "probabilities": {
+        "BakS eSports": 0.75,
+        "Sökerorg": 0.25
+      }
+    },
+    {
+      "id": "11605",
+      "probabilities": {
+        "Yes": 0.64,
+        "No": 0.36
+      }
+    }
+  ]
+}
