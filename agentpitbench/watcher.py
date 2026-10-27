@@ -11,7 +11,7 @@ from .agentpit import Agentpit, best_ask
 from .config import Settings
 from .db import DB
 from .reveal_window import start_ok
-from .market_type import league, market_type
+from .market_type import fixture, league, market_type
 from .virality import category, category_ok, market_priority
 
 log = logging.getLogger(__name__)
@@ -166,6 +166,7 @@ class Watcher:
         chosen, held = [], []  # held: fillable, but its category is over the weekly cap
         recent = self.recent_categories()
         per_event = self.event_counts_today(now)
+        fixtures = self.recent_fixtures(now) if self.s.one_round_per_fixture else set()
         type_caps = {"crypto_updown": self.s.max_crypto_updown_per_day,
                      "price_threshold": self.s.max_price_threshold_per_day,
                      "esports": self.s.max_esports_per_day}
@@ -176,6 +177,9 @@ class Watcher:
             ek = event_key(m.get("question", ""))
             if self.s.max_rounds_per_event_per_day and per_event.get(ek, 0) >= self.s.max_rounds_per_event_per_day:
                 continue  # stays eligible: another day may take it
+            fx = fixture(m.get("slug")) if self.s.one_round_per_fixture else None
+            if fx and fx in fixtures:
+                continue  # another market of this match already has a round
             mt = market_type(m.get("question", ""), m.get("event_title"))
             cat = category(m.get("question", ""))
             kinds = [mt, "esports"] if cat == "Esports" else [mt]
@@ -191,6 +195,8 @@ class Watcher:
                 chosen.append(m)
                 recent.append(cat)
                 per_event[ek] = per_event.get(ek, 0) + 1
+                if fx:
+                    fixtures.add(fx)
                 for k in kinds:
                     type_today[k] = type_today.get(k, 0) + 1
             else:
@@ -238,6 +244,13 @@ class Watcher:
             k = event_key(r["question"])
             out[k] = out.get(k, 0) + 1
         return out
+
+    def recent_fixtures(self, now: float | None = None, days: float = 8) -> set[str]:
+        """The matches (fixture()) that already have a non-void round. Any day, not only today: a match's 3-12 h
+        start window can straddle midnight UTC. The key carries the match date, so a few days back suffice."""
+        since = (time.time() if now is None else now) - days * 86400
+        return {f for r in self.db.q("SELECT slug FROM rounds WHERE started_at>=? AND state!='void'", since)
+                if (f := fixture(r["slug"]))}
 
     def recent_categories(self, days: float = 7) -> list[str]:
         """Category of every season round started in the trailing window (exhibitions don't count)."""

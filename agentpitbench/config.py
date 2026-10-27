@@ -57,6 +57,9 @@ class Settings:
     marquee_priority_boost: float = 0
     marquee_leagues: list[str] = field(default_factory=list)
     max_esports_per_day: int = 0
+    # one round per match (operator 2026-10-27; off by default): the markets of one fixture ("A wins", "B wins",
+    # "draw", map winners ...) share a slug stem up to the match date, and only one of them becomes a round
+    one_round_per_fixture: bool = False
     max_category_share: float = 0.4     # no category above this share of the rounds started in 7 days
     max_favourite_price: float = 0.85   # skip near-certain markets: they make dead rounds
     default_slippage: float = 0.05      # a bet without --max-price may fill up to best ask + this

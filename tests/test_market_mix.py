@@ -202,3 +202,50 @@ async def test_marquee_boost_in_model_mode(s, db):
     for mid, score in (("2", 60), ("3", 30)):
         db.x("INSERT INTO market_ratings(market_id,score,keyword_tier,rated_at) VALUES(?,?,3,0)", mid, score)
     assert [m["id"] for m in await w.pick(free_slots=1)] == ["3"]    # 30 + 40 over 60
+
+
+# ---------- one round per match (one_round_per_fixture) ----------
+
+@pytest.mark.parametrize("slug,want", [
+    ("lal-get-ray-2026-10-19-draw", "lal-get-ray-2026-10-19"), ("lal-get-ray-2026-10-19-get", "lal-get-ray-2026-10-19"),
+    ("nba-bos-det-2026-10-20", "nba-bos-det-2026-10-20"), ("cs2-tl1-aur1-2026-10-27-game1", "cs2-tl1-aur1-2026-10-27"),
+    ("btc-updown-4h-1791907200", None), ("bitcoin-up-or-down-on-october-14", None), (None, None), ("", None)])
+def test_fixture(slug, want):
+    from agentpitbench.market_type import fixture
+    assert fixture(slug) == want
+
+
+FX = [("Will Getafe CF win on 2026-10-19?", "lal-get-ray-2026-10-19-get"),
+      ("Will Getafe CF vs. Rayo Vallecano de Madrid end in a draw?", "lal-get-ray-2026-10-19-draw"),
+      ("Will Rayo Vallecano de Madrid win on 2026-10-19?", "lal-get-ray-2026-10-19-ray"),
+      ("Will Tottenham Hotspur FC win on 2026-10-19?", "epl-tot-cov-2026-10-19-tot")]
+
+
+def test_fixture_rule_default_off():
+    assert Settings().one_round_per_fixture is False
+
+
+async def test_off_picks_several_markets_of_one_match(s, db):
+    w = await _watch(s, db, [gamma(i, q, slug=sl) for i, (q, sl) in enumerate(FX, 2)])
+    assert len(await w.pick(free_slots=9)) == 4
+
+
+async def test_one_round_per_fixture(s, db):
+    s.one_round_per_fixture = True
+    w = await _watch(s, db, [gamma(i, q, slug=sl) for i, (q, sl) in enumerate(FX, 2)])
+    picked = await w.pick(free_slots=9)
+    assert sorted(m["slug"].rsplit("-", 1)[0] for m in picked) == ["epl-tot-cov-2026-10-19", "lal-get-ray-2026-10-19"]
+    for m in picked:
+        db.create_round(m)
+    assert await w.pick(free_slots=9) == []                          # the match already has its round
+    assert db.one("SELECT COUNT(*) n FROM seen_markets WHERE eligible=1 AND started=0")["n"] == 2
+
+
+async def test_fixture_rule_ignores_void_rounds_and_dateless_slugs(s, db):
+    s.one_round_per_fixture = True
+    ms = [gamma(2, FX[0][0], slug=FX[0][1]), gamma(3, UD.format(3), slug="btc-updown-4h-1"),
+          gamma(4, UD.format(4), slug="btc-updown-4h-2")]
+    w = await _watch(s, db, ms)
+    rid = db.create_round(gamma(50, FX[1][0], slug=FX[1][1]))
+    db.set_round(rid, state="void")
+    assert {m["id"] for m in await w.pick(free_slots=9)} == {"2", "3", "4"}

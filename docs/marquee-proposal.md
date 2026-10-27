@@ -1,13 +1,17 @@
-# Marquee markets, fewer esports: methodology proposal (prep, 2026-10-27)
+# Marquee markets, fewer esports, one round per match: methodology proposal (prep, 2026-10-27)
 
-Operator decision 2026-10-27: market selection should favour marquee markets and pick fewer esports. The marquee
-markets are top football (UCL/UEL and the top-five leagues), US sports (NBA, NFL, MLB) and crypto (BTC, ETH, SOL).
-The evidence is docs/virality-analysis-2026-10.md §3 and §8.4: esports reach was 0.85/0.84, about 2 SE below the rest.
-This document covers the code shipped for it, the command that turns it on, and a replay estimate.
+Operator decisions 2026-10-27:
+- Market selection should favour marquee markets and pick fewer esports. The marquee markets are top football
+  (UCL/UEL and the top-five leagues), US sports (NBA, NFL, MLB) and crypto (BTC, ETH, SOL). The evidence is
+  docs/virality-analysis-2026-10.md §3 and §8.4: esports reach was 0.85/0.84, about 2 SE below the rest.
+- One round per match.
+
+This document covers the code shipped for these decisions, the one command that turns them on, and a replay
+estimate.
 
 ## What the code adds (neutral until approved)
 
-There are three new `Settings` keys. All are neutral by default, so merging changes nothing live and causes no
+There are four new `Settings` keys. All are neutral by default, so merging changes nothing live and causes no
 methodology drift. `method verify` stays clean, because no hashed file changed.
 
 | Key | Default | Effect |
@@ -15,9 +19,20 @@ methodology drift. `method verify` stays clean, because no hashed file changed.
 | `max_esports_per_day` | 0 (no limit) | Caps Esports-category rounds per UTC day. A skipped market stays eligible, the same as the v2.2 type caps. |
 | `marquee_priority_boost` | 0 | Adds rating points to the leading rank score, on the same scale as `match_priority_boost` (keyword tiers count 10/35/60/85). |
 | `marquee_leagues` | `[]` | The markets the boost applies to. Each entry is matched against the slug's first part, which is agentpit's league or asset code: `ucl-lin2-liv-…` → `ucl`, `btc-updown-4h-…` → `btc`. |
+| `one_round_per_fixture` | false | One round per match. Every market of one match ("A wins", "B wins", "draw", the map winners of a CS2 series) shares the slug stem up to the match date, for example `lal-get-ray-2026-10-19-{get,ray,draw}` → `lal-get-ray-2026-10-19`. Once one of them has a non-void round (on any day, since a 3–12 h window can straddle midnight UTC), the others are skipped. Slugs without a date (crypto, prices, politics) are not affected. |
 
-The code is in `watcher.Watcher.pick` / `_rank` / `type_counts_today` and `market_type.league`. Tests are in
-`tests/test_market_mix.py` and `tests/test_methodology.py::test_marquee_keys_are_proposable`.
+The code is in `watcher.Watcher.pick` / `_rank` / `type_counts_today` / `recent_fixtures` and in
+`market_type.league` / `fixture`. Tests are in `tests/test_market_mix.py` and in
+`tests/test_methodology.py::test_marquee_keys_are_proposable` and `::test_one_round_per_fixture_is_proposable`.
+
+On the fixture key:
+- The market data has no event or fixture id. `/markets` returns only id, conditionId, slug, question,
+  description, groupItemTitle, the dates, prices and volume, and the round's `event_title` only arrives after the
+  round has started. The slug stem is what the data offers.
+- It was checked on the 14-day pool: a football match's three markets, an NBA or NHL moneyline (one market) and a
+  CS2 series plus its `-game1` map market all reduce to one stem.
+- It is a separate boolean, not a new meaning for `max_rounds_per_event_per_day`. That key keeps its approved
+  meaning, a ladder of thresholds on one question, and both rules apply.
 
 ### Why code, not only params or a rater prompt
 
@@ -48,13 +63,16 @@ The code is in `watcher.Watcher.pick` / `_rank` / `type_counts_today` and `marke
 
 ## The command (operator, after this branch is merged and deployed)
 
+One proposal, so it is one version (v2.3) and one changelog line:
+
 ```bash
 agentpitbench method propose \
   --set max_esports_per_day=1 \
   --set marquee_priority_boost=40 \
   --set 'marquee_leagues=["ucl","uel","epl","lal","sea","bun","fl1","nba","nfl","mlb","btc","eth","sol","bitcoin","ethereum","solana"]' \
-  --text "Market mix: marquee markets first (Champions and Europa League, the top five European leagues, NBA, NFL, MLB, Bitcoin, Ethereum and Solana); at most one esports market a day (esports drew the least reach). Review on 2026-11-10."
-agentpitbench method show <id>         # check: max_esports_per_day 1 (int), marquee_priority_boost 40, the list
+  --set one_round_per_fixture=true \
+  --text "Market mix: marquee markets first (Champions and Europa League, the top five European leagues, NBA, NFL, MLB, Bitcoin, Ethereum and Solana); at most one esports market a day (esports drew the least reach); one round per match. Review on 2026-11-10."
+agentpitbench method show <id>         # check: 1 (int), 40, the list, one_round_per_fixture true (bool)
 agentpitbench method approve <id>      # at a terminal: type 'approve v2.3'
 ```
 
@@ -104,18 +122,32 @@ Rounds, 10-19..10-27:
 | replay, v2.2 params (baseline) | 23 | 23 | 0 | 6 | 37 | 1 |
 | esports cap 1/day only | 9 | 27 | 1 | 10 | 42 | 1 |
 | marquee boost 40 only | 23 | 46 | 0 | 8 | 12 | 1 |
-| **proposed (cap 1 + boost 40)** | **9** | **49** | **1** | **11** | **19** | **1** |
+| cap 1 + boost 40 (no fixture rule) | 9 | 49 | 1 | 11 | 19 | 1 |
+| one round per fixture only | 24 | 19 | 0 | 7 | 40 | 0 |
+| **combined proposal (cap 1 + boost 40 + one per match)** | **9** | **43** | **2** | **11** | **24** | **1** |
 
-Changed picks against the baseline replay: 46 of 90 (about half).
+Rounds on a match that already had a round. These are counted by the fixture stem, so they include CS2 map markets:
 
-- **Esports:** about 22% → 10%, one a day.
-- **Top football:** about 25% → 54%.
+| Variant | Repeats |
+|---|---:|
+| actual | 4 |
+| replay baseline | 9 |
+| cap + boost without the fixture rule | 17 |
+| one round per fixture only | 0 |
+| **combined** | **0** |
+
+Effect of the combined proposal: 48 of 90 picks change against the baseline replay (about half). Changes in share of
+rounds, baseline replay → combined:
+- **Esports:** about 25% → 10%, one a day.
+- **Top football:** about 25% → 48%. These are now 43 different matches; without the rule, the 49 rounds included
+  repeats.
 - **Crypto:** about 7% → 12%.
-- **Other matches** (minor football, Saudi/J-League/Indonesian, NHL): about 41% → 21%.
+- **US sports:** 0 → 2.
+- **Other matches** (minor football, Saudi/J-League/Indonesian, NHL): about 41% → 27%.
 
-The two levers are complementary. The cap removes the night esports. The boost decides what fills the day slots. On 2
-or 3 of the 9 days the 01–03 UTC batches start nothing, and those rounds move to 10–12 UTC (8 rounds there, against
-0 in the baseline).
+The three rules work together. The cap removes the night esports. The boost decides what fills the day slots. The
+fixture rule spreads those slots over more matches. Between 2 and 4 of the 9 days, depending on the hour, the
+01–03 UTC batches start nothing. Those rounds move to 10–12 UTC (9 rounds there, against 0 in the baseline).
 
 For reference, the full last 14 days actual (10-13..10-27, 110 non-void rounds) were: esports 22, top football 21,
 US sports 1, crypto 12, other matches 51, other 3.
@@ -126,14 +158,14 @@ on the game day, but the daily cap is used up by about 12 UTC. Getting more US s
 
 ## Risks to watch (review on 2026-11-10)
 
-- **Same-fixture clustering.** One football fixture often has three markets: "Will A win", "Will B win", "A vs B
-  draw". `max_rounds_per_event_per_day` keys on the question with its numbers blanked, so these count as different
-  events. With the boost, the most-boosted fixtures get picked together. In the replay, extra rounds on a
-  fixture-day already picked went from 9 (baseline) to 17 of 90 (actual: 4). For example, 10-19 had Getafe–Rayo ×3
-  and Monza–Cagliari ×3. If that reads badly on X, the follow-up is a fixture-level event key (the slug without its
-  outcome suffix). That would be its own proposal, because it changes how an approved key behaves.
+- **Which market of a match runs.** The first market of a match to rank highest and fall inside its window wins.
+  That is often the draw market, because volume breaks ties. The rule does not prefer the "A wins" framing; that
+  would be a ranking change of its own.
+- **A slug without a date** is not grouped. In the 14-day pool every match slug carried the date (2,086 with nothing
+  after it, 888 `-game#`, 250 `-draw`, and the rest team codes). If agentpit changes its slug format, the rule
+  silently stops grouping. It never blocks a market wrongly.
 - **Esports days with no alternative.** The over-cap fallback (`held`) only applies to the weekly category share,
   not to the per-day caps. A night batch with only esports in its window starts nothing, and that day's cap moves to
   later batches. In the replay every day still filled 10.
 - **Revert.** `method revert` only undoes generated single-key changes. To undo this change, propose
-  `--set max_esports_per_day=0 --set marquee_priority_boost=0` (keep the list).
+  `--set max_esports_per_day=0 --set marquee_priority_boost=0 --set one_round_per_fixture=false` (keep the list).

@@ -199,3 +199,9 @@ def test_marquee_keys_are_proposable(tree, tmp_path):
     assert new["params"]["marquee_leagues"] == ["ucl", "epl", "btc"]
     assert (s.max_esports_per_day, s.marquee_priority_boost, s.marquee_leagues) == (1, 40, ["ucl", "epl", "btc"])
     assert m.verify(s, m.LOCK) == []
+
+
+def test_one_round_per_fixture_is_proposable(tree, tmp_path):
+    s = Settings(data_dir=tmp_path / "var")
+    p = m.propose(s, {"one_round_per_fixture": "true", "max_esports_per_day": "1"}, "One round per match.")
+    assert p["changes"] == {"one_round_per_fixture": True, "max_esports_per_day": 1}
