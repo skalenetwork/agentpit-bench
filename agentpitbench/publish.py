@@ -20,6 +20,7 @@ from .cards import CardRenderer, headline_variant, rounds_note, split_headline, 
 from .config import Settings
 from .db import DB
 from .engage import Engage
+from .scenes import SceneService
 from .site import SiteDeployer
 from .twitter import (Poster, clip, decision_text, market_name, poll_minutes, poll_options, poll_result_line,
                       price_str, results_shape, results_text, split_text, reveal_text)
@@ -41,6 +42,7 @@ class BenchPublisher:
     def __init__(self, s: Settings, db: DB):
         self.s, self.db = s, db
         self.cards = CardRenderer(s)
+        self.scenes = SceneService(s, db)
         self.poster = Poster(s, db)
         self.site = SiteDeployer(s)
         self.engage = Engage(s, db, self.poster, self.cards)
@@ -68,6 +70,55 @@ class BenchPublisher:
             return await coro
         except Exception:
             log.exception("card render failed; tweeting without an image")
+            return None
+
+    async def _poster(self, rnd: dict, kind: str, post_key: str, board: list[dict] | None = None,
+                      fmt: str | None = None, gags: dict | None = None) -> Path | None:
+        """The 4:5 AI-scene poster of a reveal / results post (docs/scene-images.md), or None: feature off, no key,
+        daily cap, API failure or render failure all leave today's card in place. Never raises.
+        The format (scene / comic / movie / trading) is chosen by situation unless `fmt` is given; the recurring
+        gags (dunce cap, trophy, chaos, Pit Boss) come from the leaderboard unless `gags` is given."""
+        try:
+            if not self.s.scene_images_enabled:
+                return None
+            from . import scenes
+            if gags is None:
+                gags = scenes.gags_from_board(board, self.db.get("scene_leader"))
+            fmt = fmt or scenes.choose_format(rnd, kind, gags, tuple(self.s.scene_formats))
+            style = "cartoon"
+            try:   # image.style is an A/B slot (control: bold cartoon): the bandit assigns an arm per post
+                style = ab.choose(self.db, self.s, "image.style", post_key, kind=kind).key or "cartoon"
+            except Exception:
+                log.exception("A/B for %s image.style failed; bold cartoon", post_key)
+            scene = await self.scenes.scene(rnd, kind, post_key, fmt, gags, style)
+            if not scene:   # no image went out: the card is not a style arm, so the draw earns no reward
+                self.db.x("DELETE FROM ab_assignments WHERE post_key=? AND slot='image.style'", post_key)
+                return None
+            fmt = self.scenes.fmt_of(post_key) or fmt    # a cached scene keeps the format it was drawn in
+            out = await self.cards.poster(rnd, kind, scene, fmt, gags)
+            if kind == "results" and gags.get("leader"):
+                self.db.put("scene_leader", gags["leader"])   # the next post's trophy is snatched if this changes
+            return out
+        except Exception:
+            log.exception("%s: scene poster failed; posting the plain card", post_key)
+            return None
+
+    async def _poster_loop(self, rnd: dict, post_key: str, board: list[dict] | None = None) -> Path | None:
+        """A 3-6 s looping MP4 of the results poster (Ken Burns + confetti, or smoke after a wipeout), or None."""
+        if not (self.s.animate and self.s.scene_images_enabled and self.s.scene_loop_seconds > 0):
+            return None
+        try:
+            from . import scenes
+            scene = self.scenes.path(post_key)
+            if not scene.exists():
+                return None
+            fmt = self.scenes.fmt_of(post_key) or "scene"
+            gags = scenes.gags_from_board(board, None)
+            smoke = scenes.situation(rnd, "results") in ("wipeout", "nobody") or gags["chaos"] >= 2
+            return await self.cards.poster_clip(rnd, "results", scene, fmt, gags, seconds=self.s.scene_loop_seconds,
+                                                particles="smoke" if smoke else "confetti")
+        except Exception:
+            log.exception("%s: poster loop failed; keeping the still", post_key)
             return None
 
     async def _post(self, round_id: int, key: str, kind: str, text: str, image: Path | None,
@@ -209,6 +260,7 @@ class BenchPublisher:
         if sum(1 for e in rnd["entries"] if e["outcome"]) >= 2:
             kind, headline = split_headline(rnd)
             png = await self._card(self.cards.split(rnd, board, headline=headline))
+            await self._poster(rnd, "reveal", f"r{round_id}-reveal", board)   # the reveal post prefers it (see _reveal_ab)
             video = await self._clip(self.cards.split_clip(rnd, board, headline=headline))
             if self.s.post_decisions:  # legacy shape: the split is its own post, quoting the decision thread
                 async with self._lock(round_id):
@@ -311,6 +363,9 @@ class BenchPublisher:
         # one image, never the four decision cards: X crops each image of a multi-image post to its grid tile and
         # cut the cards' edges ("LAUDE BETS"); operator 2026-10-13 ended the reveal.media A/B arm for the split card
         split = self.s.cards_dir / str(round_id) / "split.png"
+        poster = split.with_name("split-poster.png")   # the 4:5 AI-scene poster when one was made (scenes.py)
+        if poster.exists():
+            split = poster
         media = split if split.exists() else (cards[0] if cards else None)  # no split card (one bettor): its card
         opts = None if few else poll_options(rnd)
         if not opts or len({o["label"] for o in opts}) != len(opts):
@@ -354,9 +409,13 @@ class BenchPublisher:
         self.db.set_round(round_id, headline_variant=variant)  # recorded so clicks per tone can be compared
         png = await self._card(self.cards.results(rnd, board, crowd, cast=cast, top_humans=lb["humans"][:3],
                                                   variant=variant))
+        poster = await self._poster(rnd, "results", key, board)
+        png = poster or png   # the 4:5 AI-scene poster, else today's card
         video = None
         if media_key != "still":
             video = await self._round_film(round_id)  # v0.6: the round's scripted square film, if ready in time
+            if video is None and poster:   # the poster's own loop (X autoplays it), else the plain results clip
+                video = await self._poster_loop(rnd, key, board)
             if video is None:
                 video = await self._clip(self.cards.results_clip(rnd, board, crowd, cast=cast,
                                                                  top_humans=lb["humans"][:3], variant=variant))

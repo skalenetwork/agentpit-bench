@@ -185,6 +185,13 @@ CREATE TABLE IF NOT EXISTS ai_calls (            -- every opai call attempt that
     status TEXT NOT NULL,                        -- ok / quota / auth / timeout / invalid / crash
     detail TEXT
 );
+CREATE TABLE IF NOT EXISTS scene_images (        -- AI scene image attempts (scenes.py): cap and cost log
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_key TEXT NOT NULL, day TEXT NOT NULL,   -- YYYY-MM-DD UTC (cap counting)
+    model TEXT, status TEXT NOT NULL,            -- pending / ok / failed
+    cost_usd REAL NOT NULL DEFAULT 0, created_at REAL NOT NULL,
+    prompt TEXT, detail TEXT
+);
 CREATE TABLE IF NOT EXISTS market_ratings (
     market_id TEXT PRIMARY KEY,
     score INTEGER,                               -- 0-100; NULL = rating failed, keyword fallback used
