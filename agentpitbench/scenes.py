@@ -600,38 +600,59 @@ def _ref_inputs(style: str = "cartoon") -> list[dict]:
 
 
 TEXT_URL = API_URL
-MOVIE_PITCH = """You pitch fun, family-friendly animated movies. Write a movie idea about the subject of this prediction market.
-The cast is always the same five original robot characters:
-{cast}
+MOVIE_PITCH = """You pitch fun, family-friendly movies. Write a movie idea about the subject of this prediction market.
+Invent whatever characters and world fit the subject best (people, animals, creatures, anything).
 Market: {question}
 Event: {event}
 Rules: no real people; in "visual" never name real teams, clubs, players, brands or trademarks (describe them generically,
 e.g. "a club in red and white"); no written words, signs or logos in the image; do not say how the market ends.
 Return JSON only, with exactly these keys:
 {{"title": "a catchy movie title, at most 6 words",
- "idea": "one paragraph of 60-90 words: the premise, the stakes, the robots' rivalry, a twist",
- "visual": "one or two sentences describing the world and mood of the film for an illustrator"}}"""
+ "idea": "one paragraph of 60-90 words: the premise, the characters, the stakes, a twist",
+ "visual": "one or two sentences describing the world, the main characters and the mood of the film for an illustrator"}}"""
 
 
 def movie_pitch_prompt(rnd: dict) -> str:
-    cast = "\n".join(f"- {ROBOTS[a][0]}: {ROBOTS[a][1]}" for a in ORDER) + f"\n- The Boss: {PIT_BOSS}"
-    return MOVIE_PITCH.format(cast=cast, question=" ".join((rnd.get("question") or "").split()),
+    return MOVIE_PITCH.format(question=" ".join((rnd.get("question") or "").split()),
                               event=" ".join((rnd.get("event_title") or "").split()) or "-")
 
 
-def movie_poster_prompt(rnd: dict, movie: dict, style: str, has_refs: bool) -> str:
+def movie_poster_prompt(rnd: dict, movie: dict, style: str) -> str:
     phrase, _ = STYLES[style]
-    parts = [f"{phrase}, {STYLE_CORE}.",
-             f"A dramatic movie poster key-art illustration for an animated film called '{movie['title']}'. "
-             f"{movie['visual']} The four robots (and The Boss, smaller, behind them) are the stars, posed heroically.",
-             f"Composition: portrait {ASPECT}; the robots in the middle; the top 20% and the bottom 30% darker and simpler "
-             "because titles and badges are added afterwards."]
-    if has_refs:
-        parts.append("The attached reference image is the character sheet of the four robots and The Boss: match their "
-                     "designs exactly and do not copy its plain background.")
-    parts.append(HARD_RULES)
-    prompt = " ".join(parts)
+    prompt = " ".join([
+        f"{phrase}, {STYLE_CORE}.",
+        f"A dramatic movie poster key-art illustration for a film called '{movie['title']}'. {movie['visual']}",
+        f"Composition: portrait {ASPECT}; the main characters in the middle; the top 30% and the bottom 30% darker and "
+        "simpler because titles and badges are added afterwards.",
+        HARD_RULES])
     assert_sealed(rnd, prompt)   # the poster never carries an outcome label
+    return prompt
+
+
+MOVIE_REVEAL_MOMENT = ("the tense moment just before the decisive event: everything is still undecided, both sides "
+                       "hopeful, and the outcome is not shown")
+
+
+def movie_frame_prompt(rnd: dict, kind: str, movie: dict, style: str) -> str:
+    """Step 3: a new still from the market's movie, starting from its poster (the attached image). Reveal frames are
+    sealed (no outcome); results frames show the real ending."""
+    moment, ending = MOVIE_REVEAL_MOMENT, ""
+    if kind == "results" and rnd.get("winner"):   # the market's real ending, told in the movie's own world
+        moment = "the movie's ending, the big emotional climax"
+        ending = (f" In the story, the answer to the question '{short_question(rnd.get('question') or '')}' turned out "
+                  f"to be: {rnd['winner']}. Show exactly that ending, in pictures only: whoever that answer favours "
+                  f"celebrates wildly, whoever it goes against is crushed. Make it unmistakable at a glance.")
+    phrase, _ = STYLES[style]
+    prompt = " ".join([
+        f"{phrase}, {STYLE_CORE}.",
+        f"A new still from the movie '{movie['title']}'. The attached image is its poster: keep the poster's world, "
+        f"characters, art style and colour palette exactly, but compose a new scene. The movie: {movie['idea']}",
+        f"This still shows {moment}.{ending}",
+        f"Composition: portrait {ASPECT}; the action in the middle band; the top 35% and the bottom 30% darker and "
+        "simpler because a quote, titles and badges are added there afterwards.",
+        HARD_RULES])
+    if kind != "results":
+        assert_sealed(rnd, prompt)
     return prompt
 
 
@@ -766,10 +787,12 @@ class SceneService:
             return None
         refs = _ref_inputs(style) if self.s.scene_images_references else []
         movie = await self.movie(rnd, style, key) if self.s.scene_movie else None
-        if movie:   # step 3: the post image starts from the market's movie poster, in the poster's style
-            style = movie["style"]
-            refs = [_image_part(self.movie_poster(rnd["round_id"]))] + (_ref_inputs(style) if self.s.scene_images_references else [])
-        prompt = build_prompt(rnd, kind, has_refs=bool(refs), fmt=fmt, gags=gags, style=style, movie=movie)
+        if movie:   # step 3: the post image is a new still from the market's movie, starting from its poster
+            style, fmt = movie["style"], "scene"
+            refs = [_image_part(self.movie_poster(rnd["round_id"]))]
+            prompt = movie_frame_prompt(rnd, kind, movie, style)
+        else:
+            prompt = build_prompt(rnd, kind, has_refs=bool(refs), fmt=fmt, gags=gags, style=style)
         made = await self._make(post_key, prompt, refs, out, key)
         if made:
             made.with_suffix(".fmt").write_text(fmt)
@@ -801,8 +824,8 @@ class SceneService:
         try:
             pitch = check_pitch(await asyncio.wait_for(TextClient(self.s, key, self.transport).json(movie_pitch_prompt(rnd)),
                                                        timeout=self.s.scene_images_timeout_s + 10))
-            refs = _ref_inputs(style) if self.s.scene_images_references else []
-            prompt = movie_poster_prompt(rnd, pitch, style, bool(refs))
+            refs = []
+            prompt = movie_poster_prompt(rnd, pitch, style)
         except SceneQuota:
             SceneService.quota_until = time.time() + QUOTA_BACKOFF_S
             return None

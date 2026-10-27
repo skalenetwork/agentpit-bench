@@ -28,19 +28,23 @@ def test_check_pitch_accepts_and_rejects():
 
 def test_pitch_prompt_has_market_and_cast_but_no_picks():
     p = scenes.movie_pitch_prompt(rnd("running"))
-    assert "Vissel Kobe" in p and "The Boss" in p
+    assert "Vissel Kobe" in p and "robot" not in p.lower()
     assert "picked" not in p.lower()
 
 
 def test_poster_prompt_is_sealed_and_textless():
-    p = scenes.movie_poster_prompt(rnd("running"), PITCH, "cartoon", True)
-    assert "Robo-Derby" in p and "character sheet" in p
+    p = scenes.movie_poster_prompt(rnd("running"), PITCH, "cartoon")
+    assert "Robo-Derby" in p and "robot" not in p.lower().replace(PITCH["visual"].lower(), "")
 
 
 def test_post_prompt_starts_from_the_poster():
-    p = scenes.build_prompt(rnd(), "results", has_refs=True, movie=PITCH)
-    assert "new frame from the movie 'Robo-Derby: Harbor Clash'" in p
-    assert "second attached image is the character sheet" in p
+    p = scenes.movie_frame_prompt(rnd(), "results", PITCH, "cartoon")
+    assert "new still from the movie 'Robo-Derby: Harbor Clash'" in p and "turned out to be: Yes" in p
+
+
+def test_reveal_frame_is_sealed():
+    p = scenes.movie_frame_prompt(rnd("running"), "reveal", PITCH, "cartoon")
+    assert "turned out" not in p and "undecided" in p
 
 
 def test_short_question_drops_the_date():
