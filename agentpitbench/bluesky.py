@@ -33,7 +33,10 @@ VIDEO_MAX = 100_000_000      # lexicon allows 300 MB now; the bench's films are 
 VIDEO_SERVICE = "https://video.bsky.app"
 PUBLIC_APPVIEW = "https://public.api.bsky.app"
 MIRROR_KINDS = {"reveal", "decision", "split", "results", "press", "motd", "motd-link", "milestone", "champion",
-                "race", "awards", "replay", "week", "week-link", "labs_week"}
+                "race", "awards", "replay", "week", "week-link", "labs_week", "digest", "results_digest"}
+# posts v3 (docs/posts-v3-spec.md): Bluesky gets results, films and the weekly posts, never the picks posts. Bluesky
+# only: Threads shares MIRROR_KINDS and keeps them.
+BSKY_V3_SKIP = {"reveal", "digest", "decision", "split", "debate", "hype"}
 # the labs behind the X handles in twitter.VENDOR_HANDLES, used when no verified Bluesky handle is configured
 LAB_NAMES = {"claude": "Anthropic", "codex": "OpenAI", "agy": "Google DeepMind", "grok": "xAI"}
 URL_RE = re.compile(r"https?://[^\s]+")
@@ -323,6 +326,9 @@ class Mirror:
                    fallback: Path | None = None) -> str | None:
         """Never raises. Returns the Bluesky uri (or dry-<key>), or None."""
         if not self.enabled or kind not in MIRROR_KINDS:
+            return None
+        if self.s.posts_v3 and kind in BSKY_V3_SKIP:
+            log.info("bluesky: %s not mirrored (posts v3: no picks posts on Bluesky)", post_key)
             return None
         try:
             row = self.db.one("SELECT uri FROM bsky_posts WHERE post_key=?", post_key)

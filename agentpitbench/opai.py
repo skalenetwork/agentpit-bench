@@ -36,7 +36,7 @@ log = logging.getLogger(__name__)
 # methodology.json (selection.rater.prompt_version), never from here.
 PROMPTS = {"rate": 1, "picks": 1, "summary": 1, "report": 2, "incident": 1, "cadence": 1, "i18n": 2,
            "proposal": 2, "translate": 1, "ab": 2, "motd_script": 2, "weekly_episode": 2,
-           "ops": 1, "release_tweet": 1}   # ops: the nightly agent (ops.py), not a call()
+           "ops": 1, "release_tweet": 1, "post": 1}   # ops: the nightly agent (ops.py), not a call()
 SYSTEM_PROMPT = "system.v1.md"
 LIGHT_TASKS = {"picks"}
 CHILD_PATH = "/usr/local/bin:/usr/bin:/bin"
@@ -138,6 +138,10 @@ SCHEMAS: dict[str, dict | Callable[[dict], dict]] = {
     "motd_script": lambda payload: _motd_schema(),
     "weekly_episode": lambda payload: _week_schema(payload),
     "release_tweet": _obj({"text": _STR}),   # announce.py: the operator's X draft for a deploy
+    # posts3.py: the Pit Boss writer; n posts (a debate thread is several), checked by posts3.validate
+    "post": lambda payload: _obj({"texts": {"type": "array", "items": _STR,
+                                            "minItems": int(payload.get("n_posts") or 1),
+                                            "maxItems": int(payload.get("n_posts") or 1)}}),
 }
 
 

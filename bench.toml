@@ -37,7 +37,8 @@ posting_paused = false
 # operator 2026-10-13: two posts per market on X (and its mirrors): the opening (reveal) and the closing
 # (results). No replies, no press, films, replays, awards, reports or other extra posts.
 # operator 2026-10-27 virality push: adds grok_ask and labs_week (overrides the 10-13 two-posts-per-market rule for these two; report_month: the monthly report thread)
-post_kinds = ["reveal", "results", "week", "motd", "reply-back", "grok_ask", "labs_week", "report_month", "shoutout"]   # + weekly episode, daily film, F2 reply-back (operator 2026-10-13; X "Automated" label set)
+post_kinds = ["reveal", "results", "week", "motd", "reply-back", "grok_ask", "labs_week", "report_month", "shoutout",   # + weekly episode, daily film, F2 reply-back (operator 2026-10-13; X "Automated" label set)
+              "digest", "results_digest"]   # operator 2026-10-27 posts v3: the daily board and results digest
 grok_ask_enabled = true     # daily "@grok, who's right?" quote of the best split reveal (X only, not mirrored)
 labs_week_enabled = true    # Sunday: this week's P&L per AI, tagging the four labs (mirrored with lab names)
 summons_line_every = 3      # "Want the AIs on your market? Tag @agentpitbench" on ~1 in 3 results posts (X only)
@@ -45,6 +46,7 @@ summons_line_every = 3      # "Want the AIs on your market? Tag @agentpitbench" 
 x_like_replies = true
 x_shoutouts = true
 x_follow_back = true
+posts_v3 = true           # operator 2026-10-27 posts v3: Pit Boss voice, top-3 reveals, daily board + results digest, no reveals on Bluesky
 reveal_window = true      # virality-2 F1: the reveal waits for its live window (T-3h .. T-15min before kickoff)
 
 agents = ["claude", "codex", "agy", "grok"]
@@ -80,7 +82,7 @@ selection_review_enabled = true
 # versioned, logged; revert with `agentpitbench method revert <version>`)
 selection_auto_apply = true
 opai_tasks = ["rate", "picks", "summary", "incident", "i18n", "translate", "motd_script", "weekly_episode",
-              "cadence", "proposal", "ab", "release_tweet"]   # release_tweet: the operator's daily X draft (announce.py)
+              "cadence", "proposal", "ab", "release_tweet", "post"]   # post: posts v3 writer (operator 2026-10-27); release_tweet: the operator's daily X draft (announce.py)
 ab_gen_enabled = true      # operator 2026-10-12: Claude-written variants on (code validator + live control arm)
 # Backend (docs/backend-api.md): Worker live at api.agentpitbench.org since 2026-10-19; Google client in project
 # agentpitbench-site (public id; the Worker holds the same value as its GOOGLE_CLIENT_ID secret)
@@ -103,3 +105,4 @@ proposal = 2               # the weekly review plus one retry told why the first
 ab = 2
 translate = 80          # 3 calls per round (13 languages each): ~26 rounds/day during the backfill
 motd_script = 15       # a film per round (5/day), each with one retry
+post = 24              # operator 2026-10-27 posts v3 writer: ~15 posts/day + retries; templates beyond it

@@ -46,6 +46,9 @@ TAG = "#AgentpitBench"
 # Vendor accounts, tagged only on results tweets for the round's winners (never on decisions or splits).
 REPLY_BACK = "reply-back"   # F2: an answer to someone who replied to our reveal/results post first
 SHOUTOUT = "shoutout"       # engage_x: a human beat all the AIs; a reply under the results post
+# the only kinds that may reply while post_kinds is set (each still has to be listed there): F2 reply-back, the engage_x shout-out, the
+# posts-v3 debate thread under a reveal, and the monthly report's thread posts 2-4
+REPLY_KINDS = {REPLY_BACK, SHOUTOUT, "debate", "report_month"}
 VENDOR_HANDLES = {"claude": "@AnthropicAI", "codex": "@OpenAI", "agy": "@GoogleDeepMind", "grok": "@xai"}
 
 
@@ -591,7 +594,7 @@ class Poster:
         poll: {"options": [labels], "duration_minutes": n}: a native X poll. X polls carry no media, so on X the
         post is text + poll only; the mirrors (no polls there) still get the text and `image`."""
         # mirrors follow X: nothing either. The one reply allowed is a listed "reply-back" (docs/virality-2-spec.md F2)
-        if self.s.post_kinds and (kind not in self.s.post_kinds or (reply_to and kind not in (REPLY_BACK, SHOUTOUT))):
+        if self.s.post_kinds and (kind not in self.s.post_kinds or (reply_to and kind not in REPLY_KINDS)):
             log.info("[not posted] %s: only %s posts, no replies", post_key, "/".join(self.s.post_kinds))
             return None
         if kind in (REPLY_BACK, SHOUTOUT) and not self.s.post_kinds:   # never by default: only when listed
