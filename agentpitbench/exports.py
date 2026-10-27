@@ -269,6 +269,9 @@ def export(s: Settings, db: DB) -> dict:
     _write(out / "newsworthiness.json", json.dumps(export_rows(db), indent=1))
     reports = weekly_reports(s, db, rounds, lb)
     _write(out / "reports.json", json.dumps(reports, indent=1))
+    from . import monthly  # "Which AI is the best forecaster?", one report per UTC month (kept apart from the weekly dicts)
+    months = monthly.build_all(s, rounds, db)
+    _write(out / "months.json", json.dumps(months, indent=1))
     cols = ["round_id", "market_id", "question", "state", "winner", "agent", "outcome", "avg_price",
             "shares_filled", "stake_filled", "confidence", "decided_s", "exit_reason", "model_reported",
             "payout", "pnl", "rationale", "quote"]
@@ -280,7 +283,7 @@ def export(s: Settings, db: DB) -> dict:
             for e in r["entries"]:
                 w.writerow([r.get(c) if c in r and c not in e else e.get(c) for c in cols])
     tmp.replace(out / "bets.csv")
-    return {"rounds": rounds, "leaderboard": lb, "reports": reports}
+    return {"rounds": rounds, "leaderboard": lb, "reports": reports, "months": months}
 
 
 def _iso_week(ts: float) -> str:

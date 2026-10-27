@@ -36,8 +36,8 @@ dry_run = true
 posting_paused = false
 # operator 2026-10-13: two posts per market on X (and its mirrors): the opening (reveal) and the closing
 # (results). No replies, no press, films, replays, awards, reports or other extra posts.
-# operator 2026-10-27 virality push: adds grok_ask and labs_week (overrides the 10-13 two-posts-per-market rule for these two)
-post_kinds = ["reveal", "results", "week", "motd", "reply-back", "grok_ask", "labs_week"]   # + weekly episode, daily film, F2 reply-back (operator 2026-10-13; X "Automated" label set)
+# operator 2026-10-27 virality push: adds grok_ask and labs_week (overrides the 10-13 two-posts-per-market rule for these two; report_month: the monthly report thread)
+post_kinds = ["reveal", "results", "week", "motd", "reply-back", "grok_ask", "labs_week", "report_month"]   # + weekly episode, daily film, F2 reply-back (operator 2026-10-13; X "Automated" label set)
 grok_ask_enabled = true     # daily "@grok, who's right?" quote of the best split reveal (X only, not mirrored)
 labs_week_enabled = true    # Sunday: this week's P&L per AI, tagging the four labs (mirrored with lab names)
 summons_line_every = 3      # "Want the AIs on your market? Tag @agentpitbench" on ~1 in 3 results posts (X only)
@@ -64,6 +64,8 @@ telegram_enabled = true
 
 # Week in the Pit (docs/week-in-the-pit-spec.md): weekly episode, Sundays 18:00 UTC
 week_episode_enabled = true
+# Monthly report "Which AI is the best forecaster?": thread + 60 s film on the 1st of each month, 15:00 UTC (operator 2026-10-27 virality push)
+report_month_enabled = true
 
 # Operator decisions 2026-10-12: YouTube AI-narrator disclosure; cadence + selection reviewers in shadow/propose mode
 youtube_synthetic_media = true

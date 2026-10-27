@@ -96,6 +96,12 @@ class Settings:
     week_episode_prep_hour_utc: int = 14    # from this hour: the writer (idle windows only), then the render
     week_episode_hour_utc: int = 18         # from this hour: the post (after that week's race/awards post)
     week_episode_fps: int = 15
+    # Monthly report "Which AI is the best forecaster?" (operator 2026-10-27 virality push): on the 1st (UTC), the
+    # report's film renders from the prep hour and the 4-post thread (kind "report_month") goes out from the post hour.
+    report_month_enabled: bool = False
+    report_month_prep_hour_utc: int = 12
+    report_month_hour_utc: int = 15
+    report_month_fps: int = 15
     week_episode_credit_budget: int = 4000  # ElevenLabs credits per episode for the host's uncached lines
     week_episode_calls_per_week: int = 1    # opai weekly_episode calls per ISO week (no retry: templated lines)
     opai_model_weekly_episode: str = "fable"

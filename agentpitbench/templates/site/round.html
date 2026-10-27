@@ -51,6 +51,7 @@
 {{ bkm.discussion(r.round_id) }}{% endif %}
 {% if same_cat %}<h2>{{ _("More markets in {category}", category=_(cat)) }}</h2><ul>{% for x in same_cat %}<li><a href="{{ home }}round/{{ x.round_id }}/">{{ mq(x.question) }}</a></li>{% endfor %}</ul>{% endif %}
 <p class="small">{% if prev_r %}<a href="{{ home }}round/{{ prev_r.round_id }}/" rel="prev">← {{ _("Previous round") }}</a>{% endif %}{% if prev_r and next_r %} · {% endif %}{% if next_r %}<a href="{{ home }}round/{{ next_r.round_id }}/" rel="next">{{ _("Next round") }} →</a>{% endif %}</p>
+{% include "_ask.html" %}
 {% if img or picks or wins %}{{ m.share_script() }}{% endif %}
 {% if bk %}{{ bkm.script() }}{% endif %}
 {% endblock %}

@@ -48,6 +48,21 @@ def pull_due(s: Settings, db, client, now: float | None = None) -> dict:
             except Exception as e:
                 log.exception("tt %s: upload step failed", key)
                 out["uploaded"].append({key: f"error: {e}"})
+    if not tiktok.killed(db):   # the monthly report film (cards/report/<month>/record.json, the 9:16 cut)
+        from .ytstats import month_candidates
+        for rec, d in month_candidates(s, now):
+            key = tiktok.post_key(rec["date"])
+            cur = tiktok.row(db, key)
+            if cur and cur["state"] != "uploading":
+                continue
+            try:
+                r = tiktok.upload(s, db, client, rec, d)
+                out["uploaded"].append({key: r["state"]})
+            except tiktok.AccountMismatch:
+                pass
+            except Exception as e:
+                log.exception("tt %s: upload step failed", key)
+                out["uploaded"].append({key: f"error: {e}"})
     if client is None or s.dry_run:
         return out
     for step, fn in (("status", _status), ("match", _match), ("metrics", _metrics)):

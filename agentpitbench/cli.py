@@ -296,6 +296,15 @@ async def run_forever(s: config.Settings) -> None:
         if await week.weekly(s, db, pub.cards, pub.poster):
             pub.site.request()
 
+    async def monthly_report():
+        """Every 30 min; does nothing unless report_month_enabled: the 1st (UTC), the previous month's report (PDF, film)
+        from report_month_prep_hour_utc and its 4-post thread from report_month_hour_utc (operator 2026-10-27)."""
+        if not s.report_month_enabled or not hasattr(pub, "cards"):
+            return
+        from . import monthly_media
+        if await monthly_media.due(s, db, pub.cards, pub.poster):
+            pub.site.request()
+
     if engage is not None:
         await engage.cache_wallets()
     stop = asyncio.Event()
@@ -314,6 +323,7 @@ async def run_forever(s: config.Settings) -> None:
         asyncio.create_task(_every(1800, daily_sweep, "sweep")),
         asyncio.create_task(_every(3600, match_of_the_day, "match of the day")),
         asyncio.create_task(_every(1800, week_in_the_pit, "week in the pit")),
+        asyncio.create_task(_every(1800, monthly_report, "monthly report")),
         asyncio.create_task(_every(s.resolution_check_s, score_forecasts, "forecast scoring")),
         asyncio.create_task(_every(300, lambda: ops_tick(s, db), "anomalies")),  # also runs once at startup
         asyncio.create_task(_every(300, lambda: announce_tick(s, db), "announce")),  # operator's X draft per deploy
@@ -421,6 +431,41 @@ async def week_render(s: config.Settings, wk: str | None, out: str | None, write
     finally:
         await cards.close()
     print(json.dumps(rec, indent=1, ensure_ascii=False) if rec else f"no episode for {wk} (no rounds or films)")
+
+
+async def report_month_cmd(s: config.Settings, month: str | None, dry: bool, out: str | None, no_video: bool) -> None:
+    """`report month`: build the monthly report for review (default: the month before this one). --dry prints the
+    numbers, the blurb and the thread and writes nothing; otherwise the PDF and the films are rendered into
+    cards/report/<month>/ (or --out). Never posts or uploads."""
+    from . import monthly, monthly_media
+    db = DB(s.db_path)
+    month = month or monthly.previous_month()
+    if dry:
+        exp = exports.export(s, db)
+        rep = monthly_media.find(exp["months"], month)
+        if rep is None:
+            print(f"no resolved rounds in {month}")
+            return
+        url = monthly_media.report_url(s, month)
+        print(json.dumps({"headline": monthly.headline(rep),
+                          "agents": [{k: a[k] for k in ("name", "wins", "losses", "win_rate", "pnl", "roi", "avg_conf",
+                                                        "conf_win_rate")} for a in rep["agents"]],
+                          "crowd": {k: v for k, v in rep["crowd"].items() if k != "series"},
+                          "unanimous": rep["unanimous"], "humans": rep["humans"], "forecasts": rep["forecasts"],
+                          "best": rep["best"], "worst": rep["worst"], "blurb": monthly.blurb(rep, url),
+                          "thread": monthly.thread(rep, monthly_media.report_url(s, month, monthly_media.utm("x", month))),
+                          "scenes_s": [round(x["dur"], 1) for x in monthly.scenes(rep, s.site_url)],
+                          "schedule": f"1st of the next month UTC: render from {s.report_month_prep_hour_utc:02d}:00, "
+                                      f"post from {s.report_month_hour_utc:02d}:00 (report_month_enabled="
+                                      f"{s.report_month_enabled})"}, indent=1, ensure_ascii=False))
+        return
+    from .cards import CardRenderer
+    cards = CardRenderer(s)
+    try:
+        rec = await monthly_media.make(s, db, cards, month, out_dir=out, video=not no_video)
+    finally:
+        await cards.close()
+    print(json.dumps(rec, indent=1, ensure_ascii=False) if rec else f"no report for {month} (no resolved rounds)")
 
 
 async def check(s: config.Settings) -> None:
@@ -900,6 +945,13 @@ def main(argv: list[str] | None = None) -> None:
     wk.add_argument("--voice-lines", type=int, default=None,
                     help="narrate at most this many uncached host lines (sample renders); default: all in budget")
     wk.add_argument("--now", help="render as of this UTC time (ISO), e.g. a past week's Sunday evening")
+    rm = sub.add_parser("report", help="monthly report 'Which AI is the best forecaster?': `report month` builds the "
+                                       "PDF and the films for review; never posts")
+    rm.add_argument("what", choices=["month"])
+    rm.add_argument("--month", help="YYYY-MM (default: the previous month)")
+    rm.add_argument("--dry", action="store_true", help="print the numbers, blurb, thread and schedule; render nothing")
+    rm.add_argument("--out", help="output directory (default: cards/report/<month>/)")
+    rm.add_argument("--no-video", action="store_true", help="the PDF only")
     xc = sub.add_parser("x-check", help="refresh the X OAuth 2.0 token, show scopes and account (never tweets)")
     xc.add_argument("--upload", action="store_true", help="also upload a tiny test image (not attached to a tweet)")
     xm = sub.add_parser("x-metrics", help="run one X metrics pull now (billed reads, within the daily budget)")
@@ -1051,6 +1103,8 @@ def main(argv: list[str] | None = None) -> None:
     elif a.cmd == "week":
         asyncio.run(week_render(s, a.week, a.out, not a.no_writer, a.voice_lines,
                                 datetime.fromisoformat(a.now).replace(tzinfo=timezone.utc).timestamp() if a.now else None))
+    elif a.cmd == "report":
+        asyncio.run(report_month_cmd(s, a.month, a.dry, a.out, a.no_video))
     elif a.cmd == "x-login":
         x_login(s, a.url, a.redirect_uri)
     elif a.cmd == "x-check":

@@ -118,6 +118,9 @@ def caption(s: Settings, rec: dict) -> str:
     plain words, the site as plain text (links in captions aren't clickable), "AI-voiced." when narrated, hashtags.
     At most 2,200 characters: the hook is shortened first."""
     from .youtube import narrated
+    if rec.get("report_month"):   # the monthly report film (monthly_media): code-written, no round behind it
+        return _clip(f"{rec['headline']} Standings and every bet: {_host(s)}/reports/{rec['month']}/ #AgentpitBench "
+                     "#AI #Claude #ChatGPT #Gemini #Grok", CAPTION_MAX)
     q = _clean(rec.get("question"))
     tail = []
     if rec.get("winner"):
