@@ -1,6 +1,6 @@
-# "Make your own pick" — signed-in picks (spec v0.2)
+# "Make your own pick" — signed-in picks (spec v0.3)
 
-Status: draft for operator review, 2026-10-19. A delta against `docs/backend-api.md` (contract v1: Google-only
+Status: approved 2026-10-19; v0.3 2026-10-27. A delta against `docs/backend-api.md` (contract v1: Google-only
 auth, `POST /v1/picks`, D1, lock at AI start) and `docs/daily-challenge-spec.md` v0.3 (Beat the AIs, today
 browser-only). Nothing here goes live until the backend credentials exist (`GOOGLE_CLIENT_ID`, Cloudflare
 Workers + D1 token) and `backend_enabled = true`.
@@ -13,15 +13,13 @@ Operator decisions (2026-10-19):
   methodology proposal approved by the operator; see §7.
 - **Finished rounds:** the red button becomes "pick the next one".
 
-Open questions for the operator (raised in review; the spec as written assumes the first option):
-- **Q1. Challenge picks are almost all late.** Challenge sets are rounds closing today, and their AIs have
-  already started. Under "lock at AI start", a challenge pick never counts as beating the AIs (§4).
-  Options:
-  - (a) Keep today's sets. Challenge picks are late picks: fun, grid and streak only.
-  - (b) Build sets from markets that close today and have not locked yet (the `upcoming` list). Every
-    challenge pick then counts, but there will be fewer and smaller sets.
-- **Q2. One person picking on both X and the site** counts twice as two humans. Options: (a) accept it;
-  (b) let users link their X handle and count them once.
+Answered 2026-10-19/27 (spec approved):
+- **Q1 → (b).** Challenge sets are built from markets that close today and have **not** locked yet (the
+  `upcoming` list), so every challenge pick counts. Late picks (§4) remain for round pages only.
+- **Q2 → (b).** A signed-in user can link their X handle (`/me/` → "Link X handle": they reply to a one-time code
+  posted by the site, the bot reads the code from mentions and links). A linked person counts once: their site
+  pick wins over an X-reply pick on the same market.
+- **Rollout:** build now; operator 2026-10-27: **live as soon as tests pass** (no wait for a manual sign-in test).
 
 ## 1. Goal and stopping rule
 
@@ -136,7 +134,8 @@ pick.
   `{user_public_id, name, market_id, outcome, created_at, late:false}`.
 - The bot stores them in `humans` with `source='site'`, `user_id='site:'+id` and
   `username=name`. Late picks are never pulled.
-- One person picking both on the site and on X counts twice. See open question Q2.
+- One person picking both on the site and on X counts once after they link their X handle (Q2). The bot drops
+  the X-reply pick of a linked user when a site pick exists for the same market.
 - The public humans leaderboard merges `x` and `site` sources. **This is a methodology change.** There is
   no methodology key for human pick sources today, and `method propose` refuses a text-only change. So
   the code first adds `humans_sources: ["x"]` to the methodology knobs, behaviour unchanged. Then the
