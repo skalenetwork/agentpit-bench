@@ -48,6 +48,11 @@ x_shoutouts = true
 x_follow_back = true
 posts_v3 = true           # operator 2026-10-27 posts v3: Pit Boss voice, top-3 reveals, daily board + results digest, no reveals on Bluesky
 reveal_window = true      # virality-2 F1: the reveal waits for its live window (T-3h .. T-15min before kickoff)
+# operator 2026-10-27: AI scene per post (Gemini), bold cartoon. Needs GEMINI_API_KEY in secrets.env (billing-enabled
+# project); without it every post silently keeps today's card. See docs/scene-images.md.
+scene_images_enabled = true
+# scene_images_model = "gemini-3.1-flash-image"
+# scene_images_per_day = 30
 
 agents = ["claude", "codex", "agy", "grok"]
 excluded_keywords = ["death", "dies", "die ", "killed", "shooting", "war ", "attack", "terror", "earthquake", "hurricane", "flood", "wildfire", "disaster", "casualt", "murder", "assassinat", "elon musk post"]
