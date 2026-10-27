@@ -368,9 +368,10 @@ class BenchPublisher:
         texts, src = await posts3.compose(self.s, self.db, "reveal", facts, lambda: posts3.reveal_template(facts),
                                           subject=f"round:{round_id}:reveal")
         split = self.s.cards_dir / str(round_id) / "split.png"
+        poster = split.with_name("split-poster.png")   # the 4:5 AI-scene poster when one was made (scenes.py)
         cards = [p for e in rnd["entries"]
                  if (p := self.s.cards_dir / str(round_id) / f"decision-{e['agent']}.png").exists()]
-        media = split if split.exists() else (cards[0] if cards else None)
+        media = poster if poster.exists() else split if split.exists() else (cards[0] if cards else None)
         async with self._lock(round_id):
             tid = await self.poster.post(key, "reveal", texts[0], media, round_id=round_id)
             if tid:
