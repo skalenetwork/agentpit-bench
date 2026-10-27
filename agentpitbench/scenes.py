@@ -600,7 +600,34 @@ def _ref_inputs(style: str = "cartoon") -> list[dict]:
 
 
 TEXT_URL = API_URL
+# operator 2026-10-27: pick the genre and the director first, then write the pitch
+GENRES = ["comedy", "action", "thriller", "heist", "western", "science fiction", "fantasy adventure", "horror comedy",
+          "musical", "romantic comedy", "sports drama", "film noir", "spy caper", "disaster movie", "martial arts",
+          "space opera", "mystery whodunit", "war epic", "coming-of-age", "mockumentary"]
+DIRECTORS_FILE = SHEET_DIR / "directors.json"     # 1000 well-known film directors, all eras and countries
+
+
+def directors() -> list[str]:
+    try:
+        return json.loads(DIRECTORS_FILE.read_text())
+    except (OSError, ValueError):
+        return ["Wes Anderson"]
+
+
+def pick_genre_director(round_id, recent: list[dict] | None = None) -> tuple[str, str]:
+    """Step 0, before any writing: a genre (of 20) and a director (of 1000) for this market's movie. Seeded by the
+    round; avoids the genres of the last 5 movies and every director already used."""
+    rng = random.Random(f"movie:{round_id}")
+    recent = recent or []
+    used_g = {m.get("genre") for m in recent[-5:]}
+    used_d = {m.get("director") for m in recent}
+    genres = [g for g in GENRES if g not in used_g] or GENRES
+    names = [d for d in directors() if d not in used_d] or directors()
+    return rng.choice(genres), rng.choice(names)
+
+
 MOVIE_PITCH = """You pitch fun, family-friendly movies. Write a movie idea about the subject of this prediction market.
+Genre: {genre}. Write it the way {director} would make it: their signature tone, themes, storytelling and visual style.
 Invent whatever characters and world fit the subject best (people, animals, creatures, anything).
 Market: {question}
 Event: {event}
@@ -612,8 +639,8 @@ Return JSON only, with exactly these keys:
  "visual": "one or two sentences describing the world, the main characters and the mood of the film for an illustrator"}}"""
 
 
-def movie_pitch_prompt(rnd: dict) -> str:
-    return MOVIE_PITCH.format(question=" ".join((rnd.get("question") or "").split()),
+def movie_pitch_prompt(rnd: dict, genre: str = "comedy", director: str = "Wes Anderson") -> str:
+    return MOVIE_PITCH.format(genre=genre, director=director, question=" ".join((rnd.get("question") or "").split()),
                               event=" ".join((rnd.get("event_title") or "").split()) or "-")
 
 
@@ -621,7 +648,8 @@ def movie_poster_prompt(rnd: dict, movie: dict, style: str) -> str:
     phrase, _ = STYLES[style]
     prompt = " ".join([
         f"{phrase}, {STYLE_CORE}.",
-        f"A dramatic movie poster key-art illustration for a film called '{movie['title']}'. {movie['visual']}",
+        f"A dramatic movie poster key-art illustration for a {movie.get('genre', '')} film called '{movie['title']}'. "
+        f"{movie['visual']}",
         f"Composition: portrait {ASPECT}; the main characters in the middle; the top 30% and the bottom 30% darker and "
         "simpler because titles and badges are added afterwards.",
         HARD_RULES])
@@ -786,7 +814,7 @@ class SceneService:
             log.info("%s: scene cap (%s a day) reached; plain card", post_key, self.s.scene_images_per_day)
             return None
         refs = _ref_inputs(style) if self.s.scene_images_references else []
-        movie = await self.movie(rnd, style, key) if self.s.scene_movie else None
+        movie = await self.movie(rnd, self.s.scene_movie_style or style, key) if self.s.scene_movie else None
         if movie:   # step 3: the post image is a new still from the market's movie, starting from its poster
             style, fmt = movie["style"], "scene"
             refs = [_image_part(self.movie_poster(rnd["round_id"]))]
@@ -803,6 +831,16 @@ class SceneService:
 
     def movie_poster(self, round_id) -> Path:
         return self.dir / f"movie-r{round_id}.png"
+
+    def recent_movies(self, n: int = 200) -> list[dict]:
+        """The latest movies (oldest first), for genre/director variety."""
+        out = []
+        for p in sorted(self.dir.glob("movie-r*.json"), key=lambda p: p.stat().st_mtime)[-n:]:
+            try:
+                out.append(json.loads(p.read_text()))
+            except (OSError, ValueError):
+                pass
+        return out
 
     def movie_of(self, round_id) -> dict | None:
         """The market's movie (title, idea, visual, style) once its poster exists, else None."""
@@ -821,10 +859,13 @@ class SceneService:
         have = self.movie_of(rid)
         if have:
             return have
+        genre, director = pick_genre_director(rid, self.recent_movies())
         try:
-            pitch = check_pitch(await asyncio.wait_for(TextClient(self.s, key, self.transport).json(movie_pitch_prompt(rnd)),
+            pitch = check_pitch(await asyncio.wait_for(TextClient(self.s, key, self.transport).json(
+                movie_pitch_prompt(rnd, genre, director)),
                                                        timeout=self.s.scene_images_timeout_s + 10))
             refs = []
+            pitch = {**pitch, "genre": genre, "director": director}
             prompt = movie_poster_prompt(rnd, pitch, style)
         except SceneQuota:
             SceneService.quota_until = time.time() + QUOTA_BACKOFF_S
@@ -836,7 +877,7 @@ class SceneService:
             return None
         meta = {**pitch, "style": style, "round_id": rid, "created_at": time.time()}
         self.movie_meta(rid).write_text(json.dumps(meta, ensure_ascii=False, indent=1))
-        log.info("round %s: movie '%s' (%s)", rid, pitch["title"], style)
+        log.info("round %s: movie '%s' (%s, %s, %s)", rid, pitch["title"], genre, director, style)
         return meta
 
     async def _make(self, post_key: str, prompt: str, refs: list[dict], out: Path, key: str) -> Path | None:

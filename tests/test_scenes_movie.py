@@ -55,3 +55,14 @@ def test_short_question_drops_the_date():
 def test_claim_picks_a_confident_loser_in_a_defeat():
     c = scenes.poster_claim(rnd(), "results")
     assert c["stamp"] in ("WRONG", "CALLED IT") and c["question"] == "Will Vissel Kobe win?"
+
+
+def test_genre_and_director_are_picked_first_and_vary():
+    assert len(scenes.GENRES) == 20 and len(scenes.directors()) == 1000
+    g, d = scenes.pick_genre_director(7)
+    assert g in scenes.GENRES and d in scenes.directors()
+    assert scenes.pick_genre_director(7) == (g, d)   # stable per market
+    g2, d2 = scenes.pick_genre_director(7, [{"genre": g, "director": d}])
+    assert g2 != g and d2 != d
+    p = scenes.movie_pitch_prompt(rnd("running"), g, d)
+    assert f"Genre: {g}." in p and d in p

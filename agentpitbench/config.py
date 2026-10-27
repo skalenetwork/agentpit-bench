@@ -111,6 +111,7 @@ class Settings:
     scene_images_enabled: bool = False
     scene_images_model: str = "gemini-3.1-flash-image"
     scene_text_model: str = "gemini-flash-latest"   # the movie pitch (scenes.movie)
+    scene_movie_style: str = "clay"   # operator 2026-10-27: movie posters (and their stills) in 3D plasticine
     scene_movie: bool = False   # operator 2026-10-27: per market a movie idea -> its poster -> every post image starts from it
     scene_images_per_day: int = 30          # image attempts per UTC day (cached posts cost nothing)
     scene_image_cost_usd: float = 0.067     # per 1K image for gemini-3.1-flash-image, Google's pricing page (2026-10-27)

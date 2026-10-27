@@ -88,8 +88,10 @@ class BenchPublisher:
             fmt = fmt or scenes.choose_format(rnd, kind, gags, tuple(self.s.scene_formats))
             style = "cartoon"
             movie = self.scenes.movie_of(rnd.get("round_id")) if self.s.scene_movie else None
-            if movie:   # the market's movie fixed its style at its first post (the A/B arm counts once per market)
+            if movie:   # the market's movie fixed its style at its first post
                 style = movie.get("style") or style
+            elif self.s.scene_movie and self.s.scene_movie_style:   # one house style for movies: no style A/B
+                style = self.s.scene_movie_style
             else:
                 try:   # image.style is an A/B slot (control: bold cartoon): the bandit assigns an arm per market
                     style = ab.choose(self.db, self.s, "image.style", post_key, kind=kind).key or "cartoon"
