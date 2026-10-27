@@ -127,3 +127,78 @@ async def test_start_window_still_respected(s, db):
     finally:
         watcher.start_ok = orig
     assert all("Up or Down" in m["question"] for m in picked)
+
+
+# ---------- marquee markets (docs/marquee-proposal.md): esports cap, marquee boost by league code ----------
+
+CS = "Counter-Strike: Team{0} vs Team{1} (BO3) - PGL Masters Bucharest Group Stage"
+
+
+def test_marquee_defaults_neutral():
+    d = Settings()
+    assert (d.marquee_priority_boost, d.marquee_leagues, d.max_esports_per_day) == (0, [], 0)
+
+
+@pytest.mark.parametrize("slug,want", [("ucl-lin2-liv-2026-10-14-draw", "ucl"), ("epl-sun-lee-2026-10-25-draw", "epl"),
+                                       ("btc-updown-4h-1791907200", "btc"), ("NBA-x", "nba"), (None, ""), ("", "")])
+def test_league(slug, want):
+    from agentpitbench.market_type import league
+    assert league(slug) == want
+
+
+async def test_esports_cap_and_skipped_stay_eligible(s, db):
+    ms = [gamma(i, CS.format(i, i + 100)) for i in range(2, 5)] + [gamma(9, W.format(9))]
+    w = await _watch(s, db, ms)
+    assert len(await w.pick(free_slots=9)) == 4                      # cap 0: no limit
+    db.x("UPDATE seen_markets SET started=0")
+    s.max_esports_per_day = 1
+    picked = await w.pick(free_slots=9)
+    assert [m["question"].startswith("Counter-Strike") for m in picked].count(True) == 1 and len(picked) == 2
+    assert db.one("SELECT COUNT(*) n FROM seen_markets WHERE eligible=1 AND started=0")["n"] == 2
+    for m in picked:
+        db.create_round(m)
+    assert await w.pick(free_slots=9) == []                          # today's esports round already started
+
+
+async def test_esports_cap_counts_alongside_type_caps(s, db):
+    s.max_esports_per_day = 2
+    w = await _watch(s, db, [gamma(i, CS.format(i, i + 100)) for i in range(2, 6)])
+    assert w.type_counts_today() == {}
+    for m in await w.pick(free_slots=9):
+        db.create_round(m)
+    assert w.type_counts_today() == {"match": 2, "esports": 2}
+
+
+async def test_marquee_boost_orders_marquee_first(s, db):
+    s.match_priority_boost = 30
+    ms = [gamma(2, "Will Team2 vs. Team3 end in a draw?", slug="tur-x-y-2026-10-26-draw", volume="900000"),
+          gamma(3, "Will Team4 vs. Team5 end in a draw?", slug="epl-a-b-2026-10-26-draw")]
+    w = await _watch(s, db, ms)
+    assert [m["id"] for m in await w.pick(free_slots=1)] == ["2"]    # no marquee leagues: volume wins
+    db.x("UPDATE seen_markets SET started=0")
+    s.marquee_priority_boost = 40                                    # boost alone, no leagues: still neutral
+    assert [m["id"] for m in await w.pick(free_slots=1)] == ["2"]
+    db.x("UPDATE seen_markets SET started=0")
+    s.marquee_leagues = ["EPL", "ucl"]
+    assert [m["id"] for m in await w.pick(free_slots=1)] == ["3"]
+
+
+async def test_marquee_crypto_beats_ordinary_match(s, db):
+    s.match_priority_boost = 30
+    s.marquee_priority_boost = 40
+    s.marquee_leagues = ["btc"]
+    ms = [gamma(2, W.format(2), slug="tur-x-y-2026-10-26", volume="900000"),
+          gamma(3, UD.format(3), slug="btc-updown-4h-1791907200")]
+    w = await _watch(s, db, ms)
+    assert [m["id"] for m in await w.pick(free_slots=1)] == ["3"]    # 85 + 40 over 85 + 30
+
+
+async def test_marquee_boost_in_model_mode(s, db):
+    s.selection_scoring = "model"
+    s.marquee_priority_boost = 40
+    s.marquee_leagues = ["ucl"]
+    ms = [gamma(2, W.format(2), slug="arg-x-y-2026-10-26"), gamma(3, W.format(3), slug="ucl-x-y-2026-10-26")]
+    w = await _watch(s, db, ms)
+    for mid, score in (("2", 60), ("3", 30)):
+        db.x("INSERT INTO market_ratings(market_id,score,keyword_tier,rated_at) VALUES(?,?,3,0)", mid, score)
+    assert [m["id"] for m in await w.pick(free_slots=1)] == ["3"]    # 30 + 40 over 60

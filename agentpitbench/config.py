@@ -51,6 +51,12 @@ class Settings:
     max_crypto_updown_per_day: int = 0
     max_price_threshold_per_day: int = 0
     match_priority_boost: float = 0
+    # marquee markets (docs/marquee-proposal.md; neutral by default): a boost, in the same rating points, for markets
+    # whose slug prefix (agentpit's league or asset code: "ucl", "epl", "nba", "btc" ...) is in marquee_leagues, and a
+    # per UTC day cap on Esports markets (0: no limit; skipped markets stay eligible)
+    marquee_priority_boost: float = 0
+    marquee_leagues: list[str] = field(default_factory=list)
+    max_esports_per_day: int = 0
     max_category_share: float = 0.4     # no category above this share of the rounds started in 7 days
     max_favourite_price: float = 0.85   # skip near-certain markets: they make dead rounds
     default_slippage: float = 0.05      # a bet without --max-price may fill up to best ask + this

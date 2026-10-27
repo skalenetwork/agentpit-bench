@@ -4,6 +4,9 @@ match            a sports/esports match between named sides ("X vs. Y", "Will X 
 crypto_updown    "Bitcoin Up or Down - October 10, 9PM ET"
 price_threshold  stock/crypto price ladders ("hit (LOW) $256", "dip to $2,400", "reach $84,000", "above $2,500 on Oct 9")
 other            everything else (politics, approval ladders, tweet counts, weather ...)
+
+league(slug) is agentpit's league or asset code, the slug's first part ("ucl-lin2-liv-2026-10-14-draw" -> "ucl",
+"btc-updown-4h-..." -> "btc"): what the marquee boost (marquee_leagues) matches.
 """
 from __future__ import annotations
 
@@ -25,3 +28,7 @@ def market_type(question: str | None, event_title: str | None = None) -> str:
     if (event_title and _VS.search(event_title)) or _VS.search(q) or _WIN_ON.search(q):
         return "match"
     return "other"
+
+
+def league(slug: str | None) -> str:
+    return (slug or "").split("-", 1)[0].lower()
