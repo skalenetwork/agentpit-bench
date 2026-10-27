@@ -31,6 +31,7 @@ https://agentpitbench.org/challenge/2026-10-14/
   round whatever the input holds. No AI pick is ever rendered as HTML; picks are in the JSON block and shown by the
   script only after the visitor locked that question.
 - Site picks are for fun. Picks that count on the public humans leaderboard are replies on X on the round page.
+  (With the backend on, docs/own-pick-spec.md v0.3 applies instead: pre-lock sets, signed-in picks stored in D1.)
 - Page < 100 KB (each page inlines only its own day), no horizontal scroll at 390 px, RTL correct, every site
   language, useful with JavaScript off.
 

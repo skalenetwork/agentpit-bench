@@ -196,6 +196,9 @@ describe('/v1/me challenge (§6)', () => {
     expect(me.data.challenge).toEqual({ streak: 1, best: 2, days_played: 4 });
     expect(me.data.picks.find((p) => p.market_id === 'op-c-2027-02-01-0')).toMatchObject({ challenge_day: '2027-02-01', correct: true });
     expect((await bench('POST', '/v1/ingest/markets', [market('op-c-bad', { challenge_day: 'Feb 1' })])).status).toBe(400);
+    // an unreadable end date is dropped, not a reason to refuse the push
+    expect((await bench('POST', '/v1/ingest/markets', [market('op-c-end', { end_date: 'soon' })])).status).toBe(200);
+    expect((await call('GET', '/v1/markets/op-c-end')).data.market.closes_at).toBeNull();
   });
 });
 

@@ -317,8 +317,8 @@ function validateMarket(raw, i) {
   if (m.challenge_day != null && (typeof m.challenge_day !== 'string' || !DAY_RE.test(m.challenge_day))) {
     throw bad('bad_market', `${where}.challenge_day must be YYYY-MM-DD`);
   }
-  const closes = parseTime(m.end_date);
-  if (closes === undefined) throw bad('bad_market', `${where}.end_date invalid`);
+  // optional metadata: an unreadable end date is dropped, never a reason to refuse the whole push
+  const closes = parseTime(m.end_date) ?? null;
   return { ...m, locks, opens, closes };
 }
 
