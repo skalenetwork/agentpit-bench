@@ -60,6 +60,11 @@ class Settings:
     # one round per match (operator 2026-10-27; off by default): the markets of one fixture ("A wins", "B wins",
     # "draw", map winners ...) share a slug stem up to the match date, and only one of them becomes a round
     one_round_per_fixture: bool = False
+    # evening slots (operator 2026-10-27; 0: off): before evening_start_hour_utc the batches may use at most
+    # daily_round_cap - evening_reserved_rounds rounds; from that hour on, any market may use the rest, so US games
+    # (window opens 11-15 UTC) and European evening kickoffs still find a slot
+    evening_reserved_rounds: int = 0
+    evening_start_hour_utc: int = 15
     max_category_share: float = 0.4     # no category above this share of the rounds started in 7 days
     max_favourite_price: float = 0.85   # skip near-certain markets: they make dead rounds
     default_slippage: float = 0.05      # a bet without --max-price may fill up to best ask + this

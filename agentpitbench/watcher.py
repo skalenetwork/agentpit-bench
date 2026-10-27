@@ -137,11 +137,20 @@ class Watcher:
         return self.db.one("SELECT COUNT(*) c FROM rounds WHERE started_at>=? AND state!='void' AND"
                            " COALESCE(exclusion,'') NOT IN ('summon','infra')", day0)["c"]
 
+    def cap_now(self, now: float | None = None) -> int:
+        """Today's cap as usable at this hour: before evening_start_hour_utc, the evening_reserved_rounds are held
+        back; from that hour on, the whole cap (any market may take a reserved slot; unused ones lapse at 00:00)."""
+        now = time.time() if now is None else now
+        held = self.s.evening_reserved_rounds
+        if held and datetime.fromtimestamp(now, timezone.utc).hour < self.s.evening_start_hour_utc:
+            return max(0, self.s.daily_round_cap - held)
+        return self.s.daily_round_cap
+
     def batch_allowance(self, now: float | None = None) -> int:
         """F1b: today's remaining cap spread evenly over the batches left today (the batch runs every
         batch_interval_s), so the cap is not spent at 00:00 UTC. At least one a batch."""
         now = time.time() if now is None else now
-        left = self.s.daily_round_cap - self.rounds_today(now)
+        left = self.cap_now(now) - self.rounds_today(now)
         batches = max(1, math.ceil((_day0(now) + 86400 - now) / max(1, self.s.batch_interval_s)))
         return max(1, math.ceil(left / batches)) if left > 0 else 0
 
@@ -149,7 +158,7 @@ class Watcher:
         """From the pending eligible markets, pick the best ones that still fit today's cap and the free slots.
         With round_start_window (F1b), only markets whose event is 3-12 h away, and at most batch_allowance()."""
         now = time.time() if now is None else now
-        budget = min(free_slots, self.s.daily_round_cap - self.rounds_today(now))
+        budget = min(free_slots, self.cap_now(now) - self.rounds_today(now))
         window = self.s.round_start_window
         if window:
             budget = min(budget, self.batch_allowance(now))

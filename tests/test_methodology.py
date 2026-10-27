@@ -203,5 +203,7 @@ def test_marquee_keys_are_proposable(tree, tmp_path):
 
 def test_one_round_per_fixture_is_proposable(tree, tmp_path):
     s = Settings(data_dir=tmp_path / "var")
-    p = m.propose(s, {"one_round_per_fixture": "true", "max_esports_per_day": "1"}, "One round per match.")
-    assert p["changes"] == {"one_round_per_fixture": True, "max_esports_per_day": 1}
+    p = m.propose(s, {"one_round_per_fixture": "true", "max_esports_per_day": "1", "evening_reserved_rounds": "3",
+                      "evening_start_hour_utc": "15"}, "One round per match.")
+    assert p["changes"] == {"one_round_per_fixture": True, "max_esports_per_day": 1, "evening_reserved_rounds": 3,
+                            "evening_start_hour_utc": 15}

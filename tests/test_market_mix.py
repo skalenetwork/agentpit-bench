@@ -249,3 +249,48 @@ async def test_fixture_rule_ignores_void_rounds_and_dateless_slugs(s, db):
     rid = db.create_round(gamma(50, FX[1][0], slug=FX[1][1]))
     db.set_round(rid, state="void")
     assert {m["id"] for m in await w.pick(free_slots=9)} == {"2", "3", "4"}
+
+
+# ---------- evening slots (evening_reserved_rounds) ----------
+
+def _at(hour: int) -> float:
+    from agentpitbench.watcher import _day0
+    return _day0() + hour * 3600 + 120
+
+
+def test_evening_defaults_neutral():
+    d = Settings()
+    assert (d.evening_reserved_rounds, d.evening_start_hour_utc) == (0, 15)
+
+
+async def test_cap_now(s, db):
+    w = await _watch(s, db, [])
+    s.daily_round_cap = 10
+    assert (w.cap_now(_at(3)), w.cap_now(_at(16))) == (10, 10)      # off by default
+    s.evening_reserved_rounds = 3
+    assert (w.cap_now(_at(3)), w.cap_now(_at(14)), w.cap_now(_at(15)), w.cap_now(_at(23))) == (7, 7, 10, 10)
+    s.evening_reserved_rounds = 12
+    assert w.cap_now(_at(3)) == 0
+
+
+async def test_evening_slots_held_back_then_usable(s, db):
+    s.daily_round_cap = 4
+    s.evening_reserved_rounds = 2
+    w = await _watch(s, db, [gamma(i, W.format(i)) for i in range(2, 8)])
+    morning = await w.pick(free_slots=9, now=_at(9))
+    assert len(morning) == 2                                          # 4 - 2 reserved
+    for m in morning:
+        db.create_round(m)
+    assert await w.pick(free_slots=9, now=_at(12)) == []
+    assert len(await w.pick(free_slots=9, now=_at(15))) == 2         # any market from 15 UTC on
+
+
+async def test_evening_reserve_with_batch_allowance(s, db):
+    s.round_start_window = True
+    s.daily_round_cap = 10
+    s.evening_reserved_rounds = 3
+    w = await _watch(s, db, [])
+    for i in range(7):
+        db.create_round(gamma(100 + i, W.format(100 + i)))
+    assert w.batch_allowance(_at(10)) == 0                            # the morning share is used
+    assert w.batch_allowance(_at(15)) == 1                            # 3 left over 9 batches
