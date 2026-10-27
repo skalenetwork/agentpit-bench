@@ -185,3 +185,17 @@ def test_f1b_round_start_window_is_proposable(tree, tmp_path):
     p = m.propose(s, {"round_start_window": "true", "round_start_min_h": "3", "round_start_max_h": "12"},
                   "Rounds start 3-12 h before their event.")
     assert p["changes"] == {"round_start_window": True, "round_start_min_h": 3.0, "round_start_max_h": 12.0}
+
+
+def test_marquee_keys_are_proposable(tree, tmp_path):
+    """docs/marquee-proposal.md: the three new keys join the lock by an operator proposal, typed like their
+    Settings defaults (the list from JSON), and apply() hands them to the running settings."""
+    s = Settings(data_dir=tmp_path / "var")
+    p = m.propose(s, {"max_esports_per_day": "1", "marquee_priority_boost": "40",
+                      "marquee_leagues": '["ucl", "epl", "btc"]'}, "Marquee markets first.")
+    assert p["changes"] == {"max_esports_per_day": 1, "marquee_priority_boost": 40,
+                            "marquee_leagues": ["ucl", "epl", "btc"]}
+    new = approve(s, p["id"], tree)
+    assert new["params"]["marquee_leagues"] == ["ucl", "epl", "btc"]
+    assert (s.max_esports_per_day, s.marquee_priority_boost, s.marquee_leagues) == (1, 40, ["ucl", "epl", "btc"])
+    assert m.verify(s, m.LOCK) == []
