@@ -96,6 +96,11 @@ const ROUTES = [
   ['POST', '/v1/me/delete', h.deleteAccount, 'user'],
   ['GET', '/v1/users/:id', h.publicUser, 'user'],
   ['POST', '/v1/picks', h.postPick, 'user'],
+  // docs/own-pick-spec.md: local challenge picks on first sign-in, the X handle link code, the funnel counters
+  ['POST', '/v1/picks/import', h.importPicks, 'user'],
+  ['POST', '/v1/me/xlink', h.xlinkCode, 'user'],
+  ['POST', '/v1/me/xlink/remove', h.xlinkRemove, 'user'],
+  ['POST', '/v1/cta', h.postEvent, 'user'],
   ['GET', '/v1/markets/:id', h.getMarket, 'user'],
   ['GET', '/v1/scoreboard', h.scoreboard, 'user'],
   ['GET', '/v1/comments/:round', h.listComments, 'user'],
@@ -106,6 +111,9 @@ const ROUTES = [
   ['POST', '/v1/ingest/results', h.ingestResults, 'bench'],
   ['GET', '/v1/admin/review', h.adminReview, 'bench'],
   ['POST', '/v1/admin/comments/:id', h.adminComment, 'bench'],
+  ['GET', '/v1/admin/picks', h.adminPicks, 'bench'],
+  ['GET', '/v1/admin/funnel', h.adminFunnel, 'bench'],
+  ['POST', '/v1/admin/xlink', h.adminXlink, 'bench'],
   // free API v2 (docs/free-api-spec.md): the read model, keys, operator controls
   ['POST', '/v1/ingest/rounds', v2.ingestRounds, 'bench'],
   ['GET', '/v1/me/keys', v2.listKeys, 'user'],

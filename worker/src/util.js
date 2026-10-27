@@ -54,6 +54,11 @@ export function safeEqual(a, b) {
   return diff === 0;
 }
 
+export async function sha256hex(s) {
+  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 export function randomId(bytes = 12) {
   return b64urlEncode(crypto.getRandomValues(new Uint8Array(bytes)));
 }
