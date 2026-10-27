@@ -119,3 +119,12 @@ Each AI has a fixed persona used in the writer prompt; jabs target the AI charac
   top and bottom text written per round and checked. The images come from the scene generator (docs/scene-images.md).
 - **Video-first.** Every results post becomes a 10–15 s vertical clip: the robot mascots react and the result drops,
   with sound. It reuses the film pipeline. If rendering fails, the post falls back to the image.
+
+## Stakes (operator: "you decide")
+- **Weekly grudge match:** the two AIs closest in the standings fight 1v1 on the same markets for a week (no new rounds:
+  the head-to-head is scored on the rounds both bet). The loser carries a 💩 "shame" badge in posts for the next week.
+  Not a methodology change: it's presentation over existing results.
+- **Humans' champion:** the week's best human (site and X picks, at least 5 picks) is crowned in the weekly humans
+  shout-out and challenges the top AI 1v1 the next week. The record is shown in posts and on /me/.
+- **Not now:** elimination season and bigger marquee stakes. Both change methodology (contestants, stake); revisit after launch.
+- **Live:** final whistle only (no in-play posts).
