@@ -1,5 +1,5 @@
 {
- "version": "2.2",
+ "version": "2.3",
  "params": {
   "decision_limit_s": 300,
   "stake": 100,
@@ -46,7 +46,30 @@
   "round_start_max_h": 12,
   "max_crypto_updown_per_day": 2,
   "max_price_threshold_per_day": 2,
-  "match_priority_boost": 30
+  "match_priority_boost": 30,
+  "max_esports_per_day": 1,
+  "marquee_priority_boost": 40,
+  "marquee_leagues": [
+   "ucl",
+   "uel",
+   "epl",
+   "lal",
+   "sea",
+   "bun",
+   "fl1",
+   "nba",
+   "nfl",
+   "mlb",
+   "btc",
+   "eth",
+   "sol",
+   "bitcoin",
+   "ethereum",
+   "solana"
+  ],
+  "one_round_per_fixture": true,
+  "evening_reserved_rounds": 3,
+  "evening_start_hour_utc": 15
  },
  "hashes": {
   "prompt.txt": "45127fce43eb933e4135ec2fbd0b462247283e754839a6e28f65923183abc163",
@@ -165,6 +188,14 @@
    "approved_by": "operator",
    "approved_at": "2026-10-14T18:25:09Z",
    "params_sha": "6c69c3b86612e7c6408d7ec56d5c5c38cad06936527205513102470b5898a758"
+  },
+  {
+   "date": "2026-10-27",
+   "version": "2.3",
+   "text": "Market mix: marquee markets first (Champions and Europa League, the top five European leagues, NBA, NFL, MLB, Bitcoin, Ethereum and Solana); at most one esports market a day (esports drew the least reach); one round per match; 3 of the 10 daily rounds are kept for 15:00 UTC onwards, so US games get in. Review on 2026-11-10.",
+   "approved_by": "operator",
+   "approved_at": "2026-10-27T20:30:55Z",
+   "params_sha": "916300f52b568687d7959f90007331c4b141f8da6bc51cf19accd5fa692e6031"
   }
  ]
 }
