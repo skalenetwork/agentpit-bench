@@ -510,11 +510,16 @@ def contrarian(db: DB, agents: list[str], threshold: float = 0.30) -> list[dict]
     return out
 
 
-def revealable_dates(db: DB, max_age_days: int = 14) -> set[str]:
+MAX_AGE_DAYS = 14   # a sweep older than this is published even with unscored markets
+
+
+def revealable_dates(db: DB, max_age_days: int | None = None) -> set[str]:
     """Sweep dates whose forecasts may be published: every market that day has been scored, or the sweep is
     older than max_age_days. Until then only the sealing hash is public, so no agent can read a rival's
     forecast for a market it might still bet on."""
     import datetime as _dt
+    if max_age_days is None:
+        max_age_days = MAX_AGE_DAYS
     cutoff = (_dt.datetime.now(_dt.timezone.utc) - _dt.timedelta(days=max_age_days)).strftime("%Y-%m-%d")
     out = set()
     for r in db.q("SELECT sweep_date d, COUNT(*) n, SUM(brier IS NOT NULL) scored FROM forecasts GROUP BY sweep_date"):

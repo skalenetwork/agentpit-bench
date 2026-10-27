@@ -295,7 +295,7 @@ def test_forecasts_stay_private_until_markets_resolve(tmp_path):
     db.x("INSERT INTO forecasts(sweep_date, agent, market_id, probs, brier) VALUES('2026-10-11','claude','m1','{}',0.1)")
     db.x("INSERT INTO forecasts(sweep_date, agent, market_id, probs, brier) VALUES('2026-10-11','claude','m2','{}',NULL)")
     db.x("INSERT INTO forecasts(sweep_date, agent, market_id, probs, brier) VALUES('2026-10-10','claude','m3','{}',0.2)")
-    assert forecast.revealable_dates(db) == {"2026-10-10"}          # one open market keeps the whole day sealed
+    assert forecast.revealable_dates(db, max_age_days=10**5) == {"2026-10-10"}   # one open market keeps the whole day sealed
     assert forecast.revealable_dates(db, max_age_days=0) >= {"2026-10-10"}
 
 

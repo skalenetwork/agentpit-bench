@@ -38,7 +38,8 @@ def add_sweep(db: DB, date: str, scored: bool, n: int = 6) -> None:
 
 
 @pytest.fixture
-def built(tmp_path):
+def built(tmp_path, monkeypatch):
+    monkeypatch.setattr(forecast, "MAX_AGE_DAYS", 10**5)  # the fixed sweep dates must not age into publication
     s = Settings(data_dir=tmp_path / "var", agents=AGENTS, dry_run=True)
     db = DB(s.db_path)
     make_round(db, PICKS, state="resolved", winner="Nexus", market_id="m1")
