@@ -219,7 +219,8 @@ async def run_forever(s: config.Settings) -> None:
                 row, m = picked
                 launch(m, after=lambda rid: engage.summon_reply(row, rid))
         for job in (engage.weekly, engage.sunday_extras, engage.daily_banner, engage.champion_check,
-                    *(getattr(pub, n) for n in ("grok_ask", "labs_week", "digest", "results_digest")
+                    *(getattr(pub, n) for n in ("grok_ask", "labs_week", "digest", "results_digest", "hot_take",
+                                                "humans_week", "grudge", "soap")
                       if hasattr(pub, n))):
             try:
                 await job()
@@ -281,6 +282,11 @@ async def run_forever(s: config.Settings) -> None:
         """Reveals held for their live window (virality-2 F1); also resumes holds after a restart."""
         if hasattr(pub, "post_due_reveals"):
             await pub.post_due_reveals()
+        if hasattr(pub, "hype"):   # posts v3: ~1 h before kickoff of a top-3 market
+            try:
+                await pub.hype()
+            except Exception:
+                log.exception("hype failed")
 
     async def summons():
         if engage is not None:

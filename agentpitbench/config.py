@@ -154,6 +154,19 @@ class Settings:
     digest_hour_utc: int = 12            # "TODAY'S BOARD": the picks of every other open market
     results_digest_hour_utc: int = 21    # "TODAY'S DAMAGE": their results
     post_writer_deadline_s: int = 240    # the writer's answer (with its retry) or the template goes out
+    # posts v3 new kinds (each also needs posts_v3 and its kind in post_kinds)
+    debate_enabled: bool = False         # thread under each top-3 reveal: one reply per AI + the Pit Boss close
+    hype_enabled: bool = False           # 'KICKOFF IN 1 HOUR' quote of a top-3 reveal (never a pick)
+    hype_lead_min: int = 75              # posted when kickoff is at most this far away
+    confession_enabled: bool = False     # a losing AI's own words after a confident loss / 3+ losing streak; 1 a day
+    hot_take_enabled: bool = False       # daily leaderboard-backed question
+    hot_take_hour_utc: int = 14
+    humans_week_enabled: bool = False    # race weekday: humans who beat the AIs (@mentioned) + the champion
+    humans_week_hour_utc: int = 17
+    grudge_enabled: bool = False         # Mondays: the two closest AIs' 1v1 week, last week's loser wears the 💩
+    grudge_hour_utc: int = 12
+    soap_enabled: bool = False           # daily 'THE PIT, EPISODE n' (storyline state in soap_episodes)
+    soap_hour_utc: int = 19
     reveal_window: bool = False   # virality-2 F1: hold the reveal for its live window (T-3h .. T-15min)
     # F2 reply-back (docs/virality-2-spec.md): on only when "reply-back" is in post_kinds
     reply_back_daily_cap: int = 10          # answers per UTC day
