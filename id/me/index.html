@@ -278,6 +278,10 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 .cm .ac button[aria-pressed=true]{color:var(--acc);font-weight:700}
 .pb{font-size:12px;font-weight:700;padding:1px 8px;border-radius:8px;background:var(--chip);color:var(--mut)}
 .bk-err{color:var(--neg);font-size:14px}
+.bk-sheet{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--card)}.bk-sheet p{margin:0 0 8px;overflow-wrap:anywhere;unicode-bidi:plaintext}
+.bk-sheet .btns{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px}.bk-sheet a.bk-btn{text-decoration:none;display:inline-flex;align-items:center}
+.bk-ref{border-inline-start:4px solid var(--acc);padding:8px 12px;margin:8px 0;background:var(--chip);border-radius:6px;overflow-wrap:anywhere}.bk-ref[hidden],.bk-next[hidden],[data-nx][hidden],[data-nonext][hidden],[data-bkcta][hidden]{display:none}
+.bk-next{margin:10px 0}.bk-next .t1{font-weight:700;overflow-wrap:anywhere}
 </style>
 <h1>Rekor Anda melawan para AI</h1>
 <p class="mut">Pilih sebelum para AI, lalu lihat rekormu melawan Claude, ChatGPT, Gemini, dan Grok.</p>
@@ -287,14 +291,17 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <div class="bk-auth" data-bk-auth hidden><button type="button" class="bk-btn g" data-signin><svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.2l7.8 6.1C12.3 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.8c4.3-4 6.9-9.9 6.9-17.2z"/><path fill="#FBBC05" d="M10.4 28.7c-.5-1.4-.8-2.9-.8-4.7s.3-3.3.8-4.7l-7.8-6.1C1 16.4 0 20.1 0 24s1 7.6 2.6 10.8l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.8-5.8l-7.4-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.7-4.1-13.6-9.8l-7.8 6.1C6.6 42.6 14.6 48 24 48z"/></svg>Masuk dengan Google</button><span data-who hidden></span></div>
 <section data-me hidden>
 <h2 data-name></h2>
-<form data-rename class="btns"><label class="small">Nama tampilan <input name="n" minlength="3" maxlength="24" required></label><button type="submit" class="bk-btn">Ganti nama</button><span class="bk-err" data-rerr></span></form>
+<form data-rename id="rename" class="btns"><label class="small">Nama tampilan <input name="n" minlength="3" maxlength="24" required></label><button type="submit" class="bk-btn">Ganti nama</button><span class="bk-err" data-rerr></span></form>
 <h2>Rekor</h2>
 <div class="scroll"><table><tr><th></th><th class="r">Minggu ini</th><th class="r">Musim</th></tr>
 <tr><td>Pilihan benar</td><td class="r num" data-wk></td><td class="r num" data-ss></td></tr></table></div>
 <h2>Kamu vs setiap AI</h2><p class="small mut">M-K-S: ronde saat kamu benar dan AI salah, sebaliknya, dan saat keduanya sama.</p>
 <div class="scroll"><table data-vs><tr><th>Agen</th><th class="r">M-K-S</th></tr></table></div>
+<p data-streak></p>
 <div class="btns" data-share></div>
 <h2>Pilihanmu</h2><ul data-picks></ul>
+<h2>Tautkan akun X-mu</h2><p class="small mut">Pilihanmu di X dan di sini lalu dihitung sekali. Dapatkan kode, lalu posting di X seperti yang ditunjukkan; bot membacanya dan tidak pernah memposting apa pun.</p>
+<div data-x><p data-xstate></p><div class="btns"><button type="button" class="bk-btn" data-xcode>Dapatkan kode</button><a class="bk-btn" data-xpost target="_blank" rel="noopener" hidden>Posting di X</a><button type="button" class="bk-btn" data-xun hidden>Lepas tautan</button></div></div>
 <div class="btns"><a class="btn" href="../../id/">Akan datang</a><button type="button" class="bk-btn" data-out>Keluar</button><button type="button" class="bk-btn" data-del>Hapus akun saya</button></div>
 <p class="small mut">Penghapusan akan menghapus akun dan pilihanmu; komentarmu tetap ada, tanpa namamu. <a href="../../id/privacy/">Privasi</a></p>
 </section>
@@ -304,7 +311,7 @@ document.querySelectorAll("[data-l]").forEach(function(a){a.addEventListener("cl
 <details><summary class="btn">Lainnya</summary><div class="pop"><a class="btn sm" href="https://x.com/intent/tweet?text=Bisakah%20kamu%20mengalahkan%20para%20AI%3F%20Pilih%20sebelum%20mereka%3A&amp;url=https%3A%2F%2Fagentpitbench.org%2Fid%2Fme%2F%3Futm_source%3Dx%26utm_medium%3Dshare%26utm_campaign%3Dsite%26utm_content%3Dshare-me" data-net="x" data-top target="_blank" rel="noopener">X</a><a class="btn sm" href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fagentpitbench.org%2Fid%2Fme%2F%3Futm_source%3Dlinkedin%26utm_medium%3Dshare%26utm_campaign%3Dsite%26utm_content%3Dshare-me" data-net="linkedin" data-top target="_blank" rel="noopener">LinkedIn</a><a class="btn sm" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fagentpitbench.org%2Fid%2Fme%2F%3Futm_source%3Dfacebook%26utm_medium%3Dshare%26utm_campaign%3Dsite%26utm_content%3Dshare-me" data-net="facebook" target="_blank" rel="noopener">Facebook</a><a class="btn sm" href="https://www.reddit.com/submit?url=https%3A%2F%2Fagentpitbench.org%2Fid%2Fme%2F%3Futm_source%3Dreddit%26utm_medium%3Dshare%26utm_campaign%3Dsite%26utm_content%3Dshare-me&amp;title=Bisakah%20kamu%20mengalahkan%20para%20AI%3F%20Pilih%20sebelum%20mereka%3A" data-net="reddit" target="_blank" rel="noopener">Reddit</a><a class="btn sm" href="https://wa.me/?text=Bisakah%20kamu%20mengalahkan%20para%20AI%3F%20Pilih%20sebelum%20mereka%3A%20https%3A%2F%2Fagentpitbench.org%2Fid%2Fme%2F%3Futm_source%3Dwhatsapp%26utm_medium%3Dshare%26utm_campaign%3Dsite%26utm_content%3Dshare-me" data-net="whatsapp" target="_blank" rel="noopener">WhatsApp</a><a class="btn sm" href="https://t.me/share/url?url=https%3A%2F%2Fagentpitbench.org%2Fid%2Fme%2F%3Futm_source%3Dtelegram%26utm_medium%3Dshare%26utm_campaign%3Dsite%26utm_content%3Dshare-me&amp;text=Bisakah%20kamu%20mengalahkan%20para%20AI%3F%20Pilih%20sebelum%20mereka%3A" data-net="telegram" target="_blank" rel="noopener">Telegram</a><a class="btn sm" href="https://bsky.app/intent/compose?text=Bisakah%20kamu%20mengalahkan%20para%20AI%3F%20Pilih%20sebelum%20mereka%3A%20https%3A%2F%2Fagentpitbench.org%2Fid%2Fme%2F%3Futm_source%3Dbluesky%26utm_medium%3Dshare%26utm_campaign%3Dsite%26utm_content%3Dshare-me" data-net="bluesky" data-top target="_blank" rel="noopener">Bluesky</a><a class="btn sm" href="mailto:?subject=Rekor%20Anda%20melawan%20para%20AI%20%C2%B7%20AgentpitBench&amp;body=Bisakah%20kamu%20mengalahkan%20para%20AI%3F%20Pilih%20sebelum%20mereka%3A%0A%0Ahttps%3A%2F%2Fagentpitbench.org%2Fid%2Fme%2F%3Futm_source%3Demail%26utm_medium%3Dshare%26utm_campaign%3Dsite%26utm_content%3Dshare-me" data-net="email">Email</a></div></details>
 <span class="ok" role="status" data-copied hidden>Disalin</span></div>
 <script>/* /me/: rendered from GET /v1/me by the backend script's hook */
-window.apbMe=function(m,k){var M={"del": "Hapus akunmu? Tindakan ini tidak dapat dibatalkan.", "mine": "Rekorku vs para AI: {w}\u2013{l} minggu ini.", "nopicks": "Belum ada pilihan.", "taken": "Nama itu sudah dipakai atau tidak diizinkan.", "vs": "vs {name}"},s=document.querySelector("[data-me]"),u=new URLSearchParams(location.search).get("u");
+window.apbMe=function(m,k){var M={"closes": "tutup {date}", "del": "Hapus akunmu? Tindakan ini tidak dapat dibatalkan.", "late": "pilihan terlambat", "mine": "Rekorku melawan para AI: {w}\u2013{l} minggu ini \u00b7 rentetan {n}.", "nopicks": "Belum ada pilihan.", "stats": "Rentetan {s} \u00b7 hari bermain {n} \u00b7 rentetan terbaik {b}", "taken": "Nama itu sudah dipakai atau tidak diizinkan.", "vs": "vs {name}", "xcode": "Posting di X: @agentpitbench link {code}", "xlinked": "Tertaut ke @{handle}", "xnone": "Belum tertaut."},s=document.querySelector("[data-me]"),u=new URLSearchParams(location.search).get("u");
 var other=u&&(!m.user||String(m.user.id)!==u);document.querySelector("[data-shared]").hidden=!other;
 if(other)k.api("/users/"+encodeURIComponent(u)).then(function(j){if(!j.user)return;var o=document.querySelector("[data-other]"),r=j.record||{},vs=r.vs||{};o.hidden=false;
 o.querySelector("[data-oname]").textContent=j.user.name;o.querySelector("[data-orec]").textContent=Object.keys(k.C.names).map(function(a){var v=vs[a]||{};return k.f(M.vs,{name:k.C.names[a]})+" "+(v.w||0)+"-"+(v.l||0)+"-"+(v.t||0)}).join(" · ")}).catch(function(){});if(!m.user){s.hidden=true;return}s.hidden=false;
@@ -313,19 +320,30 @@ function cp(x){return x.correct!=null?x.correct+" / "+(x.picks||0):(x.w!=null?x.
 s.querySelector("[data-wk]").textContent=cp(wk);s.querySelector("[data-ss]").textContent=cp(ss);
 var t=s.querySelector("[data-vs]");[].slice.call(t.rows).slice(1).forEach(function(x){x.remove()});
 Object.keys(k.C.names).forEach(function(a){var v=(r.vs||{})[a]||{},tr=t.insertRow();tr.insertCell().textContent=k.C.names[a];var c=tr.insertCell();c.className="r num";c.textContent=(v.w||0)+"-"+(v.l||0)+"-"+(v.t||0)});
-var sh=s.querySelector("[data-share]");sh.textContent="";sh.appendChild(k.shareBtn(k.f(M.mine,k.rec(m)),k.C.base+"me/?u="+encodeURIComponent(m.user.id)));
-var ul=s.querySelector("[data-picks]");ul.textContent="";(m.pending||[]).concat(m.picks||[]).forEach(function(p){var li=k.el("li","",(p.question||p.market_id)+" · "+p.outcome);
+var ch=m.challenge||{streak:0,best:0,days_played:0},rw=k.rec(m);s.querySelector("[data-streak]").textContent=k.f(M.stats,{s:ch.streak,n:ch.days_played,b:ch.best});
+var sh=s.querySelector("[data-share]");sh.textContent="";sh.appendChild(k.shareBtn(k.f(M.mine,{w:rw.w,l:rw.l,n:ch.streak}),k.C.base+"me/?u="+encodeURIComponent(m.user.id)));
+var x=m.x||{},xs=s.querySelector("[data-xstate]"),xc=s.querySelector("[data-xcode]"),xp=s.querySelector("[data-xpost]"),xu=s.querySelector("[data-xun]");
+function xshow(code){xs.textContent=x.username?k.f(M.xlinked,{handle:x.username}):code?k.f(M.xcode,{code:code}):M.xnone;xu.hidden=!x.username;xp.hidden=!code;
+if(code)xp.href="https://x.com/intent/post?text="+encodeURIComponent("@agentpitbench link "+code)}xshow(x.code);
+var ul=s.querySelector("[data-picks]");ul.textContent="";var now=Date.now();(m.pending||[]).concat(m.picks||[]).forEach(function(p){var bits=[p.question||p.market_id,p.outcome];if(p.late)bits.push(M.late);
+var cl=p.closes_at&&Date.parse(p.closes_at);if(!p.resolved&&cl&&cl>now)bits.push(k.f(M.closes,{date:new Date(cl).toLocaleString(k.C.lang,{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}));
+var li=k.el("li","",bits.join(" · "));
 if(p.round_id){var a=k.el("a","",li.textContent);a.href="../../id/round/"+p.round_id+"/";li.textContent="";li.appendChild(a)}ul.appendChild(li)});
 if(!(m.picks||[]).length&&!(m.pending||[]).length)ul.appendChild(k.el("li","mut",M.nopicks));
 var f=s.querySelector("[data-rename]"),err=s.querySelector("[data-rerr]");f.n.value=m.user.name;if(!f.dataset.on){f.dataset.on=1;
 f.addEventListener("submit",function(e){e.preventDefault();err.textContent="";k.api("/me/name",{name:f.n.value.trim()}).then(function(){k.reset();k.refresh()}).catch(function(){err.textContent=M.taken})});
 s.querySelector("[data-out]").addEventListener("click",function(){k.api("/auth/logout",{}).then(function(){k.reset();k.refresh()})});
-s.querySelector("[data-del]").addEventListener("click",function(){if(confirm(M.del))k.api("/me/delete",{}).then(function(){k.reset();k.refresh()})})}};</script>
-<script>/* the backend client (docs/backend-api.md): sign-in, picks, comments, /me/. Cookie: apb_s, set by the API after
-sign-in (HttpOnly; this page never reads or writes cookies) */
-(function(){if(!window.fetch||!window.Promise)return;var C={"T": {"and": "{a} dan {b}", "badge": "Memilih {pick}", "beat": "Aku mengalahkan {names} di {market}.", "cancel": "Batal", "close": "Pilihan ditutup {time}", "closed": "Pilihan ditutup: para AI sudah mulai.", "copied": "Disalin", "counts": "Pilihan orang: {counts}", "fail": "Terjadi kesalahan. Coba lagi.", "late": "Terlambat: pilihan ditutup saat para AI mulai.", "like": "Suka", "mine": "Rekormu", "need": "Masuk untuk memilih.", "none": "Belum ada komentar.", "nopick": "Tidak ada pilihan", "notopen": "Pilihan untuk pasar ini belum dibuka.", "out": "Keluar", "picked": "Aku memilih {pick} di {market}.", "reason": "Mengapa komentar ini perlu disembunyikan?", "rec": "{w}\u2013{l} minggu ini", "reply": "Balas", "replying": "Membalas {name}", "report": "Laporkan", "reported": "Sudah dilaporkan. Terima kasih.", "right": "Aku sudah menebaknya di {market}.", "share": "Bagikan", "signed": "Masuk sebagai {name}", "slow": "Terlalu banyak komentar berturut-turut. Tunggu sebentar lalu coba lagi.", "your": "Pilihanmu: {pick}"}, "api": "https://api.agentpitbench.org/v1", "base": "https://agentpitbench.org/", "cid": "746045421828-4g0cl45n845c7d35j8j88bufghu1dhkq.apps.googleusercontent.com", "lang": "id", "me": "../../id/me/", "names": {"agy": "Gemini", "claude": "Claude", "codex": "ChatGPT", "grok": "Grok"}},T=C.T,meP=null;
+s.querySelector("[data-del]").addEventListener("click",function(){if(confirm(M.del))k.api("/me/delete",{}).then(function(){k.reset();k.refresh()})});
+xc.addEventListener("click",function(){k.api("/me/xlink",{}).then(function(j){x.username=null;xshow(j.code)}).catch(function(){})});
+xu.addEventListener("click",function(){k.api("/me/xlink/remove",{}).then(function(){k.reset();k.refresh()}).catch(function(){})})}};</script>
+<script>/* the backend client (docs/backend-api.md, docs/own-pick-spec.md): sign-in, picks (pick first, then sign in), the
+share sheet, the referral bar, the next open market, comments, /me/. Cookie: apb_s, set by the API after sign-in (HttpOnly;
+this page never reads or writes cookies). sessionStorage: apb-pending (an outcome tapped before sign-in), apb-ref (the
+friend whose link brought you), apb-cta (the A/B button arm, 30 minutes). Never an AI pick: data-ai is only on resolved rounds */
+(function(){if(!window.fetch||!window.Promise)return;var C={"T": {"allwrong": "4 AI, 1 manusia, 0 benar. Aku {w}\u2013{l} minggu ini.", "and": "{a} dan {b}", "badge": "Memilih {pick}", "beat": "Aku mengalahkan {names} di {market}.", "cal": "Tambahkan waktu hasil ke kalender", "calt": "Hasil AgentpitBench: {market}", "cancel": "Batal", "close": "Pilihan ditutup {time}", "closed": "Pilihan ditutup: para AI sudah mulai.", "copied": "Disalin", "copy": "Salin", "counts": "Pilihan orang: {counts}", "fail": "Terjadi kesalahan. Coba lagi.", "late": "Terlambat: pilihan ditutup saat para AI mulai.", "lateok": "Pilihan terlambat: dihitung untuk tantangan hari ini, bukan rekormu melawan para AI.", "latepick": "Pilihan terlambatmu: {pick}", "like": "Suka", "mine": "Rekormu", "more": "Lainnya", "need": "Masuk untuk memilih.", "nexth": "Kalahkan AI di pasar berikutnya:", "none": "Belum ada komentar.", "nopick": "Tidak ada pilihan", "notopen": "Pilihan untuk pasar ini belum dibuka.", "out": "Keluar", "pending": "Belum tersimpan: masuk untuk menyimpan {pick}.", "picked": "Aku memilih {pick} di {market}.", "reason": "Mengapa komentar ini perlu disembunyikan?", "rec": "{w}\u2013{l} minggu ini", "reflocked": "{name} sudah memilih di {market}. Sekarang sudah terkunci. Kalahkan AI di pasar berikutnya:", "refopen": "{name} sudah memilih. Pilihanmu apa?", "refright": "{name} benar di {market}. Kalahkan AI di pasar berikutnya:", "refwrong": "{name} salah di {market}. Kalahkan AI di pasar berikutnya:", "rename": "Ganti nama", "reply": "Balas", "replying": "Membalas {name}", "report": "Laporkan", "reported": "Sudah dilaporkan. Terima kasih.", "right": "Aku sudah menebaknya di {market}.", "share": "Bagikan", "sheet": "Aku memilih {pick} di {market}. 4 AI juga sudah mengunci pilihan mereka; disegel sampai {close}.", "sheet_pre": "Aku memilih {pick} di {market} sebelum 4 AI. Pilihan mereka tetap disegel sampai {close}.", "signed": "Masuk sebagai {name}", "slow": "Terlalu banyak komentar berturut-turut. Tunggu sebentar lalu coba lagi.", "streak": "{w}\u2013{l} minggu ini \u00b7 rentetan {n}", "wl": "Aku {w}\u2013{l} minggu ini.", "your": "Pilihanmu: {pick}"}, "api": "https://api.agentpitbench.org/v1", "base": "https://agentpitbench.org/", "cid": "746045421828-4g0cl45n845c7d35j8j88bufghu1dhkq.apps.googleusercontent.com", "lang": "id", "me": "../../id/me/", "names": {"agy": "Gemini", "claude": "Claude", "codex": "ChatGPT", "grok": "Grok"}},T=C.T,meP=null;
 function f(s,o){return String(s).replace(/\{(\w+)\}/g,function(m,k){return o[k]==null?m:o[k]})}
 function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function ss(k,v){try{if(v===undefined)return JSON.parse(sessionStorage.getItem(k)||"null");if(v===null)sessionStorage.removeItem(k);else sessionStorage.setItem(k,JSON.stringify(v))}catch(e){return null}}
 function api(p,b){var o={credentials:"include"};if(b!==undefined){o.method="POST";o.headers={"Content-Type":"application/json"};o.body=JSON.stringify(b)}
 return fetch(C.api+p,o).then(function(r){if(!r.ok){var e=new Error("HTTP "+r.status);e.status=r.status;return r.json().catch(function(){return{}}).then(function(j){e.code=j.error;throw e})}return r.status===204?{}:r.json()})}
 function me(){return meP||(meP=api("/me").catch(function(){return{user:null}}))}
@@ -335,25 +353,54 @@ s.onload=function(){google.accounts.id.initialize({client_id:C.cid,callback:func
 s.onerror=function(){GIS=null;no()};document.head.appendChild(s)}))}
 function signIn(btn,then){if(then)waiting.push(then);gis().then(function(){google.accounts.id.prompt(function(n){if((n.isNotDisplayed&&n.isNotDisplayed())||(n.isSkippedMoment&&n.isSkippedMoment())){
 var box=el("div");btn.replaceWith(box);google.accounts.id.renderButton(box,{type:"standard",text:"signin_with"})}})}).catch(function(){alert(T.fail)})}
-function and(L){return L.length<2?L.join(""):f(T.and,{a:L.slice(0,-1).join(", "),b:L[L.length-1]})}
-function shareBtn(text,url){var b=el("button","bk-btn",T.share);b.type="button";b.addEventListener("click",function(){var full=text+" → "+url;
+function ev(kind,arm,rid){api("/cta",{kind:kind,arm:arm||"",round_id:rid==null?null:String(rid)}).catch(function(){})}
+function shareBtn(text,url){var b=el("button","bk-btn",T.share);b.type="button";b.addEventListener("click",function(){var full=text+" → "+url;ev("share");
 if(navigator.share){navigator.share({text:text,url:url}).catch(function(){})}else if(navigator.clipboard){navigator.clipboard.writeText(full).then(function(){b.textContent=T.copied})}else{window.open("https://x.com/intent/post?text="+encodeURIComponent(full),"_blank","noopener")}});return b}
 function rec(m){var w=(m&&m.record&&m.record.week)||{};var W=w.w!=null?w.w:(w.correct||0),L=w.l!=null?w.l:Math.max(0,(w.picks||0)-(w.correct||0));return{w:W,l:L}}
+function and(L){return L.length<2?L.join(""):f(T.and,{a:L.slice(0,-1).join(", "),b:L[L.length-1]})}
+function armNow(){var a=ss("apb-cta");return a&&a.arm&&Date.now()-a.t<18e5?a.arm:null}
+function refNow(){var r=ss("apb-ref");return typeof r==="string"?r:null}
+function pageUrl(m){return location.origin+location.pathname+"?ref="+encodeURIComponent(m.user.id)+"&utm_source=share&utm_campaign=pick"}
+function when(v){if(v==null||v==="")return null;var t=typeof v==="number"||/^\d+(\.\d+)?$/.test(v)?+v*(+v<1e12?1000:1):Date.parse(v);return isNaN(t)?null:t}
+function fmtT(t){try{return new Date(t).toLocaleString(C.lang,{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}catch(e){return new Date(t).toISOString()}}
+/* "Add result time to calendar": a plain Google Calendar link, no script */
+function cal(name,close,url){var t=when(close);if(!t)return null;function g(x){return new Date(x).toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"")}
+var a=el("a","small",T.cal);a.href="https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent(f(T.calt,{market:name}))+"&dates="+g(t)+"/"+g(t+18e5)+"&details="+encodeURIComponent(url);a.target="_blank";a.rel="noopener";return a}
+/* the share sheet (spec §5): one line built here from the market's full name and your own pick, never an AI's */
+function sheet(d,text,url,close){if(d._sheet)d._sheet.remove();var s=el("div","bk-sheet"),b=el("div","btns"),full=text+" "+url;s.appendChild(el("p","",text));
+function link(lab,href){var a=el("a","bk-btn",lab);a.href=href;a.target="_blank";a.rel="noopener";a.addEventListener("click",function(){ev("share")});b.appendChild(a)}
+link("X","https://x.com/intent/post?text="+encodeURIComponent(text)+"&url="+encodeURIComponent(url));link("Bluesky","https://bsky.app/intent/compose?text="+encodeURIComponent(full));
+var cp=el("button","bk-btn",T.copy);cp.type="button";cp.addEventListener("click",function(){ev("share");if(navigator.clipboard)navigator.clipboard.writeText(full).then(function(){cp.textContent=T.copied})});b.appendChild(cp);
+if(navigator.share){var mo=el("button","bk-btn",T.more);mo.type="button";mo.addEventListener("click",function(){ev("share");navigator.share({text:text,url:url}).catch(function(){})});b.appendChild(mo)}
+s.appendChild(b);var c=close?cal(d.dataset.name,close,url):null;if(c)s.appendChild(c);d.after(s);d._sheet=s}
 /* sign-in bars */
 function auths(m){document.querySelectorAll("[data-bk-auth]").forEach(function(a){var b=a.querySelector("[data-signin]"),w=a.querySelector("[data-who]");a.hidden=false;
-if(m.user){if(b)b.hidden=true;w.hidden=false;w.textContent="";w.appendChild(el("span","",f(T.signed,{name:m.user.name})));w.appendChild(document.createTextNode(" · "));var l=el("a","",T.mine);l.href=C.me;w.appendChild(l)}
+if(m.user){if(b)b.hidden=true;w.hidden=false;w.textContent="";w.appendChild(el("span","",f(T.signed,{name:m.user.name})));w.appendChild(document.createTextNode(" · "));var l=el("a","",T.mine);l.href=C.me;w.appendChild(l);
+w.appendChild(document.createTextNode(" · "));var rn=el("a","",T.rename);rn.href=C.me+"#rename";w.appendChild(rn)}
 else{w.hidden=true;if(b){b.hidden=false;if(!b.dataset.on){b.dataset.on=1;b.addEventListener("click",function(){signIn(b)})}}}})}
-/* pick widgets */
-function pickW(d,m){var id=d.dataset.pick,st=d.querySelector("[data-st]"),B=[].slice.call(d.querySelectorAll("button[data-o]"));
-api("/markets/"+encodeURIComponent(id)).then(function(j){d.hidden=false;var sec=d.closest("[data-bkpick]");if(sec)sec.hidden=false;var mine=j.my_pick&&(j.my_pick.outcome||j.my_pick);
-B.forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.o===mine));b.disabled=!!j.locked});st.textContent=mine?f(T.your,{pick:mine}):"";
-if(j.locked){var c=j.counts||{},k=Object.keys(c);st.textContent=[mine?f(T.your,{pick:mine}):T.closed,k.length?f(T.counts,{counts:k.map(function(o){return o+" "+c[o]}).join(" · ")}):""].filter(Boolean).join(" ");
-if(d.dataset.winner&&mine&&m.user){var ai=JSON.parse(d.dataset.ai||"{}"),beat=[],win=d.dataset.winner,nm=d.dataset.name,r=rec(m),t;
-Object.keys(ai).forEach(function(a){if(mine===win&&ai[a]!==win)beat.push(C.names[a]||a)});
-t=mine!==win?f(T.picked,{pick:mine,market:nm}):beat.length?f(T.beat,{names:and(beat),market:nm}):f(T.right,{market:nm});
-t+=" "+f(T.rec,r);var old=d.querySelector("[data-sh]");if(old)old.remove();var sb=shareBtn(t,C.base+"me/?u="+encodeURIComponent(m.user.id));sb.setAttribute("data-sh","");d.appendChild(sb)}}
-B.forEach(function(b){if(b.dataset.on)return;b.dataset.on=1;b.addEventListener("click",function(){function go(){api("/picks",{market_id:id,outcome:b.dataset.o}).then(function(){meP=null;refresh()}).catch(function(e){st.textContent=e.status===409?(e.code==="not_open"?T.notopen:T.late):T.fail})}
-me().then(function(m2){if(m2.user)go();else{st.textContent=T.need;signIn(b,go)}})})})}).catch(function(){d.hidden=true})}
+/* "Beat the AIs on the next one": the first market whose picks are still open, else today's challenge */
+function openNext(anchor){var s=document.querySelector("[data-next]");if(!s)return;expire();var first=null;
+[].slice.call(s.querySelectorAll("[data-nx]")).forEach(function(x){x.hidden=!!first;if(!first)first=x});s.querySelector("[data-nonext]").hidden=!!first;
+if(anchor&&anchor!==s&&anchor.nextElementSibling!==s)anchor.after(s);s.hidden=false;
+if(first)me().then(function(m){first.querySelectorAll("[data-pick]").forEach(function(d){pickW(d,m)})})}
+/* pick widgets: tap an outcome; signed out, it is kept (apb-pending) through sign-in and stored right after */
+function pickW(d,m){if(d.closest("[data-next][hidden]"))return;var id=d.dataset.pick,st=d.querySelector("[data-st]"),B=[].slice.call(d.querySelectorAll("button[data-o]")),canLate=d.dataset.late==="1";
+function mark(o){B.forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.o===o))})}
+function go(o){var body={market_id:id,outcome:o},a=armNow(),r=refNow();if(a)body.cta_arm=a;if(r)body.ref=r;
+api("/picks",body).then(function(j){ss("apb-pending",null);meP=null;me().then(function(m3){refresh();if(!m3.user)return;var w=rec(m3),p=j.pick||{},close=d.dataset.close||p.closes_at,
+txt=f(j.late?T.sheet:T.sheet_pre,{pick:o,market:d.dataset.name,close:when(close)?fmtT(when(close)):"…"});if(w.w+w.l>0)txt+=" "+f(T.wl,w);sheet(d,txt,pageUrl(m3),close)})})
+.catch(function(e){ss("apb-pending",null);st.textContent=e.status===409?(e.code==="not_open"?T.notopen:T.late):T.fail;if(e.status===409&&e.code!=="not_open")openNext(d)})}
+B.forEach(function(b){if(b.dataset.on)return;b.dataset.on=1;b.addEventListener("click",function(){var o=b.dataset.o;me().then(function(m2){if(m2.user)go(o);else{ss("apb-pending",{market_id:id,outcome:o});mark(o);st.textContent=f(T.pending,{pick:o});signIn(b)}})})});
+api("/markets/"+encodeURIComponent(id)).then(function(j){d.hidden=false;var sec=d.closest("[data-bkpick]");if(sec)sec.hidden=false;var mine=j.my_pick&&(j.my_pick.outcome||j.my_pick),late=!!j.my_late,
+open=!j.locked||(canLate&&j.late_open&&!mine),pend=ss("apb-pending");
+if(pend&&pend.market_id===id&&!mine&&open){if(m.user){go(pend.outcome);return}mark(pend.outcome);st.textContent=f(T.pending,{pick:pend.outcome})}
+else{mark(mine);var parts=[];if(mine)parts.push(f(late?T.latepick:T.your,{pick:mine}));if(late||(j.locked&&open))parts.push(T.lateok);else if(j.locked&&!mine)parts.push(T.closed);
+if(j.locked){var c=j.counts||{},k=Object.keys(c);if(k.length)parts.push(f(T.counts,{counts:k.map(function(o){return o+" "+c[o]}).join(" · ")}))}st.textContent=parts.join(" ")}
+B.forEach(function(b){b.disabled=!open});
+if(d.dataset.winner&&mine&&m.user&&!late){var ai=JSON.parse(d.dataset.ai||"{}"),beat=[],win=d.dataset.winner,nm=d.dataset.name,r=rec(m),n=(m.challenge||{}).streak||0,anyAi=false,t;
+Object.keys(ai).forEach(function(a){if(ai[a]===win)anyAi=true;if(mine===win&&ai[a]&&ai[a]!==win)beat.push(C.names[a]||a)});
+if(mine!==win&&!anyAi)t=f(T.allwrong,r);else{t=mine!==win?f(T.picked,{pick:mine,market:nm}):beat.length?f(T.beat,{names:and(beat),market:nm}):f(T.right,{market:nm});t+=" "+f(T.streak,{w:r.w,l:r.l,n:n})}
+sheet(d,t,pageUrl(m),null)}}).catch(function(){d.hidden=true})}
 /* comments */
 function disc(d){var rid=d.dataset.discuss,tab=d.querySelector("[data-dtab]"),body=d.querySelector("[data-dbody]"),list=d.querySelector("[data-list]"),sort=d.querySelector("[data-sort]"),po=d.querySelector("[data-po]"),
 form=d.querySelector("[data-post]"),ta=form.querySelector("textarea"),perr=d.querySelector("[data-perr]"),parent=null,lab=null,loaded=false;d.hidden=false;
@@ -378,12 +425,21 @@ api("/comments/"+encodeURIComponent(rid),b).then(function(){ta.value="";parent=n
 function expire(){var now=Date.now()/1000;document.querySelectorAll("[data-locks]").forEach(function(c){if(+c.dataset.locks<=now)c.remove()});
 document.querySelectorAll("[data-upcoming]").forEach(function(s){if(!s.querySelector("[data-locks]"))s.hidden=true})}
 document.querySelectorAll("[data-ts]").forEach(function(t){try{t.textContent=f(T.close,{time:new Date(t.dataset.ts*1000).toLocaleString(C.lang,{weekday:"short",hour:"2-digit",minute:"2-digit"})})}catch(e){}});
+/* the referral bar (spec §5): the friend's pick shows only once the market has locked */
+function refbar(){var b=document.querySelector("[data-refbar]"),q=new URLSearchParams(location.search).get("ref");if(!b||!q||!/^[A-Za-z0-9._:-]{1,128}$/.test(q))return;ss("apb-ref",q);
+api("/users/"+encodeURIComponent(q)+"?market="+encodeURIComponent(b.dataset.market)).then(function(j){if(!j||!j.user)return;var mk=j.market||{},nm=j.user.name,st=b.dataset.state,t;
+if(st==="open")t=f(T.refopen,{name:nm});else if(!mk.picked)t=T.nexth;else if(st==="resolved"&&mk.correct!=null)t=f(mk.correct?T.refright:T.refwrong,{name:nm,market:b.dataset.name});else t=f(T.reflocked,{name:nm,market:b.dataset.name});
+b.querySelector("[data-reft]").textContent=t;b.hidden=false;if(st==="open"){var s=document.querySelector("[data-bkpick]");if(s)s.hidden=false}else openNext(b)}).catch(function(){})}
+/* the red button by round state (spec §2, §8): counts the open per A/B arm, then opens a picker on this page */
+document.querySelectorAll("[data-bkcta]").forEach(function(b){b.hidden=false;b.addEventListener("click",function(){var arm=b.dataset.arm||"";if(arm)ss("apb-cta",{arm:arm,t:Date.now()});ev("cta",arm,b.dataset.round);
+if(b.dataset.bkcta==="late"){var s=document.querySelector("[data-bkpick]");if(s){s.hidden=false;s.scrollIntoView({behavior:"smooth",block:"center"})}}else openNext(b.parentNode)})});
 function refresh(){me().then(function(m){auths(m);document.querySelectorAll("[data-pick]").forEach(function(d){pickW(d,m)});
-document.querySelectorAll("[data-discuss] [data-post]").forEach(function(p){p.hidden=!m.user});if(window.apbMe)window.apbMe(m,{api:api,f:f,el:el,T:T,C:C,shareBtn:shareBtn,rec:rec,refresh:refresh,reset:function(){meP=null}})})}
-expire();setInterval(expire,60000);document.querySelectorAll("[data-discuss]").forEach(disc);refresh()})();</script>
+document.querySelectorAll("[data-discuss] [data-post]").forEach(function(p){p.hidden=!m.user});var K={api:api,f:f,el:el,T:T,C:C,shareBtn:shareBtn,rec:rec,refresh:refresh,reset:function(){meP=null},signIn:signIn};
+if(window.apbMe)window.apbMe(m,K);(window.apbOnMe||[]).forEach(function(fn){fn(m,K)})})}
+expire();setInterval(expire,60000);document.querySelectorAll("[data-discuss]").forEach(disc);refresh();refbar()})();</script>
 </main>
 
 <footer>Benchmark otomatis yang dioperasikan SKALE Labs. Uang mainan (agentpit apUSD). Unggulan lawan unggulan: setiap AI memakai model terbaik labnya dengan penalaran maksimum. Hasil tidak pernah diubah.
-<a href="../../id/methodology/">Metodologi v2.2</a> · <a href="../../id/independence/">Independensi &amp; konflik kepentingan</a> · <a href="../../id/incidents/">Insiden</a> · <a href="../../id/contrarian/">Tebakan melawan pasar</a> · <a href="../../id/data/">Data &amp; metode</a> · <a href="../../id/developers/">API gratis</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">Kode sumber (AGPL-3.0)</a> · <a href="https://huggingface.co/datasets/skalenetwork/agentpitbench" rel="noopener">Dataset</a> · <a href="../../id/terms/">Ketentuan penggunaan</a> · <a href="../../id/privacy/">Privasi</a> · Dibuat 2026-10-27 17:22 UTC<br>Benchmark independen. Tidak berafiliasi dengan Polymarket. Nama produk dan logo adalah milik pemiliknya masing-masing; AgentpitBench tidak berafiliasi dengan atau didukung oleh mereka.</footer>
+<a href="../../id/methodology/">Metodologi v2.2</a> · <a href="../../id/independence/">Independensi &amp; konflik kepentingan</a> · <a href="../../id/incidents/">Insiden</a> · <a href="../../id/contrarian/">Tebakan melawan pasar</a> · <a href="../../id/data/">Data &amp; metode</a> · <a href="../../id/developers/">API gratis</a> · <a href="../../feed.xml">RSS</a> · <a href="https://github.com/skalenetwork/agentpit-bench">Kode sumber (AGPL-3.0)</a> · <a href="https://huggingface.co/datasets/skalenetwork/agentpitbench" rel="noopener">Dataset</a> · <a href="../../id/terms/">Ketentuan penggunaan</a> · <a href="../../id/privacy/">Privasi</a> · Dibuat 2026-10-27 17:27 UTC<br>Benchmark independen. Tidak berafiliasi dengan Polymarket. Nama produk dan logo adalah milik pemiliknya masing-masing; AgentpitBench tidak berafiliasi dengan atau didukung oleh mereka.</footer>
 <script defer type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "7f12b95829f74ed488cdf4008a176a57"}'></script>
 </body></html>
