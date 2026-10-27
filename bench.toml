@@ -36,7 +36,7 @@ dry_run = true
 posting_paused = false
 # operator 2026-10-13: two posts per market on X (and its mirrors): the opening (reveal) and the closing
 # (results). No replies, no press, films, replays, awards, reports or other extra posts.
-post_kinds = ["reveal", "results", "week", "motd", "reply-back"]   # + weekly episode, daily film, F2 reply-back (operator 2026-10-13; X "Automated" label set)
+post_kinds = ["reveal", "results", "week", "motd", "reply-back", "report_month"]   # + weekly episode, daily film, F2 reply-back (operator 2026-10-13; X "Automated" label set); report_month: operator 2026-10-27 virality push
 reveal_window = true      # virality-2 F1: the reveal waits for its live window (T-3h .. T-15min before kickoff)
 
 agents = ["claude", "codex", "agy", "grok"]
@@ -60,6 +60,8 @@ telegram_enabled = true
 
 # Week in the Pit (docs/week-in-the-pit-spec.md): weekly episode, Sundays 18:00 UTC
 week_episode_enabled = true
+# Monthly report "Which AI is the best forecaster?": thread + 60 s film on the 1st of each month, 15:00 UTC (operator 2026-10-27 virality push)
+report_month_enabled = true
 
 # Operator decisions 2026-10-12: YouTube AI-narrator disclosure; cadence + selection reviewers in shadow/propose mode
 youtube_synthetic_media = true

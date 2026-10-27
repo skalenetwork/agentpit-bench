@@ -632,7 +632,9 @@ class CardRenderer:
             for i, sc in enumerate(scenes):
                 strip = self._strip(sc.get("url_path") or f"round/{sc['round_id']}", sc.get("agent"))
                 # w_: a Week in the Pit host scene (docs/week-in-the-pit-spec.md); s_: a scripted film scene
+                # m_: a monthly report film scene (monthly.scenes)
                 tpl = env.get_template("week.html" if sc["kind"].startswith("w_") else
+                                       "month.html" if sc["kind"].startswith("m_") else
                                        "motd_story.html" if sc["kind"].startswith("s_") else "motd.html")
                 html = tpl.render(sc=sc, fmt=fmt, w=width, h=height, idx=i, count=len(scenes),
                                   colors=AGENT_COLORS, names=AGENT_NAMES, **strip,

@@ -75,6 +75,21 @@ def episode_candidates(s: Settings, now: float) -> list[tuple[dict, object]]:
     return out
 
 
+def month_candidates(s: Settings, now: float) -> list[tuple[dict, object]]:
+    """The monthly report film (cards/report/<month>/record.json): the last two months, once its post time has come
+    (the 9:16 cut, a Short). Only with report_month_enabled; never older (no backfill)."""
+    if not getattr(s, "report_month_enabled", False):
+        return []
+    from . import monthly
+    from .monthly_media import record, report_dir
+    out = []
+    for month in (monthly.previous_month(now), monthly.previous_month(now - 32 * 86400)):
+        rec = record(s, month)
+        if rec and now >= (rec.get("post_after") or 0) and (rec.get("files") or {}).get("tall"):
+            out.append((rec, report_dir(s, month)))
+    return out
+
+
 def round_export(s: Settings, db, round_id: int) -> dict | None:
     from . import exports
     r = db.round(round_id)
@@ -107,6 +122,20 @@ def pull_due(s: Settings, db, client, now: float | None = None) -> dict:
         try:
             from . import week
             r = youtube.upload(s, db, client, rec, d, key=key, file_key="wide", resource=week.yt_resource(s, rec))
+            out["uploaded"].append({key: r["state"]})
+        except youtube.ChannelMismatch:
+            pass
+        except Exception as e:
+            log.exception("yt %s: upload step failed", key)
+            out["uploaded"].append({key: f"error: {e}"})
+    for rec, d in month_candidates(s, now):
+        key = f"report-{rec['month']}"
+        cur = youtube.row(db, key)
+        if cur and cur["state"] != "uploading":
+            continue
+        try:
+            from . import monthly
+            r = youtube.upload(s, db, client, rec, d, key=key, file_key="tall", resource=monthly.yt_resource(s, rec))
             out["uploaded"].append({key: r["state"]})
         except youtube.ChannelMismatch:
             pass
@@ -157,7 +186,10 @@ def _poll(s: Settings, db, client, now: float, out: dict) -> None:
         if r.get("state") == "rejected" or r["published_at"] is None or r["upload_status"] != "processed":
             continue
         if s.youtube_comment and not r["comment_id"] and not s.posting_paused:
-            if r["post_key"].startswith("week-"):  # the weekly episode: its own comment
+            if r["post_key"].startswith("report-"):  # the monthly report film: its own comment
+                from .monthly import yt_comment as month_comment
+                text = month_comment(s, r["post_key"][len("report-"):])
+            elif r["post_key"].startswith("week-"):  # the weekly episode: its own comment
                 from .week import yt_comment
                 text = yt_comment(s, {"week": r["post_key"][len("week-"):]})
             else:

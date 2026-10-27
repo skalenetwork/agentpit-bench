@@ -14,5 +14,6 @@
 {% if grid or film %}{{ g.grid(grid, film, today) }}{% else %}<p class="mut">{{ _("No results yet. The first round is live or on its way.") }}</p>{% endif %}
 {{ ba.fire(fire) }}
 <div class="btns"><a class="btn" href="{{ home }}leaderboard/">{{ _("Full leaderboard") }}</a></div>
+{% include "_ask.html" %}
 {% if bk and upcoming %}{{ bkm.script() }}{% endif %}
 {% endblock %}

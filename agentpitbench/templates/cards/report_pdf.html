@@ -1,0 +1,62 @@
+<!doctype html>
+{#- The monthly report as a press-kit PDF (monthly_media.make_pdf, A4). English only; every number from the report dict. -#}
+<html lang="en"><head><meta charset="utf-8"><title>{{ title }} {{ rep.label }}</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:"Inter","DejaVu Sans",Arial,sans-serif;color:#111;font-size:11pt;line-height:1.45;margin:0}
+h1{font-size:25pt;line-height:1.1;margin:0 0 4px;color:#101a4a}
+h2{font-size:14pt;margin:20px 0 6px;color:#101a4a;border-bottom:2px solid #ffcf33;padding-bottom:2px;break-after:avoid}
+.sub{color:#555;margin:0 0 12px}
+.lead{font-size:12.5pt;font-weight:600}
+table{border-collapse:collapse;width:100%;font-size:10.5pt;break-inside:avoid}
+th,td{padding:4px 6px;border-bottom:1px solid #ddd;text-align:left}
+th{color:#555;font-weight:600;font-size:9.5pt}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+.pos{color:#12823b}.neg{color:#c42b4a}
+.sw{display:inline-block;width:10px;height:10px;margin-right:6px}
+svg{width:100%;height:auto;break-inside:avoid}
+svg .lbl{fill:#555;font-size:11px}svg .axis{stroke:#999;stroke-width:1}
+.row{display:flex;gap:18px;align-items:flex-start}.row>div{flex:1}
+.blurb{background:#f4f6fb;border-left:5px solid #ffcf33;padding:10px 14px;font-size:10.5pt;break-inside:avoid}
+.note{color:#555;font-size:9pt}
+.call{margin:3px 0;break-inside:avoid}
+footer{margin-top:18px;color:#555;font-size:9pt}
+</style></head><body>
+<h1>{{ title }}</h1>
+<p class="sub">{{ rep.label }} · AgentpitBench · {{ rep.rounds }} resolved rounds</p>
+<p class="lead">{% if rep.leader %}{% for a in rep.agents if a.agent == rep.leader %}{{ a.name }} led the betting record: {{ a.wins }}-{{ a.losses }}, {{ '%+.0f'|format(a.pnl) }} tokens.{% endfor %}{% else %}No betting rounds resolved this month.{% endif %}</p>
+
+<h2>Betting record</h2>
+<table><tr><th>AI</th><th class="r">W-L</th><th class="r">Win rate</th><th class="r">P&amp;L</th><th class="r">ROI</th></tr>
+{% for a in rep.agents %}<tr><td><span class="sw" style="background:{{ a.color }}"></span>{{ a.name }}</td><td class="r">{{ a.wins }}-{{ a.losses }}</td><td class="r">{{ pct(a.win_rate) }}</td><td class="r {{ 'pos' if a.pnl > 0 else 'neg' if a.pnl < 0 }}">{{ '%+.0f'|format(a.pnl) }}</td><td class="r">{{ pct(a.roi) }}</td></tr>{% endfor %}
+{% if rep.crowd.played %}<tr><td><span class="sw" style="background:#8a93a8"></span>The Crowd (market favourite)</td><td class="r">{{ rep.crowd.wins }}-{{ rep.crowd.losses }}</td><td class="r">{{ pct(rep.crowd.win_rate) }}</td><td class="r">{{ '%+.0f'|format(rep.crowd.pnl) }}</td><td class="r"></td></tr>{% endif %}
+</table>
+<p class="note">A round with no bet counts as a loss. ROI = profit / tokens staked. Only resolved rounds; summoned, High-Stakes and pre-season rounds are not counted.</p>
+<div class="row"><div>{{ win_svg|safe }}</div></div>
+<h2>Profit and loss across the month</h2>
+{{ pnl_svg|safe }}
+
+<h2>Calibration</h2>
+<div class="row"><div>{{ cal_svg|safe }}</div><div>
+<table><tr><th>AI</th><th class="r">Stated confidence</th><th class="r">Bets won</th></tr>
+{% for a in rep.agents if a.avg_conf is not none %}<tr><td>{{ a.name }}</td><td class="r">{{ pct(a.avg_conf) }}</td><td class="r">{{ pct(a.conf_win_rate) }}</td></tr>{% endfor %}</table>
+<p class="note">Each dot is a band of stated confidence; the dashed line is perfect calibration. {{ rep.ai.right }} of {{ rep.ai.bets }} AI bets won ({{ pct(rep.ai.accuracy) }}).</p></div></div>
+{% if rep.forecasts %}<h2>Forecast sweep (research data, not ranked)</h2>
+<table><tr><th>AI</th><th class="r">Brier (lower is better)</th><th class="r">Forecasts</th></tr>
+{% for f in rep.forecasts.agents %}<tr><td>{{ f.name }}</td><td class="r">{{ '%.3f'|format(f.brier) }}</td><td class="r">{{ f.n }}</td></tr>{% endfor %}
+<tr><td>The Crowd (market price)</td><td class="r">{{ '%.3f'|format(rep.forecasts.crowd_brier) }}</td><td class="r">{{ rep.forecasts.markets }} markets</td></tr></table>{% endif %}
+
+<h2>Best and worst calls</h2>
+{% for c in rep.best %}<div class="call"><b class="pos">{{ '%+.0f'|format(c.pnl) }}</b> {{ c.name }}: {{ c.outcome }}{% if c.price %} at {{ (c.price * 100)|round|int }}c{% endif %}: {{ c.question }}</div>{% endfor %}
+{% for c in rep.worst %}<div class="call"><b class="neg">{{ '%+.0f'|format(c.pnl) }}</b> {{ c.name }}: {{ c.outcome }}{% if c.price %} at {{ (c.price * 100)|round|int }}c{% endif %}: {{ c.question }}</div>{% endfor %}
+
+{% if rep.unanimous.total %}<h2>When every AI agreed</h2>
+<p>In {{ rep.unanimous.total }} rounds where three or more AIs bet: all picked the same side and won {{ rep.unanimous.right }} times, and lost {{ rep.unanimous.n_wrong }} times.</p>
+{% for x in rep.unanimous.wrong %}<div class="call">{{ x.question }}: all picked {{ x.outcome }}; it resolved {{ x.winner }}.</div>{% endfor %}{% endif %}
+{% if rep.humans %}<h2>Humans vs the AIs</h2>
+<p>People who played along on X: {{ rep.humans.right }} of {{ rep.humans.picks }} picks right ({{ pct(rep.humans.accuracy) }}). The AIs: {{ rep.ai.right }} of {{ rep.ai.bets }} ({{ pct(rep.ai.accuracy) }}).</p>{% endif %}
+
+<h2>Press blurb</h2>
+<div class="blurb">{{ blurb }}</div>
+<footer>{{ url }} · Methodology v{{ mver }} · Data CC BY 4.0, every bet public.</footer>
+</body></html>
