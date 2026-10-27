@@ -495,13 +495,16 @@ def scripted(s: Settings, db, rnd: dict, rounds: list[dict], lb: dict, site: str
         opai.sealed_guard(db, rnd["round_id"])
         res = None
         for _ in range(2):  # one retry, told why the first draft was rejected
-            res = opai.call(s, db, ms.TASK, pl, subject=subject, validate=lambda d, pl=pl: ms.validate(d, pl))
+            res = opai.call(s, db, ms.TASK, pl, subject=subject, validate=lambda d, pl=pl: ms.validate_or_trim(d, pl))
             if res:
                 break
             why = ms.last_rejection(db, subject)
             if not why:
                 break  # unavailable or a CLI failure: no point retrying now
             pl = {**pl, "previous_rejection": why}
+            draft = ms.last_draft(db, subject)
+            if draft:
+                pl["previous_draft"] = draft   # edit this one: change only what the rejection names
     if not res:
         return None
     data = res.data
@@ -660,7 +663,7 @@ def link_text(s: Settings, rec: dict) -> str:
     return f"Every pick, price and transcript from this round: {url}"
 
 
-async def post(s: Settings, db, poster, rec: dict, out: Path) -> str | None:
+async def post(s: Settings, db, poster, rec: dict, out: Path, link: bool = True) -> str | None:
     """The film as a standalone post (hook, no link), then the round link as a self-reply. X gets the SQUARE film
     (one video per post; 9:16 shows as a narrow strip on desktop); older films without one post the 9:16."""
     video = out / (rec["files"].get("square") or rec["files"].get("tall", ""))
@@ -676,7 +679,7 @@ async def post(s: Settings, db, poster, rec: dict, out: Path) -> str | None:
     still = out / "poster.png"   # the mirrors' fallback when the film is over their upload limit or fails
     tid = await poster.post(key, "motd", text, video, round_id=rec["round_id"],
                             bsky_fallback=still if still.is_file() else None)
-    if tid:
+    if tid and link:
         await poster.post(f"{key}-link", "motd-link", link_text(s, rec), None, reply_to=tid, round_id=rec["round_id"])
     return tid
 
@@ -735,7 +738,17 @@ async def daily(s: Settings, db, cards, poster, now: float | None = None) -> dic
         log.exception("Match of the Day %s: day film failed", day)
         db.put(f"motd_{day}", "failed")
         return None
-    db.put(f"motd_{day}", "done" if rec else "quiet")
+    state = "done" if rec else "quiet"
+    if rec and poster is not None:
+        # motd_daily = true (operator 2026-10-13): the day's film is also ONE X post, no link reply (the round's own
+        # results post already carries the link). v0.6 had dropped this call, so nothing went out after 2026-10-12.
+        try:
+            if await post(s, db, poster, rec, film_dir(s, day), link=False):
+                state = "posted"
+        except Exception:
+            log.exception("Match of the Day %s: post failed", day)
+            state = "post-failed"
+    db.put(f"motd_{day}", state)
     return rec
 
 

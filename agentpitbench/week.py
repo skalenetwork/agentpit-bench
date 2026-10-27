@@ -308,12 +308,20 @@ _RESULT = re.compile(r"\b(won|wins|lost|loses|cashed|paid out|was right|was wron
 
 
 # "every AI but Gemini backs X", "against X", "not X": the named agent is excluded from the pick in that clause
-_NEG = re.compile(r"\b(not|against|n't|over|but|except|apart from|other than|unlike)\b", re.I)
+_NEG = re.compile(r"\b(not|against|n't|over|but|except|apart from|other than|unlike|than|versus|vs|never|"
+                   r"unlikely|less|weak|worse|minority|fade[sd]?|above|below|behind|ahead of|trails?|fading|underdog|longshot)\b", re.I)
+
+
+def _neg(sent: str) -> bool:
+    from . import motd_story as ms
+    return bool(_NEG.search(sent) or ms._NO.search(sent))
 
 
 def _sentences(t: str) -> list[str]:
     """Sentences, split further at semicolons and colons (each clause is checked on its own)."""
-    return [x for x in re.split(r"(?<=[.!?…])\s+|\n|;\s*|:\s+", t) if x.strip()]
+    # also at commas and "while": "the pack backs No, Claude goes Yes" ties Claude to Yes only (motd_story.clauses)
+    return [x for x in re.split(r"(?<=[.!?…])\s+|\n|;\s*|:\s+|,\s+|\s+(?:while|whereas|and yet)\s+", t,
+                                flags=re.I) if x and x.strip()]
 
 
 def _names_in(sent: str) -> list[str]:
@@ -390,7 +398,7 @@ def _facts(k: str, filled: str, pl: dict) -> str | None:
             n = who[0]
             for o in f["outcomes"]:
                 said = re.search(r"(?<![\w])" + re.escape(o) + r"(?![\w])", sent)
-                if said and pick.get(n) and o != pick[n] and not _NEG.search(sent):
+                if said and pick.get(n) and o != pick[n] and not _neg(sent):
                     return f"{k}: '{sent}' ties {n} to {o}, but {n} picked {pick[n]}"
             if won.get(n) is False and ms_won(sent) and not ms_lost(sent):
                 return f"{k}: '{sent}' says {n} won, but {n} lost"
@@ -421,7 +429,7 @@ def _facts(k: str, filled: str, pl: dict) -> str | None:
                     for o in {v for v in t["picks"].values() if v}:
                         if (pick and o != pick and re.search(r"(?<![\w])" + re.escape(o) + r"(?![\w])", sent)
                                 and t["question"].split()[0].lower() in sent.lower()
-                                and not _NEG.search(sent)):
+                                and not _neg(sent)):
                             return f"teaser: '{sent}' ties {who[0]} to {o}, but it picked {pick}"
     elif k == "human":
         if pl.get("best_human") and pl["slots"].get("human") not in filled:

@@ -20,10 +20,12 @@ from .cards import start_price
 from .config import AGENT_NAMES
 
 TASK = "motd_script"
-PROMPT_VERSION = "motd_script.v1"
+PROMPT_VERSION = "motd_script.v2"   # v2: word budget, hard facts, previous draft fed back (v1 stays in the repo)
 RECENT_FILMS = 8          # concept and twist types of this many recent films are avoided (5 films a day)
 CPS = 15.0                # caption reading speed, characters per second (readable on a phone)
 MIN_S, MAX_S = 45.0, 60.0
+TARGET_S = MAX_S - 4.0    # what the writer is told to aim for: the validator rejects over MAX_S, so keep a margin
+TRIM_MAX_S = 6.0          # an overrun up to this is trimmed in code (optional lines) instead of rejected
 
 # ---------- concepts: genre, look, pacing ----------
 # theme keys drive motd.html: palette, display + caption fonts, the scene transition, caption treatment and the music
@@ -188,8 +190,59 @@ def fill(text: str, sl: dict[str, str]) -> str:
 
 # ---------- the writer's input ----------
 
+def film_seconds(scenes: list[dict], sl: dict[str, str], quotes: dict[str, str | None]) -> float:
+    """The film's length as the validator measures it: per scene the longer of the on-screen time and the
+    narrator's reading time (NARR_CPS)."""
+    return sum(max(d, 0.75 + len(fill(s["text"], sl)) / NARR_CPS) for s, d in
+               zip(scenes, durations(scenes, sl, quotes)))
+
+
+def char_budget(quotes: dict[str, str | None]) -> tuple[int, dict[str, int]]:
+    """(total caption characters, characters per scene kind) that fill TARGET_S seconds, derived from the same
+    reading-speed constants and per-kind bounds the validator uses, with this round's own card quotes (the quote
+    shown in a character scene adds time). A reference film (one scene per kind, one per agent) is scaled down
+    from the per-kind maximums until it fits; never above BUDGET_CHARS."""
+    names = list(quotes)
+    kinds = ["cold_open", "title", "market", "background", *["character"] * len(names), "misdirect", "result",
+             "twist", "coda"]
+
+    def film(f: float) -> list[dict]:
+        out, ci = [], 0
+        for k in kinds:
+            s = {"kind": k, "text": "x" * max(1, int(MAX_CHARS[k] * f))}
+            if k == "character":
+                s["agent"] = names[ci]
+                ci += 1
+            out.append(s)
+        return out
+    f = 1.0
+    while f > 0.2 and film_seconds(film(f), {}, quotes) > TARGET_S:
+        f -= 0.01
+    total = sum(len(s["text"]) for s in film(f))
+    per = {k: max(1, int(MAX_CHARS[k] * f)) for k in MAX_CHARS}
+    if total > BUDGET_CHARS:
+        per = {k: int(v * BUDGET_CHARS / total) for k, v in per.items()}
+        total = BUDGET_CHARS
+    return total, per
+
+
+def hard_facts(ents: list[dict], rnd: dict) -> list[str]:
+    """Each AI's actual pick and result as plain sentences, for the top of the writer's input."""
+    out = []
+    for e in ents:
+        if not e["pick"]:
+            out.append(f"{e['name']} did NOT bet ({e['no_bet_reason']}); never give it a pick.")
+        else:
+            res = "won" if e["won"] else ("lost" if e["won"] is False else "has no result yet")
+            out.append(f"{e['name']} picked {e['pick']} and {res}. Never tie {e['name']} to any other outcome.")
+    if rnd.get("winner"):
+        out.append(f"The winning outcome was {rnd['winner']}.")
+    return out
+
+
 def payload(rnd: dict, ctx: dict, twist: dict, concepts: list[str], lines: dict[str, list[str]]) -> dict:
     sl = slots(rnd, ctx)
+    budget, per_scene = char_budget({e["name"]: e.get("quote") for e in rnd["entries"]})
     ents = []
     for e in rnd["entries"]:
         ents.append({"name": e["name"], "pick": e.get("outcome"), "won": e.get("won"),
@@ -208,8 +261,10 @@ def payload(rnd: dict, ctx: dict, twist: dict, concepts: list[str], lines: dict[
         "twist": {"type": twist["type"], "fact": twist["fact"], "agents": twist["names"],
                   "set_it_up": twist.get("setup")},
         "allowed_concepts": {k: CONCEPTS[k]["label"] + ": " + CONCEPTS[k]["brief"] for k in concepts},
-        "slots": sl, "caption_budget_chars": BUDGET_CHARS,
-        "max_chars_per_scene": MAX_CHARS,
+        "slots": sl, "caption_budget_chars": budget,
+        "max_chars_per_scene": MAX_CHARS, "target_chars_per_scene": per_scene,
+        "film_seconds": {"hard_limit": MAX_S, "aim_for": TARGET_S, "reading_speed_chars_per_s": NARR_CPS},
+        "hard_facts": hard_facts(ents, rnd),
     }
 
 
@@ -238,6 +293,28 @@ AFTER = ("result", "twist", "coda")  # win/loss wording is checked once the resu
 
 def _sentences(t: str) -> list[str]:
     return [x for x in re.split(r"(?<=[.!?…])\s+|\n", t) if x.strip()]
+
+
+# a sentence naming several AIs is attributed clause by clause: "the pack backs No, Claude goes Yes" ties Claude
+# to Yes only (shared with week.py)
+_CLAUSE = re.compile(r"(?<=[.!?…][\"”'’])\s+|,\s+|;\s*|:\s+|\s+(?:while|whereas|and yet)\s+|\s+[—–]\s+|\s+-\s+", re.I)
+# words that say "not this one" or compare it, so the AI is not being tied to the outcome (case-insensitive) ...
+NEGATING = re.compile(r"\b(not|against|n't|over|than|versus|vs|never|unlikely|less|weak|worse|minority|fade[sd]?|above|below|behind|ahead of|trails?|"
+                      r"fading|underdog|longshot)\b", re.I)
+# ... and a lowercase "no" ("no edge for Yes"); the outcome "No" is capitalised, so this never swallows it
+_NO = re.compile(r"\bno\b")
+# a clause about everyone else is never attributed to the character scene's own AI
+_GROUP = re.compile(r"\b(the pack|the crowd|the rest|everyone|everybody|every other|the others|others|rivals|"
+                    r"the field|the market|the house|the room|the humans|humans|the favou?rite|the underdog)\b",
+                    re.I)
+
+
+def clauses(sent: str) -> list[str]:
+    return [c for c in _CLAUSE.split(sent) if c and c.strip()]
+
+
+def negated(clause: str) -> bool:
+    return bool(NEGATING.search(clause) or _NO.search(clause))
 
 
 def durations(scenes: list[dict], sl: dict[str, str], quotes: dict[str, str | None]) -> list[float]:
@@ -334,17 +411,26 @@ def validate(data: dict, pl: dict) -> str | None:
         if re.search(r"\b(read|reads|reading|opened)\b[^.!?]*\blinks?\b", fill(t, sl), re.I):
             return (f"scene {i} ({k}): transcripts LOG web links (search results included); say 'logged' or "
                     "'pulled', not 'read'")
-        for sent in _sentences(fill(t, sl)):
+        for full in _sentences(fill(t, sl)):
+            for sent in clauses(full):
+                who = [n for n in names if re.search(r"\b" + re.escape(n) + r"\b", sent)]
+                if len(who) != 1 and not (k == "character" and len(who) == 0 and not _GROUP.search(sent)):
+                    continue
+                n = who[0] if who else s.get("agent")
+                if not n:
+                    continue
+                for o in outcomes:
+                    said = re.search(r"(?<![\w])" + re.escape(o) + r"(?![\w])", sent)
+                    if said and o != pick.get(n) and pick.get(n) and not negated(sent):
+                        return f"scene {i} ({k}): '{full}' ties {n} to {o}, but {n} picked {pick[n]}"
+            # win/loss wording is judged on the whole sentence
+            sent = full
             who = [n for n in names if re.search(r"\b" + re.escape(n) + r"\b", sent)]
-            if len(who) != 1 and not (k == "character" and len(who) == 0):
+            if len(who) != 1 and not (k == "character" and len(who) == 0 and not _GROUP.search(sent)):
                 continue
             n = who[0] if who else s.get("agent")
             if not n:
                 continue
-            for o in outcomes:
-                said = re.search(r"(?<![\w])" + re.escape(o) + r"(?![\w])", sent)
-                if said and o != pick.get(n) and pick.get(n) and not re.search(r"\b(not|against|n't|over)\b", sent):
-                    return f"scene {i} ({k}): '{sent}' ties {n} to {o}, but {n} picked {pick[n]}"
             if k in AFTER and won.get(n) is False and _WON.search(sent) \
                     and not _LOST.search(sent):
                 return f"scene {i} ({k}): '{sent}' says {n} won, but {n} lost"
@@ -360,11 +446,78 @@ def validate(data: dict, pl: dict) -> str | None:
     chars = sum(len(fill(s.get("text") or "", sl)) for s in scenes)
     if chars > BUDGET_CHARS:
         return f"too long: {chars} caption characters in total, the budget is {BUDGET_CHARS}; cut words"
-    total = sum(max(d, 0.75 + len(fill(s["text"], sl)) / NARR_CPS) for s, d in
-                zip(scenes, durations(scenes, sl, {a["name"]: a.get("card_quote") for a in pl["agents"]})))
+    total = film_seconds(scenes, sl, {a["name"]: a.get("card_quote") for a in pl["agents"]})
     if total > MAX_S:
-        return f"too long: about {total:.0f} s at reading speed; cut words (the film must fit {MAX_S:.0f} s)"
+        cut = int((total - TARGET_S) * NARR_CPS) + 1
+        return (f"too long: about {total:.1f} s at reading speed; the film must fit {MAX_S:.0f} s (aim for "
+                f"{TARGET_S:.0f}). Cut at least {cut} characters, from the longest lines, keeping every scene")
     return None
+
+
+def _quotes(pl: dict) -> dict[str, str | None]:
+    return {a["name"]: a.get("card_quote") for a in pl["agents"]}
+
+
+def _balanced(t: str) -> bool:
+    return t.count('"') % 2 == 0 and t.count("{") == t.count("}")
+
+
+def trim(data: dict, pl: dict) -> bool:
+    """Bring a script that overruns MAX_S by at most TRIM_MAX_S under it by dropping optional text, never a
+    required scene: a second misdirect scene, then the last sentence of the longest multi-sentence background,
+    misdirect or character line, then a trailing clause of the background. True if the script changed."""
+    sl, q = pl["slots"], _quotes(pl)
+
+    def over() -> float:
+        return film_seconds(data["scenes"], sl, q) - MAX_S
+    if not 0 < over() <= TRIM_MAX_S:
+        return False
+    changed = False
+    for _ in range(10):
+        if over() <= 0:
+            break
+        sc = data["scenes"]
+        ri = next((i for i, s in enumerate(sc) if s["kind"] == "result"), len(sc))
+        mis = [i for i, s in enumerate(sc[:ri]) if s["kind"] == "misdirect"]
+        if len(mis) > 1:   # drop the later one that is not a spotlight, else the later one
+            drop = next((i for i in reversed(mis) if sc[i].get("stage") != "spotlight"), mis[-1])
+            del sc[drop]
+            changed = True
+            continue
+        cands = []
+        for i, s in enumerate(sc):
+            if s["kind"] in ("background", "misdirect", "character"):
+                parts = _sentences(s["text"])
+                if len(parts) > 1 and _balanced(" ".join(parts[:-1])):
+                    cands.append((len(fill(s["text"], sl)), i, " ".join(parts[:-1])))
+        if cands:
+            _, i, new = max(cands)
+            sc[i]["text"] = new
+            changed = True
+            continue
+        bg = next((s for s in sc if s["kind"] == "background"), None)
+        if bg and ", " in bg["text"]:
+            head = bg["text"].rstrip(".!? ").rsplit(", ", 1)[0]
+            if len(head) >= 50 and _balanced(head):
+                bg["text"] = head + "."
+                changed = True
+                continue
+        break
+    return changed
+
+
+def validate_or_trim(data: dict, pl: dict) -> str | None:
+    """validate(), except that a script whose only fault is a small overrun is trimmed in place (data is
+    mutated, so what is stored and filmed is the trimmed script) and accepted if it then passes."""
+    err = validate(data, pl)
+    if err and err.startswith("too long: about "):
+        import copy
+        cand = copy.deepcopy(data)
+        if trim(cand, pl) and validate(cand, pl) is None:
+            data.clear()
+            data.update(cand)
+            return None
+    return err
 
 
 # ---------- the scene list for the renderer ----------
@@ -509,6 +662,19 @@ def recent(db, n: int = RECENT_FILMS, subject: str | None = None) -> tuple[list[
     return [c for c in concepts if c], [t for t in twists_ if t]
 
 
+def last_draft(db, subject: str) -> list[dict] | None:
+    """The latest rejected draft for this subject as [{kind, agent, text}], to show the writer what to fix."""
+    r = db.one("SELECT accepted, content FROM operator_ai_outputs WHERE purpose=? AND subject=? "
+               "ORDER BY output_id DESC LIMIT 1", TASK, subject)
+    if r is None or r["accepted"]:
+        return None
+    try:
+        scenes = json.loads(r["content"]).get("scenes") or []
+    except (ValueError, AttributeError):
+        return None
+    return [{k: s[k] for k in ("kind", "agent", "text") if s.get(k)} for s in scenes if isinstance(s, dict)]
+
+
 def last_rejection(db, subject: str) -> str | None:
     """Why the latest draft for this subject was rejected (schema or validator), or None when the last call
     produced no draft at all (unavailable, quota, timeout, crash)."""
@@ -540,4 +706,4 @@ def reuse(db, subject: str, twist_type: str, pl: dict):
 
 
 __all__ = ["CONCEPTS", "SCHEMA", "slots", "fill", "payload", "validate", "build_scenes", "durations",
-           "recent", "reuse", "last_rejection", "script_text", "AGENT_NAMES"]
+           "recent", "reuse", "last_rejection", "last_draft", "validate_or_trim", "trim", "char_budget", "script_text", "AGENT_NAMES"]

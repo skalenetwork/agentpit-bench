@@ -246,17 +246,21 @@ def test_daily_disabled_does_nothing(env):
     assert db.get(f"motd_{DAY}") is None
 
 
-async def test_daily_makes_the_day_film_once_and_posts_nothing(env, monkeypatch):
-    """v0.6: films go out in each round's results post; the daily job only publishes the day's most dramatic
-    round film for YouTube and /films/ (once per date, at or after motd_hour_utc), and backfills before that."""
+async def test_daily_makes_the_day_film_once_and_posts_it_once_without_a_link(env, monkeypatch):
+    """motd_daily = true (operator 2026-10-13): at or after motd_hour_utc, once per date, the day's most dramatic
+    round film is published AND posted as ONE X post (kind motd, no link reply); before that it only backfills.
+    Regression: v0.6 dropped the post call, so nothing went out after 2026-10-12."""
     s, db = env
     s.motd_enabled = True
     t17 = datetime(2026, 10, 12, 17, 5, tzinfo=timezone.utc).timestamp()
     calls, backfills = [], []
+    out = motd.film_dir(s, DAY)
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "sq.mp4").write_bytes(b"\0")
 
     async def fake_day(s_, db_, cards, day):
         calls.append(day)
-        return {"date": day, "round_id": 1, "files": {"tall": "x.mp4"}}
+        return {"date": day, "round_id": 1, "hook": "All rise.", "files": {"square": "sq.mp4"}}
 
     async def fake_backfill(s_, db_, cards, limit=1):
         backfills.append(1)
@@ -267,9 +271,10 @@ async def test_daily_makes_the_day_film_once_and_posts_nothing(env, monkeypatch)
     poster = Poster(s, db)
     assert await motd.daily(s, db, None, poster, now=t17 - 3600) is None and calls == [] and backfills
     rec = await motd.daily(s, db, None, poster, now=t17)
-    assert rec and calls == [DAY] and db.get(f"motd_{DAY}") == "done"
+    assert rec and calls == [DAY] and db.get(f"motd_{DAY}") == "posted"
     assert await motd.daily(s, db, None, poster, now=t17 + 3600) is None and calls == [DAY]  # once per date
-    assert not list(s.outbox_dir.glob("motd-*.json")) if s.outbox_dir.exists() else True  # no X post
+    assert db.one("SELECT COUNT(*) n FROM tweets WHERE post_key=?", f"motd-{DAY}")["n"] == 1
+    assert db.one("SELECT COUNT(*) n FROM tweets WHERE kind='motd-link'")["n"] == 0   # no link reply
 
 
 async def test_day_film_links_the_chosen_round_film_and_renders_missing_formats(env, monkeypatch):

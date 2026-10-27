@@ -63,11 +63,28 @@ def payload(s: Settings, db: DB, now: float) -> dict:
     current = {k: (lock["selection"]["scoring"] if k == "selection.scoring" else lock["params"].get(k)) for k in KEYS}
     return {"rounds": rounds(db, now), "x_by_category": xstats.by_category(db, now - DAYS * 86400, "24h", now),
             "shadow_report": rating.shadow_report(db, 7),
-            "current": current, "methodology_version": lock["version"],
+            "current": current, "methodology_version": lock["version"], "text_max_chars": TEXT_MAX,
             "bounds": {k: (list(v) if v else None) for k, v in methodology.PROPOSAL_BOUNDS.items() if k in KEYS}}
 
 
+def shorten(text: str, limit: int = TEXT_MAX) -> str:
+    """At most `limit` characters, cut at the last sentence end (else the last word) and marked with an ellipsis
+    when no sentence end fits. Both texts are published only as the model's own words in the evidence file, so a
+    clean cut loses nothing that matters."""
+    text = " ".join(text.split())
+    if len(text) <= limit:
+        return text
+    head = text[:limit]
+    cut = max(head.rfind(". "), head.rfind("! "), head.rfind("? "))
+    if cut >= limit // 3:
+        return head[:cut + 1]
+    return head[:limit - 1].rsplit(" ", 1)[0].rstrip(" ,;:-") + "…"
+
+
 def validate(data: dict) -> str | None:
+    """None if the output may be used. Over-long rationale/changelog_text is shortened IN PLACE (data is what
+    gets stored and used) when it is at most 3x the limit; anything longer, or empty, is rejected with the
+    reason, which review() feeds back on the one retry."""
     if "none" in data:
         if len(data) > 1:
             return "none together with a change"
@@ -85,8 +102,12 @@ def validate(data: dict) -> str | None:
     from .virality import clean_quote
     for f in ("changelog_text", "rationale"):
         txt = data.get(f)
-        if not isinstance(txt, str) or not txt.strip() or len(txt) > TEXT_MAX:
+        if not isinstance(txt, str) or not txt.strip():
             return f"{f} missing or too long"
+        if len(txt) > TEXT_MAX:
+            if len(txt) > 3 * TEXT_MAX:
+                return f"{f} missing or too long ({len(txt)} > {TEXT_MAX} characters): at most {TEXT_MAX}"
+            data[f] = shorten(txt)
     for f in ("changelog_text", "rationale"):   # both are published with the evidence
         q, why = clean_quote(data[f], TEXT_MAX)
         if q is None:
@@ -111,7 +132,17 @@ async def review(s: Settings, db: DB, now: float | None = None) -> dict:
         out["proposal"] = pending["id"]
     else:
         p = payload(s, db, now)
-        res = await opai.acall(s, db, "proposal", p, subject=f"proposal:{day}", validate=validate)
+        why: list[str] = []
+
+        def check(d: dict) -> str | None:
+            err = validate(d)
+            if err:
+                why.append(err)
+            return err
+        res = await opai.acall(s, db, "proposal", p, subject=f"proposal:{day}", validate=check)
+        if res is None and why:   # one retry, told exactly why the first answer was rejected
+            res = await opai.acall(s, db, "proposal", {**p, "previous_rejection": why[-1]},
+                                   subject=f"proposal:{day}", validate=check)
         if res is None:
             out["summary"] = "no review (opai unavailable or output rejected)"
         elif "none" in res.data:
