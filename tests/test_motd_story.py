@@ -315,7 +315,7 @@ def test_writer_retries_once_with_the_reason_then_films(tmp_path, monkeypatch, f
     assert "--tools" in calls[0]["argv"] and calls[0]["argv"][calls[0]["argv"].index("--model") + 1] == "fable"
     rows = db.q("SELECT accepted, prompt_version, subject, public, call_id FROM operator_ai_outputs ORDER BY output_id")
     assert [(x["accepted"], x["prompt_version"], x["subject"], x["public"]) for x in rows] == [
-        (0, "motd_script.v1", "round:19", 0), (1, "motd_script.v1", "round:19", 0)]
+        (0, "motd_script.v2", "round:19", 0), (1, "motd_script.v2", "round:19", 0)]
     assert all(x["call_id"] for x in rows)
     assert json.loads(db.q("SELECT content FROM operator_ai_outputs WHERE accepted=1")[0]["content"])["_twist"][
         "type"] == "most_sources_lost"
@@ -408,3 +408,111 @@ def test_human_shoutout_only_when_the_ais_mostly_missed_and_the_handle_is_clean(
     r2 = base_round()  # half the AIs right: no shout-out
     r2["humans"] = {"picked": 3, "winners": [{"username": "bob", "pick": "Yes"}]}
     assert ms.shoutout(r2) is None
+
+
+# ---------- length budget, trimming, attribution and retry feedback (2026-10-27) ----------
+
+def test_payload_states_the_facts_and_a_derived_word_budget():
+    pl, _ = base_payload()
+    assert pl["film_seconds"] == {"hard_limit": ms.MAX_S, "aim_for": ms.TARGET_S,
+                                  "reading_speed_chars_per_s": ms.NARR_CPS}
+    assert ms.TARGET_S < ms.MAX_S and pl["caption_budget_chars"] <= ms.BUDGET_CHARS
+    assert "Grok picked No and lost. Never tie Grok to any other outcome." in pl["hard_facts"]
+    assert "Claude picked Yes and won. Never tie Claude to any other outcome." in pl["hard_facts"]
+    # a film written exactly to the per-kind targets fits the target seconds (same functions as the validator)
+    per = pl["target_chars_per_scene"]
+    kinds = ["cold_open", "title", "market", "background", "character", "character", "character", "character",
+             "misdirect", "result", "twist", "coda"]
+    agents = [None] * 4 + ["Claude", "ChatGPT", "Gemini", "Grok"] + [None] * 4
+    scenes = [{"kind": k, "text": "x" * per[k], "agent": a} for k, a in zip(kinds, agents)]
+    q = {a["name"]: a["card_quote"] for a in pl["agents"]}
+    assert ms.film_seconds(scenes, {}, q) <= ms.TARGET_S + 0.5
+
+
+def test_budget_shrinks_with_long_card_quotes():
+    long_q = {n: "q" * 200 for n in ("Claude", "ChatGPT", "Gemini", "Grok")}
+    short_q = {n: None for n in long_q}
+    assert ms.char_budget(long_q)[0] <= ms.char_budget(short_q)[0] <= ms.BUDGET_CHARS
+
+
+@pytest.mark.parametrize("scene,idx", [
+    ("The pack backs Yes, ChatGPT goes No.", 8),                    # several AIs' outcomes in one sentence
+    ("Grok sniffs the wind: \"no edge for Yes.\"", 7),              # a negation inside a quote
+    ("Grok says \"No.\" The pack backs Yes.", 7),                   # a clause about the others, in Grok's scene
+    ("ChatGPT, better value than Yes.", 6),                         # a comparison
+    ("Grok: \"ranked well above Yes.\"", 7),
+])
+def test_attribution_has_no_false_positives(scene, idx):
+    pl, _ = base_payload()
+    d = bad(**{f"s{idx}": scene})
+    assert ms.validate(d, pl) is None, ms.validate(d, pl)
+
+
+@pytest.mark.parametrize("scene,idx", [
+    ("Grok backs Yes, all in.", 7), ("Claude backs No, all in.", 4),
+    ("The pack backs Yes while ChatGPT backs Yes.", 8),
+])
+def test_attribution_still_catches_real_ties(scene, idx):
+    pl, _ = base_payload()
+    assert "ties" in (ms.validate(bad(**{f"s{idx}": scene}), pl) or "")
+
+
+def _overrun_script(two_misdirects=False, two_sentences=False):
+    d = json.loads(json.dumps(GOOD))
+    if two_misdirects:
+        d["scenes"].insert(9, {"kind": "misdirect", "text": "Nobody saw it coming."})
+    if two_sentences:
+        d["scenes"][3]["text"] = "The Black Eagles, founded 1903. One of Istanbul's big three, and loud."
+    return d
+
+
+def _quotes(pl):
+    return {a["name"]: a["card_quote"] for a in pl["agents"]}
+
+
+def test_small_overrun_is_trimmed_by_dropping_optional_text(monkeypatch):
+    pl, _ = base_payload()
+    d = _overrun_script(two_misdirects=True)
+    monkeypatch.setattr(ms, "MAX_S", ms.film_seconds(d["scenes"], pl["slots"], _quotes(pl)) - 1.0)
+    err = ms.validate(d, pl)
+    assert err.startswith("too long: about") and "Cut at least" in err
+    assert ms.validate_or_trim(d, pl) is None   # the second misdirect goes
+    assert [s["kind"] for s in d["scenes"]].count("misdirect") == 1 and len(d["scenes"]) == 12
+    # a single misdirect: the background's last sentence goes instead
+    d = _overrun_script(two_sentences=True)
+    monkeypatch.setattr(ms, "MAX_S", ms.film_seconds(d["scenes"], pl["slots"], _quotes(pl)) - 0.5)
+    assert ms.validate_or_trim(d, pl) is None
+    assert d["scenes"][3]["text"] == "The Black Eagles, founded 1903."
+    assert [s["kind"] for s in d["scenes"]].count("character") == 4   # required scenes are never dropped
+
+
+def test_large_overrun_is_not_trimmed(monkeypatch):
+    pl, _ = base_payload()
+    d = _overrun_script(two_misdirects=True)
+    monkeypatch.setattr(ms, "MAX_S", ms.film_seconds(d["scenes"], pl["slots"], _quotes(pl)) - ms.TRIM_MAX_S - 1)
+    before = json.dumps(d)
+    assert ms.validate_or_trim(d, pl).startswith("too long: about") and json.dumps(d) == before
+
+
+def test_retry_feeds_back_the_exact_reason_and_the_rejected_draft(tmp_path, monkeypatch, fake_claude):
+    from agentpitbench import motd
+    s, db, r, lb = story_setup(tmp_path, monkeypatch)
+    fake_claude.respond(bad(s6="ChatGPT pays 22 cents."), GOOD)
+    assert motd.scripted(s, db, r, [r], lb, "agentpitbench.org")
+    second = fake_claude.calls[1]["stdin"]
+    assert "\"previous_rejection\":" in second and "ChatGPT pays 22 cents." in second and "\"previous_draft\":" in second
+    assert "\"film_seconds\":" in fake_claude.calls[0]["stdin"] and "\"hard_facts\":" in fake_claude.calls[0]["stdin"]
+    assert "\"previous_draft\":" not in fake_claude.calls[0]["stdin"]
+
+
+def test_writer_script_overrunning_slightly_is_trimmed_and_filmed(tmp_path, monkeypatch, fake_claude):
+    """The 61-62 s scripts that used to be thrown away (88 of 111 rejections) are trimmed and accepted."""
+    from agentpitbench import motd
+    s, db, r, lb = story_setup(tmp_path, monkeypatch)
+    d = _overrun_script(two_misdirects=True)
+    pl, _ = base_payload()
+    monkeypatch.setattr(ms, "MAX_S", ms.film_seconds(d["scenes"], pl["slots"], _quotes(pl)) - 1.0)
+    fake_claude.respond(d)
+    story = motd.scripted(s, db, r, [r], lb, "agentpitbench.org")
+    assert story and len(fake_claude.calls) == 1
+    assert [x["kind"] for x in story["data"]["scenes"]].count("misdirect") == 1

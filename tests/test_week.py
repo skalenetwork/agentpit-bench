@@ -492,3 +492,17 @@ async def test_race_rows_never_cross_or_meet_the_caption():
             await page.close()
     finally:
         await cr.close()
+
+
+def test_validator_attributes_clauses_separately():
+    """'while the pack backs A, Claude goes B' ties Claude to B only (sample false rejection, 2026-10-25)."""
+    d = data_for()
+    pl = week.payload(d)
+    sc = good(d)
+    sc["lines"]["film_1"] = ("Fenerbahce host Slavia, and while the pack backs {f1_chatgpt_pick}, "
+                             "Claude goes {f1_claude_pick}.")
+    assert week.validate(sc, pl) is None
+    sc["lines"]["film_1"] = "While the pack backs B, Claude goes A."
+    assert "ties Claude to A" in week.validate(sc, pl)
+    sc["lines"]["film_1"] = "Claude sniffs the wind: no edge for A."
+    assert week.validate(sc, pl) is None

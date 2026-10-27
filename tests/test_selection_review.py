@@ -95,3 +95,33 @@ def test_never_calls_approve():
     tree = ast.parse((methodology.PKG / "selection_review.py").read_text())
     assert not [n for n in ast.walk(tree) if isinstance(n, ast.Attribute) and n.attr in ("approve", "write_english")]
     assert not [n for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and "approve" in {a.name for a in n.names}]
+
+
+def test_shorten_cuts_at_a_sentence_or_word():
+    assert sr.shorten("Short.") == "Short."
+    s = sr.shorten("w" * 10 + (" " + "w" * 10) * 40)
+    assert len(s) <= sr.TEXT_MAX and s.endswith("…")
+
+
+def test_validate_shortens_a_slightly_long_rationale_and_rejects_a_runaway():
+    d = {**GOOD, "rationale": ("Selection is skewed to sport. " * 14).strip()}   # 419 characters
+    assert len(d["rationale"]) > sr.TEXT_MAX
+    assert sr.validate(d) is None and len(d["rationale"]) <= sr.TEXT_MAX      # fixed in place
+    assert d["rationale"].endswith("sport.")
+    runaway = {**GOOD, "rationale": "x " * 600}
+    assert "rationale missing or too long (1200 > 300 characters)" in sr.validate(runaway)
+
+
+def test_prompt_states_the_limit_and_the_payload_carries_it(env):
+    s, db = env
+    assert sr.payload(s, db, SUNDAY + 3600)["text_max_chars"] == sr.TEXT_MAX
+    assert "text_max_chars" in opai.prompt_text("proposal", opai.prompt_version("proposal"))
+
+
+async def test_review_retries_once_with_the_reason(env, fake_claude):
+    s, db = env
+    fake_claude.respond({**GOOD, "rationale": "x " * 600}, GOOD)
+    out = await sr.review(s, db, SUNDAY)
+    assert out["proposal"] and len(fake_claude.calls) == 2
+    assert "\"previous_rejection\":" in fake_claude.calls[1]["stdin"] and "> 300" in fake_claude.calls[1]["stdin"]
+    assert "\"previous_rejection\":" not in fake_claude.calls[0]["stdin"]
