@@ -22,7 +22,8 @@ from .db import DB
 from .engage import Engage
 from .site import SiteDeployer
 from .twitter import (Poster, clip, decision_text, market_name, poll_minutes, poll_options, poll_result_line,
-                      price_str, results_shape, results_text, split_text, reveal_text)
+                      price_str, results_shape, results_text, split_text, reveal_text, summons_line,
+                      grok_ask_pick, grok_ask_text, labs_week_text)
 from .virality import commentary
 
 log = logging.getLogger(__name__)
@@ -363,11 +364,12 @@ class BenchPublisher:
         link = (f"{self.round_url(round_id)}?utm_source=x&utm_medium=social&utm_campaign=results"
                 f"&utm_content={variant}")
         challenge_line = self.challenge_line(data["rounds"], round_id)
+        summons = summons_line(round_id, self.s.summons_line_every)
 
         def render(v):
             return results_text(self.s, rnd, board, link, crowd, cast, hook=v.get("results.hook"),
                                 cta=v.get("results.cta", ""), extra_tags=v.get("tags", ""), poll_line=poll_line,
-                                challenge_line=challenge_line)
+                                challenge_line=challenge_line, summons_line=summons)
         try:
             sit, facts = results_shape(rnd)
             choices = [ab.choose(self.db, self.s, "results.hook", key, sit, facts, kind="results")]
@@ -397,6 +399,66 @@ class BenchPublisher:
             log.exception("post-resolution extras for round %s failed", round_id)
         exports.export(self.s, self.db)
         self.site.request()
+
+    # ---------- virality push 2026-10-27: daily @grok ask, Sunday labs standings ----------
+
+    def _kind_listed(self, kind: str) -> bool:
+        return not self.s.post_kinds or kind in self.s.post_kinds
+
+    async def grok_ask(self, now: float | None = None) -> str | None:
+        """Once a UTC day from grok_ask_hour_utc: quote-post the day's best split reveal and ask @grok who's
+        right. Only an already-public reveal (never a sealed pick). Idempotent per day; posts nothing on a day
+        without a fit round."""
+        if not self.s.grok_ask_enabled or not self._kind_listed("grok_ask"):
+            return None
+        now = time.time() if now is None else now
+        d = datetime.fromtimestamp(now, timezone.utc)
+        day = d.strftime("%Y-%m-%d")
+        key = f"grok-ask-{day}"
+        if d.hour < self.s.grok_ask_hour_utc or self.db.get(key) or self.db.one(
+                "SELECT 1 FROM tweets WHERE post_key=?", key):
+            return None
+        rounds = exports.export(self.s, self.db)["rounds"]
+        asked = {r["round_id"] for r in self.db.q("SELECT round_id FROM tweets WHERE kind='grok_ask'")}
+        rnd = grok_ask_pick(rounds, now, asked)
+        if not rnd:
+            return None
+        tid = await self.poster.post(key, "grok_ask", grok_ask_text(rnd, d.toordinal()), round_id=rnd["round_id"],
+                                     quote_of=rnd["thread_tweet_id"])
+        if tid:
+            self.db.put(key, tid)
+        return tid
+
+    async def labs_week(self, now: float | None = None) -> str | None:
+        """Race weekday from labs_week_hour_utc: this ISO week's P&L and record per AI, tagging the four labs. One
+        per week (post_key and kv); nothing on a week without a resolved round."""
+        if not self.s.labs_week_enabled or not self._kind_listed("labs_week"):
+            return None
+        from .engage import iso_week, week_start
+        now = time.time() if now is None else now
+        d = datetime.fromtimestamp(now, timezone.utc)
+        week = iso_week(now)
+        key = f"labs-week-{week}"
+        if d.weekday() != self.s.race_weekday or d.hour < self.s.labs_week_hour_utc or self.db.get(key):
+            return None
+        lo = week_start(now)
+        tot: dict[str, dict] = {}
+        for r in exports.export(self.s, self.db)["rounds"]:
+            if r["state"] != "resolved" or r["exhibition"] or not (lo <= (r["resolved_at"] or 0) <= now):
+                continue
+            for e in r["entries"]:
+                if not e.get("outcome"):
+                    continue
+                t = tot.setdefault(e["agent"], {"agent": e["agent"], "name": e["name"], "pnl": 0.0, "wins": 0,
+                                                "losses": 0})
+                t["pnl"] += e.get("pnl") or 0
+                t["wins" if e.get("won") else "losses"] += 1
+        if not tot:
+            return None
+        tid = await self.poster.post(key, "labs_week", labs_week_text(list(tot.values())))
+        if tid:
+            self.db.put(key, tid)
+        return tid
 
     def challenge_line(self, rounds: list[dict], round_id: int) -> str:
         """'Can you beat them? → <that day's challenge URL>' for a round in a daily challenge set (the same

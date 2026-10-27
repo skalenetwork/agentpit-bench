@@ -92,8 +92,8 @@ class Token:
 def build_text(s: Settings, x_text: str, kind: str, round_id: int | None, link: str | None = None) -> str:
     """X text -> Threads text: lab names for the X handles, full URLs (Threads links them itself) with utm_source
     threads, one topic tag, 500 characters keeping the last line."""
-    from .twitter import VENDOR_HANDLES
-    text = x_text
+    from .twitter import VENDOR_HANDLES, strip_summons
+    text = strip_summons(x_text)   # the X-only "tag @agentpitbench" promotion
     for agent, xh in VENDOR_HANDLES.items():
         repl = LAB_NAMES.get(agent, AGENT_NAMES.get(agent, agent))
         text = re.sub(re.escape(xh) + r"\b", lambda _m, r=repl: r, text)
