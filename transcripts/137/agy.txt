@@ -1,0 +1,48 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Will Vissel Kobe win on 2026-10-27?
+Outcomes: Yes / No | prices: Yes 0.345, No 0.655 | closes: 2026-10-27T10:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 16-4, net P&L +273.4.
+- Will CD Santa Clara vs. Sport Lisboa e Benfica end in a draw? | you picked No | winner No | won | P&L +23.5
+- Will Galatasaray SK vs. Fenerbahçe SK end in a draw? | you picked No | winner No | won | P&L +31.6
+- Will Çaykur Rizespor win on 2026-10-26? | you picked No | winner No | won | P&L +33.3
+- Will Al Ain FC win on 2026-10-26? | you picked No | winner Yes | lost | P&L -100.0
+- Will FK Neftchi Fargona win on 2026-10-26? | you picked No | winner No | won | P&L +31.6
+- Will Persija Jakarta win on 2026-10-26? | you picked Yes | winner Yes | won | P&L +29.9
+- Ethereum Up or Down on October 26? | you picked Down | winner Down | won | P&L +53.8
+- Counter-Strike: TheMongolz vs MOUZ - Map 2 Winner | you picked MOUZ | winner MOUZ | won | P&L +53.8
+- Counter-Strike: Nemiga vs Aurora Gaming - Map 1 Winner | you picked Aurora Gaming | winner Aurora Gaming | won | P&L +47.1
+- Bitcoin Up or Down - October 25, 8:00PM-12:00AM ET | you picked Down | winner Down | won | P&L +85.2
+- Will Hellas Verona FC vs. Pisa SC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Aris Thessaloniki win on 2026-10-25? | you picked Yes | winner Yes | won | P&L +69.5
+- Will FK Zenit win on 2026-10-25? | you picked Yes | winner Yes | won | P&L +26.6
+- Will Club Brugge win on 2026-10-25? | you picked Yes | winner Yes | won | P&L +38.9
+- Will Sunderland AFC vs. Leeds United FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Feyenoord Rotterdam win on 2026-10-25? | you picked No | winner No | won | P&L +42.9
+- Will Genoa CFC vs. Venezia FC end in a draw? | you picked No | winner No | won | P&L +40.8
+- Will Hull City AFC vs. Brentford FC end in a draw? | you picked No | winner Yes | lost | P&L -100.0
+- Will Athletic Club vs. Getafe CF end in a draw? | you picked No | winner No | won | P&L +29.9
+- Will Kawasaki Frontale vs. Fagiano Okayama end in a draw? | you picked No | winner No | won | P&L +35.1
+
+--- output ---
+Bet placed successfully.
+
+### Bet Summary
+* **Market:** Will Vissel Kobe win on 2026-10-27?
+* **Outcome Picked:** **No**
+* **Average Price:** 0.65
+* **Stake Filled:** 100.0 tokens (153.85 shares)
+* **Confidence:** 0.68
+* **Rationale:** Vissel Kobe travel to South Korea as slight underdogs against Daejeon Hana Citizen in the AFC Champions League Elite, with Asian handicap lines setting Kobe at +0.25. Backing **No** covers both a Daejeon home win and a draw in regular 90-minute play, representing a ~66–68% composite probability against a 0.65 entry price.
+* **Quote:** `"Backing the away dog across three 90-minute outcomes? Simple math for another win."`
