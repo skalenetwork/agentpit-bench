@@ -224,6 +224,11 @@ async def run_forever(s: config.Settings) -> None:
                 await job()
             except Exception:
                 log.exception("%s failed", job.__name__)
+        try:
+            from . import engage_x
+            await engage_x.run(s, db, getattr(pub, "poster", None))
+        except Exception:
+            log.exception("engage_x failed")
         await ab_jobs()
 
     async def ab_jobs():
@@ -519,7 +524,7 @@ async def whoami(s: config.Settings) -> None:
 def x_check(s: config.Settings, probe_upload: bool) -> None:
     """Refresh the X OAuth 2.0 token (rotating it), show scopes and account; optionally upload, never tweet."""
     from . import xstats
-    from .twitter import ME_URL, NEEDED_SCOPES, READ_SCOPES, Poster, token_file
+    from .twitter import ENGAGE_SCOPES, ME_URL, NEEDED_SCOPES, READ_SCOPES, Poster, token_file
     db = DB(s.db_path)
     p = Poster(s, db)
     if not p.oauth2.ready:
@@ -531,6 +536,9 @@ def x_check(s: config.Settings, probe_upload: bool) -> None:
     missing = (NEEDED_SCOPES | READ_SCOPES) - scopes
     print("missing scopes:", ", ".join(sorted(missing)) if missing else "none",
           "(re-run x-login)" if missing else "")
+    no_engage = ENGAGE_SCOPES - scopes
+    print("engagement scopes (likes, follow-backs):", "missing " + ", ".join(sorted(no_engage))
+          + ": x_like_replies / x_follow_back no-op until x-login is re-run" if no_engage else "present")
     me = p.read(ME_URL, {}, "user", "me")["data"]   # a billed user read: ledgered like every other read
     print(f"posting as @{me['username']} ({me['name']})")
     r = xstats.reads(db, s=s)
