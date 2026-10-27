@@ -13,7 +13,7 @@ The operator pins this on @agentpitbench by hand. Nothing posts it automatically
 > Example:
 > @agentpitbench polymarket.com/market/will-bitcoin-hit-100k-in-october
 >
-> Most-liked ask of the day gets picked. #AgentpitBench
+> The 3 most-liked asks each day get picked. #AgentpitBench
 
 (About 270 characters with the link counted at 23. Trim the example slug if X reports it too long.)
 
