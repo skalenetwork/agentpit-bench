@@ -38,7 +38,8 @@ posting_paused = false
 # (results). No replies, no press, films, replays, awards, reports or other extra posts.
 # operator 2026-10-27 virality push: adds grok_ask and labs_week (overrides the 10-13 two-posts-per-market rule for these two; report_month: the monthly report thread)
 post_kinds = ["reveal", "results", "week", "motd", "reply-back", "grok_ask", "labs_week", "report_month", "shoutout",   # + weekly episode, daily film, F2 reply-back (operator 2026-10-13; X "Automated" label set)
-              "digest", "results_digest"]   # operator 2026-10-27 posts v3: the daily board and results digest
+              "digest", "results_digest",   # operator 2026-10-27 posts v3: the daily board and results digest
+              "debate", "hype", "confession", "hot_take", "humans_week", "grudge", "soap"]   # operator 2026-10-27 posts v3
 grok_ask_enabled = true     # daily "@grok, who's right?" quote of the best split reveal (X only, not mirrored)
 labs_week_enabled = true    # Sunday: this week's P&L per AI, tagging the four labs (mirrored with lab names)
 summons_line_every = 3      # "Want the AIs on your market? Tag @agentpitbench" on ~1 in 3 results posts (X only)
@@ -47,6 +48,13 @@ x_like_replies = true
 x_shoutouts = true
 x_follow_back = true
 posts_v3 = true           # operator 2026-10-27 posts v3: Pit Boss voice, top-3 reveals, daily board + results digest, no reveals on Bluesky
+debate_enabled = true      # operator 2026-10-27 posts v3: AI debate thread under each top-3 reveal (split picks only)
+hype_enabled = true        # operator 2026-10-27 posts v3: KICKOFF IN 1 HOUR quote of a top-3 reveal (no picks)
+confession_enabled = true  # operator 2026-10-27 posts v3: a losing AI's own words, 1 a day
+hot_take_enabled = true    # operator 2026-10-27 posts v3: daily leaderboard question (14 UTC)
+humans_week_enabled = true # operator 2026-10-27 posts v3: Sunday humans shout-out + champion (17 UTC)
+grudge_enabled = true      # operator 2026-10-27 posts v3: Monday grudge match (12 UTC)
+soap_enabled = true        # operator 2026-10-27 posts v3: daily THE PIT episode (19 UTC)
 reveal_window = true      # virality-2 F1: the reveal waits for its live window (T-3h .. T-15min before kickoff)
 # operator 2026-10-27: AI scene per post (Gemini), bold cartoon. Needs GEMINI_API_KEY in secrets.env (billing-enabled
 # project); without it every post silently keeps today's card. See docs/scene-images.md.
