@@ -33,7 +33,7 @@ VIDEO_MAX = 100_000_000      # lexicon allows 300 MB now; the bench's films are 
 VIDEO_SERVICE = "https://video.bsky.app"
 PUBLIC_APPVIEW = "https://public.api.bsky.app"
 MIRROR_KINDS = {"reveal", "decision", "split", "results", "press", "motd", "motd-link", "milestone", "champion",
-                "race", "awards", "replay", "week", "week-link"}
+                "race", "awards", "replay", "week", "week-link", "labs_week"}
 # the labs behind the X handles in twitter.VENDOR_HANDLES, used when no verified Bluesky handle is configured
 LAB_NAMES = {"claude": "Anthropic", "codex": "OpenAI", "agy": "Google DeepMind", "grok": "xAI"}
 URL_RE = re.compile(r"https?://[^\s]+")
@@ -56,7 +56,8 @@ def clip(text: str, n: int) -> str:
 
 def adapt(text: str, s: Settings) -> tuple[str, list[tuple[str, str]]]:
     """X text -> Bluesky text with display URLs. Returns (text, [(display, full_url)])."""
-    from .twitter import VENDOR_HANDLES
+    from .twitter import VENDOR_HANDLES, strip_summons
+    text = strip_summons(text)   # the X-only "tag @agentpitbench" promotion
     for agent, xh in VENDOR_HANDLES.items():
         bh = (s.bluesky_vendor_handles or {}).get(agent)
         repl = f"@{bh.lstrip('@')}" if bh else LAB_NAMES.get(agent, AGENT_NAMES.get(agent, agent))

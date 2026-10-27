@@ -125,6 +125,12 @@ class Settings:
     posting_paused: bool = False
     # the only post kinds that go out (empty: every kind). Replies are never posted while this is set.
     post_kinds: list[str] = field(default_factory=list)
+    # operator 2026-10-27 virality push (docs/virality-analysis-2026-10.md). Each also needs its kind in post_kinds.
+    grok_ask_enabled: bool = False       # daily quote-post of the day's best split reveal: "@grok who's right?"
+    grok_ask_hour_utc: int = 15          # from this hour (UTC); at most one a day
+    labs_week_enabled: bool = False      # Sunday standings post tagging the four labs
+    labs_week_hour_utc: int = 16         # from this hour on race_weekday: before the race post (race_hour_utc) and the episode
+    summons_line_every: int = 0          # "Tag @agentpitbench with your market" on 1 results post in N (0 = off)
     reveal_window: bool = False   # virality-2 F1: hold the reveal for its live window (T-3h .. T-15min)
     # F2 reply-back (docs/virality-2-spec.md): on only when "reply-back" is in post_kinds
     reply_back_daily_cap: int = 10          # answers per UTC day

@@ -179,7 +179,7 @@ def give_way(render, steps: list[str], flex: str = "", flex_min: int = 0, name: 
     dropped part or a clip removed counts as clipped for the A/B check (measure), except the parts in `free`: extras
     that a variant must not be blamed for squeezing (the challenge link)."""
     full = render(frozenset(), flex, name)
-    free_len = tweet_len(full) - tweet_len(render(frozenset(free), flex, name)) if free else 0
+    free_lens = {f: tweet_len(full) - tweet_len(render(frozenset({f}), flex, name)) for f in free}
     dropped: frozenset = frozenset()
     text = full
     for step in [None, *steps]:
@@ -201,8 +201,7 @@ def give_way(render, steps: list[str], flex: str = "", flex_min: int = 0, name: 
         if tweet_len(text) > MAX_LEN:
             text = clip(text, MAX_LEN)
     cut = tweet_len(full) - tweet_len(text)
-    if free and set(free) <= dropped:
-        cut -= free_len
+    cut -= sum(n for f, n in free_lens.items() if f in dropped)
     _count_clip(cut)
     return text
 
@@ -326,14 +325,16 @@ def results_hook(rnd: dict) -> str:
 
 
 def results_text(s: Settings, rnd: dict, board: list[dict], round_url: str, crowd: dict | None = None,
-                 cast: str | None = None, hook: str | None = None, cta: str = "", extra_tags: str = "", poll_line: str = "", challenge_line: str = "") -> str:
+                 cast: str | None = None, hook: str | None = None, cta: str = "", extra_tags: str = "", poll_line: str = "", challenge_line: str = "",
+                 summons_line: str = "") -> str:
     """cast is accepted for compatibility but not repeated: the commentary line is on the card already.
     hook / cta / extra_tags are A/B variants (None / "" = today's control). Vendor handles are never varied.
     Line 1 is the market name; give way (longtail spec §3.2): the Crowd, the cta, the tags, the season line, then
     the hook is clipped. A void round's hook already carries the name in full. poll_line (the reveal poll's tally)
     is optional: it gives way early. challenge_line ('Can you beat them? → <day URL>', only for a round in a daily
     challenge set) has the lowest priority: it is the very first part to go, and dropping it is never blamed on an
-    A/B variant (docs/daily-challenge-spec.md v0.3)."""
+    A/B variant (docs/daily-challenge-spec.md v0.3). summons_line ('Want the AIs on your market? Tag ...', on about
+    one results post in summons_line_every) is below even that: it goes first, also never blamed on a variant."""
     head = results_hook(rnd) if hook is None else hook
     tags = " ".join(dict.fromkeys(VENDOR_HANDLES[e["agent"]] for e in rnd["entries"]
                                   if e["won"] and e["agent"] in VENDOR_HANDLES))
@@ -345,11 +346,13 @@ def results_text(s: Settings, rnd: dict, board: list[dict], round_url: str, crow
         line = (f"Season: {season}{'' if 'crowd' in d else crowd_part}. " if season and "season" not in d else "")
         line += f"{TAG}{'' if 'tags' in d else extra_tags}" + (f" {tags}" if tags else "")
         lines = ([] if void else [n]) + [f] + ([poll_line] if poll_line and "poll" not in d else []) + [line] + ([cta] if cta and "cta" not in d else [])
+        lines += [summons_line] if summons_line and "summons" not in d else []
         lines += [challenge_line] if challenge_line and "challenge" not in d else []   # the round link stays the last line
         lines.append(round_url)
         return "\n".join(lines)
-    steps = (["challenge"] if challenge_line else []) + ["poll", "crowd", "cta", "tags", "season"]
-    free = ("challenge",) if challenge_line else ()
+    steps = (["summons"] if summons_line else []) + (["challenge"] if challenge_line else []) \
+        + ["poll", "crowd", "cta", "tags", "season"]
+    free = (("summons",) if summons_line else ()) + (("challenge",) if challenge_line else ())
     if void:  # the hook is 'Voided: <market name>. …': protected, never clipped
         return give_way(lambda d, f, n: render(d, head, n), steps, free=free)
     return give_way(render, steps, flex=head, flex_min=30, name=market_name(rnd), free=free)
@@ -370,6 +373,76 @@ def race_text(week: str, board: list[dict], crowd: dict | None) -> str:
     head = f"The week in one race ({week}). " + (f"{lead['name']} on top at {lead['net_pnl']:+.0f}. " if lead else "")
     tail = (f"The Crowd: {crowd['net_pnl']:+.0f}. " if crowd and crowd.get("played") else "") + TAG
     return fit(head, tail)
+
+
+# ---------- virality push 2026-10-27: summons line, @grok ask, labs' weekly standings ----------
+
+SUMMONS_LINES = ("Want the AIs on your market? Tag @agentpitbench with it.",
+                 "Got a market you want the AIs to bet on? Tag @agentpitbench with the link.",
+                 "Your market, their bets: tag @agentpitbench with a Polymarket link.")
+
+
+def summons_line(round_id: int, every: int) -> str:
+    """The promotion line for about one results post in `every` (0 = never), rotating through SUMMONS_LINES.
+    Deterministic in the round id, so a re-render never flips it."""
+    if every <= 0 or round_id % every:
+        return ""
+    return SUMMONS_LINES[(round_id // every) % len(SUMMONS_LINES)]
+
+
+def strip_summons(text: str) -> str:
+    """The X-only promotion line is dropped on the mirrors (there is no @agentpitbench to tag there)."""
+    return "\n".join(ln for ln in text.split("\n") if ln not in SUMMONS_LINES)
+
+
+GROK_ASK_TEMPLATES = (
+    "{n}\n{picks}\n@grok who's right?",
+    "The AIs can't agree on this one.\n{n}\n{picks}\n@grok, who's right?",
+    "{n}\n{picks}\nOver to you, @grok: who's right?",
+    "Split decision.\n{n}\n{picks}\n@grok, settle it: who's right?",
+)
+_SPLIT_RANK = {"dead_split": 3, "nobody_agrees": 3, "nway": 2, "alone": 1}
+
+
+def grok_ask_pick(rounds: list[dict], now: float, asked: set[int] = frozenset()) -> dict | None:
+    """The day's best reveal to quote: posted (public) in the last 24 h, the market still open, the AIs split,
+    not esports or a minor league (virality.news_tier 0), not asked about before. Best = higher news tier, then
+    the more even split (dead split / nobody agrees > n-way > one alone), then the newest reveal."""
+    from .cards import split_shape
+    from .virality import news_tier
+    best, best_key = None, None
+    for r in rounds:
+        if (not r.get("thread_tweet_id") or not r.get("revealed_at") or r["revealed_at"] < now - 86400
+                or r["state"] in ("resolved", "void") or r["round_id"] in asked):
+            continue
+        sit, _ = split_shape(r)
+        tier = news_tier({"question": r.get("question"), "description": r.get("event_title")})
+        if sit == "agree" or tier == 0:
+            continue
+        key = (tier, _SPLIT_RANK.get(sit, 1), r["revealed_at"])
+        if best_key is None or key > best_key:
+            best, best_key = r, key
+    return best
+
+
+def grok_ask_text(rnd: dict, day_ordinal: int) -> str:
+    """'<market>', 'who backs what', '@grok who's right?', the wording rotating daily through GROK_ASK_TEMPLATES
+    (consecutive days never repeat). The picks are already public: the reveal posted them."""
+    tpl = GROK_ASK_TEMPLATES[day_ordinal % len(GROK_ASK_TEMPLATES)]
+    picks = grouped_picks(rnd)
+
+    def render(d, f, nm):
+        return (tpl if "lead" not in d else GROK_ASK_TEMPLATES[0]).format(n=nm, picks=picks)
+    return give_way(render, ["lead"], name=market_name(rnd))
+
+
+def labs_week_text(rows: list[dict]) -> str:
+    """rows: [{agent, name, pnl, wins, losses}] for the ISO week so far. 'This week: Claude +120 (5-2) · ...' plus
+    the four labs' handles (every lab, whoever won)."""
+    rows = sorted(rows, key=lambda r: -r["pnl"])
+    body = " · ".join(f"{r['name']} {r['pnl']:+.0f} ({r['wins']}-{r['losses']})" for r in rows)
+    tags = " ".join(VENDOR_HANDLES[r["agent"]] for r in rows if r["agent"] in VENDOR_HANDLES)
+    return fit(f"This week: {body}.\n", f"{tags}\n{TAG}")
 
 
 def summon_reply_text(name: str, thread_url: str) -> str:

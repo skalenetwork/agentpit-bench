@@ -31,7 +31,7 @@ PHOTO_MAX = 10_000_000       # sendPhoto: 10 MB
 UPLOAD_MAX = 50_000_000      # any other bot upload (sendVideo): 50 MB
 RETRY_AFTER_CAP = 60
 MIRROR_KINDS = {"reveal", "decision", "split", "results", "press", "motd", "motd-link", "milestone", "champion",
-                "race", "awards", "replay", "week", "week-link"}   # week: the full square episode (< 50 MB)
+                "race", "awards", "replay", "week", "week-link", "labs_week"}   # week: the full square episode (< 50 MB)
 PICK_RE = re.compile(r"Reply with your pick")
 VIDEO_EXT = (".mp4",)
 ANIMATION_EXT = (".gif",)
@@ -70,7 +70,8 @@ def round_link(s: Settings, round_id: int, campaign: str, anchor: str = "") -> s
 
 def adapt(text: str, s: Settings, kind: str, round_id: int | None) -> tuple[str, list[tuple[str, str]]]:
     """X text -> plain Telegram text plus [(shown text, href)], in order of appearance."""
-    from .twitter import VENDOR_HANDLES
+    from .twitter import VENDOR_HANDLES, strip_summons
+    text = strip_summons(text)   # the X-only "tag @agentpitbench" promotion
     for agent, xh in VENDOR_HANDLES.items():
         repl = LAB_NAMES.get(agent, AGENT_NAMES.get(agent, agent))
         text = re.sub(re.escape(xh) + r"\b", lambda _m, r=repl: r, text)

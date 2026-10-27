@@ -218,7 +218,8 @@ async def run_forever(s: config.Settings) -> None:
             if picked:
                 row, m = picked
                 launch(m, after=lambda rid: engage.summon_reply(row, rid))
-        for job in (engage.weekly, engage.sunday_extras, engage.daily_banner, engage.champion_check):
+        for job in (engage.weekly, engage.sunday_extras, engage.daily_banner, engage.champion_check,
+                    *(getattr(pub, n) for n in ("grok_ask", "labs_week") if hasattr(pub, n))):
             try:
                 await job()
             except Exception:
