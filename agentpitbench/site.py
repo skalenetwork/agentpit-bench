@@ -741,6 +741,45 @@ def _flat(rounds: list[dict]):
             yield r, e
 
 
+def home_hero(s: Settings, rounds: list[dict], upcoming: list[dict], now: float) -> dict | None:
+    """The home page's "Today's pick vs the AIs" (operator 2026-10-27): one live market. A running or awaiting round,
+    best 'reveal' score first (posts3.reveal_score, the top-3 selection), else the soonest-locking upcoming market,
+    else any live round. Sealed picks never reach it: while discover.seal(r) holds, each AI carries only
+    sealed=True; the exported picks show only once the round is revealed."""
+    from . import scenes
+    from .posts3 import reveal_score
+    live = [r for r in rounds if r.get("state") in LIVE_STATES and r.get("exclusion") != "infra" and r.get("outcomes")]
+
+    def score(r):
+        return reveal_score(r["question"], r.get("slug"), r.get("event_title"))
+    top = sorted((r for r in live if score(r) >= 2), key=lambda r: (-score(r), r.get("end_date") or "", -r["round_id"]))
+    soon = sorted((x for x in upcoming if (x.get("locks_at") or 0) > now), key=lambda x: x["locks_at"])
+    r = top[0] if top else None
+    if r is None and not soon and live:
+        r = sorted(live, key=lambda r: -(r.get("started_at") or 0))[0]
+    if r is not None:
+        sealed = discover.seal(r)
+        card = round_card(r)
+        picks = [{"agent": p["agent"], "name": p["name"], "sealed": sealed or p["sealed"],
+                  "outcome": None if sealed or p["sealed"] else p["outcome"]} for p in card["picks"]]
+        movie = scenes.SceneService(s, None).movie_of(r["round_id"])
+        return {"kind": "round", "round_id": r["round_id"], "market_id": r.get("market_id"), "question": r["question"],
+                "short": scenes.short_question(r["question"]), "outcomes": list(r["outcomes"]), "end_date": r.get("end_date"),
+                "sealed": sealed, "picks": picks, "name": r.get("market_name") or r["question"],
+                "link": r.get("market_link"), "movie": movie, "locks_at": None,
+                "card": None if sealed else card_for(s, r)}
+    if soon:
+        x = soon[0]
+        et = x.get("event_title")
+        return {"kind": "upcoming", "round_id": None, "market_id": x["market_id"], "question": x["question"],
+                "short": scenes.short_question(x["question"]), "outcomes": list(x["outcomes"]),
+                "end_date": x.get("end_date"), "sealed": True,
+                "picks": [{"agent": a, "name": AGENT_NAMES.get(a, a), "sealed": True, "outcome": None} for a in s.agents],
+                "name": f"{et} · {x['question']}" if et and et not in x["question"] else x["question"],
+                "link": x.get("url"), "movie": None, "locks_at": x["locks_at"], "locks_utc": x["locks_utc"], "card": None}
+    return None
+
+
 def card_for(s: Settings, r: dict) -> str | None:
     """Site-relative path of the best share card for a round."""
     d = s.cards_dir / str(r["round_id"])
@@ -1405,6 +1444,13 @@ def _build(s: Settings) -> Path:
                 for x in _backend.upcoming_cached(s) if (x.get("locks_at") or 0) > time.time() and not x.get("round_id")
                 and x.get("outcomes")] if bk else []
     hva = _backend.scoreboard(s) if bk else None
+    hero = home_hero(s, rounds, upcoming, time.time())
+    if hero and hero["movie"]:  # the market's movie poster (market-only image), copied like the card images
+        from .scenes import SceneService
+        src = SceneService(s, None).movie_poster(hero["round_id"])
+        (out / "hero").mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, out / "hero" / src.name)
+        hero["poster"] = f"hero/{src.name}"
     for lang in CODES:
         _ = Translator(lang)
         r_embeds: dict[int, dict] = {}
@@ -1487,7 +1533,7 @@ def _build(s: Settings) -> Path:
 
         page("index.html", "index.html", grid=[cards_of[r["round_id"]] for r in grid_rounds(rounds)],
              standings=board[:4], description=None, film=films[0] if films else None, fire=fire, cur_cat="",
-             upcoming=upcoming, ch_card=ch_card,
+             upcoming=upcoming, ch_card=ch_card, hero=hero, cta=cta if lang == "en" else None,
              today=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
              share_text=_("Four frontier AIs bet on real prediction markets. Live scoreboard:"),
              jsonld=discover.dataset_ld(s, lb, f"{base}/"),

@@ -326,3 +326,71 @@ def test_backend_on_challenge_from_pre_lock_sets_without_a_sealed_pick(tmp_path,
     _no_secret(out)
     home = (out / "index.html").read_text()
     assert 'class="chcard"' in home
+
+
+# ---------------------------------------------------------------- the home hero: "Today's pick vs 4 AIs"
+
+def _hero(html: str) -> str:
+    i = html.index('<section class="hero2"')
+    return html[i:html.index("</section>", html.index("</ul>", i))]
+
+
+def _hero_build(tmp_path, monkeypatch, bk: bool, state: str, upcoming: bool = False,
+                question="Will Team Alpha win the grand final on 2030-01-01?"):
+    s = Settings(data_dir=tmp_path / "var", agents=AGENTS, dry_run=True, backend_enabled=bk,
+                 google_client_id="123.apps.googleusercontent.com" if bk else "")
+    db = DB(s.db_path)
+    monkeypatch.setattr(site, "_today", lambda: datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+    rid = make_round(db, PICKS, state=state, market_id="m3", question=question)
+    db.x("UPDATE bets SET rationale=?, quote=? WHERE run_id IN (SELECT run_id FROM runs WHERE round_id=?)", SECRET, SECRET, rid)
+    s.export_dir.mkdir(parents=True, exist_ok=True)
+    if upcoming:
+        future = datetime.now(timezone.utc).timestamp() + 5 * 3600
+        (s.export_dir / backend.UPCOMING_FILE).write_text(json.dumps([
+            {"market_id": "501", "round_id": None, "question": "Will Team 501 win on 2030-01-01?", "event_title": "",
+             "outcomes": ["Yes", "No"], "opens_at": 1, "locks_at": future, "url": "", "end_date": "2030-01-01T00:00:00Z"}]))
+    exports.export(s, db)
+    return site.build(s)
+
+
+def test_home_hero_upcoming_market_is_sealed_with_the_pick_button(tmp_path, monkeypatch):
+    out = _hero_build(tmp_path, monkeypatch, True, "running", upcoming=True,
+                      question="Counter-Strike: CYBERSHOKE vs Nexus (BO3)")   # esports: never a reveal round
+    html = (out / "index.html").read_text()
+    h = _hero(html)
+    assert "pick vs 4 AIs" in h and "Will Team 501 win?" in h and h.count("🔒 sealed") == 4
+    assert "Make your own pick →" in h and 'data-bkcta="late"' in h and 'data-pick="501"' in h and "data-ai=" not in h
+    assert html.index("hero2") < html.index('class="grid')               # above the market grid
+    assert "Nexus" not in h and SECRET not in html
+    _no_secret(out)
+
+
+def test_home_hero_never_shows_a_sealed_pick_backend_off(tmp_path, monkeypatch):
+    out = _hero_build(tmp_path, monkeypatch, False, "running")
+    html = (out / "index.html").read_text()
+    h = _hero(html)
+    assert h.count("🔒 sealed") == 4 and "data-bkcta" not in h and "data-pick" not in h
+    assert "CYBERSHOKE" not in h and "Nexus" not in h and SECRET not in html   # no outcome, no reasoning
+    assert 'class="btn cta"' in h and "go/round-cta/" in h                      # today's CTA link
+    for lang in ("de", "ja", "ar"):
+        assert "hero2" in (out / lang / "index.html").read_text()
+    _no_secret(out)
+
+
+def test_home_hero_revealed_round_shows_the_picks(tmp_path, monkeypatch):
+    out = _hero_build(tmp_path, monkeypatch, False, "awaiting_resolution")
+    h = _hero((out / "index.html").read_text())
+    assert "🔒" not in h and h.count("CYBERSHOKE") == 3 and h.count("Nexus") == 1
+    assert "Will Team Alpha win the grand final?" in h and "2030-01-01?" not in h
+
+
+def test_home_hero_uses_the_movie_poster_with_its_title(tmp_path, monkeypatch):
+    d = tmp_path / "var" / "scenes"
+    d.mkdir(parents=True)
+    (d / "movie-r1.png").write_bytes(b"\x89PNG\r\n\x1a\nposter")
+    (d / "movie-r1.json").write_text(json.dumps({"title": "The Grand Final Heist", "genre": "heist"}))
+    out = _hero_build(tmp_path, monkeypatch, False, "running")
+    h = _hero((out / "index.html").read_text())
+    assert 'src="hero/movie-r1.png"' in h and 'alt="The Grand Final Heist"' in h
+    assert (out / "hero" / "movie-r1.png").read_bytes().endswith(b"poster")
+    assert 'src="../hero/movie-r1.png"' in _hero((out / "de" / "index.html").read_text())

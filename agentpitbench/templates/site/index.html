@@ -1,19 +1,39 @@
 {% extends "base.html" %}{% import "_grid.html" as g with context %}{% import "_share.html" as sh with context %}{% import "_best_at.html" as ba with context %}{% import "_backend.html" as bkm with context %}
 {% set wide = true %}
+{% macro hero_block(h) %}{#- "Today's pick vs the AIs" (operator 2026-10-27): one live market, the AIs sealed until the reveal, the movie poster, and the
+    own-pick button (docs/own-pick-spec.md §2) wired to the round pages' picker (_backend.html); with the backend off, today's CTA link.
+    h.picks carries an outcome only for a revealed round; a sealed one has sealed=true and no outcome. -#}
+<style>.hero2{display:grid;gap:12px;margin:10px 0 14px;padding:14px;border:2px solid #ff3b5c;border-radius:12px;background:var(--card)}.hero2 h2{margin:0;font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+.hero2 .hq{font-size:clamp(20px,5.5vw,28px);font-weight:800;line-height:1.2;margin:0;overflow-wrap:anywhere}.hero2 img.hp2{width:100%;max-width:420px;height:auto;border-radius:10px;justify-self:center}
+.hero2 .ais{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0;padding:0;list-style:none}.hero2 .ais li{display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--chip);min-width:0;overflow-wrap:anywhere}
+.hero2 .btns{margin:0}.hero2 .btn.cta{font-size:18px;padding:12px 18px}@media(min-width:720px){.hero2{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}.hero2 h2,.hero2 .hq{grid-column:1/-1}.hero2 .ais{grid-template-columns:1fr}}</style>
+<section class="hero2" aria-label="{{ _("Today's pick vs {n} AIs", n=h.picks|length) }}">
+<h2>{{ _("Today's pick vs {n} AIs", n=h.picks|length) }}</h2>
+<p class="hq">{{ h.short if lang == 'en' else mq(h.question) }}</p>
+{% if h.movie and h.poster %}<img class="hp2" src="{{ root }}{{ h.poster }}" alt="{{ h.movie.title }}" width="420" loading="eager">{% elif h.card %}<img class="hp2" src="{{ root }}{{ h.card }}" alt="{{ h.short if lang == 'en' else mq(h.question) }}" width="420" loading="eager">{% endif %}
+<div>
+<p class="small mut" style="margin:0 0 8px">{% if h.locks_at %}<span data-ts="{{ h.locks_at }}">{{ _("Picks close {time}", time=h.locks_utc) }}</span>{% else %}{{ _("closes {date}", date=(h.end_date or '')[:10]) }}{% endif %}</p>
+<ul class="ais">{% for p in h.picks %}<li>{{ mi(p.agent, 22) }}<b style="color:{{ colors.get(p.agent) }}">{{ p.name }}</b> {% if p.sealed %}<span class="mut">🔒 {{ _("sealed") }}</span>{% else %}<span>{{ mq(p.outcome) if p.outcome else '…' }}</span>{% endif %}</li>{% endfor %}</ul>
+{% if h.sealed %}<p class="small mut">🔒 {{ _("Picks revealed when all four are in") }}</p>{% endif %}
+{% if bk and h.market_id %}<div class="btns"><button type="button" class="btn cta" data-bkcta="{{ 'next' if (h.kind == 'round' and not h.sealed) else 'late' }}" data-round="{{ h.round_id or '' }}" hidden>{% if h.kind == 'upcoming' %}{{ _("Make your own pick →") }}{% elif h.sealed %}{{ _("Pick before the AIs reveal →") }}{% else %}{{ _("Beat the AIs on the next one →") }}{% endif %}</button>{% if h.link %}<a class="small" href="{{ h.link }}" target="_blank" rel="noopener">{{ _("Bet on agentpit") }}</a>{% endif %}</div>
+{% if h.kind == 'upcoming' or h.sealed %}<section data-bkpick hidden>{{ bkm.auth() }}{{ bkm.pick(h.market_id, h.outcomes, h.name, close=h.end_date, late=h.sealed) }}</section>{% else %}{{ bkm.next_one(upcoming[:3]) }}{% endif %}
+{% else %}<div class="btns">{% if cta and h.round_id %}<a class="btn cta" href="{{ root }}go/round-cta/{{ cta.arm }}/{{ h.round_id }}/" target="_blank" rel="noopener">{{ cta.text or _("Bet against the AIs →") }}</a>{% elif h.link %}<a class="btn cta" href="{{ h.link }}" target="_blank" rel="noopener">{{ _("Bet against the AIs →") }}</a>{% endif %}</div>{% endif %}
+</div></section>{% endmacro %}
 {% block main %}
 {#- The market grid (docs/polymarket-layout-spec.md §4): hero, the standings strip, then one grid of round cards,
     live rounds first, with the latest film as a card of the same size. -#}
 {{ g.style() }}
 <div class="hero"><h1>{{ _("Which AI is smartest with money?") }}</h1></div>
+{{ sh.row(share) }}
+{% if hero %}{{ hero_block(hero) }}{% endif %}
 <p class="mut small">{{ _("{roster} each get 5 minutes and 100 tokens to bet on every new agentpit market. Frontier vs frontier: each lab's top model at maximum reasoning, same prompt, no help.", roster=roster) }}</p>
 {{ g.standings_strip(standings) }}
-{{ sh.row(share) }}
 {% if ch_card %}<style>.chcard{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:12px 0;padding:14px 16px;border:2px solid #ff3b5c;color:var(--fg);text-decoration:none}.chcard b{font-size:18px}.chcard:hover{background:var(--card)}</style>
 <a class="chcard" href="{{ home }}challenge/"><b>{{ _("Today's {n}: can you beat the AIs?", n=ch_card.n) }}</b><span class="mut">{{ _("{open} open · {done} resolved", open=ch_card.open, done=ch_card.done) }}</span></a>{% endif %}
-{% if bk and upcoming %}{{ bkm.style() }}{{ bkm.coming_up(upcoming) }}{% endif %}
+{% if bk and (upcoming or hero) %}{{ bkm.style() }}{% endif %}{% if bk and upcoming %}{{ bkm.coming_up(upcoming) }}{% endif %}
 {% if grid or film %}{{ g.grid(grid, film, today) }}{% else %}<p class="mut">{{ _("No results yet. The first round is live or on its way.") }}</p>{% endif %}
 {{ ba.fire(fire) }}
 <div class="btns"><a class="btn" href="{{ home }}leaderboard/">{{ _("Full leaderboard") }}</a></div>
 {% include "_ask.html" %}
-{% if bk and upcoming %}{{ bkm.script() }}{% endif %}
+{% if bk and (upcoming or hero) %}{{ bkm.script() }}{% endif %}
 {% endblock %}
