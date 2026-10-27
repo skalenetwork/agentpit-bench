@@ -54,16 +54,44 @@ body{background:#0b1020;color:#fff;font-family:Inter,"DejaVu Sans",Arial,sans-se
 .fmt-trading .hook{font-size:60px;top:auto;bottom:268px;max-height:none;text-align:center;left:46px;right:46px}
 .fmt-trading .q{bottom:92px;left:60px;right:60px}
 .fmt-trading .tag{display:none}
-</style></head><body class="fmt-{{ fmt }}">
+/* claim layout: the AI's own words in a speech bubble, a stamp, the verdict; the score is the small badge */
+.cq{position:absolute;left:48px;right:48px;top:40px;font-weight:700;font-size:46px;line-height:1.08;color:#fff;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  text-shadow:0 3px 0 rgba(0,0,0,.6),0 0 14px rgba(0,0,0,.6)}
+.bubble{position:absolute;left:40px;right:40px;top:150px;background:#fff;color:#0b1020;border-radius:36px;
+  padding:30px 36px 26px;box-shadow:0 10px 0 rgba(0,0,0,.35)}
+.bubble:after{content:"";position:absolute;bottom:-34px;left:110px;border:22px solid transparent;
+  border-top:34px solid #fff;border-bottom:0}
+.bubble .said{font-family:Inter,"DejaVu Sans",sans-serif;font-weight:800;line-height:1.16}
+.bubble .who{display:flex;align-items:center;gap:12px;margin-top:14px;font-size:34px;font-weight:700;letter-spacing:1px}
+.stamp{position:absolute;right:56px;top:0;font-weight:700;font-size:58px;letter-spacing:4px;padding:2px 22px;
+  border:7px solid currentColor;border-radius:14px;transform:rotate(-8deg);background:rgba(255,255,255,.92)}
+.verdict{position:absolute;left:48px;font-weight:700;font-size:84px;line-height:1;color:#fff;background:rgba(8,12,30,.82);padding:10px 22px 14px;border-radius:16px;
+  text-shadow:0 4px 0 rgba(0,0,0,.6),0 0 18px rgba(0,0,0,.6);-webkit-text-stroke:2px rgba(8,12,30,.6);paint-order:stroke fill}
+.badge{position:absolute;left:48px;bottom:96px;font-weight:700;font-size:34px;letter-spacing:2px;color:#0b1020;padding:4px 16px}
+.claim .cols{top:auto;bottom:168px}
+.claim .col svg.mascot{width:104px;height:104px}
+.claim .nm{font-size:26px;margin-top:4px}
+.claim .mark{height:64px;margin-top:2px}
+.claim .mark svg{width:58px;height:58px}
+.claim .pick{font-size:30px}
+</style></head><body class="fmt-{{ fmt }}{% if claim %} claim{% endif %}">
 <div class="scene"></div><div class="shade"></div>
 {% if fmt == 'trading' %}<div class="frame"></div>
 <div class="plate"><span style="display:block;flex:0 0 auto">{{ mascot(tc.agent, 104) }}</span><div class="t"><div class="disp persona">{{ tc.persona }}</div><div class="disp who" style="color:{{ tc.color|edge }}">{{ tc.name }}</div></div></div>
 {% if tc.rare %}<div class="disp rare">RARE</div>{% endif %}
 <div class="stats">{% for label, value in tc.stats %}<div class="stat"><b class="disp">{{ value }}</b><span class="disp">{{ label }}</span></div>{% endfor %}</div>
 {% endif %}
-<div class="disp hook">{{ hook }}</div>
+{% if claim %}
+<div class="disp cq" id="cq">{{ claim.question }}</div>
+<div class="bubble" id="bubble"><div class="said" style="font-size:{{ claim.px }}px">&ldquo;{{ claim.quote }}&rdquo;</div>
+<div class="who">{{ mascot(claim.agent, 44) }}<span class="disp">{{ claim.name }}</span></div></div>
+<div class="disp stamp" id="stamp" style="color:{{ claim.stamp_color }}">{{ claim.stamp }}</div>
+<div class="disp verdict" id="verdict">{{ claim.verdict }}</div>
+<div class="disp badge" style="background:{{ tag_bg }}">{{ hook }}</div>
+<script>(function(){var b=document.getElementById('bubble'),v=document.getElementById('verdict'),q=document.getElementById('cq');b.style.top=(q.offsetTop+q.offsetHeight+22)+'px';var st=document.getElementById('stamp');var bot=b.offsetTop+b.offsetHeight;st.style.top=(bot-34)+'px';v.style.top=(bot+56)+'px';})();</script>
+{% else %}<div class="disp hook">{{ hook }}</div>{% endif %}
 {% if fmt == 'movie' %}<div class="disp credits">Starring {{ cols|map(attribute='name')|join(' · ') }}</div>{% endif %}
-{% if tag %}<div class="disp tag">{{ tag }}</div>{% endif %}
+{% if tag and not claim %}<div class="disp tag">{{ tag }}</div>{% endif %}
 {% if fmt != 'trading' %}<div class="cols">
 {% for c in cols %}
 <div class="col">
@@ -75,6 +103,6 @@ body{background:#0b1020;color:#fff;font-family:Inter,"DejaVu Sans",Arial,sans-se
 </div>
 {% endfor %}
 </div>{% endif %}
-<div class="q">{{ market }}</div>
+{% if not claim %}<div class="q">{{ market }}</div>{% endif %}
 <div class="foot"><span class="em">{{ emblem(40, True) }}</span><span>AgentpitBench</span><span class="url">{{ url }}</span></div>
 </body></html>

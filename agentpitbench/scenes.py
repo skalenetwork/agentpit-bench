@@ -180,6 +180,8 @@ FLAVOURS = ["retro comic-book halftone shading", "vintage travel-poster flat sha
 EXTRAS = ["confetti in the air", "a few puffy clouds", "streaks of light", "floating stars", "speed lines in the background",
           "balloons drifting up"]
 
+GLOOMY_EXTRAS = ["a drizzle of rain", "a few grey storm clouds", "a single flickering floodlight", "drifting smoke"]
+
 WIN, LOSE, IDLE = "win", "lose", "idle"
 POSES = {
     WIN: ["leaps with both arms raised in joy", "does a victory dance with a huge grin", "pumps a fist triumphantly",
@@ -402,6 +404,7 @@ def build_prompt(rnd: dict, kind: str, has_refs: bool = False, fmt: str = "scene
         raise SceneRefused(f"unknown style {style!r}")
     rng = _rng(rnd.get("round_id"), kind)
     sit = situation(rnd, kind)
+    gloomy = kind == "results" and sit in ("wipeout", "nobody")   # a defeat: no trophy, no confetti
     cat = category_of(rnd)
     sport = sport_vocab(rnd.get("question") or "") if cat == "Sports" else None
     setting = pick_setting(rng, cat, sport, sit, kind, gags)
@@ -412,7 +415,7 @@ def build_prompt(rnd: dict, kind: str, has_refs: bool = False, fmt: str = "scene
     phrase, palette = STYLES[style]
     parts = [f"{phrase}, {STYLE_CORE}, " + (f"palette of {rng.choice(PALETTES)}, " if palette else "")
              + f"{rng.choice(LIGHTING)}, {rng.choice(CAMERAS)}.",
-             f"Setting: {setting}, with {rng.choice(EXTRAS)}."]
+             f"Setting: {setting}, with {rng.choice(GLOOMY_EXTRAS if gloomy else EXTRAS)}."]
     if fmt == "trading":
         who, rare = featured_agent(rnd, kind, sit, gags)
         if not who:
@@ -452,7 +455,9 @@ def build_prompt(rnd: dict, kind: str, has_refs: bool = False, fmt: str = "scene
                          "and freshly repaired.")
         if poses:
             parts.append("Poses, left to right: " + "; ".join(f"{ROBOTS[a][0]} {poses[a]}" for a in ORDER) + ".")
-        parts += _gag_text(gags, fmt)
+        parts += _gag_text({**(gags or {}), "leader": None} if gloomy else gags, fmt)
+        if gloomy:
+            parts.append("This is a defeat for every robot: no confetti, balloons, trophies or celebration anywhere.")
         comp = COMPOSITION.format(order=order)
         if fmt == "comic":
             comp = (f"Composition: portrait {ASPECT}. The three panels fill the frame between 18% and 70% of its height (the top 18% is plain banner space), with the robots "
@@ -494,6 +499,46 @@ def poster_hook(rnd: dict, kind: str) -> str:
     if sit == "nobody":
         return f"NOBODY GOT IT. 0-{n}."
     return results_headline(rnd, variant="plain").upper() + "."
+
+
+_DATE_TAIL = re.compile(r"\s+(on|by|before)\s+(\d{4}-\d{2}-\d{2}|[A-Z][a-z]+ \d{1,2}(,? \d{4})?)\??$")
+
+
+def short_question(q: str) -> str:
+    """'Will Vissel Kobe win on 2026-10-27?' -> 'Will Vissel Kobe win?': the date is noise on an image."""
+    q = " ".join((q or "").split())
+    s = _DATE_TAIL.sub("", q.rstrip("?")).strip()
+    return (s + "?") if q.endswith("?") else s
+
+
+def poster_claim(rnd: dict, kind: str) -> dict | None:
+    """The poster's headline when an AI said something quotable: the AI's own confident claim, verbatim, against
+    what happened. A stranger who sees only the image gets the joke: 'Claude: "Kobe are not leaving Korea with three
+    points." -> WRONG. It was Yes.' Results: a confident loser when the story is a defeat (wipeout, lone loser,
+    nobody, split), else a confident winner. Reveal (picks already public): the boldest claim. None without a quote."""
+    from .virality import clean_quote
+    from .twitter import results_shape
+    bettors = [e for e in rnd.get("entries") or [] if e.get("outcome")]
+    quoted = [(e, q) for e in bettors if (q := clean_quote(e.get("quote"), 120)[0])]
+    if not quoted:
+        return None
+    conf = lambda eq: (eq[0].get("confidence") or 0)
+    if kind == "results":
+        if rnd.get("state") != "resolved":
+            return None
+        sit, _ = results_shape(rnd)
+        losers = [x for x in quoted if not x[0].get("won")]
+        winners = [x for x in quoted if x[0].get("won")]
+        pool = (losers or winners) if sit in ("wipeout", "lone_loser", "nobody", "split", "mixed") else (winners or losers)
+        e, q = max(pool, key=conf)
+        won = bool(e.get("won"))
+        stamp, color = ("CALLED IT", "#22c55e") if won else ("WRONG", "#ff4d6d")
+        verdict = f"It was {rnd.get('winner')}."
+    else:
+        e, q = max(quoted, key=conf)
+        stamp, color, verdict = "LOCKED IN", "#ffd34d", f"{e['name']} picked {e['outcome']}."
+    return {"agent": e["agent"], "name": e["name"], "quote": q, "stamp": stamp, "stamp_color": color,
+            "verdict": verdict, "question": short_question(rnd.get("question") or "")}
 
 
 def blocked_by_keywords(s: Settings, rnd: dict) -> bool:

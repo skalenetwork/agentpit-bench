@@ -612,9 +612,15 @@ class CardRenderer:
         lines = max(1, -(-int(n * hook_px * 0.46) // (W_POSTER - 96)))   # rough wrapped line count
         hook_h = int(lines * hook_px * 1.02) + 6
         tag = round_banner(rnd) or {"reveal": "Picks are in", "results": "Final"}.get(kind)
+        # the AI's own claim against reality is the headline when there is a quote (scene and comic formats); the
+        # score line becomes the small badge. A stranger who sees only the image still gets the joke.
+        claim = scenes.poster_claim(rnd, kind) if fmt in ("scene", "comic") else None
+        if claim:
+            ql = len(claim["quote"])
+            claim["px"] = 64 if ql <= 50 else 54 if ql <= 80 else 46
         return env.get_template("scene_poster.html").render(
             scene=f"data:{mime};base64," + base64.b64encode(data).decode(), hook=hook, hook_px=hook_px,
-            hook_h=hook_h, tag=tag, tag_bg="#ffd34d" if kind == "reveal" else "#22c55e", cols=cols, fmt=fmt, tc=tc,
+            hook_h=hook_h, tag=tag, claim=claim, tag_bg="#ffd34d" if kind == "reveal" else "#22c55e", cols=cols, fmt=fmt, tc=tc,
             cols_top=H_POSTER - 560, market=" ".join((rnd.get("question") or "").split()),
             url=f"{self.host}/round/{rnd['round_id']}", W=W_POSTER, H=H_POSTER)
 
