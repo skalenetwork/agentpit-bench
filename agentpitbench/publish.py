@@ -17,7 +17,7 @@ from pathlib import Path
 
 from . import ab, challenge, exports, posts3, press
 from .cards import CardRenderer, headline_variant, rounds_note, split_headline, split_shape
-from .config import Settings
+from .config import AGENT_NAMES, Settings
 from .db import DB
 from .engage import Engage
 from .site import SiteDeployer
@@ -334,10 +334,6 @@ class BenchPublisher:
                 log.exception("debate thread for round %s failed", round_id)
         return tid
 
-    async def debate(self, round_id: int, rnd: dict, facts: dict, reveal_id: str) -> None:
-        """Phase 2 (posts v3 debate threads); nothing yet."""
-        return None
-
     async def _results_v3(self, round_id: int, rnd: dict, data: dict, png, video) -> str | None:
         """Posts v3 results: roast or hero in the Pit Boss voice, quoting the reveal, with the film/clip. No round
         link, vendor tags, poll or challenge line; the X-only summons line when it fits."""
@@ -542,6 +538,10 @@ class BenchPublisher:
             await self.engage.after_resolution(round_id, data, tid)
         except Exception:
             log.exception("post-resolution extras for round %s failed", round_id)
+        try:
+            await self.confession(round_id)
+        except Exception:
+            log.exception("confession for round %s failed", round_id)
         exports.export(self.s, self.db)
         self.site.request()
 
@@ -600,6 +600,208 @@ class BenchPublisher:
         if tid:
             for r in rounds:
                 self.db.set_round(r["round_id"], results_digest_at=now)
+        return tid
+
+    # ---------- posts v3 phase 2: debate, hype, confession, hot take, humans' week, grudge, soap ----------
+
+    def _v3_on(self, kind: str, knob: str) -> bool:
+        return self.s.posts_v3 and getattr(self.s, knob, False) and self._kind_listed(kind)
+
+    async def debate(self, round_id: int, rnd: dict, facts: dict, reveal_id: str) -> list[str]:
+        """The AI debate thread under a top-3 reveal: one reply per AI that bet (its own pick, built from its own
+        words), then the Pit Boss closes. Posted as a chain of replies (kind 'debate', allowed in the reply gate)."""
+        if not self._v3_on("debate", "debate_enabled"):
+            return []
+        bettors = [a for a in facts["ais"] if a["pick"] != "no bet"]
+        if len({a["pick"] for a in bettors}) < 2:
+            return []   # all on one side: no argument to have
+        texts, src = await posts3.compose(self.s, self.db, "debate", {**facts, "kind": "debate"},
+                                          lambda: posts3.debate_template(facts), subject=f"round:{round_id}:debate",
+                                          n=len(bettors) + 1, check=posts3.debate_check(facts))
+        log.info("round %s: debate thread (%s)", round_id, src)
+        out, parent = [], reveal_id
+        async with self._lock(round_id):
+            for i, t in enumerate(texts, 1):
+                tid = await self.poster.post(f"r{round_id}-debate-{i}", "debate", t, reply_to=parent,
+                                             round_id=round_id)
+                if not tid:
+                    break
+                out.append(tid)
+                parent = tid
+        return out
+
+    async def hype(self, now: float | None = None) -> list[str]:
+        """About 1 h before kickoff of a round with its own reveal: 'KICKOFF IN 1 HOUR', quoting the reveal. Never a
+        pick. Only rounds with a real kickoff time (event start or the description's 'scheduled for ... ET')."""
+        if not self._v3_on("hype", "hype_enabled"):
+            return []
+        from .reveal_window import kickoff, parse_kickoff
+        now = time.time() if now is None else now
+        out = []
+        for r in self.db.q("SELECT * FROM rounds WHERE post_mode='reveal' AND state='awaiting_resolution' AND "
+                           "thread_tweet_id IS NOT NULL AND started_at>=?", now - 3 * 86400):
+            key = f"r{r['round_id']}-hype"
+            if self.db.one("SELECT 1 FROM tweets WHERE post_key=?", key) or self.db.get(key):
+                continue
+            try:
+                desc = json.loads(r["snapshot_json"] or "{}").get("description")
+            except ValueError:
+                desc = None
+            t = r["event_start"] or parse_kickoff(desc, now)
+            if not t or not (0 < t - now <= self.s.hype_lead_min * 60):
+                continue
+            self.db.put(key, now)   # one attempt per round
+            rnd = next((x for x in exports.export(self.s, self.db)["rounds"] if x["round_id"] == r["round_id"]), None)
+            if not rnd:
+                continue
+            hhmm = datetime.fromtimestamp(t, timezone.utc).strftime("%H:%M")
+            mins = max(1, round((t - now) / 60))
+            f = posts3.hype_facts(rnd, hhmm, mins)
+            texts, _ = await posts3.compose(self.s, self.db, "hype", f, lambda: posts3.hype_template(f),
+                                            subject=f"round:{r['round_id']}:hype")
+            tid = await self.poster.post(key, "hype", texts[0], round_id=r["round_id"], quote_of=r["thread_tweet_id"])
+            if tid:
+                out.append(tid)
+        return out
+
+    async def confession(self, round_id: int, now: float | None = None) -> str | None:
+        """After a resolution: the losing AI's confession (a confident loss, or a losing streak of 3+), in its own
+        words, verbatim. At most one a UTC day."""
+        if not self._v3_on("confession", "confession_enabled"):
+            return None
+        now = time.time() if now is None else now
+        key, _ = self._day_key("confession", now)
+        if self.db.one("SELECT 1 FROM tweets WHERE post_key=?", key):
+            return None
+        data = exports.export(self.s, self.db)
+        rnd = next((r for r in data["rounds"] if r["round_id"] == round_id), None)
+        if not rnd or rnd["state"] != "resolved" or rnd.get("exhibition"):
+            return None
+        board = data["leaderboard"]["agents"]
+        e = posts3.confession_pick(rnd, board)
+        if not e:
+            return None
+        f = posts3.confession_facts(rnd, e, board, data["rounds"], now)
+        if not f["ais"] or not (f["ais"][0].get("quote") or f["ais"][0].get("rationale_line")):
+            return None
+        texts, _ = await posts3.compose(self.s, self.db, "confession", f, lambda: posts3.confession_template(f),
+                                        subject=f"round:{round_id}:confession")
+        return await self.poster.post(key, "confession", texts[0], round_id=round_id,
+                                      quote_of=self.db.round(round_id)["results_tweet_id"])
+
+    async def hot_take(self, now: float | None = None) -> str | None:
+        """Daily from hot_take_hour_utc: one leaderboard-backed provocative question."""
+        if not self._v3_on("hot_take", "hot_take_enabled"):
+            return None
+        now = time.time() if now is None else now
+        key, d = self._day_key("hot-take", now)
+        if d.hour < self.s.hot_take_hour_utc or self.db.one("SELECT 1 FROM tweets WHERE post_key=?", key):
+            return None
+        data = exports.export(self.s, self.db)
+        lo, hi = posts3.iso_week_bounds(now)
+        hum = posts3.humans_week_rows(self.db, lo, hi)
+        humans = {"picks": sum(r["picks"] for r in hum), "wins": sum(r["wins"] or 0 for r in hum)}
+        f = posts3.hot_take_facts(data["leaderboard"]["agents"], humans, d.toordinal())
+        if not f:
+            return None
+        texts, _ = await posts3.compose(self.s, self.db, "hot_take", f, lambda: posts3.hot_take_template(f),
+                                        subject=f"hot_take:{key}")
+        return await self.poster.post(key, "hot_take", texts[0])
+
+    async def humans_week(self, now: float | None = None) -> str | None:
+        """Race weekday from humans_week_hour_utc: the humans who beat the AIs this week (@mentioned: they replied
+        to our reveals), the champion and next week's 1v1."""
+        if not self._v3_on("humans_week", "humans_week_enabled"):
+            return None
+        from .engage import iso_week
+        now = time.time() if now is None else now
+        d = datetime.fromtimestamp(now, timezone.utc)
+        key = f"humans-week-{iso_week(now)}"
+        if d.weekday() != self.s.race_weekday or d.hour < self.s.humans_week_hour_utc or \
+                self.db.one("SELECT 1 FROM tweets WHERE post_key=?", key) or self.db.get(key):
+            return None
+        self.db.put(key, now)   # one attempt a week
+        lo, hi = posts3.iso_week_bounds(now)
+        data = exports.export(self.s, self.db)
+        rec = posts3.week_records(data["rounds"], now)
+        f = posts3.humans_week_facts(posts3.humans_week_rows(self.db, lo, hi), rec, AGENT_NAMES)
+        if not f:
+            return None
+        if f.get("champion"):
+            self.db.put(f"humans_champion_{iso_week(now + 7 * 86400)}", f["champion"])
+        texts, _ = await posts3.compose(self.s, self.db, "humans_week", f, lambda: posts3.humans_week_template(f),
+                                        subject=f"humans_week:{key}")
+        return await self.poster.post(key, "humans_week", texts[0])
+
+    async def grudge(self, now: float | None = None) -> str | None:
+        """Mondays from grudge_hour_utc: last week's grudge match result (the loser wears the 💩) and this week's
+        pair, the two AIs closest in the standings. Presentation only: scored on rounds both bet."""
+        if not self._v3_on("grudge", "grudge_enabled"):
+            return None
+        from .engage import iso_week
+        now = time.time() if now is None else now
+        d = datetime.fromtimestamp(now, timezone.utc)
+        week = iso_week(now)
+        key = f"grudge-{week}"
+        if d.weekday() != 0 or d.hour < self.s.grudge_hour_utc or self.db.get(key) or \
+                self.db.one("SELECT 1 FROM tweets WHERE post_key=?", key):
+            return None
+        data = exports.export(self.s, self.db)
+        board = data["leaderboard"]["agents"]
+        pair = posts3.grudge_pair(board)
+        if not pair:
+            return None
+        by = {b["agent"]: b for b in board}
+        f = {"kind": "grudge", "ais": [{"name": b["name"], "pick": "no bet"} for b in board],
+             "standings": posts3.standings_facts(board),
+             "next": {"a": AGENT_NAMES[pair[0]], "b": AGENT_NAMES[pair[1]],
+                      "gap": f"{abs(by[pair[0]]['net_pnl'] - by[pair[1]]['net_pnl']):.0f}"},
+             "brief": "Weekly grudge match: last week's 1v1 result (the loser wears the 💩 shame badge this week) "
+                      "and this week's pair. Scored only on the markets both bet."}
+        prev = self.db.get(f"grudge-{iso_week(now - 7 * 86400)}")
+        if prev and prev.get("pair"):
+            a, b = prev["pair"]
+            lo = posts3.iso_week_bounds(now - 7 * 86400)[0]
+            h = posts3.head_to_head(data["rounds"], a, b, lo, lo + 7 * 86400)
+            if h:
+                w, l = (a, b) if h[a] >= h[b] else (b, a)
+                f["last"] = {"winner": AGENT_NAMES[w], "loser": AGENT_NAMES[l], "n": h["n"],
+                             "winner_pnl": f"{h[w]:+.0f}", "loser_pnl": f"{h[l]:+.0f}"}
+                self.db.put(f"shame_{week}", AGENT_NAMES[l])
+        texts, _ = await posts3.compose(self.s, self.db, "grudge", f, lambda: posts3.grudge_template(f),
+                                        subject=f"grudge:{week}")
+        tid = await self.poster.post(key, "grudge", texts[0])
+        self.db.put(key, {"pair": list(pair), "tweet_id": tid})
+        return tid
+
+    async def soap(self, now: float | None = None) -> str | None:
+        """Daily from soap_hour_utc, at most one: 'THE PIT, EPISODE n'. Storyline state in soap_episodes."""
+        if not self._v3_on("soap", "soap_enabled"):
+            return None
+        now = time.time() if now is None else now
+        key, d = self._day_key("soap", now)
+        day = d.strftime("%Y-%m-%d")
+        if d.hour < self.s.soap_hour_utc or self.db.one("SELECT 1 FROM soap_episodes WHERE day=?", day):
+            return None
+        last = self.db.one("SELECT * FROM soap_episodes ORDER BY episode DESC LIMIT 1")
+        prev = json.loads(last["arcs_json"]) if last else None
+        data = exports.export(self.s, self.db)
+        board = data["leaderboard"]["agents"]
+        episode = (last["episode"] + 1) if last else 1
+        shown = {r["round_id"] for r in self.db.q("SELECT round_id FROM rounds WHERE post_mode='reveal'")}
+        open_rounds = sorted((r for r in data["rounds"] if r["state"] == "awaiting_resolution"),
+                             key=lambda r: (r["round_id"] not in shown, -r["round_id"]))
+        f = posts3.soap_facts(board, prev, episode, open_rounds)
+        state = {"ranks": {b["agent"]: b["rank"] for b in board}, "headline": f["headline"] if f else None}
+        if not f:
+            return None
+        texts, _ = await posts3.compose(self.s, self.db, "soap", f, lambda: posts3.soap_template(f),
+                                        subject=f"soap:{episode}")
+        tid = await self.poster.post(key, "soap", texts[0])
+        if tid:
+            self.db.x("INSERT INTO soap_episodes(episode,day,arcs_json,headline,round_id,text,posted_at)"
+                      " VALUES(?,?,?,?,?,?,?)", episode, day, json.dumps(state), f["headline"],
+                      None, texts[0], now)
         return tid
 
     def challenge_line(self, rounds: list[dict], round_id: int) -> str:

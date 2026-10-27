@@ -201,6 +201,12 @@ CREATE TABLE IF NOT EXISTS human_replies (
     exact_pick TEXT,
     PRIMARY KEY (round_id, reply_id)
 );
+CREATE TABLE IF NOT EXISTS soap_episodes (   -- posts v3 season soap opera: one row per posted episode
+    episode INTEGER PRIMARY KEY,
+    day TEXT NOT NULL UNIQUE,              -- UTC day (at most one episode a day)
+    arcs_json TEXT NOT NULL,               -- {ranks: {agent: rank}, headline}: the storyline state the next one reads
+    headline TEXT, round_id INTEGER, text TEXT, posted_at REAL
+);
 CREATE TABLE IF NOT EXISTS round_summaries (
     round_id INTEGER NOT NULL, agent TEXT NOT NULL,
     line1 TEXT NOT NULL, line2 TEXT NOT NULL,

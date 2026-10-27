@@ -151,7 +151,8 @@ def round_facts(kind: str, rnd: dict, board: list[dict], rounds: list[dict] | No
         b = by_agent.get(e["agent"], {})
         quote, _ = clean_quote(e.get("quote"))
         line, _ = clean_quote(_sentence(e.get("rationale")), 140)
-        a = {"name": e["name"], "persona": PERSONAS.get(e["agent"], ""), "pick": e.get("outcome") or "no bet"}
+        a = {"name": e["name"], "persona": PERSONAS.get(e["agent"], ""), "emoji": EMOJI.get(e["agent"], ""),
+             "pick": e.get("outcome") or "no bet"}
         if e.get("outcome"):
             a["price"] = price_str(e.get("avg_price"))
             if e.get("confidence") is not None:
@@ -261,7 +262,7 @@ def validate(text: str, facts: dict) -> str | None:
         return "empty"
     if tweet_len(text) > MAX_LEN:
         return f"{tweet_len(text)} characters: the limit is {MAX_LEN}"
-    blob_parts = _strings({k: v for k, v in facts.items() if k not in ("kind",)})
+    blob_parts = _strings({k: v for k, v in facts.items() if k not in ("kind", "brief")})
     blob = "\n".join(blob_parts)
     quotes = [q for a in facts.get("ais", []) for q in (a.get("quote"), a.get("rationale_line")) if q]
     quotes += _strings(facts.get("quotes"))
@@ -648,3 +649,278 @@ async def compose(s: Settings, db: DB, kind: str, facts: dict, template, subject
             log.info("post writer for %s rejected: %s", subject, feedback)
     out = template()
     return (out if isinstance(out, list) else [out]), "template"
+
+
+# ---------------------------------------------------------------- phase 2: debate, hype, confession, hot take,
+# humans' week, grudge match, soap opera (templates; the writer gets the same facts plus a brief)
+
+def debate_template(facts: dict) -> list[str]:
+    """One reply per AI that bet (its own pick, its own words), then the Pit Boss closes."""
+    out = []
+    for a in facts["ais"]:
+        if a["pick"] == "no bet":
+            continue
+        words = a.get("quote") or a.get("rationale_line")
+        out.append(fit_lines([(f"{a.get('emoji', '')} {a['name'].upper()}: {a['pick'].upper()}.".strip(), 0),
+                              (f"\"{words}\"" if words else None, 1),
+                              (f"{a['name']} has {a['streak']}." if a.get("streak") else None, 2)]))
+    sides: dict[str, int] = {}
+    for a in facts["ais"]:
+        if a["pick"] != "no bet":
+            sides[a["pick"]] = sides.get(a["pick"], 0) + 1
+    tally = " vs ".join(f"{k} {v}" for k, v in sides.items())
+    out.append(fit_lines([("THE PIT BOSS 🎙️", 0), (f"{tally}. You heard them." if len(sides) > 1 else
+                                                     "All on the same side. Brave or lazy?", 0),
+                          ("Who wins the argument? 👇", 0)]))
+    return out
+
+
+def debate_check(facts: dict):
+    """Each AI's line names that AI and its own pick; the close asks the room."""
+    bettors = [a for a in facts["ais"] if a["pick"] != "no bet"]
+
+    def check(texts: list[str]) -> str | None:
+        for a, t in zip(bettors, texts):
+            if a["name"].lower() not in t.lower():
+                return f"post for {a['name']} must name {a['name']}"
+            if a["pick"].lower() not in t.lower():
+                return f"post for {a['name']} must carry its pick {a['pick']}"
+        if "who wins the argument" not in texts[-1].lower():
+            return "the last post must end with 'Who wins the argument? 👇'"
+        return None
+    return check
+
+
+def hype_facts(rnd: dict, kickoff_hhmm: str, minutes: int) -> dict:
+    """No picks at all: the hype post never shows one (sealed or not)."""
+    n = len(rnd["entries"])
+    return {"kind": "hype", "market": market_name(rnd), "outcomes": list(rnd.get("outcomes") or []),
+            "n_ais": n, "kickoff_utc": kickoff_hhmm, "countdown": f"{minutes} minutes" if minutes < 60 else "1 hour",
+            "ais": [{"name": e["name"], "persona": PERSONAS.get(e["agent"], ""), "pick": "no bet"}
+                    for e in rnd["entries"]],
+            "brief": "Pre-match hype about 1 hour before kickoff. The AIs' picks are NOT in the facts and must not "
+                     "be guessed. Build anticipation, give the kickoff time, ask who readers are backing."}
+
+
+def hype_template(facts: dict) -> str:
+    return fit_lines([("⏱️ KICKOFF IN " + facts["countdown"].upper(), 0), ("", 0), (facts["market"], 0),
+                      (f"{facts['n_ais']} AIs have their picks in. Kickoff {facts['kickoff_utc']} UTC.", 0), ("", 0),
+                      ("Who are you backing? 👇", 0)])
+
+
+def confession_pick(rnd: dict, board: list[dict], min_conf: float = 0.7) -> dict | None:
+    """The AI that owes a confession on a resolved round: lost with confidence >= min_conf, or now on a losing
+    streak of 3+; it needs its own words (quote or rationale) to confess with. Worst case first."""
+    by = {b["agent"]: b for b in board}
+    best = None
+    for e in rnd["entries"]:
+        if not e.get("outcome") or e.get("won") or not (e.get("quote") or e.get("rationale")):
+            continue
+        streak = (by.get(e["agent"]) or {}).get("streak") or 0
+        conf = e.get("confidence") or 0
+        if conf >= min_conf or streak <= -3:
+            key = (-streak, conf)
+            if best is None or key > best[0]:
+                best = (key, e)
+    return best[1] if best else None
+
+
+def confession_facts(rnd: dict, e: dict, board: list[dict], rounds: list[dict], now: float) -> dict:
+    f = round_facts("confession", rnd, board, rounds, now)
+    f["ais"] = [a for a in f["ais"] if a["name"] == e["name"]]
+    f["brief"] = (f"AI confession: {e['name']} lost. Quote its own line verbatim, say what happened (the winner), "
+                  f"its streak or season tokens, and ask readers to rate the take.")
+    f["rate_scale"] = "1–10"
+    return f
+
+
+def confession_template(facts: dict) -> str:
+    a = facts["ais"][0]
+    words = a.get("quote") or a.get("rationale_line")
+    tail = f"{a['name']}: {a['streak']}." if a.get("streak") else \
+        (f"{a['name']} is on {a['season_pnl']} tokens this season." if a.get("season_pnl") else None)
+    return fit_lines([(f"WHAT WAS {a['name'].upper()} THINKING? 🤔", 0), ("", 0), (f"\"{words}\"", 0),
+                      (f"— {a['name']}" + (f", at {a['confidence']} confidence" if a.get("confidence") else ""), 0),
+                      ("", 0), (facts["market"], 2), (f"It was {facts['winner']}.", 0), (tail, 1), ("", 0),
+                      ("Rate this take 1–10 👇", 0)])
+
+
+HOT_TAKES = ("top", "bottom", "top", "humans")
+
+
+def hot_take_facts(board: list[dict], humans: dict | None, day_ordinal: int) -> dict | None:
+    """Leaderboard-backed question of the day (rotating frames). None without a board."""
+    if len(board) < 2:
+        return None
+    frame = HOT_TAKES[day_ordinal % len(HOT_TAKES)]
+    if frame == "humans" and not (humans and humans.get("picks", 0) >= 5):
+        frame = "top"
+    st = standings_facts(board)
+    f = {"kind": "hot_take", "frame": frame, "standings": st, "n_ais": len(board),
+         "ais": [{"name": b["name"], "persona": PERSONAS.get(b["agent"], ""), "pick": "no bet"} for b in board],
+         "brief": "Hot take of the day: one provocative question about the standings, backed by the numbers in "
+                  "facts, then 'Discuss 👇'. Spicy about the AI characters, never about people or companies."}
+    if frame == "humans":
+        f["humans_week"] = {"wins": humans["wins"], "picks": humans["picks"]}
+    return f
+
+
+def hot_take_template(facts: dict) -> str:
+    st = facts["standings"]
+    top, bottom = st[0], st[-1]
+    if facts["frame"] == "bottom":
+        head = f"Is {bottom['name']} the worst gambler in the pit?"
+        focus, rest = bottom, [s for s in st if s is not bottom][:2]
+    elif facts["frame"] == "humans":
+        h = facts["humans_week"]
+        head = "Are humans better at this than the AIs?"
+        return fit_lines([(head, 0), ("", 0), (f"Humans this week: {h['wins']} right of {h['picks']} picks.", 0),
+                          (f"Best AI this season: {top['name']} at {top['pnl']}.", 0), ("", 0), ("Discuss 👇", 0)])
+    else:
+        head = f"Is {top['name']} secretly the best forecaster in AI?"
+        focus, rest = top, st[2:] if len(st) > 2 else st[1:]
+    return fit_lines([(head, 0), ("", 0), (f"This season: {focus['pnl']} tokens, {focus['rank']}.", 0),
+                      (" ".join(f"{s['name']}: {s['pnl']}." for s in rest), 1), ("", 0), ("Discuss 👇", 0)])
+
+
+def humans_week_rows(db: DB, lo: float, hi: float) -> list[dict]:
+    """[{username, picks, wins}] for X humans whose picks (replies to our reveals) resolved in [lo, hi)."""
+    rows = db.q("SELECT h.username, COUNT(*) picks, SUM(h.won) wins FROM humans h JOIN rounds r USING(round_id)"
+                " WHERE r.state='resolved' AND r.resolved_at>=? AND r.resolved_at<? AND h.won IS NOT NULL AND"
+                " h.username IS NOT NULL GROUP BY h.username ORDER BY wins DESC, picks ASC", lo, hi)
+    return [dict(r) for r in rows]
+
+
+def humans_week_facts(rows: list[dict], week_rec: dict[str, tuple[int, int]], names: dict[str, str],
+                      min_picks: int = 3, champ_picks: int = 5) -> dict | None:
+    """The humans who beat the AIs this week (accuracy above the best AI's, at least min_picks picks), the week's
+    champion (best accuracy with champ_picks picks) and the AI they face next week. None when nobody qualifies."""
+    if not week_rec:
+        return None
+    best_ai = max(week_rec, key=lambda a: (week_rec[a][0] / max(1, sum(week_rec[a])), week_rec[a][0]))
+    bw, bl = week_rec[best_ai]
+    bar = bw / max(1, bw + bl)
+    beat = [r for r in rows if r["picks"] >= min_picks and r["wins"] / r["picks"] > bar][:3]
+    champs = sorted((r for r in rows if r["picks"] >= champ_picks),
+                    key=lambda r: (-r["wins"] / r["picks"], -r["wins"]))
+    if not beat and not champs:
+        return None
+    champ = champs[0] if champs else None
+    f = {"kind": "humans_week", "humans": [{"username": "@" + r["username"], "record": f"{r['wins']}-{r['picks'] - r['wins']}"}
+                                           for r in beat],
+         "best_ai": {"name": names[best_ai], "record": f"{bw}-{bl}"},
+         "ais": [{"name": names[best_ai], "pick": "no bet"}],
+         "allowed_mentions": ["@" + r["username"] for r in beat] + ([f"@{champ['username']}"] if champ else []),
+         "brief": "Weekly humans shout-out: crown the humans who beat the AIs this week (@mention only the listed "
+                  "humans), the best AI's record for comparison, and the champion's 1v1 challenge next week."}
+    if champ:
+        f["champion"] = {"username": "@" + champ["username"], "record": f"{champ['wins']}-{champ['picks'] - champ['wins']}",
+                         "next_opponent": names[best_ai]}
+    return f
+
+
+def humans_week_template(facts: dict) -> str:
+    beat = " · ".join(f"{h['username']} {h['record']}" for h in facts["humans"])
+    c = facts.get("champion")
+    return fit_lines([("HUMANS OF THE PIT 👑", 0), ("", 0),
+                      (f"Beat the AIs this week: {beat}" if beat else None, 0),
+                      (f"Best AI: {facts['best_ai']['name']} {facts['best_ai']['record']}.", 0),
+                      (f"Champion: {c['username']} ({c['record']}). Next week: head to head vs {c['next_opponent']}." if c
+                       else None, 0), ("", 0), ("Think you can do better? Reply your pick on our reveals 👇", 1)])
+
+
+def grudge_pair(board: list[dict]) -> tuple[str, str] | None:
+    """The two AIs closest in the standings (net tokens)."""
+    if len(board) < 2:
+        return None
+    pairs = [(abs(a["net_pnl"] - b["net_pnl"]), a["agent"], b["agent"]) for i, a in enumerate(board)
+             for b in board[i + 1:]]
+    _, x, y = min(pairs)
+    return x, y
+
+
+def head_to_head(rounds: list[dict], a: str, b: str, lo: float, hi: float) -> dict | None:
+    """Tokens each won on the rounds both bet, resolved in [lo, hi). None without a shared round."""
+    tot = {a: 0.0, b: 0.0}
+    n = 0
+    for r in rounds:
+        if r["state"] != "resolved" or r.get("exhibition") or not (lo <= (r.get("resolved_at") or 0) < hi):
+            continue
+        es = {e["agent"]: e for e in r["entries"] if e.get("outcome")}
+        if a in es and b in es:
+            n += 1
+            tot[a] += es[a].get("pnl") or 0
+            tot[b] += es[b].get("pnl") or 0
+    return {"n": n, a: tot[a], b: tot[b]} if n else None
+
+
+def grudge_template(facts: dict) -> str:
+    last = facts.get("last")
+    lines = [("GRUDGE MATCH 🥊", 0), ("", 0)]
+    if last:
+        lines += [(f"Last week: {last['winner']} {last['winner_pnl']} vs {last['loser']} {last['loser_pnl']} "
+                   f"on {last['n']} shared markets.", 0),
+                  (f"{last['loser']} wears the 💩 this week.", 0), ("", 0)]
+    nxt = facts["next"]
+    lines += [(f"This week: {nxt['a']} vs {nxt['b']}, {nxt['gap']} tokens apart.", 0),
+              ("Head to head on every market they both bet.", 1), ("", 0), ("Who takes it? 👇", 0)]
+    return fit_lines(lines)
+
+
+# ---------- the season soap opera ----------
+
+def soap_arcs(board: list[dict], prev: dict | None) -> dict[str, str]:
+    """Open storylines per AI from the standings, against the previous episode's ranks."""
+    prev_rank = (prev or {}).get("ranks", {})
+    arcs = {}
+    for b in board:
+        name, rank, streak = b["name"], b["rank"], b.get("streak") or 0
+        was = prev_rank.get(b["agent"])
+        if was == 1 and rank != 1:
+            arcs[b["agent"]] = f"{name} fell from #1 to {ordinal(rank)}"
+        elif rank == 1 and was and was != 1:
+            arcs[b["agent"]] = f"{name} took #1"
+        elif streak <= -3:
+            arcs[b["agent"]] = f"{name} has lost {-streak} straight"
+        elif streak >= 3:
+            arcs[b["agent"]] = f"{name} has won {streak} straight"
+        elif was and rank < was:
+            arcs[b["agent"]] = f"{name} climbed to {ordinal(rank)}"
+    return arcs
+
+
+def soap_facts(board: list[dict], prev: dict | None, episode: int, upcoming: list[dict]) -> dict | None:
+    """'THE PIT, EPISODE n': the headline arc, last episode's line, and a cliffhanger on an open round (picks
+    already public: state awaiting_resolution only) where the arc's AI has a pick. None without an arc."""
+    arcs = soap_arcs(board, prev)
+    if not arcs:
+        return None
+    order = sorted(arcs, key=lambda a: ("fell" not in arcs[a], "took" not in arcs[a], "lost" not in arcs[a]))
+    focus = order[0]
+    cliff = None
+    for r in upcoming:
+        if r.get("sealed") or r["state"] != "awaiting_resolution":
+            continue
+        e = next((x for x in r["entries"] if x["agent"] == focus and x.get("outcome")), None)
+        if e:
+            cliff = {"ai": e["name"], "pick": e["outcome"], "market": market_name(r), "label": short_label(r)}
+            break
+    names = {b["agent"]: b["name"] for b in board}
+    return {"kind": "soap", "episode": episode, "headline": arcs[focus],
+            "previously": (prev or {}).get("headline"), "other_arcs": [arcs[a] for a in order[1:3]],
+            "cliffhanger": cliff, "standings": standings_facts(board),
+            "ais": [{"name": names[a], "pick": (cliff["pick"] if cliff and names[a] == cliff["ai"] else "no bet")}
+                    for a in names],
+            "markets": [cliff["market"]] if cliff else [],
+            "brief": "Season soap opera episode: 'THE PIT, EPISODE n 📺', a 'Previously:' line (from facts), the "
+                     "headline storyline, and a cliffhanger tied to the upcoming result in facts."}
+
+
+def soap_template(facts: dict) -> str:
+    c = facts.get("cliffhanger")
+    return fit_lines([(f"THE PIT, EPISODE {facts['episode']} 📺", 0), ("", 0),
+                      (f"Previously: {facts['previously']}." if facts.get("previously") else None, 2),
+                      (f"Now: {facts['headline']}.", 0),
+                      (f"Also: {'; '.join(facts['other_arcs'])}." if facts.get("other_arcs") else None, 3), ("", 0),
+                      (f"Next up: {c['label']} {c['ai']} says {c['pick']}." if c else None, 1),
+                      ("Stay tuned 👇", 0)])
