@@ -15,14 +15,14 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import ab, challenge, exports, press
+from . import ab, challenge, exports, posts3, press
 from .cards import CardRenderer, headline_variant, rounds_note, split_headline, split_shape
 from .config import Settings
 from .db import DB
 from .engage import Engage
 from .site import SiteDeployer
 from .twitter import (Poster, clip, decision_text, market_name, poll_minutes, poll_options, poll_result_line,
-                      price_str, results_shape, results_text, split_text, reveal_text, summons_line,
+                      price_str, results_shape, results_text, split_text, reveal_text, summons_line, tweet_len,
                       grok_ask_pick, grok_ask_text, labs_week_text)
 from .virality import commentary
 
@@ -216,7 +216,10 @@ class BenchPublisher:
                     await self._standalone(round_id, f"r{round_id}-split", kind,
                                            split_text(self.s, rnd, kind, headline), png, video)
             # otherwise the split card and clip stay on the site; the reveal below is the round's X post
-        if not self.s.post_decisions and rnd["entries"]:
+        if not self.s.post_decisions and rnd["entries"] and self.s.posts_v3 and \
+                posts3.choose_mode(self.s, self.db, round_id, time.time()) == "digest":
+            log.info("round %s: no reveal of its own; the daily board carries it", round_id)
+        elif not self.s.post_decisions and rnd["entries"]:
             due = self.reveal_due(round_id)
             if due > time.time() + 60:   # held for the live window (virality-2 F1); the site shows the picks already
                 self.db.set_round(round_id, reveal_due_at=due)
@@ -256,6 +259,8 @@ class BenchPublisher:
         for row in rows:
             rid = row["round_id"]
             self.db.set_round(rid, reveal_due_at=None)
+            if self.s.posts_v3 and posts3.choose_mode(self.s, self.db, rid, now) == "digest":
+                continue   # posts v3: the daily board carries it (never a late reveal at resolution time)
             data = exports.export(self.s, self.db)
             rnd = next((r for r in data["rounds"] if r["round_id"] == rid), None)
             if rnd and rnd["entries"]:
@@ -267,6 +272,8 @@ class BenchPublisher:
     async def _reveal(self, round_id: int, rnd: dict) -> None:
         """The round's opener on X, once every pick is in: the decision cards as up to four images, the split
         headline, every pick and the reply invite. Results quote it; human picks are read from its replies."""
+        if self.s.posts_v3:
+            return await self._reveal_v3(round_id, rnd)
         kind, headline = split_headline(rnd)
         few = sum(1 for e in rnd["entries"] if e["outcome"]) < 2
         if few:
@@ -298,6 +305,53 @@ class BenchPublisher:
                 self.db.x("UPDATE bets SET tweet_id=? WHERE tweet_id IS NULL AND run_id IN "
                           "(SELECT run_id FROM runs WHERE round_id=?)", tid, round_id)
         exports.export(self.s, self.db)
+
+    async def _reveal_v3(self, round_id: int, rnd: dict) -> str | None:
+        """Posts v3: the reveal in the Pit Boss voice (writer, else template), the split card, no poll, no A/B (the
+        v3 voice is the control; the reveal/results A/B slots get no new assignments). Human picks are read from
+        its replies as before."""
+        key = f"r{round_id}-reveal"
+        data = exports.export(self.s, self.db)
+        facts = posts3.round_facts("reveal", rnd, data["leaderboard"]["agents"], data["rounds"])
+        texts, src = await posts3.compose(self.s, self.db, "reveal", facts, lambda: posts3.reveal_template(facts),
+                                          subject=f"round:{round_id}:reveal")
+        split = self.s.cards_dir / str(round_id) / "split.png"
+        cards = [p for e in rnd["entries"]
+                 if (p := self.s.cards_dir / str(round_id) / f"decision-{e['agent']}.png").exists()]
+        media = split if split.exists() else (cards[0] if cards else None)
+        async with self._lock(round_id):
+            tid = await self.poster.post(key, "reveal", texts[0], media, round_id=round_id)
+            if tid:
+                self.db.set_round(round_id, thread_tweet_id=tid)
+                self.db.x("UPDATE bets SET tweet_id=? WHERE tweet_id IS NULL AND run_id IN "
+                          "(SELECT run_id FROM runs WHERE round_id=?)", tid, round_id)
+        log.info("round %s: v3 reveal (%s)", round_id, src)
+        exports.export(self.s, self.db)
+        if tid:
+            try:
+                await self.debate(round_id, rnd, facts, tid)
+            except Exception:
+                log.exception("debate thread for round %s failed", round_id)
+        return tid
+
+    async def debate(self, round_id: int, rnd: dict, facts: dict, reveal_id: str) -> None:
+        """Phase 2 (posts v3 debate threads); nothing yet."""
+        return None
+
+    async def _results_v3(self, round_id: int, rnd: dict, data: dict, png, video) -> str | None:
+        """Posts v3 results: roast or hero in the Pit Boss voice, quoting the reveal, with the film/clip. No round
+        link, vendor tags, poll or challenge line; the X-only summons line when it fits."""
+        key = f"r{round_id}-results"
+        facts = posts3.round_facts("results", rnd, data["leaderboard"]["agents"], data["rounds"])
+        texts, src = await posts3.compose(self.s, self.db, "results", facts, lambda: posts3.results_template(facts),
+                                          subject=f"round:{round_id}:results")
+        text = texts[0]
+        summons = summons_line(round_id, self.s.summons_line_every)
+        if summons and tweet_len(f"{text}\n{summons}") <= 280:
+            text = f"{text}\n{summons}"
+        log.info("round %s: v3 results (%s)", round_id, src)
+        async with self._lock(round_id):
+            return await self._standalone(round_id, key, "results", text, png, video)
 
     def _reveal_ab(self, round_id: int, rnd: dict, key: str, headline: str, few: bool, cards: list):
         """The reveal's A/B slots: hook, cta, tags (text, through ab.finish) and the format. Returns (text, media,
@@ -337,6 +391,8 @@ class BenchPublisher:
         board, crowd = lb["agents"], lb["crowd"]
         self.cards.rounds_note = rounds_note(lb)
         cast = commentary(rnd)
+        if self.s.posts_v3:
+            return await self._on_resolved_v3(round_id, rnd, data, cast)
         # tone: the day's A/B draw once the plain arm is live; until then today's per-round parity
         variant = self.db.round(round_id)["headline_variant"]
         key = f"r{round_id}-results"
@@ -458,6 +514,92 @@ class BenchPublisher:
         tid = await self.poster.post(key, "labs_week", labs_week_text(list(tot.values())))
         if tid:
             self.db.put(key, tid)
+        return tid
+
+    async def _on_resolved_v3(self, round_id: int, rnd: dict, data: dict, cast) -> None:
+        """Posts v3: a round with its own X reveal gets its results post (quoting it); every other round waits for
+        the daily results digest. The results card is rendered either way (the site uses it)."""
+        lb = data["leaderboard"]
+        board, crowd = lb["agents"], lb["crowd"]
+        variant = self.db.round(round_id)["headline_variant"] or headline_variant(round_id)
+        self.db.set_round(round_id, headline_variant=variant)
+        png = await self._card(self.cards.results(rnd, board, crowd, cast=cast, top_humans=lb["humans"][:3],
+                                                  variant=variant))
+        tid = None
+        if self.db.round(round_id)["thread_tweet_id"]:
+            video = await self._round_film(round_id)
+            if video is None:
+                video = await self._clip(self.cards.results_clip(rnd, board, crowd, cast=cast,
+                                                                 top_humans=lb["humans"][:3], variant=variant))
+            try:
+                tid = await self._results_v3(round_id, rnd, data, png, video)
+            except Exception:
+                log.exception("v3 results for round %s failed", round_id)
+            if tid:
+                self.db.set_round(round_id, results_tweet_id=tid)
+        data = exports.export(self.s, self.db)
+        try:
+            await self.engage.after_resolution(round_id, data, tid)
+        except Exception:
+            log.exception("post-resolution extras for round %s failed", round_id)
+        exports.export(self.s, self.db)
+        self.site.request()
+
+    # ---------- posts v3: the daily boards ----------
+
+    def _day_key(self, prefix: str, now: float) -> tuple[str, datetime]:
+        d = datetime.fromtimestamp(now, timezone.utc)
+        return f"{prefix}-{d.strftime('%Y-%m-%d')}", d
+
+    async def digest(self, now: float | None = None) -> str | None:
+        """Once a UTC day from digest_hour_utc: TODAY'S BOARD, the picks of every open market without a reveal of its
+        own (picks public: never a running round). Nothing on a day without such a market."""
+        if not self.s.posts_v3 or not self._kind_listed("digest"):
+            return None
+        now = time.time() if now is None else now
+        key, d = self._day_key("digest", now)
+        if d.hour < self.s.digest_hour_utc or self.db.one("SELECT 1 FROM tweets WHERE post_key=?", key):
+            return None
+        ids = [r["round_id"] for r in self.db.q(
+            "SELECT round_id FROM rounds WHERE post_mode='digest' AND digest_at IS NULL AND "
+            "state='awaiting_resolution' AND thread_tweet_id IS NULL")]
+        if not ids:
+            return None
+        rounds = [r for r in exports.export(self.s, self.db)["rounds"]
+                  if r["round_id"] in ids and not r["sealed"] and any(e.get("outcome") for e in r["entries"])]
+        if not rounds:
+            return None
+        rounds.sort(key=lambda r: r["round_id"])
+        tid = await self.poster.post(key, "digest", posts3.digest_text(rounds))
+        if tid:
+            for r in rounds:
+                self.db.set_round(r["round_id"], digest_at=now)
+        return tid
+
+    async def results_digest(self, now: float | None = None) -> str | None:
+        """Once a UTC day from results_digest_hour_utc: TODAY'S DAMAGE, the results of every round of the last 36 h
+        that had no results post of its own."""
+        if not self.s.posts_v3 or not self._kind_listed("results_digest"):
+            return None
+        now = time.time() if now is None else now
+        key, d = self._day_key("results-digest", now)
+        if d.hour < self.s.results_digest_hour_utc or self.db.one("SELECT 1 FROM tweets WHERE post_key=?", key):
+            return None
+        ids = [r["round_id"] for r in self.db.q(
+            "SELECT round_id FROM rounds WHERE state='resolved' AND results_tweet_id IS NULL AND "
+            "results_digest_at IS NULL AND resolved_at>=? AND (post_mode='digest' OR thread_tweet_id IS NULL)",
+            now - 36 * 3600)]
+        if not ids:
+            return None
+        rounds = [r for r in exports.export(self.s, self.db)["rounds"]
+                  if r["round_id"] in ids and any(e.get("outcome") for e in r["entries"])]
+        if not rounds:
+            return None
+        rounds.sort(key=lambda r: r["round_id"])
+        tid = await self.poster.post(key, "results_digest", posts3.results_digest_text(rounds))
+        if tid:
+            for r in rounds:
+                self.db.set_round(r["round_id"], results_digest_at=now)
         return tid
 
     def challenge_line(self, rounds: list[dict], round_id: int) -> str:

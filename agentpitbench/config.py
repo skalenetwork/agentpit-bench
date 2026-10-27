@@ -131,6 +131,13 @@ class Settings:
     labs_week_enabled: bool = False      # Sunday standings post tagging the four labs
     labs_week_hour_utc: int = 16         # from this hour on race_weekday: before the race post (race_hour_utc) and the episode
     summons_line_every: int = 0          # "Tag @agentpitbench with your market" on 1 results post in N (0 = off)
+    # posts v3 (docs/posts-v3-spec.md): the Pit Boss voice for reveals and results (writer + validator + templates),
+    # X reveals only for the day's best-known markets, every other market in one daily digest (and results digest)
+    posts_v3: bool = False
+    v3_reveals_per_day: int = 3          # rounds with an X reveal of their own per UTC day (summoned rounds extra)
+    digest_hour_utc: int = 12            # "TODAY'S BOARD": the picks of every other open market
+    results_digest_hour_utc: int = 21    # "TODAY'S DAMAGE": their results
+    post_writer_deadline_s: int = 240    # the writer's answer (with its retry) or the template goes out
     reveal_window: bool = False   # virality-2 F1: hold the reveal for its live window (T-3h .. T-15min)
     # F2 reply-back (docs/virality-2-spec.md): on only when "reply-back" is in post_kinds
     reply_back_daily_cap: int = 10          # answers per UTC day
@@ -253,7 +260,8 @@ class Settings:
     opai_task_budget: dict = field(default_factory=lambda: {
         "rate": 24, "picks": 12, "summary": 12, "incident": 4, "cadence": 1, "report": 2, "i18n": 8,
         "proposal": 2, "ab": 2, "translate": 15, "motd_script": 15,   # motd: a film per round (5/day), each with one retry
-        "weekly_episode": 1, "release_tweet": 2})  # Week in the Pit: one call a week (also capped per ISO week in week.py)
+        "weekly_episode": 1, "release_tweet": 2,
+        "post": 24})   # posts v3 writer: ~15 posts/day plus some retries; beyond it the templates go out  # Week in the Pit: one call a week (also capped per ISO week in week.py)
     opai_backoff_s: int = 21600
     opai_sweep_guard_min: int = 30
     opai_rate_batch: int = 40

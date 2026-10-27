@@ -378,6 +378,11 @@ MIGRATIONS = [  # (table, column, definition): added when missing, so old databa
     ("rounds", "nw_source", "TEXT"),
     ("tweets", "boosted", "INTEGER NOT NULL DEFAULT 0"),  # operator-marked (x-boosted); excluded from rewards
     ("tweets", "deleted", "INTEGER NOT NULL DEFAULT 0"),  # X returned Not Found: never read again
+    # posts v3: 'reveal' (its own X post) or 'digest' (the daily board), decided once when the picks are in
+    ("rounds", "post_mode", "TEXT"),
+    ("rounds", "post_mode_at", "REAL"),
+    ("rounds", "digest_at", "REAL"),            # when the daily board carried it
+    ("rounds", "results_digest_at", "REAL"),    # when the daily results digest carried it
     ("tweets", "reply_to", "TEXT"),                      # A/B: our own replies are not engagement
     ("tweets", "quote_of", "TEXT"),                      # A/B: our own quotes are not engagement
     # the methodology version in force when the round was created (NULL: created before this column existed)

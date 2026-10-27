@@ -52,6 +52,8 @@ def wanted(db: DB, s: Settings) -> dict[str, int]:
     """Generated slots with a free seat and no queued proposal -> free seats."""
     out = {}
     for slot in ab.GENERATED:
+        if getattr(s, "posts_v3", False) and slot.startswith(("reveal.", "results.")):
+            continue   # posts v3 writes reveals/results in its own voice: these slots draw no posts any more
         if db.one("SELECT 1 FROM ab_arms WHERE slot=? AND status='queued'", slot):
             continue
         n = ab.free_seats(db, s, slot)
