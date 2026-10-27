@@ -137,6 +137,7 @@ function go(o){var body={market_id:id,outcome:o},a=armNow(),r=refNow();if(a)body
 api("/picks",body).then(function(j){ss("apb-pending",null);meP=null;me().then(function(m3){refresh();if(!m3.user)return;var w=rec(m3),p=j.pick||{},close=d.dataset.close||p.closes_at,
 txt=f(j.late?T.sheet:T.sheet_pre,{pick:o,market:d.dataset.name,close:when(close)?fmtT(when(close)):"…"});if(w.w+w.l>0)txt+=" "+f(T.wl,w);sheet(d,txt,pageUrl(m3),close)})})
 .catch(function(e){ss("apb-pending",null);st.textContent=e.status===409?(e.code==="not_open"?T.notopen:T.late):T.fail;if(e.status===409&&e.code!=="not_open")openNext(d)})}
+B.forEach(function(b){if(b.dataset.on)return;b.dataset.on=1;b.addEventListener("click",function(){var o=b.dataset.o;me().then(function(m2){if(m2.user)go(o);else{ss("apb-pending",{market_id:id,outcome:o});mark(o);st.textContent=f(T.pending,{pick:o});signIn(b)}})})});
 api("/markets/"+encodeURIComponent(id)).then(function(j){d.hidden=false;var sec=d.closest("[data-bkpick]");if(sec)sec.hidden=false;var mine=j.my_pick&&(j.my_pick.outcome||j.my_pick),late=!!j.my_late,
 open=!j.locked||(canLate&&j.late_open&&!mine),pend=ss("apb-pending");
 if(pend&&pend.market_id===id&&!mine&&open){if(m.user){go(pend.outcome);return}mark(pend.outcome);st.textContent=f(T.pending,{pick:pend.outcome})}
@@ -146,8 +147,7 @@ B.forEach(function(b){b.disabled=!open});
 if(d.dataset.winner&&mine&&m.user&&!late){var ai=JSON.parse(d.dataset.ai||"{}"),beat=[],win=d.dataset.winner,nm=d.dataset.name,r=rec(m),n=(m.challenge||{}).streak||0,anyAi=false,t;
 Object.keys(ai).forEach(function(a){if(ai[a]===win)anyAi=true;if(mine===win&&ai[a]&&ai[a]!==win)beat.push(C.names[a]||a)});
 if(mine!==win&&!anyAi)t=f(T.allwrong,r);else{t=mine!==win?f(T.picked,{pick:mine,market:nm}):beat.length?f(T.beat,{names:and(beat),market:nm}):f(T.right,{market:nm});t+=" "+f(T.streak,{w:r.w,l:r.l,n:n})}
-sheet(d,t,pageUrl(m),null)}
-B.forEach(function(b){if(b.dataset.on)return;b.dataset.on=1;b.addEventListener("click",function(){var o=b.dataset.o;me().then(function(m2){if(m2.user)go(o);else{ss("apb-pending",{market_id:id,outcome:o});mark(o);st.textContent=f(T.pending,{pick:o});signIn(b)}})})})}).catch(function(){d.hidden=true})}
+sheet(d,t,pageUrl(m),null)}}).catch(function(){d.hidden=true})}
 /* comments */
 function disc(d){var rid=d.dataset.discuss,tab=d.querySelector("[data-dtab]"),body=d.querySelector("[data-dbody]"),list=d.querySelector("[data-list]"),sort=d.querySelector("[data-sort]"),po=d.querySelector("[data-po]"),
 form=d.querySelector("[data-post]"),ta=form.querySelector("textarea"),perr=d.querySelector("[data-perr]"),parent=null,lab=null,loaded=false;d.hidden=false;
