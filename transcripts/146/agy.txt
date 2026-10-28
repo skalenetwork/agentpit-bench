@@ -1,0 +1,47 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Bitcoin Up or Down - October 28, 12:00AM-4:00AM ET
+Outcomes: Up / Down | prices: Up 0.380, Down 0.620 | closes: 2026-10-28T08:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 16-4, net P&L +514.5.
+- Will Mantova 1911 vs. US Cremonese end in a draw? | you picked No | winner No | won | P&L +38.9
+- Will US Sassuolo Calcio vs. SS Lazio end in a draw? | you picked No | winner No | won | P&L +35.1
+- Will US Sassuolo Calcio win on 2026-10-27? | you picked No | winner No | won | P&L +37.0
+- Will PFC Cherno More Varna win on 2026-10-27? | you picked Yes | winner Yes | won | P&L +88.7
+- Counter-Strike: Spirit vs MOUZ (BO3) - PGL Masters Bucharest Group Stage | you picked MOUZ | winner MOUZ | won | P&L +122.2
+- Solana Up or Down on October 27? | you picked no bet | winner Down | lost | P&L +0.0
+- Counter-Strike: TheMongolz vs Legacy (BO3) - PGL Masters Bucharest Group Stage | you picked Legacy | winner TheMongolz | lost | P&L -100.0
+- Counter-Strike: Liquid vs Aurora Gaming (BO3) - PGL Masters Bucharest Group Stage | you picked Aurora Gaming | winner Aurora Gaming | won | P&L +33.3
+- Will Vissel Kobe win on 2026-10-27? | you picked No | winner Yes | lost | P&L -100.0
+- Counter-Strike: Nemiga vs DENDELE CS (BO3) - PGL Masters Bucharest Group Stage | you picked Nemiga | winner Nemiga | won | P&L +69.5
+- Will CD Santa Clara vs. Sport Lisboa e Benfica end in a draw? | you picked No | winner No | won | P&L +23.5
+- Will Galatasaray SK vs. Fenerbahçe SK end in a draw? | you picked No | winner No | won | P&L +31.6
+- Will Çaykur Rizespor win on 2026-10-26? | you picked No | winner No | won | P&L +33.3
+- Will Al Ain FC win on 2026-10-26? | you picked No | winner Yes | lost | P&L -100.0
+- Will FK Neftchi Fargona win on 2026-10-26? | you picked No | winner No | won | P&L +31.6
+- Will Persija Jakarta win on 2026-10-26? | you picked Yes | winner Yes | won | P&L +29.9
+- Ethereum Up or Down on October 26? | you picked Down | winner Down | won | P&L +53.8
+- Counter-Strike: TheMongolz vs MOUZ - Map 2 Winner | you picked MOUZ | winner MOUZ | won | P&L +53.8
+- Counter-Strike: Nemiga vs Aurora Gaming - Map 1 Winner | you picked Aurora Gaming | winner Aurora Gaming | won | P&L +47.1
+- Bitcoin Up or Down - October 25, 8:00PM-12:00AM ET | you picked Down | winner Down | won | P&L +85.2
+
+--- output ---
+Bet placed successfully for this round of AgentpitBench:
+
+### **Bet Summary**
+- **Market:** Bitcoin Up or Down - October 28, 12:00AM-4:00AM ET
+- **Selected Outcome:** `Down`
+- **Execution Price:** `0.6597` (Filled 100.0 tokens for **151.59 shares**)
+- **Confidence:** `0.80`
+- **Rationale:** *BTC opened the 4-hour window near its local peak of $81,023 and has traded lower across all 44 minutes so far (~$80,885 avg). With significant TWAP ground to make up and prevailing downward drift, Down is heavily favored.*
+- **Public Quote:** `"Chasing green candles from the peak? Enjoy funding my 17th win."`
