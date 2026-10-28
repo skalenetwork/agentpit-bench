@@ -1,0 +1,61 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Counter-Strike: SINQU vs Fortress - Map 2 Winner
+Outcomes: SINQU / Fortress | prices: SINQU 0.400, Fortress 0.600 | closes: 2026-10-28T16:00:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 16-4, net P&L +514.5.
+- Will Mantova 1911 vs. US Cremonese end in a draw? | you picked No | winner No | won | P&L +38.9
+- Will US Sassuolo Calcio vs. SS Lazio end in a draw? | you picked No | winner No | won | P&L +35.1
+- Will US Sassuolo Calcio win on 2026-10-27? | you picked No | winner No | won | P&L +37.0
+- Will PFC Cherno More Varna win on 2026-10-27? | you picked Yes | winner Yes | won | P&L +88.7
+- Counter-Strike: Spirit vs MOUZ (BO3) - PGL Masters Bucharest Group Stage | you picked MOUZ | winner MOUZ | won | P&L +122.2
+- Solana Up or Down on October 27? | you picked no bet | winner Down | lost | P&L +0.0
+- Counter-Strike: TheMongolz vs Legacy (BO3) - PGL Masters Bucharest Group Stage | you picked Legacy | winner TheMongolz | lost | P&L -100.0
+- Counter-Strike: Liquid vs Aurora Gaming (BO3) - PGL Masters Bucharest Group Stage | you picked Aurora Gaming | winner Aurora Gaming | won | P&L +33.3
+- Will Vissel Kobe win on 2026-10-27? | you picked No | winner Yes | lost | P&L -100.0
+- Counter-Strike: Nemiga vs DENDELE CS (BO3) - PGL Masters Bucharest Group Stage | you picked Nemiga | winner Nemiga | won | P&L +69.5
+- Will CD Santa Clara vs. Sport Lisboa e Benfica end in a draw? | you picked No | winner No | won | P&L +23.5
+- Will Galatasaray SK vs. Fenerbahçe SK end in a draw? | you picked No | winner No | won | P&L +31.6
+- Will Çaykur Rizespor win on 2026-10-26? | you picked No | winner No | won | P&L +33.3
+- Will Al Ain FC win on 2026-10-26? | you picked No | winner Yes | lost | P&L -100.0
+- Will FK Neftchi Fargona win on 2026-10-26? | you picked No | winner No | won | P&L +31.6
+- Will Persija Jakarta win on 2026-10-26? | you picked Yes | winner Yes | won | P&L +29.9
+- Ethereum Up or Down on October 26? | you picked Down | winner Down | won | P&L +53.8
+- Counter-Strike: TheMongolz vs MOUZ - Map 2 Winner | you picked MOUZ | winner MOUZ | won | P&L +53.8
+- Counter-Strike: Nemiga vs Aurora Gaming - Map 1 Winner | you picked Aurora Gaming | winner Aurora Gaming | won | P&L +47.1
+- Bitcoin Up or Down - October 25, 8:00PM-12:00AM ET | you picked Down | winner Down | won | P&L +85.2
+
+--- output ---
+### Market Analysis & Decision: **SINQU**
+
+#### 1. Fundamental & Statistical Analysis
+* **Team Rankings & Lineups:** SINQU Esports sits higher in global rankings (~#199) compared to Fortress Esport (~#266). SINQU features stronger individual performers in recent months, notably Anton "MikOne" Mikkonen (1.05 rating).
+* **Recent Form:** Fortress has been severely slumping, registering an abysmal **10.5% win rate** over the last 3 months across competitive maps, whereas SINQU has maintained better consistency across online tier-3 fixtures.
+* **External Odds & Consensus:** External bookmakers and platforms (such as CROSS.bet and Strafe) price SINQU as the overall match favorite (~1.15 to ~1.40 odds, implying ~70% win probability), and prediction exchanges (e.g. Kalshi) list the Map 2 contract at an even 50–50 split.
+
+#### 2. Market Mispricing & Expected Value
+* Fortress was priced at **0.60** (with asks starting at 0.68+), while SINQU was available at a heavy discount of **0.40** (best ask ~0.48).
+* Getting filled at an average price of **0.4872** for 205.24 shares yields massive positive expected value given SINQU's true probability is at least 50–60%.
+
+---
+
+### Bet Placed
+
+```bash
+bench bet --outcome SINQU --confidence 0.62 --rationale 'SINQU holds superior player ratings and recent form over a slumping Fortress (10.5% win rate), making SINQU deeply mispriced at 0.48.' --quote 'Pricing a 10% win-rate squad as heavy favorites? Thanks for the discount.'
+```
+
+* **Outcome:** `SINQU`
+* **Stake Filled:** `100.0 tokens`
+* **Shares Purchased:** `205.24` (average price `0.4872`)
+* **Potential Payout:** `205.24 tokens` (+105.24 net profit)
