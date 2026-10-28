@@ -1,0 +1,56 @@
+$ agy -p <prompt>
+--- prompt ---
+You are competing in AgentpitBench against three other AI agents.
+Goal: win. Pick the outcome of this prediction market most likely to pay off.
+You have 5 minutes and exactly one bet of 100 tokens.
+
+Market: Will Persib Bandung win on 2026-10-28?
+Outcomes: Yes / No | prices: Yes 0.430, No 0.570 | closes: 2026-10-28T12:15:00Z
+
+Use `bench --help` to inspect the market. You may research online.
+The clock is hard: no bet placed within the 5 minutes forfeits the round. `bench market` shows seconds_left.
+Finish with: bench bet --outcome <label> --confidence <0-1> --rationale '<one or two sentences>'
+Optional: add --quote '<one line of trash talk for your rivals>' (max 120 chars, no links or @mentions). It goes on your public card.
+Use single quotes around --rationale and --quote so "$" amounts survive the shell.
+
+Your record over your last 20 rounds: 16-4, net P&L +514.5.
+- Will Mantova 1911 vs. US Cremonese end in a draw? | you picked No | winner No | won | P&L +38.9
+- Will US Sassuolo Calcio vs. SS Lazio end in a draw? | you picked No | winner No | won | P&L +35.1
+- Will US Sassuolo Calcio win on 2026-10-27? | you picked No | winner No | won | P&L +37.0
+- Will PFC Cherno More Varna win on 2026-10-27? | you picked Yes | winner Yes | won | P&L +88.7
+- Counter-Strike: Spirit vs MOUZ (BO3) - PGL Masters Bucharest Group Stage | you picked MOUZ | winner MOUZ | won | P&L +122.2
+- Solana Up or Down on October 27? | you picked no bet | winner Down | lost | P&L +0.0
+- Counter-Strike: TheMongolz vs Legacy (BO3) - PGL Masters Bucharest Group Stage | you picked Legacy | winner TheMongolz | lost | P&L -100.0
+- Counter-Strike: Liquid vs Aurora Gaming (BO3) - PGL Masters Bucharest Group Stage | you picked Aurora Gaming | winner Aurora Gaming | won | P&L +33.3
+- Will Vissel Kobe win on 2026-10-27? | you picked No | winner Yes | lost | P&L -100.0
+- Counter-Strike: Nemiga vs DENDELE CS (BO3) - PGL Masters Bucharest Group Stage | you picked Nemiga | winner Nemiga | won | P&L +69.5
+- Will CD Santa Clara vs. Sport Lisboa e Benfica end in a draw? | you picked No | winner No | won | P&L +23.5
+- Will Galatasaray SK vs. Fenerbahçe SK end in a draw? | you picked No | winner No | won | P&L +31.6
+- Will Çaykur Rizespor win on 2026-10-26? | you picked No | winner No | won | P&L +33.3
+- Will Al Ain FC win on 2026-10-26? | you picked No | winner Yes | lost | P&L -100.0
+- Will FK Neftchi Fargona win on 2026-10-26? | you picked No | winner No | won | P&L +31.6
+- Will Persija Jakarta win on 2026-10-26? | you picked Yes | winner Yes | won | P&L +29.9
+- Ethereum Up or Down on October 26? | you picked Down | winner Down | won | P&L +53.8
+- Counter-Strike: TheMongolz vs MOUZ - Map 2 Winner | you picked MOUZ | winner MOUZ | won | P&L +53.8
+- Counter-Strike: Nemiga vs Aurora Gaming - Map 1 Winner | you picked Aurora Gaming | winner Aurora Gaming | won | P&L +47.1
+- Bitcoin Up or Down - October 25, 8:00PM-12:00AM ET | you picked Down | winner Down | won | P&L +85.2
+
+--- output ---
+### Bet Placed: **No**
+
+* **Market:** Will Persib Bandung win on 2026-10-28?
+* **Outcome:** `No`
+* **Stake:** 100.0 tokens
+* **Fill Price:** 0.58 (172.41 shares)
+* **Confidence:** 0.60
+* **Quote:** `"Fading single outcomes in 3-way markets is basic math. Catch up!"`
+
+---
+
+### Analysis & Rationale
+1. **Three-Way Market Mechanics:** The market resolves to **Yes** exclusively if Persib Bandung wins in regulation or stoppage time. Any other result—a **Draw** or a **Melbourne Victory win**—resolves to **No**.
+2. **Consensus Sportsbook Probabilities:** Current 1X2 market odds across major bookmakers price the AFC Champions League Two fixture at:
+   - **Persib Bandung Win:** ~2.40 (~40.3% fair implied probability)
+   - **Draw:** ~3.60 (~26.9% fair implied probability)
+   - **Melbourne Victory Win:** ~2.95 (~32.8% fair implied probability)
+3. **Edge on `No`:** The combined fair probability of a Draw or an away victory for Melbourne Victory is **~59.7%**, providing both a substantially higher probability of winning and positive expected value against the 0.58 fill price.
