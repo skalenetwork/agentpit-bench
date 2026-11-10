@@ -1,0 +1,44 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+16747 | Will South Korea ETF (EWY) hit (LOW) $153 Week of October 12 2026? | Yes 0.500, No 0.500 | 2026-10-16T20:00:00Z
+16789 | Hornets vs. Grizzlies | Hornets 0.495, Grizzlies 0.505 | 2026-10-17T00:00:00Z
+16784 | Will the price of Solana be above $110 on October 22? | Yes 0.280, No 0.720 | 2026-10-22T16:00:00Z
+16568 | Will Trump say "Fentanyl" or "Deport" or "Deported" during his Midterm Rally in Kentucky? | Yes 0.375, No 0.625 | 2026-10-17T18:05:00Z
+16793 | Counter-Strike: 100 Thieves vs Sangal - Map 2 Winner | 100 Thieves 0.685, Sangal 0.315 | 2026-10-16T21:00:00Z
+16452 | S&P 500 (SPX) Opens Up or Down on October 16? | Up 0.605, Down 0.395 | 2026-10-16T20:00:00Z
+16743 | Will "Street Fighter" Opening Weekend Box Office be between 33m and 36m? | Yes 0.240, No 0.760 | 2026-10-18T12:00:00Z
+16630 | Will SC Delhi vs. Mohun Bagan Super Giant end in a draw? | Yes 0.175, No 0.825 | 2026-10-16T14:00:00Z
+16783 | Will the price of Solana be above $105 on October 22? | Yes 0.525, No 0.475 | 2026-10-22T16:00:00Z
+16567 | Will Trump say "Russia" or "Ukraine" during his Midterm Rally in Kentucky? | Yes 0.595, No 0.405 | 2026-10-17T18:05:00Z
+16792 | Counter-Strike: BakS eSports vs G2 Ares (BO3) - CCT Europe Series #11 Group Stage | BakS eSports 0.640, G2 Ares 0.360 | 2026-10-16T23:00:00Z
+15716 | S&P 500 (SPX) Up or Down on October 16? | Up 0.575, Down 0.425 | 2026-10-16T20:00:00Z
+16742 | Will "Street Fighter" Opening Weekend Box Office be between 30m and 33m? | Yes 0.420, No 0.580 | 2026-10-18T12:00:00Z
+16602 | Will Eintracht Frankfurt vs. 1. FC Köln end in a draw? | Yes 0.225, No 0.775 | 2026-10-16T18:30:00Z
+16782 | Will the price of Solana be above $100 on October 22? | Yes 0.770, No 0.230 | 2026-10-22T16:00:00Z
+16566 | Will Trump say "Data Center" or "Electric" or "Electricity" during his Midterm Rally in Kentucky? | Yes 0.700, No 0.300 | 2026-10-17T18:05:00Z
+16777 | Valorant: Team Vitality vs LOUD - Map 2 Winner | Team Vitality 0.415, LOUD 0.585 | 2026-10-16T10:00:00Z
+14936 | Will the Bank of Israel decrease the Bank of Israel Interest Rate after the October decision? | Yes 0.466, No 0.534 | 2026-10-21T00:00:00Z
+16741 | Will "Street Fighter" Opening Weekend Box Office be between 27m and 30m? | Yes 0.230, No 0.770 | 2026-10-18T12:00:00Z
+16586 | Will Sydney FC vs. Western Sydney Wanderers FC end in a draw? | Yes 0.255, No 0.745 | 2026-10-16T09:00:00Z
+16775 | Bitcoin Up or Down - October 16, 2AM ET | Up 0.185, Down 0.815 | 2026-10-16T07:00:00Z
+16565 | Will Trump say "Truck" during his Midterm Rally in Kentucky? | Yes 0.695, No 0.305 | 2026-10-17T18:05:00Z
+16634 | Counter-Strike: STATE vs TheChampionGG - Map 2 Winner | STATE 0.505, TheChampionGG 0.495 | 2026-10-16T14:30:00Z
+14931 | Will the Bank of Israel make no change to the Bank of Israel Interest Rate after the October decision? | Yes 0.536, No 0.464 | 2026-10-21T00:00:00Z
+16705 | Will Çorum FK win on 2026-10-16? | Yes 0.465, No 0.535 | 2026-10-16T17:00:00Z
+16424 | Sharks vs. Red Wings | Sharks 0.415, Red Wings 0.585 | 2026-10-17T23:00:00Z
+16597 | Will the price of Solana be above $110 on October 21? | Yes 0.270, No 0.730 | 2026-10-21T16:00:00Z
+16564 | Will Trump say "Maduro" during his Midterm Rally in Kentucky? | Yes 0.400, No 0.600 | 2026-10-17T18:05:00Z
+16615 | Counter-Strike: Astralis vs MIBR - Map 1 Winner | Astralis 0.445, MIBR 0.555 | 2026-10-16T18:00:00Z
+16696 | Will "Street Fighter" Opening Weekend Box Office be between 24m and 27m? | Yes 0.205, No 0.795 | 2026-10-18T12:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"forecasts": [{"id": "16747", "probabilities": {"Yes": 0.99, "No": 0.01}}, {"id": "16789", "probabilities": {"Hornets": 0.485, "Grizzlies": 0.515}}, {"id": "16784", "probabilities": {"Yes": 0.28, "No": 0.72}}, {"id": "16568", "probabilities": {"Yes": 0.38, "No": 0.62}}, {"id": "16793", "probabilities": {"100 Thieves": 0.69, "Sangal": 0.31}}, {"id": "16452", "probabilities": {"Up": 0.62, "Down": 0.38}}, {"id": "16743", "probabilities": {"Yes": 0.17, "No": 0.83}}, {"id": "16630", "probabilities": {"Yes": 0.19, "No": 0.81}}, {"id": "16783", "probabilities": {"Yes": 0.53, "No": 0.47}}, {"id": "16567", "probabilities": {"Yes": 0.61, "No": 0.39}}, {"id": "16792", "probabilities": {"BakS eSports": 0.645, "G2 Ares": 0.355}}, {"id": "15716", "probabilities": {"Up": 0.585, "Down": 0.415}}, {"id": "16742", "probabilities": {"Yes": 0.36, "No": 0.64}}, {"id": "16602", "probabilities": {"Yes": 0.235, "No": 0.765}}, {"id": "16782", "probabilities": {"Yes": 0.77, "No": 0.23}}, {"id": "16566", "probabilities": {"Yes": 0.73, "No": 0.27}}, {"id": "16777", "probabilities": {"Team Vitality": 0.415, "LOUD": 0.585}}, {"id": "14936", "probabilities": {"Yes": 0.465, "No": 0.535}}, {"id": "16741", "probabilities": {"Yes": 0.29, "No": 0.71}}, {"id": "16586", "probabilities": {"Yes": 0.26, "No": 0.74}}, {"id": "16775", "probabilities": {"Up": 0.165, "Down": 0.835}}, {"id": "16565", "probabilities": {"Yes": 0.72, "No": 0.28}}, {"id": "16634", "probabilities": {"STATE": 0.505, "TheChampionGG": 0.495}}, {"id": "14931", "probabilities": {"Yes": 0.535, "No": 0.465}}, {"id": "16705", "probabilities": {"Yes": 0.465, "No": 0.535}}, {"id": "16424", "probabilities": {"Sharks": 0.41, "Red Wings": 0.59}}, {"id": "16597", "probabilities": {"Yes": 0.27, "No": 0.73}}, {"id": "16564", "probabilities": {"Yes": 0.37, "No": 0.63}}, {"id": "16615", "probabilities": {"Astralis": 0.445, "MIBR": 0.555}}, {"id": "16696", "probabilities": {"Yes": 0.245, "No": 0.755}}]}

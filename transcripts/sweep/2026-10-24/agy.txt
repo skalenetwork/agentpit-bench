@@ -1,0 +1,44 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+36203 | Will Hertha BSC win on 2026-10-24? | Yes 0.545, No 0.455 | 2026-10-24T11:00:00Z
+36206 | Will Chengdu Rongcheng FC vs. Dalian Yingbo FC end in a draw? | Yes 0.245, No 0.755 | 2026-10-24T07:30:00Z
+35812 | Will Trump say "Laken Riley Act" during his Midterm Rally in Georgia? | Yes 0.420, No 0.580 | 2026-10-24T23:05:00Z
+36198 | Bitcoin Up or Down - October 24, 2AM ET | Up 0.705, Down 0.295 | 2026-10-24T07:00:00Z
+36164 | Counter-Strike: FUT Esports vs TYLOO - Map 1 Winner | FUT Esports 0.690, TYLOO 0.310 | 2026-10-24T11:00:00Z
+32786 | Will Microsoft (MSFT) beat quarterly earnings? | Yes 0.785, No 0.215 | 2026-10-28T21:00:00Z
+36192 | Will Kyōto Sanga FC win on 2026-10-24? | Yes 0.225, No 0.775 | 2026-10-24T07:00:00Z
+36188 | Will CF Monterrey vs. CD Guadalajara end in a draw? | Yes 0.295, No 0.705 | 2026-10-25T01:00:00Z
+35642 | Will Trump say "AI" or "Artificial Intelligence" during his Midterm Rally in Georgia? | Yes 0.250, No 0.750 | 2026-10-24T23:05:00Z
+36152 | Ethereum Up or Down - October 24, 12:00AM-4:00AM ET | Up 0.390, Down 0.610 | 2026-10-24T08:00:00Z
+36130 | Valorant: CGN Esports vs Eintracht Frankfurt (BO3) - Project Blender Phase 2 Playoffs | CGN Esports 0.495, Eintracht Frankfurt 0.505 | 2026-10-24T19:00:00Z
+31533 | Will ExxonMobil (XOM) beat quarterly earnings? | Yes 0.705, No 0.295 | 2026-10-30T13:00:00Z
+36191 | Will FK Shakhtar Donetsk win on 2026-10-24? | Yes 0.715, No 0.285 | 2026-10-24T15:00:00Z
+36148 | Toyama Grouses vs. Shimane Susanoo Magic | Toyama Grouses 0.830, Shimane Susanoo Magic 0.170 | 2026-10-31T05:05:00Z
+35545 | Will Trump say "Ass" during his Midterm Rally in Georgia? | Yes 0.415, No 0.585 | 2026-10-24T23:05:00Z
+36084 | Bitcoin Up or Down - October 24, 12:00AM-4:00AM ET | Up 0.215, Down 0.785 | 2026-10-24T08:00:00Z
+35960 | Dota 2: 1win vs GamerLegion - Game 1 Winner | 1win 0.555, GamerLegion 0.445 | 2026-10-24T12:00:00Z
+31398 | Will Germany GDP growth in Q3 2026 be between 1.0% and 1.2%? | Yes 0.505, No 0.495 | 2026-10-30T06:00:00Z
+36189 | Will Samsunspor win on 2026-10-24? | Yes 0.315, No 0.685 | 2026-10-24T16:00:00Z
+36127 | Hiroshima Dragonflies vs. Levanga Hokkaido | Hiroshima Dragonflies 0.780, Levanga Hokkaido 0.220 | 2026-10-31T05:05:00Z
+35485 | Will Trump's approval rating be at least 39.0 on October 30, 2026? | Yes 0.295, No 0.705 | 2026-10-31T03:59:00Z
+36012 | Will Bitcoin dip to $80,000 on October 24? | Yes 0.275, No 0.725 | 2026-10-25T04:00:00Z
+35959 | Counter-Strike: Legacy vs Nemiga - Map 1 Winner | Legacy 0.585, Nemiga 0.415 | 2026-10-24T17:00:00Z
+31397 | Will Germany GDP growth in Q3 2026 be between 0.7% and 0.9%? | Yes 0.270, No 0.730 | 2026-10-30T06:00:00Z
+36151 | Will Shandong Taishan FC win on 2026-10-24? | Yes 0.515, No 0.485 | 2026-10-24T07:30:00Z
+36121 | Will Cagliari Calcio vs. Bologna FC 1909 end in a draw? | Yes 0.315, No 0.685 | 2026-10-24T13:00:00Z
+35484 | Will Trump's approval rating be at least 38.0 on October 30, 2026? | Yes 0.850, No 0.150 | 2026-10-31T03:59:00Z
+35713 | Will Bitcoin reach $82,000 October 19-25? | Yes 0.300, No 0.700 | 2026-10-26T04:00:00Z
+35927 | LoL: Invictus Gaming vs Team Secret Whales (BO1) - Worlds Group Stage | Invictus Gaming 0.705, Team Secret Whales 0.295 | 2026-10-25T03:00:00Z
+22285 | Will MGM Resorts (MGM) beat quarterly earnings? | Yes 0.170, No 0.830 | 2026-10-28T21:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"forecasts": [{"id": "36203", "probabilities": {"Yes": 0.55, "No": 0.45}}, {"id": "36206", "probabilities": {"Yes": 0.24, "No": 0.76}}, {"id": "35812", "probabilities": {"Yes": 0.43, "No": 0.57}}, {"id": "36198", "probabilities": {"Up": 0.72, "Down": 0.28}}, {"id": "36164", "probabilities": {"FUT Esports": 0.7, "TYLOO": 0.3}}, {"id": "32786", "probabilities": {"Yes": 0.8, "No": 0.2}}, {"id": "36192", "probabilities": {"Yes": 0.23, "No": 0.77}}, {"id": "36188", "probabilities": {"Yes": 0.29, "No": 0.71}}, {"id": "35642", "probabilities": {"Yes": 0.24, "No": 0.76}}, {"id": "36152", "probabilities": {"Up": 0.38, "Down": 0.62}}, {"id": "36130", "probabilities": {"CGN Esports": 0.495, "Eintracht Frankfurt": 0.505}}, {"id": "31533", "probabilities": {"Yes": 0.71, "No": 0.29}}, {"id": "36191", "probabilities": {"Yes": 0.72, "No": 0.28}}, {"id": "36148", "probabilities": {"Toyama Grouses": 0.83, "Shimane Susanoo Magic": 0.17}}, {"id": "35545", "probabilities": {"Yes": 0.42, "No": 0.58}}, {"id": "36084", "probabilities": {"Up": 0.21, "Down": 0.79}}, {"id": "35960", "probabilities": {"1win": 0.56, "GamerLegion": 0.44}}, {"id": "31398", "probabilities": {"Yes": 0.52, "No": 0.48}}, {"id": "36189", "probabilities": {"Yes": 0.32, "No": 0.68}}, {"id": "36127", "probabilities": {"Hiroshima Dragonflies": 0.78, "Levanga Hokkaido": 0.22}}, {"id": "35485", "probabilities": {"Yes": 0.28, "No": 0.72}}, {"id": "36012", "probabilities": {"Yes": 0.27, "No": 0.73}}, {"id": "35959", "probabilities": {"Legacy": 0.59, "Nemiga": 0.41}}, {"id": "31397", "probabilities": {"Yes": 0.26, "No": 0.74}}, {"id": "36151", "probabilities": {"Yes": 0.52, "No": 0.48}}, {"id": "36121", "probabilities": {"Yes": 0.31, "No": 0.69}}, {"id": "35484", "probabilities": {"Yes": 0.86, "No": 0.14}}, {"id": "35713", "probabilities": {"Yes": 0.31, "No": 0.69}}, {"id": "35927", "probabilities": {"Invictus Gaming": 0.72, "Team Secret Whales": 0.28}}, {"id": "22285", "probabilities": {"Yes": 0.17, "No": 0.83}}]}

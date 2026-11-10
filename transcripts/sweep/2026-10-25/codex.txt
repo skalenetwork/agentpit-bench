@@ -1,0 +1,817 @@
+$ codex exec <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+38633 | Will Sogndal Fotball win on 2026-10-25? | Yes 0.210, No 0.790 | 2026-10-25T16:00:00Z
+38536 | Will Trump say "Hell" 15+ times during his Midterm Rally in Michigan? | Yes 0.460, No 0.540 | 2026-10-26T19:05:00Z
+38642 | Will Ethereum dip to $2,300 on October 25? | Yes 0.275, No 0.725 | 2026-10-26T04:00:00Z
+38629 | Will Sunderland AFC vs. Leeds United FC end in a draw? | Yes 0.295, No 0.705 | 2026-10-25T16:30:00Z
+35045 | Will S&P 500 (SPY) hit (HIGH) $770 in October? | Yes 0.600, No 0.400 | 2026-11-01T03:59:59Z
+38631 | Counter-Strike: BetBoom Team vs Nemiga - Map 1 Winner | BetBoom Team 0.545, Nemiga 0.455 | 2026-10-25T15:00:00Z
+38600 | Will FC Famalicão win on 2026-10-25? | Yes 0.465, No 0.535 | 2026-10-25T18:00:00Z
+38196 | Will Trump say "Hormuz" or "Blockade" during his Midterm Rally in Michigan? | Yes 0.670, No 0.330 | 2026-10-26T19:05:00Z
+38641 | Will Ethereum reach $2,400 on October 25? | Yes 0.285, No 0.715 | 2026-10-26T04:00:00Z
+38584 | Melbourne United vs. Sydney Kings | Melbourne United 0.395, Sydney Kings 0.605 | 2026-11-01T06:00:00Z
+3149 | Will S&P 500 (SPY) hit (HIGH) $780 in October? | Yes 0.221, No 0.779 | 2026-11-01T03:59:59Z
+38452 | Counter-Strike: Vitality vs TheMongolz - Map 1 Winner | Vitality 0.715, TheMongolz 0.285 | 2026-10-25T15:00:00Z
+38595 | Will Fortuna Sittard win on 2026-10-25? | Yes 0.375, No 0.625 | 2026-10-25T11:15:00Z
+38195 | Will Trump say "Ass" during his Midterm Rally in Michigan? | Yes 0.380, No 0.620 | 2026-10-26T19:05:00Z
+38610 | Ethereum Up or Down - October 25, 2AM ET | Up 0.255, Down 0.745 | 2026-10-25T07:00:00Z
+38582 | Wild vs. Canucks | Wild 0.635, Canucks 0.365 | 2026-10-26T02:00:00Z
+3142 | Will S&P 500 (SPY) hit (LOW) $740 in October? | Yes 0.190, No 0.810 | 2026-11-01T03:59:59Z
+38424 | LoL: Team Liquid vs Anyone's Legend (BO3) - Worlds Group Stage | Team Liquid 0.315, Anyone's Legend 0.685 | 2026-10-27T04:00:00Z
+38592 | Will SBV Excelsior win on 2026-10-25? | Yes 0.355, No 0.645 | 2026-10-25T11:15:00Z
+38157 | Will Trump say "Million" or "Billion" or "Trillion" 30+ times during his Midterm Rally in Michigan? | Yes 0.790, No 0.210 | 2026-10-26T19:05:00Z
+38599 | Bitcoin Up or Down - October 25, 2AM ET | Up 0.605, Down 0.395 | 2026-10-25T07:00:00Z
+38544 | Cricket World Cup League 2: UAE vs Netherlands | UAE 0.345, Netherlands 0.655 | 2026-11-01T05:30:00Z
+3141 | Will S&P 500 (SPY) hit (LOW) $750 in October? | Yes 0.485, No 0.515 | 2026-11-01T03:59:59Z
+38398 | Dota 2: Team Liquid vs OG - Game 1 Winner | Team Liquid 0.545, OG 0.455 | 2026-10-25T12:00:00Z
+38573 | Will it rain in Atlanta, GA on October 24? | Yes 0.495, No 0.504 | 2026-10-25T18:00:00Z
+38001 | Will Trump say "Russia" or "Ukraine" during his Midterm Rally in Michigan? | Yes 0.635, No 0.365 | 2026-10-26T19:05:00Z
+38509 | Will Bitcoin reach $81,000 on October 25? | Yes 0.735, No 0.265 | 2026-10-26T04:00:00Z
+38518 | Pacers vs. Bucks | Pacers 0.555, Bucks 0.445 | 2026-10-27T00:00:00Z
+38449 | Will Roblox (RBLX) beat quarterly earnings? | Yes 0.840, No 0.160 | 2026-10-29T21:00:00Z
+38358 | LoL: Karmine Corp vs Bilibili Gaming (BO1) - Worlds Group Stage | Karmine Corp 0.295, Bilibili Gaming 0.705 | 2026-10-26T23:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+WARNING: proceeding, even though we could not create PATH aliases: Refusing to create helper binaries under temporary dir "/tmp" (codex_home: AbsolutePathBuf("/tmp/apbh-codex-cxty_zdl/.codex"))
+Reading additional input from stdin...
+OpenAI Codex v0.161.0
+--------
+workdir: /tmp/apb-sweep-codex-q1y4gm9c
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: max
+reasoning summaries: none
+session id: 01a171bd-dedb-7910-a69e-09d682c58d32
+--------
+user
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+38633 | Will Sogndal Fotball win on 2026-10-25? | Yes 0.210, No 0.790 | 2026-10-25T16:00:00Z
+38536 | Will Trump say "Hell" 15+ times during his Midterm Rally in Michigan? | Yes 0.460, No 0.540 | 2026-10-26T19:05:00Z
+38642 | Will Ethereum dip to $2,300 on October 25? | Yes 0.275, No 0.725 | 2026-10-26T04:00:00Z
+38629 | Will Sunderland AFC vs. Leeds United FC end in a draw? | Yes 0.295, No 0.705 | 2026-10-25T16:30:00Z
+35045 | Will S&P 500 (SPY) hit (HIGH) $770 in October? | Yes 0.600, No 0.400 | 2026-11-01T03:59:59Z
+38631 | Counter-Strike: BetBoom Team vs Nemiga - Map 1 Winner | BetBoom Team 0.545, Nemiga 0.455 | 2026-10-25T15:00:00Z
+38600 | Will FC Famalicão win on 2026-10-25? | Yes 0.465, No 0.535 | 2026-10-25T18:00:00Z
+38196 | Will Trump say "Hormuz" or "Blockade" during his Midterm Rally in Michigan? | Yes 0.670, No 0.330 | 2026-10-26T19:05:00Z
+38641 | Will Ethereum reach $2,400 on October 25? | Yes 0.285, No 0.715 | 2026-10-26T04:00:00Z
+38584 | Melbourne United vs. Sydney Kings | Melbourne United 0.395, Sydney Kings 0.605 | 2026-11-01T06:00:00Z
+3149 | Will S&P 500 (SPY) hit (HIGH) $780 in October? | Yes 0.221, No 0.779 | 2026-11-01T03:59:59Z
+38452 | Counter-Strike: Vitality vs TheMongolz - Map 1 Winner | Vitality 0.715, TheMongolz 0.285 | 2026-10-25T15:00:00Z
+38595 | Will Fortuna Sittard win on 2026-10-25? | Yes 0.375, No 0.625 | 2026-10-25T11:15:00Z
+38195 | Will Trump say "Ass" during his Midterm Rally in Michigan? | Yes 0.380, No 0.620 | 2026-10-26T19:05:00Z
+38610 | Ethereum Up or Down - October 25, 2AM ET | Up 0.255, Down 0.745 | 2026-10-25T07:00:00Z
+38582 | Wild vs. Canucks | Wild 0.635, Canucks 0.365 | 2026-10-26T02:00:00Z
+3142 | Will S&P 500 (SPY) hit (LOW) $740 in October? | Yes 0.190, No 0.810 | 2026-11-01T03:59:59Z
+38424 | LoL: Team Liquid vs Anyone's Legend (BO3) - Worlds Group Stage | Team Liquid 0.315, Anyone's Legend 0.685 | 2026-10-27T04:00:00Z
+38592 | Will SBV Excelsior win on 2026-10-25? | Yes 0.355, No 0.645 | 2026-10-25T11:15:00Z
+38157 | Will Trump say "Million" or "Billion" or "Trillion" 30+ times during his Midterm Rally in Michigan? | Yes 0.790, No 0.210 | 2026-10-26T19:05:00Z
+38599 | Bitcoin Up or Down - October 25, 2AM ET | Up 0.605, Down 0.395 | 2026-10-25T07:00:00Z
+38544 | Cricket World Cup League 2: UAE vs Netherlands | UAE 0.345, Netherlands 0.655 | 2026-11-01T05:30:00Z
+3141 | Will S&P 500 (SPY) hit (LOW) $750 in October? | Yes 0.485, No 0.515 | 2026-11-01T03:59:59Z
+38398 | Dota 2: Team Liquid vs OG - Game 1 Winner | Team Liquid 0.545, OG 0.455 | 2026-10-25T12:00:00Z
+38573 | Will it rain in Atlanta, GA on October 24? | Yes 0.495, No 0.504 | 2026-10-25T18:00:00Z
+38001 | Will Trump say "Russia" or "Ukraine" during his Midterm Rally in Michigan? | Yes 0.635, No 0.365 | 2026-10-26T19:05:00Z
+38509 | Will Bitcoin reach $81,000 on October 25? | Yes 0.735, No 0.265 | 2026-10-26T04:00:00Z
+38518 | Pacers vs. Bucks | Pacers 0.555, Bucks 0.445 | 2026-10-27T00:00:00Z
+38449 | Will Roblox (RBLX) beat quarterly earnings? | Yes 0.840, No 0.160 | 2026-10-29T21:00:00Z
+38358 | LoL: Karmine Corp vs Bilibili Gaming (BO1) - Worlds Group Stage | Karmine Corp 0.295, Bilibili Gaming 0.705 | 2026-10-26T23:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+codex
+I’ll check available sources within the time limit and use the supplied market prices as a baseline where current evidence is unavailable.
+
+web search: 
+web search: Sogndal 25 October 2026 football fixture ...
+web search: 
+web search: 
+web search: 
+web search: Sogndal Kongsvinger 25 October 2026 odds prediction ...
+web search: SPY historical data October 2026 October 23 high low 770 750 ...
+web search: BetBoom Nemiga October 25 2026 odds map 1 ...
+web search: 
+web search: 
+web search: 
+web search: 
+web search: Atlanta "October 24, 2026" "rain" ...
+web search: Sogndal Kongsvinger 25 October 2026 odds prediction ...
+web search: site:polymarket.com "SPY" "770" "October" "2026" ...
+web search: "Ethereum" "October 25" "2026" "2AM" ...
+web search: 
+web search: 
+web search: "Famalicao" "2026-10-25" odds ...
+web search: https://polymarket.com/event/what-price-will-spy-hit-in-october-2026/will-spy-reach-770-in-october-2026-from-october-3
+codex
+Some price-threshold markets need a closer look at their resolution windows: historical prices alone may not determine the outcome. I’m checking those rules and comparing the sports prices with independent odds.
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests, concurrent.futures
+urls = {
+'spy': 'https://gamma-api.polymarket.com/events?slug=what-price-will-spy-hit-in-october-2026',
+'eth': 'https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=1h&limit=3',
+'btc': 'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=3'
+}
+def get(k,u):
+ try:
+  r=requests.get(u,timeout=15)
+  if k=='spy' and r.ok:
+   d=r.json()
+   for e in d:
+    for m in e.get('markets',[]):
+     if any(x in m.get('question','') for x in ['"'$740'"','"'$750'"','"'$770'"','"'$780'"']):
+      print(k,{x:m.get(x) for x in ['question','slug','description','createdAt','outcomePrices','closed']})
+  else: print(k,r.status_code,r.text[:2500])
+ except Exception as ex: print(k,str(ex))
+with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
+ list(ex.map(lambda kv:get(*kv),urls.items()))
+PY" in /tmp/apb-sweep-codex-q1y4gm9c
+ succeeded in 225ms:
+spy {'question': 'Will S&P 500 (SPY) hit (HIGH) $780 in October?', 'slug': 'will-spy-reach-780-in-october-2026', 'description': 'This market will resolve to "Yes" if, at any point after market creation and during October 2026, any 1-minute candle for S&P 500 (SPY) has a final "High" or "Low" price equal to or beyond (above for ↑ High Prices, below for ↓ Low Prices) the listed price. Otherwise, this market will resolve to "No".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM – 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth — specifically, the S&P 500 (SPY) "High" and "Low" prices available at https://pythdata.app/explore/Equity.US.SPY%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the "t=" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.SPY%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.', 'createdAt': '2026-09-25T04:01:41.046457Z', 'outcomePrices': '["1", "0"]', 'closed': True}
+spy {'question': 'Will S&P 500 (SPY) hit (HIGH) $770 in October?', 'slug': 'will-spy-reach-770-in-october-2026', 'description': 'This market will resolve to "Yes" if, at any point after market creation and during October 2026, any 1-minute candle for S&P 500 (SPY) has a final "High" or "Low" price equal to or beyond (above for ↑ High Prices, below for ↓ Low Prices) the listed price. Otherwise, this market will resolve to "No".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM – 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth — specifically, the S&P 500 (SPY) "High" and "Low" prices available at https://pythdata.app/explore/Equity.US.SPY%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the "t=" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.SPY%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.', 'createdAt': '2026-09-25T04:01:41.212202Z', 'outcomePrices': '["1", "0"]', 'closed': True}
+spy {'question': 'Will S&P 500 (SPY) hit (LOW) $750 in October?', 'slug': 'will-spy-dip-to-750-in-october-2026', 'description': 'This market will resolve to "Yes" if, at any point after market creation and during October 2026, any 1-minute candle for S&P 500 (SPY) has a final "High" or "Low" price equal to or beyond (above for ↑ High Prices, below for ↓ Low Prices) the listed price. Otherwise, this market will resolve to "No".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM – 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth — specifically, the S&P 500 (SPY) "High" and "Low" prices available at https://pythdata.app/explore/Equity.US.SPY%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the "t=" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.SPY%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.', 'createdAt': '2026-09-25T04:01:41.507744Z', 'outcomePrices': '["0.48", "0.52"]', 'closed': False}
+spy {'question': 'Will S&P 500 (SPY) hit (LOW) $740 in October?', 'slug': 'will-spy-dip-to-740-in-october-2026', 'description': 'This market will resolve to "Yes" if, at any point after market creation and during October 2026, any 1-minute candle for S&P 500 (SPY) has a final "High" or "Low" price equal to or beyond (above for ↑ High Prices, below for ↓ Low Prices) the listed price. Otherwise, this market will resolve to "No".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM – 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth — specifically, the S&P 500 (SPY) "High" and "Low" prices available at https://pythdata.app/explore/Equity.US.SPY%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the "t=" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.SPY%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.', 'createdAt': '2026-09-25T04:01:41.652845Z', 'outcomePrices': '["0.19", "0.81"]', 'closed': False}
+spy {'question': 'Will S&P 500 (SPY) hit (HIGH) $770 in October?', 'slug': 'will-spy-reach-770-in-october-2026-from-october-2', 'description': 'This market will resolve to "Yes" if, at any point after market creation and during October 2026, any 1-minute candle for S&P 500 (SPY) has a final "High" or "Low" price equal to or beyond (above for ↑ High Prices, below for ↓ Low Prices) the listed price. Otherwise, this market will resolve to "No".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM – 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth — specifically, the S&P 500 (SPY) "High" and "Low" prices available at https://pythdata.app/explore/Equity.US.SPY%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the "t=" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.SPY%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.', 'createdAt': '2026-10-02T16:44:12.033258Z', 'outcomePrices': '["1", "0"]', 'closed': True}
+spy {'question': 'Will S&P 500 (SPY) hit (HIGH) $770 in October?', 'slug': 'will-spy-reach-770-in-october-2026-from-october-3', 'description': 'This market will resolve to "Yes" if, at any point after market creation and during October 2026, any 1-minute candle for S&P 500 (SPY) has a final "High" or "Low" price equal to or beyond (above for ↑ High Prices, below for ↓ Low Prices) the listed price. Otherwise, this market will resolve to "No".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM – 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth — specifically, the S&P 500 (SPY) "High" and "Low" prices available at https://pythdata.app/explore/Equity.US.SPY%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the "t=" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.SPY%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.', 'createdAt': '2026-10-03T16:37:12.213031Z', 'outcomePrices': '["1", "0"]', 'closed': True}
+spy {'question': 'Will S&P 500 (SPY) hit (LOW) $770 in October?', 'slug': 'will-spy-dip-to-770-in-october-2026', 'description': 'This market will resolve to "Yes" if, at any point after market creation and during October 2026, any 1-minute candle for S&P 500 (SPY) has a final "High" or "Low" price equal to or beyond (above for ↑ High Prices, below for ↓ Low Prices) the listed price. Otherwise, this market will resolve to "No".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM – 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth — specifically, the S&P 500 (SPY) "High" and "Low" prices available at https://pythdata.app/explore/Equity.US.SPY%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the "t=" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.SPY%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.', 'createdAt': '2026-10-05T16:41:48.333418Z', 'outcomePrices': '["1", "0"]', 'closed': True}
+spy {'question': 'Will S&P 500 (SPY) hit (LOW) $780 in October?', 'slug': 'will-spy-dip-to-780-in-october-2026', 'description': 'This market will resolve to "Yes" if, at any point after market creation and during October 2026, any 1-minute candle for S&P 500 (SPY) has a final "High" or "Low" price equal to or beyond (above for ↑ High Prices, below for ↓ Low Prices) the listed price. Otherwise, this market will resolve to "No".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM – 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth — specifically, the S&P 500 (SPY) "High" and "Low" prices available at https://pythdata.app/explore/Equity.US.SPY%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the "t=" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.SPY%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.', 'createdAt': '2026-10-06T16:42:23.236375Z', 'outcomePrices': '["1", "0"]', 'closed': True}
+spy {'question': 'Will S&P 500 (SPY) hit (HIGH) $780 in October?', 'slug': 'will-spy-reach-780-in-october-2026-from-october-7', 'description': 'This market will resolve to "Yes" if, at any point after market creation and during October 2026, any 1-minute candle for S&P 500 (SPY) has a final "High" or "Low" price equal to or beyond (above for ↑ High Prices, below for ↓ Low Prices) the listed price. Otherwise, this market will resolve to "No".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM – 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth — specifically, the S&P 500 (SPY) "High" and "Low" prices available at https://pythdata.app/explore/Equity.US.SPY%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the "t=" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.SPY%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.', 'createdAt': '2026-10-07T16:41:50.484039Z', 'outcomePrices': '["0.229", "0.771"]', 'closed': False}
+spy {'question': 'Will S&P 500 (SPY) hit (LOW) $770 in October?', 'slug': 'will-spy-dip-to-770-in-october-2026-from-october-14', 'description': 'This market will resolve to "Yes" if, at any point after market creation and during October 2026, any 1-minute candle for S&P 500 (SPY) has a final "High" or "Low" price equal to or beyond (above for ↑ High Prices, below for ↓ Low Prices) the listed price. Otherwise, this market will resolve to "No".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM – 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth — specifically, the S&P 500 (SPY) "High" and "Low" prices available at https://pythdata.app/explore/Equity.US.SPY%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the "t=" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.SPY%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.', 'createdAt': '2026-10-14T16:42:58.632112Z', 'outcomePrices': '["1", "0"]', 'closed': True}
+spy {'question': 'Will S&P 500 (SPY) hit (HIGH) $770 in October?', 'slug': 'will-spy-reach-770-in-october-2026-from-october-15', 'description': 'This market will resolve to "Yes" if, at any point after market creation and during October 2026, any 1-minute candle for S&P 500 (SPY) has a final "High" or "Low" price equal to or beyond (above for ↑ High Prices, below for ↓ Low Prices) the listed price. Otherwise, this market will resolve to "No".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM – 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth — specifically, the S&P 500 (SPY) "High" and "Low" prices available at https://pythdata.app/explore/Equity.US.SPY%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the "t=" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.SPY%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.', 'createdAt': '2026-10-15T16:44:08.976713Z', 'outcomePrices': '["1", "0"]', 'closed': True}
+spy {'question': 'Will S&P 500 (SPY) hit (HIGH) $770 in October?', 'slug': 'will-spy-reach-770-in-october-2026-from-october-16', 'description': 'This market will resolve to "Yes" if, at any point after market creation and during October 2026, any 1-minute candle for S&P 500 (SPY) has a final "High" or "Low" price equal to or beyond (above for ↑ High Prices, below for ↓ Low Prices) the listed price. Otherwise, this market will resolve to "No".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM – 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth — specifically, the S&P 500 (SPY) "High" and "Low" prices available at https://pythdata.app/explore/Equity.US.SPY%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the "t=" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.SPY%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.', 'createdAt': '2026-10-16T16:41:49.975045Z', 'outcomePrices': '["1", "0"]', 'closed': True}
+spy {'question': 'Will S&P 500 (SPY) hit (HIGH) $770 in October?', 'slug': 'will-spy-reach-770-in-october-2026-from-october-20', 'description': 'This market will resolve to "Yes" if, at any point after market creation and during October 2026, any 1-minute candle for S&P 500 (SPY) has a final "High" or "Low" price equal to or beyond (above for ↑ High Prices, below for ↓ Low Prices) the listed price. Otherwise, this market will resolve to "No".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM – 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth — specifically, the S&P 500 (SPY) "High" and "Low" prices available at https://pythdata.app/explore/Equity.US.SPY%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the "t=" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.SPY%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.', 'createdAt': '2026-10-20T16:41:48.766454Z', 'outcomePrices': '["1", "0"]', 'closed': True}
+spy {'question': 'Will S&P 500 (SPY) hit (LOW) $770 in October?', 'slug': 'will-spy-dip-to-770-in-october-2026-from-october-21', 'description': 'This market will resolve to "Yes" if, at any point after market creation and during October 2026, any 1-minute candle for S&P 500 (SPY) has a final "High" or "Low" price equal to or beyond (above for ↑ High Prices, below for ↓ Low Prices) the listed price. Otherwise, this market will resolve to "No".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM – 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth — specifically, the S&P 500 (SPY) "High" and "Low" prices available at https://pythdata.app/explore/Equity.US.SPY%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the "t=" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.SPY%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.', 'createdAt': '2026-10-21T16:41:50.838618Z', 'outcomePrices': '["1", "0"]', 'closed': True}
+spy {'question': 'Will S&P 500 (SPY) hit (HIGH) $770 in October?', 'slug': 'will-spy-reach-770-in-october-2026-from-october-22', 'description': 'This market will resolve to "Yes" if, at any point after market creation and during October 2026, any 1-minute candle for S&P 500 (SPY) has a final "High" or "Low" price equal to or beyond (above for ↑ High Prices, below for ↓ Low Prices) the listed price. Otherwise, this market will resolve to "No".\n\nOnly prices achieved during the regular trading hours of the primary exchange on which the listed security trades (typically 9:30 AM – 4:00 PM ET) will be considered. Prices occurring during pre-market or after-hours trading will not qualify.\n\nPrices will be used exactly as published by Pyth, without rounding.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed company during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth.\n\nThe target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market is Pyth — specifically, the S&P 500 (SPY) "High" and "Low" prices available at https://pythdata.app/explore/Equity.US.SPY%2FUSD, with the chart settings configured for 1-minute candles.\n\nHistorical 1-minute candles may be accessed by appending a Unix timestamp (seconds) to the Pyth chart URL using the "t=" parameter. Any timestamp within the listed market time frame may be used to view the relevant candle data (e.g., https://pythdata.app/explore/Equity.US.SPY%2FUSD?t=1773432000)\n\nIf the relevant Pyth data is unavailable due to a system outage, data failure, or other technical disruption that prevents verification of the required 1-minute candle data, the official daily high/low price published by the primary exchange on which the listed security trades will be used to determine whether the listed price was reached during the applicable trading session.', 'createdAt': '2026-10-22T16:42:58.848516Z', 'outcomePrices': '["0.6", "0.4"]', 'closed': False}
+btc 200 [[1792900800000,"80862.98000000","80959.97000000","80826.00000000","80923.19000000","132.11565000",1792904399999,"10688214.83614710",27955,"54.85422000","4437417.23878280","0"],[1792904400000,"80923.19000000","80930.01000000","80510.00000000","80607.65000000","288.25612000",1792907999999,"23274847.01663310",49165,"109.28599000","8827068.63079250","0"],[1792908000000,"80607.64000000","80672.67000000","80528.01000000","80636.27000000","72.81938000",1792911599999,"5870861.19902620",23312,"39.83763000","3211686.05390730","0"]]
+eth 200 [[1792900800000,"2362.81000000","2369.51000000","2362.32000000","2368.23000000","2262.49560000",1792904399999,"5354674.92660300",24478,"995.15870000","2355004.38658900","0"],[1792904400000,"2368.23000000","2368.81000000","2347.32000000","2353.45000000","4879.89320000",1792907999999,"11498435.51133900",39306,"2087.67600000","4917028.51616600","0"],[1792908000000,"2353.45000000","2354.14000000","2346.74000000","2350.39000000","1875.32300000",1792911599999,"4407686.78516700",31277,"934.52040000","2196370.46625600","0"]]
+
+web search: 
+web search: 
+web search: 
+web search: 
+web search: Famalicao Moreirense 25 October 2026 odds prediction
+web search: Team Liquid Anyone Legend October 27 2026 Worlds odds prediction
+web search: Karmine Corp Bilibili Gaming October 26 2026 Worlds odds prediction
+web search: Melbourne United Sydney Kings November 1 2026 odds preview
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests, concurrent.futures, datetime, json
+urls={
+'spy':'https://gamma-api.polymarket.com/events?slug=what-price-will-spy-hit-in-october-2026',
+'eth':'https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=1m&limit=120',
+'btc':'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&limit=120'}
+def get(k,u):
+ try:
+  r=requests.get(u,timeout=12)
+  if not r.ok: return (k,r.status_code,r.text[:100])
+  d=r.json()
+  if k=='spy':
+   return (k,[{x:m.get(x) for x in ['id','question','slug','createdAt','outcomePrices','closed','bestBid','bestAsk']} for e in d for m in e.get('markets',[]) if any(x in m.get('question','') for x in ['"'$740'"','"'$750'"','"'$770'"','"'$780'"'])])
+  with open('/tmp/forecast_'+k+'.json','w') as f: json.dump(d,f)
+  return (k,[(datetime.datetime.fromtimestamp(c[0]/1000,datetime.timezone.utc).isoformat(),c[1:5]) for c in d if datetime.datetime.fromtimestamp(c[0]/1000,datetime.timezone.utc).minute%10==0 or c==d[-1]])
+ except Exception as ex: return (k,str(ex))
+with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
+ for x in ex.map(lambda kv:get(*kv),urls.items()): print(x)
+PY" in /tmp/apb-sweep-codex-q1y4gm9c
+ succeeded in 207ms:
+('spy', [{'id': '4936033', 'question': 'Will S&P 500 (SPY) hit (HIGH) $780 in October?', 'slug': 'will-spy-reach-780-in-october-2026', 'createdAt': '2026-09-25T04:01:41.046457Z', 'outcomePrices': '["1", "0"]', 'closed': True, 'bestBid': 0.999, 'bestAsk': 1}, {'id': '4936034', 'question': 'Will S&P 500 (SPY) hit (HIGH) $770 in October?', 'slug': 'will-spy-reach-770-in-october-2026', 'createdAt': '2026-09-25T04:01:41.212202Z', 'outcomePrices': '["1", "0"]', 'closed': True, 'bestBid': 0.999, 'bestAsk': 1}, {'id': '4936036', 'question': 'Will S&P 500 (SPY) hit (LOW) $750 in October?', 'slug': 'will-spy-dip-to-750-in-october-2026', 'createdAt': '2026-09-25T04:01:41.507744Z', 'outcomePrices': '["0.48", "0.52"]', 'closed': False, 'bestBid': 0.46, 'bestAsk': 0.5}, {'id': '4936037', 'question': 'Will S&P 500 (SPY) hit (LOW) $740 in October?', 'slug': 'will-spy-dip-to-740-in-october-2026', 'createdAt': '2026-09-25T04:01:41.652845Z', 'outcomePrices': '["0.19", "0.81"]', 'closed': False, 'bestBid': 0.16, 'bestAsk': 0.22}, {'id': '5208206', 'question': 'Will S&P 500 (SPY) hit (HIGH) $770 in October?', 'slug': 'will-spy-reach-770-in-october-2026-from-october-2', 'createdAt': '2026-10-02T16:44:12.033258Z', 'outcomePrices': '["1", "0"]', 'closed': True, 'bestBid': 0.99, 'bestAsk': 1}, {'id': '5240306', 'question': 'Will S&P 500 (SPY) hit (HIGH) $770 in October?', 'slug': 'will-spy-reach-770-in-october-2026-from-october-3', 'createdAt': '2026-10-03T16:37:12.213031Z', 'outcomePrices': '["1", "0"]', 'closed': True, 'bestBid': 0.999, 'bestAsk': 1}, {'id': '5331380', 'question': 'Will S&P 500 (SPY) hit (LOW) $770 in October?', 'slug': 'will-spy-dip-to-770-in-october-2026', 'createdAt': '2026-10-05T16:41:48.333418Z', 'outcomePrices': '["1", "0"]', 'closed': True, 'bestBid': 0.999, 'bestAsk': 1}, {'id': '5379630', 'question': 'Will S&P 500 (SPY) hit (LOW) $780 in October?', 'slug': 'will-spy-dip-to-780-in-october-2026', 'createdAt': '2026-10-06T16:42:23.236375Z', 'outcomePrices': '["1", "0"]', 'closed': True, 'bestBid': 0.998, 'bestAsk': 1}, {'id': '5407814', 'question': 'Will S&P 500 (SPY) hit (HIGH) $780 in October?', 'slug': 'will-spy-reach-780-in-october-2026-from-october-7', 'createdAt': '2026-10-07T16:41:50.484039Z', 'outcomePrices': '["0.229", "0.771"]', 'closed': False, 'bestBid': 0.217, 'bestAsk': 0.241}, {'id': '5691725', 'question': 'Will S&P 500 (SPY) hit (LOW) $770 in October?', 'slug': 'will-spy-dip-to-770-in-october-2026-from-october-14', 'createdAt': '2026-10-14T16:42:58.632112Z', 'outcomePrices': '["1", "0"]', 'closed': True, 'bestBid': 0.999, 'bestAsk': 1}, {'id': '5743131', 'question': 'Will S&P 500 (SPY) hit (HIGH) $770 in October?', 'slug': 'will-spy-reach-770-in-october-2026-from-october-15', 'createdAt': '2026-10-15T16:44:08.976713Z', 'outcomePrices': '["1", "0"]', 'closed': True, 'bestBid': 0.999, 'bestAsk': 1}, {'id': '5778271', 'question': 'Will S&P 500 (SPY) hit (HIGH) $770 in October?', 'slug': 'will-spy-reach-770-in-october-2026-from-october-16', 'createdAt': '2026-10-16T16:41:49.975045Z', 'outcomePrices': '["1", "0"]', 'closed': True, 'bestBid': 0.998, 'bestAsk': 1}, {'id': '5978673', 'question': 'Will S&P 500 (SPY) hit (HIGH) $770 in October?', 'slug': 'will-spy-reach-770-in-october-2026-from-october-20', 'createdAt': '2026-10-20T16:41:48.766454Z', 'outcomePrices': '["1", "0"]', 'closed': True, 'bestBid': 0.99, 'bestAsk': 1}, {'id': '6016223', 'question': 'Will S&P 500 (SPY) hit (LOW) $770 in October?', 'slug': 'will-spy-dip-to-770-in-october-2026-from-october-21', 'createdAt': '2026-10-21T16:41:50.838618Z', 'outcomePrices': '["1", "0"]', 'closed': True, 'bestBid': 0.999, 'bestAsk': 1}, {'id': '6051562', 'question': 'Will S&P 500 (SPY) hit (HIGH) $770 in October?', 'slug': 'will-spy-reach-770-in-october-2026-from-october-22', 'createdAt': '2026-10-22T16:42:58.848516Z', 'outcomePrices': '["0.6", "0.4"]', 'closed': False, 'bestBid': 0.59, 'bestAsk': 0.61}])
+('eth', [('2026-10-25T04:30:00+00:00', ['2365.51000000', '2365.90000000', '2365.51000000', '2365.90000000']), ('2026-10-25T04:40:00+00:00', ['2368.81000000', '2369.00000000', '2368.81000000', '2368.99000000']), ('2026-10-25T04:50:00+00:00', ['2368.41000000', '2369.05000000', '2368.41000000', '2369.05000000']), ('2026-10-25T05:00:00+00:00', ['2368.23000000', '2368.81000000', '2368.23000000', '2368.32000000']), ('2026-10-25T05:10:00+00:00', ['2367.50000000', '2367.58000000', '2367.30000000', '2367.58000000']), ('2026-10-25T05:20:00+00:00', ['2367.46000000', '2367.46000000', '2366.83000000', '2367.40000000']), ('2026-10-25T05:30:00+00:00', ['2364.30000000', '2364.31000000', '2364.30000000', '2364.31000000']), ('2026-10-25T05:40:00+00:00', ['2354.75000000', '2355.13000000', '2353.39000000', '2355.13000000']), ('2026-10-25T05:50:00+00:00', ['2349.44000000', '2349.46000000', '2348.65000000', '2349.44000000']), ('2026-10-25T06:00:00+00:00', ['2353.45000000', '2354.14000000', '2352.23000000', '2352.24000000']), ('2026-10-25T06:10:00+00:00', ['2353.00000000', '2353.71000000', '2349.46000000', '2349.69000000']), ('2026-10-25T06:20:00+00:00', ['2352.64000000', '2353.30000000', '2351.72000000', '2351.73000000']), ('2026-10-25T06:29:00+00:00', ['2350.39000000', '2350.75000000', '2350.39000000', '2350.55000000'])])
+('btc', [('2026-10-25T04:30:00+00:00', ['80878.01000000', '80885.11000000', '80878.00000000', '80885.11000000']), ('2026-10-25T04:40:00+00:00', ['80929.99000000', '80930.01000000', '80929.98000000', '80930.00000000']), ('2026-10-25T04:50:00+00:00', ['80933.96000000', '80954.77000000', '80933.96000000', '80954.77000000']), ('2026-10-25T05:00:00+00:00', ['80923.19000000', '80930.01000000', '80923.18000000', '80930.01000000']), ('2026-10-25T05:10:00+00:00', ['80909.35000000', '80909.35000000', '80909.34000000', '80909.35000000']), ('2026-10-25T05:20:00+00:00', ['80902.00000000', '80902.00000000', '80898.00000000', '80898.00000000']), ('2026-10-25T05:30:00+00:00', ['80824.08000000', '80824.08000000', '80824.07000000', '80824.07000000']), ('2026-10-25T05:40:00+00:00', ['80632.01000000', '80632.01000000', '80608.00000000', '80631.94000000']), ('2026-10-25T05:50:00+00:00', ['80542.79000000', '80542.79000000', '80518.00000000', '80530.00000000']), ('2026-10-25T06:00:00+00:00', ['80607.64000000', '80622.01000000', '80587.65000000', '80587.66000000']), ('2026-10-25T06:10:00+00:00', ['80649.40000000', '80672.67000000', '80589.72000000', '80591.99000000']), ('2026-10-25T06:20:00+00:00', ['80671.75000000', '80672.67000000', '80660.00000000', '80660.00000000']), ('2026-10-25T06:29:00+00:00', ['80636.26000000', '80636.27000000', '80636.26000000', '80636.27000000'])])
+
+web search: 
+web search: 
+web search: 
+web search: 
+web search: "Melbourne United" "Sydney Kings" "2026-11-01" odds
+web search: UAE Netherlands November 1 2026 World Cup League 2 odds
+web search: Vitality TheMongolz 25 October 2026 map 1 odds
+web search: BetBoom Nemiga 25 October 2026 map 1 odds
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests, concurrent.futures,json
+queries=['Melbourne United Sydney Kings','UAE Netherlands','rain Atlanta October 24','Trump midterm rally Michigan','Ethereum Up or Down October 25 2AM']
+def get(q):
+ try:
+  r=requests.get('https://gamma-api.polymarket.com/public-search',params={'q':q,'limit_per_type':5},timeout=12)
+  d=r.json()
+  return q,[{'title':e.get('title'),'slug':e.get('slug'),'markets':[{'id':m.get('id'),'question':m.get('question'),'slug':m.get('slug'),'price':m.get('outcomePrices')} for m in e.get('markets',[])][:8]} for e in d.get('events',[])][:8]
+ except Exception as ex:return q,str(ex)
+with concurrent.futures.ThreadPoolExecutor(max_workers=5) as ex:
+ for x in ex.map(get,queries): print(json.dumps(x))
+PY" in /tmp/apb-sweep-codex-q1y4gm9c
+ succeeded in 312ms:
+["Melbourne United Sydney Kings", [{"title": "Melbourne United vs. Sydney Kings", "slug": "bknbl-mel-syd-2026-10-25", "markets": [{"id": "5863534", "question": "Melbourne United vs. Sydney Kings", "slug": "bknbl-mel-syd-2026-10-25", "price": "[\"0.475\", \"0.525\"]"}, {"id": "6106909", "question": "Spread: Sydney Kings (-1.5)", "slug": "bknbl-mel-syd-2026-10-25-spread-away-1pt5", "price": "[\"0.48\", \"0.52\"]"}, {"id": "6106910", "question": "Melbourne United vs. Sydney Kings: O/U 193.5", "slug": "bknbl-mel-syd-2026-10-25-total-193pt5", "price": "[\"0.68\", \"0.32\"]"}]}, {"title": "Sydney Kings vs. Melbourne United", "slug": "bknbl-syd-mel-2026-01-11", "markets": [{"id": "1140920", "question": "Sydney Kings vs. Melbourne United", "slug": "bknbl-syd-mel-2026-01-11", "price": "[\"1\", \"0\"]"}]}, {"title": "Australian NBL: 2027 Champion", "slug": "australian-nbl-2027-champion", "markets": [{"id": "5672418", "question": "Will Adelaide 36ers win the 2026-27 Australian NBL championship?", "slug": "australian-nbl-2027-champion-adelaide-36ers", "price": "[\"0.475\", \"0.525\"]"}, {"id": "5672420", "question": "Will Brisbane Bullets win the 2026-27 Australian NBL championship?", "slug": "australian-nbl-2027-champion-brisbane-bullets", "price": "[\"0.485\", \"0.515\"]"}, {"id": "5672421", "question": "Will Cairns Taipans win the 2026-27 Australian NBL championship?", "slug": "australian-nbl-2027-champion-cairns-taipans", "price": "[\"0.505\", \"0.495\"]"}, {"id": "5672423", "question": "Will Illawarra Hawks win the 2026-27 Australian NBL championship?", "slug": "australian-nbl-2027-champion-illawarra-hawks", "price": "[\"0.505\", \"0.495\"]"}, {"id": "5672425", "question": "Will Melbourne United win the 2026-27 Australian NBL championship?", "slug": "australian-nbl-2027-champion-melbourne-united", "price": "[\"0.465\", \"0.535\"]"}, {"id": "5672427", "question": "Will New Zealand Breakers win the 2026-27 Australian NBL championship?", "slug": "australian-nbl-2027-champion-new-zealand-breakers", "price": "[\"0.475\", \"0.525\"]"}, {"id": "5672429", "question": "Will Perth Wildcats win the 2026-27 Australian NBL championship?", "slug": "australian-nbl-2027-champion-perth-wildcats", "price": "[\"0.46\", \"0.54\"]"}, {"id": "5672431", "question": "Will South East Melbourne Phoenix win the 2026-27 Australian NBL championship?", "slug": "australian-nbl-2027-champion-south-east-melbourne-phoenix", "price": "[\"0.445\", \"0.555\"]"}]}, {"title": "NBL: Winner", "slug": "2026-basketball-nbl-winner", "markets": [{"id": "1834277", "question": "Will Adelaide 36ers win NBL?", "slug": "2026-basketball-nbl-winner-adelaide-36ers", "price": "[\"0\", \"1\"]"}, {"id": "1834278", "question": "Will Brisbane Bullets win NBL?", "slug": "2026-basketball-nbl-winner-brisbane-bullets", "price": "[\"0\", \"1\"]"}, {"id": "1834279", "question": "Will Cairns Taipans win NBL?", "slug": "2026-basketball-nbl-winner-cairns-taipans", "price": "[\"0\", \"1\"]"}, {"id": "1834280", "question": "Will Illawarra Hawks win NBL?", "slug": "2026-basketball-nbl-winner-illawarra-hawks", "price": "[\"0\", \"1\"]"}, {"id": "1834281", "question": "Will Melbourne United win NBL?", "slug": "2026-basketball-nbl-winner-melbourne-united", "price": "[\"0\", \"1\"]"}, {"id": "1834282", "question": "Will New Zealand Breakers win NBL?", "slug": "2026-basketball-nbl-winner-new-zealand-breakers", "price": "[\"0\", \"1\"]"}, {"id": "1834283", "question": "Will Perth Wildcats win NBL?", "slug": "2026-basketball-nbl-winner-perth-wildcats", "price": "[\"0\", \"1\"]"}, {"id": "1834284", "question": "Will South East Melbourne Phoenix win NBL?", "slug": "2026-basketball-nbl-winner-south-east-melbourne-phoenix", "price": "[\"0\", \"1\"]"}]}]]
+["UAE Netherlands", [{"title": "Cricket World Cup League 2: UAE vs Netherlands", "slug": "crint-are-nld-2026-10-25", "markets": [{"id": "6076606", "question": "Cricket World Cup League 2: UAE vs Netherlands", "slug": "crint-are-nld-2026-10-25", "price": "[\"0.345\", \"0.655\"]"}]}]]
+["rain Atlanta October 24", [{"title": "Where will it rain on October 24?", "slug": "where-will-it-rain-on-october-24-2026", "markets": [{"id": "6079196", "question": "Will it rain in New York, NY on October 24?", "slug": "where-will-it-rain-on-october-24-2026-new-york-ny", "price": "[\"0.005\", \"0.995\"]"}, {"id": "6079197", "question": "Will it rain in Los Angeles, CA on October 24?", "slug": "where-will-it-rain-on-october-24-2026-los-angeles-ca", "price": "[\"0.0055\", \"0.9945\"]"}, {"id": "6079198", "question": "Will it rain in Chicago, IL on October 24?", "slug": "where-will-it-rain-on-october-24-2026-chicago-il", "price": "[\"0.0055\", \"0.9945\"]"}, {"id": "6079199", "question": "Will it rain in Houston, TX on October 24?", "slug": "where-will-it-rain-on-october-24-2026-houston-tx", "price": "[\"0.0055\", \"0.9945\"]"}, {"id": "6079200", "question": "Will it rain in Dallas, TX on October 24?", "slug": "where-will-it-rain-on-october-24-2026-dallas-tx", "price": "[\"0.4955\", \"0.5045\"]"}, {"id": "6079201", "question": "Will it rain in Phoenix, AZ on October 24?", "slug": "where-will-it-rain-on-october-24-2026-phoenix-az", "price": "[\"0.005\", \"0.995\"]"}, {"id": "6079202", "question": "Will it rain in Philadelphia, PA on October 24?", "slug": "where-will-it-rain-on-october-24-2026-philadelphia-pa", "price": "[\"0.0045\", \"0.9955\"]"}, {"id": "6079203", "question": "Will it rain in Washington, DC on October 24?", "slug": "where-will-it-rain-on-october-24-2026-washington-dc", "price": "[\"0.005\", \"0.995\"]"}]}]]
+["Trump midterm rally Michigan", [{"title": "Which party will win the Senate in 2026?", "slug": "which-party-will-win-the-senate-in-2026", "markets": [{"id": "562793", "question": "Will the Democratic Party control the Senate after the 2026 Midterm elections?", "slug": "will-the-democratic-party-control-the-senate-after-the-2026-midterm-elections", "price": "[\"0.665\", \"0.335\"]"}, {"id": "562794", "question": "Will the Republican Party control the Senate after the 2026 Midterm elections?", "slug": "will-the-republican-party-control-the-senate-after-the-2026-midterm-elections", "price": "[\"0.335\", \"0.665\"]"}, {"id": "562795", "question": "Will Party A control the Senate after the 2026 Midterm elections?", "slug": "will-party-a-control-the-senate-after-the-2026-midterm-elections-137", "price": null}, {"id": "562796", "question": "Will Party B control the Senate after the 2026 Midterm elections?", "slug": "will-party-b-control-the-senate-after-the-2026-midterm-elections-293", "price": null}, {"id": "562797", "question": "Will Party C control the Senate after the 2026 Midterm elections?", "slug": "will-party-c-control-the-senate-after-the-2026-midterm-elections-765", "price": null}, {"id": "562798", "question": "Will Party D control the Senate after the 2026 Midterm elections?", "slug": "will-party-d-control-the-senate-after-the-2026-midterm-elections-398", "price": null}, {"id": "562799", "question": "Will Party E control the Senate after the 2026 Midterm elections?", "slug": "will-party-e-control-the-senate-after-the-2026-midterm-elections-412", "price": null}, {"id": "562800", "question": "Will Party F control the Senate after the 2026 Midterm elections?", "slug": "will-party-f-control-the-senate-after-the-2026-midterm-elections-146", "price": null}]}, {"title": "Which party will win the House in 2026?", "slug": "which-party-will-win-the-house-in-2026", "markets": [{"id": "562802", "question": "Will the Democratic Party control the House after the 2026 Midterm elections?", "slug": "will-the-democratic-party-control-the-house-after-the-2026-midterm-elections", "price": "[\"0.915\", \"0.085\"]"}, {"id": "562803", "question": "Will the Republican Party control the House after the 2026 Midterm elections?", "slug": "will-the-republican-party-control-the-house-after-the-2026-midterm-elections", "price": "[\"0.085\", \"0.915\"]"}, {"id": "562804", "question": "Will Party A control the House after the 2026 Midterm elections?", "slug": "will-party-a-control-the-house-after-the-2026-midterm-elections-162", "price": null}, {"id": "562805", "question": "Will Party B control the House after the 2026 Midterm elections?", "slug": "will-party-b-control-the-house-after-the-2026-midterm-elections-574", "price": null}, {"id": "562806", "question": "Will Party C control the House after the 2026 Midterm elections?", "slug": "will-party-c-control-the-house-after-the-2026-midterm-elections-881", "price": null}, {"id": "562807", "question": "Will Party D control the House after the 2026 Midterm elections?", "slug": "will-party-d-control-the-house-after-the-2026-midterm-elections-212", "price": null}, {"id": "562808", "question": "Will Party E control the House after the 2026 Midterm elections?", "slug": "will-party-e-control-the-house-after-the-2026-midterm-elections-469", "price": null}, {"id": "562809", "question": "Will Party F control the House after the 2026 Midterm elections?", "slug": "will-party-f-control-the-house-after-the-2026-midterm-elections-531", "price": null}]}, {"title": "What will Trump say during his Midterm Rally in Michigan?", "slug": "what-will-trump-say-during-his-midterm-rally-in-michigan-october-26", "markets": [{"id": "6097939", "question": "Will Trump say \"Million\" or \"Billion\" or \"Trillion\" 30+ times during his Midterm Rally in Michigan?", "slug": "will-trump-say-million-during-his-midterm-rally-in-michigan-october-26", "price": "[\"0.755\", \"0.245\"]"}, {"id": "6097940", "question": "Will Trump say \"Biden\" or \"Kamala\" or \"Obama\" 15+ times during his Midterm Rally in Michigan?", "slug": "will-trump-say-biden-during-his-midterm-rally-in-michigan-october-26", "price": "[\"0.45\", \"0.55\"]"}, {"id": "6097941", "question": "Will Trump say \"Hell\" 15+ times during his Midterm Rally in Michigan?", "slug": "will-trump-say-hell-during-his-midterm-rally-in-michigan-october-26", "price": "[\"0.46\", \"0.54\"]"}, {"id": "6097942", "question": "Will Trump say \"Transgender\" 7+ times during his Midterm Rally in Michigan?", "slug": "will-trump-say-transgender-during-his-midterm-rally-in-michigan-october-26", "price": "[\"0.455\", \"0.545\"]"}, {"id": "6097943", "question": "Will Trump say \"China\" or \"Chinese\" 7+ times during his Midterm Rally in Michigan?", "slug": "will-trump-say-china-during-his-midterm-rally-in-michigan-october-26", "price": "[\"0.445\", \"0.555\"]"}, {"id": "6097944", "question": "Will Trump say \"Canada\" 4+ times during his Midterm Rally in Michigan?", "slug": "will-trump-say-canada-during-his-midterm-rally-in-michigan-october-26", "price": "[\"0.66\", \"0.34\"]"}, {"id": "6097945", "question": "Will Trump say \"SI\" or \"Super Intelligence\" during his Midterm Rally in Michigan?", "slug": "will-trump-say-si-during-his-midterm-rally-in-michigan-october-26", "price": "[\"0.62\", \"0.38\"]"}, {"id": "6097946", "question": "Will Trump say \"AI\" or \"Artificial Intelligence\" during his Midterm Rally in Michigan?", "slug": "will-trump-say-ai-during-his-midterm-rally-in-michigan-october-26", "price": "[\"0.25\", \"0.75\"]"}]}]]
+["Ethereum Up or Down October 25 2AM", [{"title": "Ethereum Up or Down - October 25, 2AM ET", "slug": "ethereum-up-or-down-october-25-2026-2am-et", "markets": [{"id": "6075459", "question": "Ethereum Up or Down - October 25, 2AM ET", "slug": "ethereum-up-or-down-october-25-2026-2am-et", "price": "[\"0.275\", \"0.725\"]"}]}, {"title": "Ethereum Up or Down - October 25, 2AM ET", "slug": "ethereum-up-or-down-october-25-2am-et", "markets": [{"id": "646170", "question": "Ethereum Up or Down - October 25, 2AM ET", "slug": "ethereum-up-or-down-october-25-2am-et", "price": "[\"0\", \"1\"]"}]}]]
+
+web search: 
+web search: 
+web search: 
+web search: 
+web search: "Melbourne United" "Sydney Kings" "October 25" "2026"
+web search: "ATLANTA CLIMATE SUMMARY" "OCTOBER 24 2026"
+web search: "Trump" "rally" "October 2026" "transcript"
+web search: "United Arab Emirates" "Netherlands" "25 October 2026" score
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests, concurrent.futures,json
+slugs=['where-will-it-rain-on-october-24-2026','bknbl-mel-syd-2026-10-25','crint-are-nld-2026-10-25','ethereum-up-or-down-october-25-2026-2am-et','bitcoin-up-or-down-october-25-2026-2am-et','what-will-trump-say-during-his-midterm-rally-in-michigan-october-26']
+def get(slug):
+ try:
+  d=requests.get('https://gamma-api.polymarket.com/events',params={'slug':slug},timeout=10).json()
+  rows=[]
+  for e in d:
+   for m in e.get('markets',[]):
+    q=m.get('question','')
+    if 'rain' in slug and 'Atlanta' not in q:continue
+    if 'trump' in slug and not any(s in q for s in ['Hell','Ass','Hormuz','Russia','Million']):continue
+    if 'bknbl' in slug and q"'!='"'Melbourne United vs. Sydney Kings':continue
+    rows.append({k:m.get(k) for k in ['question','description','outcomePrices','bestBid','bestAsk','volume']})
+  return slug,rows
+ except Exception as ex:return slug,str(ex)
+with concurrent.futures.ThreadPoolExecutor(max_workers=6) as ex:
+ for k,rows in ex.map(get,slugs):
+  print(json.dumps({'slug':k,'markets':rows}))
+PY" in /tmp/apb-sweep-codex-q1y4gm9c
+ succeeded in 108ms:
+{"slug": "where-will-it-rain-on-october-24-2026", "markets": [{"question": "Will it rain in Atlanta, GA on October 24?", "description": "This market will resolve to \"Yes\" if Atlanta, GA records measurable precipitation on October 24, 2026. Otherwise, this market will resolve to \"No\".\n\nMeasurable precipitation means 0.01 inches or more as reported by the PRECIPITATION (IN) figure in the NWS Daily Climate Report (CLI) for the city's station.\n\nA report of trace (\"T\") does not qualify.\n\nThe PRECIPITATION (IN) figure measures total liquid-equivalent precipitation and does not distinguish between precipitation types.\n\nThe observation period is the NWS climate day for KATL: midnight to midnight local standard time. The final CLI report for a climate day is issued the following morning.\n\nThis market will resolve according to the NWS Daily Climate Report as published by 2:00 PM ET on the day following the observation date. If multiple versions of the report are issued, the last version published before that time governs. If no figure has been published by that time, this market will resolve to \"No\".\n\nThe resolution source for this market is the NWS Daily Climate Report (CLI) for KATL, published at https://forecast.weather.gov/product.php?site=NWS&product=CLI&issuedby=ATL.", "outcomePrices": "[\"0.4955\", \"0.5045\"]", "bestBid": 0.001, "bestAsk": 0.99, "volume": "10"}]}
+{"slug": "bknbl-mel-syd-2026-10-25", "markets": [{"question": "Melbourne United vs. Sydney Kings", "description": "In the upcoming NBL game, scheduled for October 25 at 2:00AM ET:\nIf the Melbourne United win, the market will resolve to \"Melbourne United\".\nIf the Sydney Kings win, the market will resolve to \"Sydney Kings\".\nIf the game is postponed, this market will remain open until the game has been completed.\nIf the game is canceled entirely, with no make-up game, this market will resolve 50-50.\nThe result will be determined based on the final score including any overtime periods.", "outcomePrices": "[\"0.41\", \"0.59\"]", "bestBid": 0.39, "bestAsk": 0.43, "volume": "34894.80830299999"}]}
+{"slug": "crint-are-nld-2026-10-25", "markets": [{"question": "Cricket World Cup League 2: UAE vs Netherlands", "description": "This market refers to the cricket match between UAE and Netherlands scheduled for October 25 2026 at 1:30 AM ET in Cricket World Cup League 2.\n\nDLS/DRS, over-rate penalties, forfeit/walkover, or any other on-field ruling that leads the competition to declare a winner are treated as ordinary wins.\n\nIf the match ends tied and the playing conditions provide an on-field tiebreak (e.g., Super Over), the winner determined by that tiebreak will be used for resolution. If the match ends tied and no on-field tiebreak is used or available under the playing conditions (e.g., group-stage ODI with no Super Over), the market will resolve 50-50.\n\nIf the match is postponed/rescheduled, the market remains open until the listed fixture is completed. If the match is permanently canceled or abandoned or otherwise is completed without a winner, the market resolves 50-50.\n\nThe primary resolution source for this market is the official statistics of the event as recognized by the governing body or event organizers. However, if the governing body or event organizers have not published final match statistics within 2 hours after the event's conclusion, a consensus of credible reporting may be used instead.\n", "outcomePrices": "[\"0.335\", \"0.665\"]", "bestBid": 0.32, "bestAsk": 0.35, "volume": "6223.649049"}]}
+{"slug": "ethereum-up-or-down-october-25-2026-2am-et", "markets": [{"question": "Ethereum Up or Down - October 25, 2AM ET", "description": "This market will resolve to \"Up\" if the close price is greater than or equal to the open price for the ETH/USDT 1 hour candle that begins on the time and date specified in the title. Otherwise, this market will resolve to \"Down\".\n\nThe resolution source for this market is information from Binance, specifically the ETH/USDT pair (https://www.binance.com/en/trade/ETH_USDT). The close \u00ab C \u00bb and open \u00ab O \u00bb displayed at the top of the graph for the relevant \"1H\" candle will be used once the data for that candle is finalized.\n\nPlease note that this market is about the price according to Binance ETH/USDT, not according to other exchanges or trading pairs.", "outcomePrices": "[\"0.275\", \"0.725\"]", "bestBid": 0.27, "bestAsk": 0.28, "volume": "1398.659143"}]}
+{"slug": "bitcoin-up-or-down-october-25-2026-2am-et", "markets": [{"question": "Bitcoin Up or Down - October 25, 2AM ET", "description": "This market will resolve to \"Up\" if the close price is greater than or equal to the open price for the BTC/USDT 1 hour candle that begins on the time and date specified in the title. Otherwise, this market will resolve to \"Down\".\n\nThe resolution source for this market is information from Binance, specifically the BTC/USDT pair (https://www.binance.com/en/trade/BTC_USDT). The close \u00ab C \u00bb and open \u00ab O \u00bb displayed at the top of the graph for the relevant \"1H\" candle will be used once the data for that candle is finalized.\n\nPlease note that this market is about the price according to Binance BTC/USDT, not according to other exchanges or trading pairs.", "outcomePrices": "[\"0.725\", \"0.275\"]", "bestBid": 0.72, "bestAsk": 0.73, "volume": "4500.944568999999"}]}
+{"slug": "what-will-trump-say-during-his-midterm-rally-in-michigan-october-26", "markets": [{"question": "Will Trump say \"Million\" or \"Billion\" or \"Trillion\" 30+ times during his Midterm Rally in Michigan?", "description": "Donald Trump is scheduled to give remarks during his Midterm Rally in St. Clair, Michigan on October 26, 2026 at 3:00 PM ET. (https://events.gop.com/events/midterm-rally-in-st-clair-mi-president-donald-j-trump-djt47)\n\nThis market will resolve to \"Yes\" if Donald Trump says the listed term during the specified appearance. Otherwise, the market will resolve to \"No\".\n\nThis market is explicitly about Trump's remarks at the Midterm Rally in Michigan on October 26, 2026. Speeches, events, or comments that occur outside of the named, scheduled event will not qualify toward this market's resolution.\n\nThe resolution source will be audio/video of the event.\n\nFor full rules, see: https://polymarket-upload.s3.us-east-2.amazonaws.com/market_products/Mentions/Event+Mentions+Contract+DeFi.pdf", "outcomePrices": "[\"0.755\", \"0.245\"]", "bestBid": 0.58, "bestAsk": 0.93, "volume": "684.918462"}, {"question": "Will Trump say \"Hell\" 15+ times during his Midterm Rally in Michigan?", "description": "Donald Trump is scheduled to give remarks during his Midterm Rally in St. Clair, Michigan on October 26, 2026 at 3:00 PM ET. (https://events.gop.com/events/midterm-rally-in-st-clair-mi-president-donald-j-trump-djt47)\n\nThis market will resolve to \"Yes\" if Donald Trump says the listed term during the specified appearance. Otherwise, the market will resolve to \"No\".\n\nThis market is explicitly about Trump's remarks at the Midterm Rally in Michigan on October 26, 2026. Speeches, events, or comments that occur outside of the named, scheduled event will not qualify toward this market's resolution.\n\nThe resolution source will be audio/video of the event.\n\nFor full rules, see: https://polymarket-upload.s3.us-east-2.amazonaws.com/market_products/Mentions/Event+Mentions+Contract+DeFi.pdf", "outcomePrices": "[\"0.46\", \"0.54\"]", "bestBid": 0.4, "bestAsk": 0.52, "volume": "411.687131"}, {"question": "Will Trump say \"Ass\" during his Midterm Rally in Michigan?", "description": "Donald Trump is scheduled to give remarks during his Midterm Rally in St. Clair, Michigan on October 26, 2026 at 3:00 PM ET. (https://events.gop.com/events/midterm-rally-in-st-clair-mi-president-donald-j-trump-djt47)\n\nThis market will resolve to \"Yes\" if Donald Trump says the listed term during the specified appearance. Otherwise, the market will resolve to \"No\".\n\nThis market is explicitly about Trump's remarks at the Midterm Rally in Michigan on October 26, 2026. Speeches, events, or comments that occur outside of the named, scheduled event will not qualify toward this market's resolution.\n\nThe resolution source will be audio/video of the event.\n\nFor full rules, see: https://polymarket-upload.s3.us-east-2.amazonaws.com/market_products/Mentions/Event+Mentions+Contract+DeFi.pdf", "outcomePrices": "[\"0.38\", \"0.62\"]", "bestBid": 0.29, "bestAsk": 0.47, "volume": "426"}, {"question": "Will Trump say \"Russia\" or \"Ukraine\" during his Midterm Rally in Michigan?", "description": "Donald Trump is scheduled to give remarks during his Midterm Rally in St. Clair, Michigan on October 26, 2026 at 3:00 PM ET. (https://events.gop.com/events/midterm-rally-in-st-clair-mi-president-donald-j-trump-djt47)\n\nThis market will resolve to \"Yes\" if Donald Trump says the listed term during the specified appearance. Otherwise, the market will resolve to \"No\".\n\nThis market is explicitly about Trump's remarks at the Midterm Rally in Michigan on October 26, 2026. Speeches, events, or comments that occur outside of the named, scheduled event will not qualify toward this market's resolution.\n\nThe resolution source will be audio/video of the event.\n\nFor full rules, see: https://polymarket-upload.s3.us-east-2.amazonaws.com/market_products/Mentions/Event+Mentions+Contract+DeFi.pdf", "outcomePrices": "[\"0.635\", \"0.365\"]", "bestBid": 0.48, "bestAsk": 0.79, "volume": "1169.8467570000003"}, {"question": "Will Trump say \"Hormuz\" or \"Blockade\" during his Midterm Rally in Michigan?", "description": "Donald Trump is scheduled to give remarks during his Midterm Rally in St. Clair, Michigan on October 26, 2026 at 3:00 PM ET. (https://events.gop.com/events/midterm-rally-in-st-clair-mi-president-donald-j-trump-djt47)\n\nThis market will resolve to \"Yes\" if Donald Trump says the listed term during the specified appearance. Otherwise, the market will resolve to \"No\".\n\nThis market is explicitly about Trump's remarks at the Midterm Rally in Michigan on October 26, 2026. Speeches, events, or comments that occur outside of the named, scheduled event will not qualify toward this market's resolution.\n\nThe resolution source will be audio/video of the event.\n\nFor full rules, see: https://polymarket-upload.s3.us-east-2.amazonaws.com/market_products/Mentions/Event+Mentions+Contract+DeFi.pdf", "outcomePrices": "[\"0.67\", \"0.33\"]", "bestBid": 0.6, "bestAsk": 0.74, "volume": "699.993334"}]}
+
+web search: 
+web search: 
+web search: 
+web search: site:rollcall.com/factbase/trump/transcript/ "October" "2026" "rally"
+web search: "Trump" "Michigan" "October 26, 2026" rally
+web search: "VIX" "October 23, 2026"
+codex
+Atlanta’s quoted 50% is the midpoint of a very wide spread. The [NWS report](https://forecast.weather.gov/product.php?format=TXT&glossary=0&issuedby=ATL&product=CLI&site=ICT&version=2) shows no rain through late afternoon, and later observations were clear. I’m also using Binance candles for the hourly crypto markets, where prices have moved during the sweep.
+
+web search: 
+web search: 
+web search: 
+web search: 
+web search: site:rollcall.com/factbase/trump/transcript/ "rally" "October 23, 2026"
+web search: "St. Clair" "Trump" "October 26" "2026"
+web search: site:rollcall.com/factbase/trump/transcript/ "rally" "October 24, 2026"
+web search: site:rollcall.com/factbase/trump/transcript/ "rally" "October 20, 2026"
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,re,concurrent.futures
+from bs4 import BeautifulSoup
+slugs=['donald-trump-speech-midterm-political-rally-wasilla-alaska-october-13-2026','donald-trump-speech-midterm-political-rally-clarksville-tennessee-october-10-2026','donald-trump-speech-midterm-political-rally-syracuse-new-york-october-9-2026']
+def get(s):
+ try:
+  r=requests.get('https://rollcall.com/factbase/trump/transcript/'+s+'/',timeout=12)
+  soup=BeautifulSoup(r.text,'html.parser')
+  for t in soup(['script','style','nav','footer']):t.decompose()
+  tx=soup.get_text(' ',strip=True)
+  with open('/tmp/'+s+'.txt','w') as f:f.write(tx)
+  return s,r.status_code,len(tx),tx[:350],{w:len(re.findall(r'\\b'+w+r'\\b',tx,re.I)) for w in ['hell','ass','million','billion','trillion','hormuz','blockade','russia','ukraine']}
+ except Exception as e:return s,str(e)
+with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
+ for x in ex.map(get,slugs): print(x)
+PY" in /tmp/apb-sweep-codex-q1y4gm9c
+ exited 1 in 0ms:
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+ModuleNotFoundError: No module named 'bs4'
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,re,concurrent.futures,json
+from html.parser import HTMLParser
+class Txt(HTMLParser):
+ def __init__(self): super().__init__(); self.ignore=0; self.a=[]
+ def handle_starttag(self,t,a):
+  if t in ['script','style']:self.ignore+=1
+ def handle_endtag(self,t):
+  if t in ['script','style']:self.ignore=max(0,self.ignore-1)
+ def handle_data(self,d):
+  if not self.ignore:self.a.append(d)
+slugs=['donald-trump-speech-midterm-political-rally-wasilla-alaska-october-13-2026','donald-trump-speech-midterm-political-rally-clarksville-tennessee-october-10-2026','donald-trump-speech-midterm-political-rally-syracuse-new-york-october-9-2026','donald-trump-speech-midterm-political-rally-fort-myers-florida-october-23-2026']
+def get(s):
+ try:
+  r=requests.get('https://rollcall.com/factbase/trump/transcript/'+s+'/',timeout=12)
+  p=Txt();p.feed(r.text); tx=' '.join(p.a);tx=re.sub(r'\\s+',' ',tx)
+  with open('/tmp/'+s+'.txt','w') as f:f.write(tx)
+  return s,r.status_code,len(tx),tx[:200],{w:len(re.findall(r'\\b'+w+r'\\b',tx,re.I)) for w in ['hell','ass','million','billion','trillion','hormuz','blockade','russia','ukraine']},tx[-200:]
+ except Exception as e:return s,str(e)
+with concurrent.futures.ThreadPoolExecutor(max_workers=4) as ex:
+ for x in ex.map(get,slugs): print(x)
+try:
+ r=requests.get('https://site.api.espn.com/apis/site/v2/sports/basketball/nbl/scoreboard?dates=20261025',timeout=10).json()
+ print('NBL',json.dumps([{'name':e.get('name'),'status':e.get('status'),'competitors':[{k:c.get(k) for k in ['homeAway','score','linescores','team']} for c in e.get('competitions',[{}])[0].get('competitors',[])]} for e in r.get('events',[])]))
+except Exception as e:print('NBL',str(e))
+PY" in /tmp/apb-sweep-codex-q1y4gm9c
+web search: 
+web search: 
+ succeeded in 1348ms:
+('donald-trump-speech-midterm-political-rally-wasilla-alaska-october-13-2026', 200, 204611, ' Roll Call Factba.se - Speech: Donald Trump Holds a Midterm Political Rally in Wasilla, Alaska - October 13, 2026 Skip to content Politics Campaigns Congress White House Policy Defense Energy/Environm', {'hell': 13, 'ass': 2, 'million': 9, 'billion': 5, 'trillion': 9, 'hormuz': 0, 'blockade': 0, 'russia': 0, 'ukraine': 0}, 'RC Jobs Newsletters The Staff Subscriptions CQ and Roll Call are part of FiscalNote, a leading provider of political and business risk solutions. Copyright 2026 CQ and Roll Call. All rights reserved. ')
+('donald-trump-speech-midterm-political-rally-clarksville-tennessee-october-10-2026', 200, 222057, ' Roll Call Factba.se - Speech: Donald Trump Holds a Midterm Political Rally in Clarksville, Tennessee - October 10, 2026 Skip to content Politics Campaigns Congress White House Policy Defense Energy/E', {'hell': 14, 'ass': 1, 'million': 11, 'billion': 7, 'trillion': 10, 'hormuz': 1, 'blockade': 0, 'russia': 0, 'ukraine': 0}, 'RC Jobs Newsletters The Staff Subscriptions CQ and Roll Call are part of FiscalNote, a leading provider of political and business risk solutions. Copyright 2026 CQ and Roll Call. All rights reserved. ')
+('donald-trump-speech-midterm-political-rally-syracuse-new-york-october-9-2026', 200, 202970, ' Roll Call Factba.se - Speech: Donald Trump Holds a Midterm Political Rally in Syracuse, New York - October 9, 2026 Skip to content Politics Campaigns Congress White House Policy Defense Energy/Enviro', {'hell': 10, 'ass': 0, 'million': 11, 'billion': 2, 'trillion': 16, 'hormuz': 1, 'blockade': 0, 'russia': 4, 'ukraine': 3}, 'RC Jobs Newsletters The Staff Subscriptions CQ and Roll Call are part of FiscalNote, a leading provider of political and business risk solutions. Copyright 2026 CQ and Roll Call. All rights reserved. ')
+('donald-trump-speech-midterm-political-rally-fort-myers-florida-october-23-2026', 200, 205764, ' Roll Call Factba.se - Speech: Donald Trump Holds a Midterm Political Rally in Fort Myers, Florida - October 23, 2026 Skip to content Politics Campaigns Congress White House Policy Defense Energy/Envi', {'hell': 7, 'ass': 0, 'million': 5, 'billion': 0, 'trillion': 7, 'hormuz': 3, 'blockade': 2, 'russia': 5, 'ukraine': 3}, 'RC Jobs Newsletters The Staff Subscriptions CQ and Roll Call are part of FiscalNote, a leading provider of political and business risk solutions. Copyright 2026 CQ and Roll Call. All rights reserved. ')
+NBL [{"name": "New Zealand Breakers at Cairns Taipans", "status": {"clock": 0.0, "displayClock": "0:00", "period": 4, "type": {"id": "3", "name": "STATUS_FINAL", "state": "post", "completed": true, "description": "Final", "detail": "Final", "shortDetail": "Final"}}, "competitors": [{"homeAway": "home", "score": "86", "linescores": [{"value": 16.0, "displayValue": "16", "period": 1}, {"value": 23.0, "displayValue": "23", "period": 2}, {"value": 21.0, "displayValue": "21", "period": 3}, {"value": 26.0, "displayValue": "26", "period": 4}], "team": {"id": "3", "uid": "s:40~l:55~t:3", "location": "Cairns", "name": "Taipans", "abbreviation": "CNS", "displayName": "Cairns Taipans", "shortDisplayName": "Taipans", "color": "f69138", "alternateColor": "000000", "isActive": true, "links": [], "logo": "https://a.espncdn.com/i/teamlogos/nbl/500/cns.png", "logoDark": "https://a.espncdn.com/i/teamlogos/nbl/500-dark/cns.png"}}, {"homeAway": "away", "score": "84", "linescores": [{"value": 25.0, "displayValue": "25", "period": 1}, {"value": 21.0, "displayValue": "21", "period": 2}, {"value": 16.0, "displayValue": "16", "period": 3}, {"value": 22.0, "displayValue": "22", "period": 4}], "team": {"id": "6", "uid": "s:40~l:55~t:6", "location": "New Zealand", "name": "Breakers", "abbreviation": "NZL", "displayName": "New Zealand Breakers", "shortDisplayName": "Breakers", "color": "e33c95", "alternateColor": "33aee3", "isActive": true, "links": [], "logo": "https://a.espncdn.com/i/teamlogos/nbl/500/nzl.png", "logoDark": "https://a.espncdn.com/i/teamlogos/nbl/500-dark/nzl.png"}}]}, {"name": "Sydney Kings at Melbourne United", "status": {"clock": 546.0, "displayClock": "9:06", "period": 2, "type": {"id": "2", "name": "STATUS_IN_PROGRESS", "state": "in", "completed": false, "description": "In Progress", "detail": "9:06 - 2nd Quarter", "shortDetail": "9:06 - 2nd"}}, "competitors": [{"homeAway": "home", "score": "34", "linescores": [{"value": 32.0, "displayValue": "32", "period": 1}, {"value": 2.0, "displayValue": "2", "period": 2}], "team": {"id": "5", "uid": "s:40~l:55~t:5", "location": "Melbourne", "name": "United", "abbreviation": "MEL", "displayName": "Melbourne United", "shortDisplayName": "United", "color": "4370b7", "alternateColor": "000000", "isActive": true, "links": [], "logo": "https://a.espncdn.com/i/teamlogos/nbl/500/mel.png", "logoDark": "https://a.espncdn.com/i/teamlogos/nbl/500-dark/mel.png"}}, {"homeAway": "away", "score": "34", "linescores": [{"value": 31.0, "displayValue": "31", "period": 1}, {"value": 3.0, "displayValue": "3", "period": 2}], "team": {"id": "9", "uid": "s:40~l:55~t:9", "location": "Sydney", "name": "Kings", "abbreviation": "SYD", "displayName": "Sydney Kings", "shortDisplayName": "Kings", "color": "552583", "alternateColor": "FDB927", "isActive": true, "links": [], "logo": "https://a.espncdn.com/i/teamlogos/nbl/500/syd.png", "logoDark": "https://a.espncdn.com/i/teamlogos/nbl/500-dark/syd.png"}}]}]
+
+web search: UAE Netherlands live cricket score October 25 2026 140th ICC
+web search: https://events.gop.com/events/midterm-rally-in-st-clair-mi-president-donald-j-trump-djt47
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,json,concurrent.futures,datetime,math,statistics
+now=datetime.datetime.now(datetime.timezone.utc)
+def get(sym):
+ d=requests.get('https://api.binance.com/api/v3/klines',params={'symbol':sym+'USDT','interval':'1h','limit':336},timeout=10).json()
+ if not isinstance(d,list):return sym,d
+ with open('/tmp/forecast_'+sym+'_hourly.json','w') as f:json.dump(d,f)
+ out={'now':now.isoformat(),'last':[(datetime.datetime.fromtimestamp(x[0]/1000,datetime.timezone.utc).isoformat(),x[1:5]) for x in d[-4:]]}
+ for n in [24,48,168,335]:
+  a=d[-n-1:-1];rets=[math.log(float(x[4])/float(x[1])) for x in a]
+  out['hvol_'+str(n)]=round(statistics.stdev(rets)*100,3)
+ day=[x for x in d if x[0]>=int(datetime.datetime(2026,10,25,4,tzinfo=datetime.timezone.utc).timestamp()*1000)]
+ out['day_low']=min(float(x[3]) for x in day);out['day_high']=max(float(x[2]) for x in day)
+ return sym,out
+with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
+ for x in ex.map(get,['ETH','BTC']):print(x)
+PY" in /tmp/apb-sweep-codex-q1y4gm9c
+ succeeded in 293ms:
+('ETH', {'now': '2026-10-25T06:32:08.879670+00:00', 'last': [('2026-10-25T03:00:00+00:00', ['2365.89000000', '2369.87000000', '2362.04000000', '2362.80000000']), ('2026-10-25T04:00:00+00:00', ['2362.81000000', '2369.51000000', '2362.32000000', '2368.23000000']), ('2026-10-25T05:00:00+00:00', ['2368.23000000', '2368.81000000', '2347.32000000', '2353.45000000']), ('2026-10-25T06:00:00+00:00', ['2353.45000000', '2354.14000000', '2346.74000000', '2350.81000000'])], 'hvol_24': 0.488, 'hvol_48': 0.449, 'hvol_168': 0.474, 'hvol_335': 0.502, 'day_low': 2346.74, 'day_high': 2369.51})
+('BTC', {'now': '2026-10-25T06:32:08.879670+00:00', 'last': [('2026-10-25T03:00:00+00:00', ['80920.01000000', '81033.69000000', '80858.00000000', '80862.98000000']), ('2026-10-25T04:00:00+00:00', ['80862.98000000', '80959.97000000', '80826.00000000', '80923.19000000']), ('2026-10-25T05:00:00+00:00', ['80923.19000000', '80930.01000000', '80510.00000000', '80607.65000000']), ('2026-10-25T06:00:00+00:00', ['80607.64000000', '80672.67000000', '80528.01000000', '80624.00000000'])], 'hvol_24': 0.251, 'hvol_48': 0.263, 'hvol_168': 0.304, 'hvol_335': 0.337, 'day_low': 80510.0, 'day_high': 80959.97})
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import glob,re,requests
+for f in glob.glob('/tmp/donald-trump-speech*.txt'):
+ t=open(f).read();start=t.find('Full Transcript');tx=t[start:];times=re.findall(r'\\d\\d:\\d\\d:\\d\\d',tx)
+ print(f.split('/')[-1], 'words',len(tx.split()),'start',start,'times',len(times),'last',times[-2:],{w:len(re.findall(r'\\b'+w+r's?\\b',tx,re.I)) for w in ['hell','ass','million','billion','trillion','hormuz','blockade','russia','ukraine']})
+ print('startsample',tx[:200])
+r=requests.get('https://rollcall.com/factbase/trump/calendar/',timeout=10)
+links=re.findall(r'href=[\\\"\\'](["'^'"\\\"\\']+)[\\\"\\']',r.text)
+print('RECENT',sorted(set(l for l in links if 'transcript' in l and re.search(r'october-(19|20|21|22|23|24)-2026',l))))
+r=requests.get('https://polymarket-upload.s3.us-east-2.amazonaws.com/market_products/Mentions/Event%20Mentions%20Contract%20DeFi.pdf',timeout=10)
+print('PDF',r.status_code,len(r.content));open('/tmp/mentions_rules.pdf','wb').write(r.content)
+PY" in /tmp/apb-sweep-codex-q1y4gm9c
+web search: 
+web search: 
+ succeeded in 1289ms:
+donald-trump-speech-midterm-political-rally-clarksville-tennessee-october-10-2026.txt words 31537 start 2739 times 456 last ['01:34:32', '01:34:41'] {'hell': 14, 'ass': 1, 'million': 11, 'billion': 10, 'trillion': 14, 'hormuz': 1, 'blockade': 0, 'russia': 0, 'ukraine': 0}
+startsample Full Transcript Donald Trump 00:00:00-00:00:13 (13 sec) No StressLens Thank you. [Audience chants "USA"] Sentiment Readability Flesch-Kincaid Grade 0 Flesch-Kincaid Ease 100 Gunning-Fog Score 0.8 Cole
+donald-trump-speech-midterm-political-rally-fort-myers-florida-october-23-2026.txt words 29278 start 2431 times 424 last ['01:30:53', '01:30:58'] {'hell': 7, 'ass': 0, 'million': 11, 'billion': 0, 'trillion': 7, 'hormuz': 3, 'blockade': 2, 'russia': 5, 'ukraine': 3}
+startsample Full Transcript Donald Trump 00:00:00-00:00:36 (36 sec) No Signal (0.973) [Audience chants "USA"] Well, I just want to say a very special hello, Florida. We love you, Florida. And I'm thrilled to be b
+donald-trump-speech-midterm-political-rally-syracuse-new-york-october-9-2026.txt words 27618 start 2606 times 364 last ['01:23:53', '01:24:06'] {'hell': 10, 'ass': 0, 'million': 14, 'billion': 11, 'trillion': 17, 'hormuz': 1, 'blockade': 0, 'russia': 4, 'ukraine': 3}
+startsample Full Transcript Donald Trump 00:00:00-00:00:36 (36 sec) Medium (1.799) Thank you. Wow. [Audience chants "USA"] Well, a very, very special hello to Syracuse. We love Syracuse, always loved it. And it's
+donald-trump-speech-midterm-political-rally-wasilla-alaska-october-13-2026.txt words 28994 start 2965 times 410 last ['01:27:17', '01:27:36'] {'hell': 13, 'ass': 2, 'million': 11, 'billion': 12, 'trillion': 10, 'hormuz': 0, 'blockade': 0, 'russia': 0, 'ukraine': 0}
+startsample Full Transcript Donald Trump 00:00:00-00:00:11 (11 sec) No StressLens Wow. Thank you very much. Thank you. [Audience chants "USA"] Sentiment Readability Flesch-Kincaid Grade 0 Flesch-Kincaid Ease 100 
+RECENT ['https://rollcall.com/factbase/trump/transcript/donald-trump-interview-abby-kousouris-wanf-tv-atlanta-october-24-2026/', 'https://rollcall.com/factbase/trump/transcript/donald-trump-interview-dylan-domangue-kwch-wichita-12-news-october-19-2026/', 'https://rollcall.com/factbase/trump/transcript/donald-trump-press-gaggle-after-air-force-one-arrival-october-21-2026/', 'https://rollcall.com/factbase/trump/transcript/donald-trump-press-gaggle-after-air-force-one-arrival-october-23-2026/', 'https://rollcall.com/factbase/trump/transcript/donald-trump-press-gaggle-after-air-force-one-arrival-west-palm-beach-florida-october-23-2026/', 'https://rollcall.com/factbase/trump/transcript/donald-trump-press-gaggle-after-early-voting-palm-beach-florida-october-24-2026/', 'https://rollcall.com/factbase/trump/transcript/donald-trump-press-gaggle-after-marine-one-arrival-october-20-2026/', 'https://rollcall.com/factbase/trump/transcript/donald-trump-press-gaggle-before-marine-one-departure-october-19-2026/', 'https://rollcall.com/factbase/trump/transcript/donald-trump-press-gaggle-before-marine-one-departure-october-21-2026/', 'https://rollcall.com/factbase/trump/transcript/donald-trump-press-gaggle-before-marine-one-departure-october-22-2026/', 'https://rollcall.com/factbase/trump/transcript/donald-trump-press-gaggle-before-marine-one-departure-october-23-2026/', 'https://rollcall.com/factbase/trump/transcript/donald-trump-remarks-executive-order-womens-health-october-19-2026/', 'https://rollcall.com/factbase/trump/transcript/donald-trump-remarks-fraud-whistleblower-initiative-october-20-2026/', 'https://rollcall.com/factbase/trump/transcript/donald-trump-remarks-roundtable-white-house-cybercrime-october-21-2026/', 'https://rollcall.com/factbase/trump/transcript/donald-trump-speech-midterm-political-rally-fort-myers-florida-october-23-2026/', 'https://rollcall.com/factbase/trump/transcript/donald-trump-speech-midterm-political-rally-greenville-north-carolina-october-20-2026/', 'https://rollcall.com/factbase/trump/transcript/donald-trump-speech-midterm-political-rally-park-city-kansas-october-19-2026/', 'https://rollcall.com/factbase/trump/transcript/donald-trump-speech-midterm-political-rally-pendleton-south-carolina-october-21-2026/', 'https://rollcall.com/factbase/trump/transcript/donald-trump-speech-midterm-political-rally-sioux-city-iowa-october-22-2026/']
+PDF 200 124188
+
+web search: https://www.nbl.com.au/news/how-to-watch-talking-points-melbourne-v-sydney-kings
+web search: site:rollcall.com/factbase "Trump" "Greenville" "October 20" "2026" ...
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,re,json,concurrent.futures
+queries=['Ethereum reach 2400 October 25 2026','Ethereum dip 2300 October 25 2026','Bitcoin reach 81000 October 25 2026']
+def get(q):
+ d=requests.get('https://gamma-api.polymarket.com/public-search',params={'q':q,'limit_per_type':3},timeout=10).json()
+ return q,[{'title':e.get('title'),'slug':e.get('slug'),'markets':[{'question':m.get('question'),'slug':m.get('slug'),'description':m.get('description'),'prices':m.get('outcomePrices')} for m in e.get('markets',[]) if any(x in m.get('question','') for x in ['"'$2,400'"','"'$2,300'"','"'$81,000'"'])]} for e in d.get('events',[])][:4]
+with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
+ for x in ex.map(get,queries):print(json.dumps(x))
+PY" in /tmp/apb-sweep-codex-q1y4gm9c
+ succeeded in 294ms:
+["Ethereum reach 2400 October 25 2026", [{"title": "What price will Ethereum hit October 19-25?", "slug": "what-price-will-ethereum-hit-october-19-25-2026", "markets": [{"question": "Will Ethereum dip to $2,300 October 19-25?", "slug": "will-ethereum-dip-to-2300-october-19-25-2026", "description": "This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for Ethereum (ETH/USDT) during the date range specified in the title (from 12:00 AM ET on the first date to 11:59 PM ET on the last) has a final \"Low\" price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the ETH/USDT \"Low\" prices available at https://www.binance.com/en/trade/ETH_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance ETH/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"1\", \"0\"]"}, {"question": "Will Ethereum dip to $2,400 October 19-25?", "slug": "will-ethereum-dip-to-2400-october-19-25-2026", "description": "This market will resolve to \"Yes\" if any Binance 1 minute candle for ETH/USDT from the creation of this market through 11:59 PM ET on the last day of the date range specified in the title has a final Low price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No\". Price action before this market's creation will not be considered.\n\nThe resolution source for this market is Binance, specifically the ETH/USDT Low prices available at https://www.binance.com/en/trade/ETH_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance ETH/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"1\", \"0\"]"}, {"question": "Will Ethereum dip to $2,400 October 19-25?", "slug": "will-ethereum-dip-to-2400-october-19-25-2026-from-october-20", "description": "This market will resolve to \"Yes\" if any Binance 1 minute candle for ETH/USDT from the creation of this market through 11:59 PM ET on the last day of the date range specified in the title has a final Low price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No\". Price action before this market's creation will not be considered.\n\nThe resolution source for this market is Binance, specifically the ETH/USDT Low prices available at https://www.binance.com/en/trade/ETH_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance ETH/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"1\", \"0\"]"}, {"question": "Will Ethereum reach $2,400 October 19-25?", "slug": "will-ethereum-reach-2400-october-19-25-2026", "description": "This market will resolve to \"Yes\" if any Binance 1 minute candle for ETH/USDT from the creation of this market through 11:59 PM ET on the last day of the date range specified in the title has a final High price equal to or greater than the price specified in the title. Otherwise, this market will resolve to \"No\". Price action before this market's creation will not be considered.\n\nThe resolution source for this market is Binance, specifically the ETH/USDT High prices available at https://www.binance.com/en/trade/ETH_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance ETH/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"1\", \"0\"]"}, {"question": "Will Ethereum dip to $2,400 October 19-25?", "slug": "will-ethereum-dip-to-2400-october-19-25-2026-from-october-23", "description": "This market will resolve to \"Yes\" if any Binance 1 minute candle for ETH/USDT from the creation of this market through 11:59 PM ET on the last day of the date range specified in the title has a final Low price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No\". Price action before this market's creation will not be considered.\n\nThe resolution source for this market is Binance, specifically the ETH/USDT Low prices available at https://www.binance.com/en/trade/ETH_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance ETH/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"1\", \"0\"]"}, {"question": "Will Ethereum dip to $2,300 October 19-25?", "slug": "will-ethereum-dip-to-2300-october-19-25-2026-from-october-24", "description": "This market will resolve to \"Yes\" if any Binance 1 minute candle for ETH/USDT from the creation of this market through 11:59 PM ET on the last day of the date range specified in the title has a final Low price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No\". Price action before this market's creation will not be considered.\n\nThe resolution source for this market is Binance, specifically the ETH/USDT Low prices available at https://www.binance.com/en/trade/ETH_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance ETH/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.275\", \"0.725\"]"}, {"question": "Will Ethereum reach $2,400 October 19-25?", "slug": "will-ethereum-reach-2400-october-19-25-2026-from-october-24", "description": "This market will resolve to \"Yes\" if any Binance 1 minute candle for ETH/USDT from the creation of this market through 11:59 PM ET on the last day of the date range specified in the title has a final High price equal to or greater than the price specified in the title. Otherwise, this market will resolve to \"No\". Price action before this market's creation will not be considered.\n\nThe resolution source for this market is Binance, specifically the ETH/USDT High prices available at https://www.binance.com/en/trade/ETH_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance ETH/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.265\", \"0.735\"]"}]}, {"title": "What price will Ethereum hit on October 25?", "slug": "what-price-will-ethereum-hit-on-october-25-2026", "markets": [{"question": "Will Ethereum reach $2,400 on October 25?", "slug": "will-ethereum-reach-2400-on-october-25-2026", "description": "This market will immediately resolve to \"Yes\" if any Binance 1-minute candle for Ethereum (ETH/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"High\" price equal to or greater than the price specified in the title. Otherwise, this market will resolve to \"No\".\n\nThe resolution source for this market is Binance, specifically the ETH/USDT \"High\" prices available at https://www.binance.com/en/trade/ETH_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance ETH/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.295\", \"0.705\"]"}, {"question": "Will Ethereum dip to $2,300 on October 25?", "slug": "will-ethereum-dip-to-2300-on-october-25-2026", "description": "This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for Ethereum (ETH/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"Low\" price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the ETH/USDT \"Low\" prices available at https://www.binance.com/en/trade/ETH_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance ETH/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.29\", \"0.71\"]"}]}]]
+["Ethereum dip 2300 October 25 2026", [{"title": "What price will Ethereum hit October 19-25?", "slug": "what-price-will-ethereum-hit-october-19-25-2026", "markets": [{"question": "Will Ethereum dip to $2,300 October 19-25?", "slug": "will-ethereum-dip-to-2300-october-19-25-2026", "description": "This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for Ethereum (ETH/USDT) during the date range specified in the title (from 12:00 AM ET on the first date to 11:59 PM ET on the last) has a final \"Low\" price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the ETH/USDT \"Low\" prices available at https://www.binance.com/en/trade/ETH_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance ETH/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"1\", \"0\"]"}, {"question": "Will Ethereum dip to $2,400 October 19-25?", "slug": "will-ethereum-dip-to-2400-october-19-25-2026", "description": "This market will resolve to \"Yes\" if any Binance 1 minute candle for ETH/USDT from the creation of this market through 11:59 PM ET on the last day of the date range specified in the title has a final Low price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No\". Price action before this market's creation will not be considered.\n\nThe resolution source for this market is Binance, specifically the ETH/USDT Low prices available at https://www.binance.com/en/trade/ETH_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance ETH/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"1\", \"0\"]"}, {"question": "Will Ethereum dip to $2,400 October 19-25?", "slug": "will-ethereum-dip-to-2400-october-19-25-2026-from-october-20", "description": "This market will resolve to \"Yes\" if any Binance 1 minute candle for ETH/USDT from the creation of this market through 11:59 PM ET on the last day of the date range specified in the title has a final Low price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No\". Price action before this market's creation will not be considered.\n\nThe resolution source for this market is Binance, specifically the ETH/USDT Low prices available at https://www.binance.com/en/trade/ETH_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance ETH/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"1\", \"0\"]"}, {"question": "Will Ethereum reach $2,400 October 19-25?", "slug": "will-ethereum-reach-2400-october-19-25-2026", "description": "This market will resolve to \"Yes\" if any Binance 1 minute candle for ETH/USDT from the creation of this market through 11:59 PM ET on the last day of the date range specified in the title has a final High price equal to or greater than the price specified in the title. Otherwise, this market will resolve to \"No\". Price action before this market's creation will not be considered.\n\nThe resolution source for this market is Binance, specifically the ETH/USDT High prices available at https://www.binance.com/en/trade/ETH_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance ETH/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"1\", \"0\"]"}, {"question": "Will Ethereum dip to $2,400 October 19-25?", "slug": "will-ethereum-dip-to-2400-october-19-25-2026-from-october-23", "description": "This market will resolve to \"Yes\" if any Binance 1 minute candle for ETH/USDT from the creation of this market through 11:59 PM ET on the last day of the date range specified in the title has a final Low price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No\". Price action before this market's creation will not be considered.\n\nThe resolution source for this market is Binance, specifically the ETH/USDT Low prices available at https://www.binance.com/en/trade/ETH_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance ETH/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"1\", \"0\"]"}, {"question": "Will Ethereum dip to $2,300 October 19-25?", "slug": "will-ethereum-dip-to-2300-october-19-25-2026-from-october-24", "description": "This market will resolve to \"Yes\" if any Binance 1 minute candle for ETH/USDT from the creation of this market through 11:59 PM ET on the last day of the date range specified in the title has a final Low price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No\". Price action before this market's creation will not be considered.\n\nThe resolution source for this market is Binance, specifically the ETH/USDT Low prices available at https://www.binance.com/en/trade/ETH_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance ETH/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.275\", \"0.725\"]"}, {"question": "Will Ethereum reach $2,400 October 19-25?", "slug": "will-ethereum-reach-2400-october-19-25-2026-from-october-24", "description": "This market will resolve to \"Yes\" if any Binance 1 minute candle for ETH/USDT from the creation of this market through 11:59 PM ET on the last day of the date range specified in the title has a final High price equal to or greater than the price specified in the title. Otherwise, this market will resolve to \"No\". Price action before this market's creation will not be considered.\n\nThe resolution source for this market is Binance, specifically the ETH/USDT High prices available at https://www.binance.com/en/trade/ETH_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance ETH/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.265\", \"0.735\"]"}]}, {"title": "What price will Ethereum hit on October 25?", "slug": "what-price-will-ethereum-hit-on-october-25-2026", "markets": [{"question": "Will Ethereum reach $2,400 on October 25?", "slug": "will-ethereum-reach-2400-on-october-25-2026", "description": "This market will immediately resolve to \"Yes\" if any Binance 1-minute candle for Ethereum (ETH/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"High\" price equal to or greater than the price specified in the title. Otherwise, this market will resolve to \"No\".\n\nThe resolution source for this market is Binance, specifically the ETH/USDT \"High\" prices available at https://www.binance.com/en/trade/ETH_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance ETH/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.295\", \"0.705\"]"}, {"question": "Will Ethereum dip to $2,300 on October 25?", "slug": "will-ethereum-dip-to-2300-on-october-25-2026", "description": "This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for Ethereum (ETH/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"Low\" price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the ETH/USDT \"Low\" prices available at https://www.binance.com/en/trade/ETH_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance ETH/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.29\", \"0.71\"]"}]}]]
+["Bitcoin reach 81000 October 25 2026", [{"title": "What price will Bitcoin hit on October 25?", "slug": "what-price-will-bitcoin-hit-on-october-25-2026", "markets": [{"question": "Will Bitcoin reach $81,000 on October 25?", "slug": "will-bitcoin-reach-81k-on-october-25-2026", "description": "This market will immediately resolve to \"Yes\" if any Binance 1-minute candle for Bitcoin (BTC/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"High\" price equal to or greater than the price specified in the title. Otherwise, this market will resolve to \"No\".\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"High\" prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.73\", \"0.27\"]"}]}]]
+
+exec
+/usr/bin/zsh -lc "python -u - <<'PY'
+import requests,re,concurrent.futures,os
+from html.parser import HTMLParser
+class Txt(HTMLParser):
+ def __init__(self): super().__init__(); self.ignore=0; self.a=[]
+ def handle_starttag(self,t,a):
+  if t in ['script','style']:self.ignore+=1
+ def handle_endtag(self,t):
+  if t in ['script','style']:self.ignore=max(0,self.ignore-1)
+ def handle_data(self,d):
+  if not self.ignore:self.a.append(d)
+slugs=['greenville-north-carolina-october-20-2026','park-city-kansas-october-19-2026','pendleton-south-carolina-october-21-2026','sioux-city-iowa-october-22-2026']
+def get(s):
+ try:
+  r=requests.get('https://rollcall.com/factbase/trump/transcript/donald-trump-speech-midterm-political-rally-'+s+'/',timeout=12)
+  p=Txt();p.feed(r.text);tx=re.sub(r'\\s+',' ',' '.join(p.a));tx=tx[tx.find('Full Transcript'):]
+  with open('/tmp/trump-'+s+'.txt','w') as f:f.write(tx)
+  times=re.findall(r'\\d\\d:\\d\\d:\\d\\d',tx)
+  return s,r.status_code,len(tx),times[-2:],{w:len(re.findall(r'\\b'+w+r's?\\b',tx,re.I)) for w in ['hell','ass','million','billion','trillion','hormuz','blockade','russia','ukraine']}
+ except Exception as e:return s,str(e)
+with concurrent.futures.ThreadPoolExecutor(max_workers=4) as ex:
+ for x in ex.map(get,slugs):print(x,flush=True)
+PY" in /tmp/apb-sweep-codex-q1y4gm9c
+web search: 
+web search: 
+ succeeded in 1328ms:
+('greenville-north-carolina-october-20-2026', 200, 254652, ['01:50:33', '01:51:03'], {'hell': 13, 'ass': 2, 'million': 7, 'billion': 7, 'trillion': 10, 'hormuz': 0, 'blockade': 0, 'russia': 0, 'ukraine': 0})
+('park-city-kansas-october-19-2026', 200, 221234, ['01:38:53', '01:39:10'], {'hell': 12, 'ass': 0, 'million': 9, 'billion': 17, 'trillion': 13, 'hormuz': 0, 'blockade': 0, 'russia': 0, 'ukraine': 0})
+('pendleton-south-carolina-october-21-2026', 200, 209187, ['01:32:01', '01:32:38'], {'hell': 21, 'ass': 0, 'million': 17, 'billion': 7, 'trillion': 7, 'hormuz': 1, 'blockade': 1, 'russia': 6, 'ukraine': 1})
+('sioux-city-iowa-october-22-2026', 200, 219343, ['01:31:25', '01:32:07'], {'hell': 16, 'ass': 0, 'million': 12, 'billion': 15, 'trillion': 6, 'hormuz': 3, 'blockade': 2, 'russia': 4, 'ukraine': 1})
+
+web search: Sogndal Kongsvinger odds October 25 2026 4.50 1.50 ...
+web search: "Team Liquid" "OG" "October 25" "2026" "Map 1" ...
+exec
+/usr/bin/zsh -lc 'pdftotext -layout /tmp/mentions_rules.pdf -' in /tmp/apb-sweep-codex-q1y4gm9c
+ succeeded in 0ms:
+EVENT MENTIONS CONTRACT
+
+Resolution
+This market will resolve to “Yes” if {entity} uses the listed {word} during remarks at {event} scheduled for {date}. Otherwise,
+the market will resolve to “No.”
+
+Event scope
+This market is explicitly about {event} at {time} on {date}. Speeches, events, or comments that occur outside of the named,
+scheduled event will not qualify toward this market’s resolution. If the event contains a Q&A, the Q&A will count toward the
+resolution of this market.
+
+Aired clips and the speaker
+If clips of old interviews or prerecorded videos in which {person} is speaking are aired as part of {event}, those clips will count
+toward this market’s resolution. Behind-the-scenes content, rehearsals, sound checks, and unofficial recordings will not count
+unless they are officially broadcast or published as part of {event}.
+
+When {entity} is defined by a position or title, the market tracks whoever holds that position during the event, even if the
+individual changes. When {entity} is a specific named individual, the identity remains consistent throughout, and name changes
+(for example, stage names or married names) do not create a new entity.
+
+Plurals and Possessives
+Plural or possessive usage of {word} by {entity} qualifies as speaking {word}, including possessive plural forms (e.g. if {word}
+is "Immigrant," "Immigrants" qualifies; if {word} is "Russia," "Russia's" qualifies, but "Russian" does not). Plural forms
+appearing within proper nouns or noun phrases also qualify (e.g. if {word} is "Cat," then "Cats" in "Cats the musical" qualifies).
+
+Specified Plural Forms
+When {word} is specified in a plural form, the singular does not qualify (e.g. if {word} is "Veterans," "Veteran" does not
+qualify).
+
+Plural-Spelled Variants
+A word spelled the same as the plural of {word} but that is not itself a plural of {word} does not qualify (e.g. if {word} is
+"Wind," then "Winds" in "winds up the clock" does not qualify). Conjugations, tenses, and derivations which are homographic
+with plurals will not be considered.
+
+Adjective-Only Words
+If {word} exists only in adjective form and no plural form exists, only the adjective form qualifies (e.g. "economic" is an
+adjective for which "economics" is not a plural, so "economics" would not qualify as a mention of "economic").
+
+Other Grammatical Changes
+Grammatical changes beyond plurals and possessives, including tense, conjugation, and derivation, do not qualify (e.g. if {word}
+is "Run," "Running" and "Ran" do not qualify; if {word} is "Immigrant," "Immigration" does not qualify).
+
+Compound Words
+A standalone use of {word}, including {word} separated from other words by a space or a hyphen, qualifies. Open compounds
+(words separated by spaces) qualify (e.g. if {word} is "fire," "fire station" qualifies). Closed compounds (a single word with no
+space or hyphen) qualify provided {word} remains a distinct component of the compound; this does not include suffixes,
+prefixes, alternative tenses, or grammatical variations that alter the root word (e.g. if {word} is "fire," "wildfire" and "firefighter"
+qualify; if {word} is "joy," "killjoy" qualifies, but "joyful" does not; if {word} is "wind," "windmill" qualifies).
+
+Hyphenated Constructs
+If {word} is part of a hyphenated construct, usage of that hyphenated construct qualifies (e.g. if {word} is "Palestine,"
+"pro-Palestine" qualifies; if {word} is "fat," "non-fat" qualifies; if {word} is "NATO," "non-NATO" qualifies). When {word} is a
+multi-word phrase appearing within a hyphenated construction, it qualifies only if {word} appears as a complete, unmodified
+element (e.g. if {word} is "New York," "New York-based" qualifies).
+
+Portmanteaus
+Portmanteaus (words blended from two words where parts of each are combined) do not qualify unless the portmanteau clearly
+contains {word} as a distinct, unaltered element (e.g. if {word} is "MAGA," "MAGA-nificent" qualifies because "MAGA"
+appears as a distinct element; if {word} is "magnificent," "MAGA-nificent" does not qualify because it is a blend).
+Acronyms
+An acronym, initialism, or abbreviation qualifies when it is spelled out letter by letter or pronounced consistent with its written
+form (e.g. if {word} is "NASA," then "NASA" (pronounced "NAH-suh") qualifies and "N-A-S-A" (spelled out) qualifies). An
+abbreviation pronounced as the full word qualifies (e.g. if {word} is "Doctor," "Dr." pronounced "Doctor" qualifies).
+
+Expanded Acronyms
+Expanded forms of acronyms do not qualify (e.g. if {word} is "CIA," "Central Intelligence Agency" does not qualify; if {word}
+is "AI," "artificial intelligence" does not qualify).
+
+Numbers Spoken as Words
+Numbers written as digits spoken as words qualify only as they are written and not as part of a larger numeral. Numbers written
+as words instead of digits must be spoken as written (e.g. if {word} is "5," saying "five," or reading "$5" aloud as "five dollars,"
+qualifies, but saying "five hundred" does not qualify; if {word} is "trillion," "five trillion" qualifies; if {word} is "410," then
+"four hundred ten," "four hundred and ten," "four one zero," "four one oh," or "four ten" qualifies).
+
+Ordinal Forms
+Ordinals qualify when {word} is written numerically or is a phrase that includes a number (e.g. if {word} is "January 6,"
+"January 6th" qualifies; if {word} is "3" (written numerically), "3rd" (spoken as "third") qualifies; if {word} is "Eight War," "8
+Wars" and "Eighth War" qualify).
+
+Cardinal vs. Ordinal
+Cardinal and ordinal number words are distinct (e.g. if {word} is "one," "first" does not qualify; if {word} is "first," "one" does
+not qualify).
+
+Transliterations
+Words with non-standard transliteration into English qualify within reason, provided they are phonetically equivalent (e.g.
+"Turkey" qualifies as a mention of "Türkiye," and "Zelenski," "Zelenskii," "Zelensky," or "Zelenskiy" qualify as one another
+when pronounced equivalently).
+
+Homophones
+Homophones (same sound, different spelling) do not qualify (e.g. if {word} is "write," "right" does not qualify).
+
+Homonyms and Homographs
+Homonyms and homographs (same spelling) qualify regardless of meaning, context, or pronunciation (e.g. if {word} is "bass,"
+both "bass guitar" and "bass fishing" qualify).
+
+Proper and Common Nouns
+Proper nouns and common nouns are treated identically (e.g. if {word} is "Apple," both "Apple Inc." and "apple" (the fruit)
+qualify; if {word} is "Will," both "Will Smith" and "I will go" qualify).
+
+Trademarked Spellings
+Trademarked or stylized spellings do not qualify unless the word itself is the same (e.g. if {word} is "lift," "Lyft" (pronounced
+"lift") does not qualify; if {word} is "uber," "Uber" qualifies).
+
+Foreign Words
+A word spoken in a foreign language does not qualify unless it is a perfect cognate of {word} (e.g. if {word} is "fire," "fuego"
+(Spanish) does not qualify).
+
+English in Foreign Sentences
+An English word spoken within a foreign-language sentence qualifies (e.g. if {word} is "policy," "Nuestra policy es clara"
+qualifies).
+
+Organization Names
+{word}, and its possessive and plural forms, qualify when they appear within an organization or company name (e.g. if {word} is
+"Securities," "Bank of America Securities" qualifies).
+
+URLs and Handles
+Words spoken as part of a URL, email address, handle, or hashtag (excluding the domain structure, email provider, or symbols)
+are treated as compounds when spoken as complete words, with the type of compound subject to the compound rules above (e.g.
+if {word} is "fire," "firestation.com" pronounced "fire station dot com" qualifies, "wildfire.com" pronounced "wildfire dot com"
+qualifies; if {word} is "apple," "apple.com" pronounced "apple dot com" qualifies). When presented in a URL, email, handle, or
+hashtag, {word} is treated as a compound rather than as a multi-word phrase.
+
+Mispronunciations
+Minor, unintentional mispronunciations qualify if the context makes the intended word clear (e.g. if {word} is "Mamdani,"
+"Mandani" qualifies). Severe mispronunciations that make {word} unrecognizable do not qualify. Instances where {word} is
+clearly pronounced as a different word from the one specified will not qualify (e.g., Khamenei vs. Khomeini).
+
+Elision
+If {word} is phonetically delivered through the combination of two terms, it will not qualify (e.g., {word} is “Kuwait” and
+ {entity} says “Jared Ku- Wait!”).
+
+Stylized Speech
+Sung, rapped, or poetic uses of {word} qualify if they are phonetically recognizable (e.g. if {word} is "money," "moneyyy"
+(extended in song) qualifies). Extreme distortion that makes {word} unrecognizable does not qualify.
+
+Phonetic Alphabet
+Spelling {word} using the phonetic alphabet does not qualify (e.g. if {word} is "FIRE," "Foxtrot India Romeo Echo" does not
+qualify). Verbally spelling words other than acronyms or initialisms will not qualify.
+
+On-Screen Text
+Text that {entity} displays on screen but does not say aloud does not qualify, including presentation slides, a teleprompter visible
+to the audience, and signatures. Subtitles or captions that display {word} on screen but are not spoken by {entity} do not qualify.
+Sign-language interpretation or use by {entity} does not qualify as speaking {word} unless the Contract Terms explicitly specify
+that sign language qualifies. On-screen text qualifies only if {entity} reads it aloud.
+
+Muted or Censored Words
+If {word} is muted due to technical failure or censorship, it does not qualify.
+
+AI-Generated Content
+AI-generated audio or video, deepfakes, and synthetic voice technology impersonating {entity} do not qualify, unless otherwise
+specified in the Contract Terms.
+
+Name Components
+If {word} refers to a specified number of mentions of a person's first or last name, a full-name mention will count as one mention
+(e.g. if {word} is "Joe / Biden 5+ times," a mention of "Joe Biden" will count once). Instances of an individual addressed as their
+title and name will qualify as a single mention (e.g. if {word} is "President / Trump 5+ times," "President Trump" will count as a
+single mention).
+
+Cancellation, postponement, and partial broadcast
+This market is explicitly about {event} at {time} on {date}.
+      ● If the event is definitively cancelled, or is otherwise not aired by the calendar day after {date} at 11:59 PM ET, the “No
+            Qualifying Event” outcome will resolve to “Yes” and all other outcomes will resolve to “No”, unless otherwise
+            specified in the event rules.
+      ● If the event is postponed or rescheduled, a new date is publicly announced within two calendar days of the originally
+           scheduled start time, and the rescheduled date falls within fourteen (14) calendar days of the originally scheduled date,
+           the market will remain open and remarks made during the rescheduled event will count. The fourteen-day window
+           begins at 12:00 AM ET on the originally scheduled date and ends at 11:59 PM ET fourteen days later, unless an
+           alternate time zone is explicitly specified.
+      ● If no new date is announced within two calendar days, or the rescheduled date falls more than fourteen (14) calendar
+            days after the originally scheduled date, the “No Qualifying Event” outcome will resolve to “Yes” and all other
+            outcomes will resolve to “No.”
+      ● If the event occurs within the fourteen-day window but with a change of venue, format, or medium (for example,
+           moved to a different location, or changed from in person to virtual, except for being closed to press), remarks made
+           during the event will count.
+      ● If the event begins but is interrupted, abbreviated, or ends prematurely, remarks made by {entity} during the portion
+           that did occur will count, and the market will otherwise resolve.
+If the event is pre-recorded, this market will resolve according to the audio or video of the first official release. Transcripts or any
+subsequent releases that differ from the initial release will not be considered. If the recording is only partially aired by one
+calendar day after {date}, 11:59PM ET, this market will resolve according to what has aired up to that point.
+
+Source Agency
+The resolution source will be audio or video of the event as provided by the White House, Reuters, Associated Press, Bloomberg
+News, Agence France-Presse, The New York Times, Financial Times, The Wall Street Journal, BBC, Al Jazeera English,
+Semafor, The Information, The Washington Post, Axios, Politico, ABC, CBS, CNN, Fox News, NBC, MSNBC. Additional
+sources may be provided in the contract terms. Unless otherwise specified, only remarks that are broadcast or streamed live will
+count toward this market’s resolution. Pre-recorded content that is broadcast, streamed, or published as part of {event} is
+included if it is presented as part of the official presentation (for example, a pre-recorded video interlude during which {entity}
+speaks).
+
+exec
+/usr/bin/zsh -lc "python -u - <<'PY'
+import requests,concurrent.futures,math,statistics,datetime,json
+now=datetime.datetime.now(datetime.timezone.utc)
+def get(sym):
+ d=requests.get('https://api.binance.com/api/v3/klines',params={'symbol':sym+'USDT','interval':'1m','limit':1000},timeout=10).json()
+ if not isinstance(d,list):return sym,d
+ with open('/tmp/forecast_'+sym+'_minute.json','w') as f:json.dump(d,f)
+ out={'current':d[-1][1:5],'minute':datetime.datetime.fromtimestamp(d[-1][0]/1000,datetime.timezone.utc).isoformat()}
+ op=[x for x in d if x[0]==1792908000000][0];price=float(d[-1][4]);delta=price-float(op[1]);remain=(1792911600-d[-1][0]/1000)/60
+ out.update({'open_2am':op[1],'delta':round(delta,3),'minutes_left':remain})
+ for n in [30,60,120,240,600,999]:
+  a=d[-n-1:-1];r=[float(x[4])-float(x[1]) for x in a];std=statistics.stdev(r);future=std*math.sqrt(remain)
+  out[str(n)]={'minute_sd':round(std,3),'remaining_sd':round(future,3),'pup':round(0.5*(1+math.erf(delta/future/math.sqrt(2))),3)}
+ return sym,out
+with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
+ for x in ex.map(get,['ETH','BTC']):print(x)
+PY" in /tmp/apb-sweep-codex-q1y4gm9c
+ succeeded in 248ms:
+('ETH', {'current': ['2350.62000000', '2350.63000000', '2350.62000000', '2350.63000000'], 'minute': '2026-10-25T06:34:00+00:00', 'open_2am': '2353.45000000', 'delta': -2.82, 'minutes_left': 26.0, '30': {'minute_sd': 1.151, 'remaining_sd': 5.871, 'pup': 0.315}, '60': {'minute_sd': 1.243, 'remaining_sd': 6.339, 'pup': 0.328}, '120': {'minute_sd': 0.98, 'remaining_sd': 4.999, 'pup': 0.286}, '240': {'minute_sd': 0.823, 'remaining_sd': 4.195, 'pup': 0.251}, '600': {'minute_sd': 0.851, 'remaining_sd': 4.338, 'pup': 0.258}, '999': {'minute_sd': 1.672, 'remaining_sd': 8.528, 'pup': 0.37}})
+('BTC', {'current': ['80622.27000000', '80622.27000000', '80622.26000000', '80622.27000000'], 'minute': '2026-10-25T06:34:00+00:00', 'open_2am': '80607.64000000', 'delta': 14.63, 'minutes_left': 26.0, '30': {'minute_sd': 18.314, 'remaining_sd': 93.381, 'pup': 0.562}, '60': {'minute_sd': 21.15, 'remaining_sd': 107.844, 'pup': 0.554}, '120': {'minute_sd': 18.394, 'remaining_sd': 93.793, 'pup': 0.562}, '240': {'minute_sd': 15.56, 'remaining_sd': 79.342, 'pup': 0.573}, '600': {'minute_sd': 16.532, 'remaining_sd': 84.296, 'pup': 0.569}, '999': {'minute_sd': 32.447, 'remaining_sd': 165.45, 'pup': 0.535}})
+
+codex
+The sampled rally transcripts show wide variation in word counts, so I’m adjusting those forecasts cautiously. The [official event page](https://events.gop.com/events/midterm-rally-in-st-clair-mi-president-donald-j-trump-djt47) also now lists October 25 in Port Huron, while the contracts still name October 26; that adds some resolution uncertainty.
+
+exec
+/usr/bin/zsh -lc "python -u - <<'PY'
+import glob,re,requests,json,concurrent.futures
+for f in glob.glob('/tmp/*trump*.txt'):
+ tx=open(f).read();tx=tx[tx.find('Full Transcript'):] if 'Full Transcript' in tx else tx
+ c={w:len(re.findall(r'\\b'+w+r'\\b',tx,re.I)) for w in ['hellhole','hellholes','hellbent','badass','badasses','dumbass','dumbasses','asshole','assholes','asses']}
+ print(f.split('/')[-1],{k:v for k,v in c.items() if v})
+u='https://gamma-api.polymarket.com/events?slug=what-will-trump-say-during-his-midterm-rally-in-michigan-october-26'
+d=requests.get(u,timeout=10).json()[0]
+print('event',json.dumps({k:v for k,v in d.items() if k in ['id','title','description','startDate','endDate','createdAt','updatedAt','eventDate','startTime','commentCount','enableNegRisk','negRisk','resolutionSource','eventMetadata']}))
+print('allprices',json.dumps([{k:m.get(k) for k in ['question','outcomePrices','bestBid','bestAsk']} for m in d['markets']]))
+PY" in /tmp/apb-sweep-codex-q1y4gm9c
+ succeeded in 235ms:
+trump-greenville-north-carolina-october-20-2026.txt {}
+trump-sioux-city-iowa-october-22-2026.txt {}
+trump-park-city-kansas-october-19-2026.txt {}
+trump-pendleton-south-carolina-october-21-2026.txt {}
+donald-trump-speech-midterm-political-rally-clarksville-tennessee-october-10-2026.txt {}
+donald-trump-speech-midterm-political-rally-fort-myers-florida-october-23-2026.txt {}
+donald-trump-speech-midterm-political-rally-syracuse-new-york-october-9-2026.txt {'hellhole': 1}
+donald-trump-speech-midterm-political-rally-wasilla-alaska-october-13-2026.txt {}
+event {"id": "1242924", "title": "What will Trump say during his Midterm Rally in Michigan?", "description": "Donald Trump is scheduled to give remarks during his Midterm Rally in St. Clair, Michigan on October 26, 2026 at 3:00 PM ET. (https://events.gop.com/events/midterm-rally-in-st-clair-mi-president-donald-j-trump-djt47)\n\nThis market will resolve to \"Yes\" if Donald Trump says the listed term during the specified appearance. Otherwise, the market will resolve to \"No\".\n\nThis market is explicitly about Trump's remarks at the Midterm Rally in Michigan on October 26, 2026. Speeches, events, or comments that occur outside of the named, scheduled event will not qualify toward this market's resolution.\n\nThe resolution source will be audio/video of the event.\n\nFor full rules, see: https://polymarket-upload.s3.us-east-2.amazonaws.com/market_products/Mentions/Event+Mentions+Contract+DeFi.pdf", "resolutionSource": "", "startDate": "2026-10-23T22:16:16Z", "endDate": "2026-10-26T19:05:00Z", "createdAt": "2026-10-23T22:15:36.733424Z", "updatedAt": "2026-10-25T06:34:48.539143Z", "negRisk": false, "commentCount": 6, "enableNegRisk": false, "startTime": "2026-10-26T19:00:00Z", "eventMetadata": {"context_requires_regen": true}}
+allprices [{"question": "Will Trump say \"Million\" or \"Billion\" or \"Trillion\" 30+ times during his Midterm Rally in Michigan?", "outcomePrices": "[\"0.755\", \"0.245\"]", "bestBid": 0.58, "bestAsk": 0.93}, {"question": "Will Trump say \"Biden\" or \"Kamala\" or \"Obama\" 15+ times during his Midterm Rally in Michigan?", "outcomePrices": "[\"0.45\", \"0.55\"]", "bestBid": 0.14, "bestAsk": 0.76}, {"question": "Will Trump say \"Hell\" 15+ times during his Midterm Rally in Michigan?", "outcomePrices": "[\"0.46\", \"0.54\"]", "bestBid": 0.4, "bestAsk": 0.52}, {"question": "Will Trump say \"Transgender\" 7+ times during his Midterm Rally in Michigan?", "outcomePrices": "[\"0.455\", \"0.545\"]", "bestBid": 0.41, "bestAsk": 0.5}, {"question": "Will Trump say \"China\" or \"Chinese\" 7+ times during his Midterm Rally in Michigan?", "outcomePrices": "[\"0.445\", \"0.555\"]", "bestBid": 0.42, "bestAsk": 0.47}, {"question": "Will Trump say \"Canada\" 4+ times during his Midterm Rally in Michigan?", "outcomePrices": "[\"0.66\", \"0.34\"]", "bestBid": 0.59, "bestAsk": 0.73}, {"question": "Will Trump say \"SI\" or \"Super Intelligence\" during his Midterm Rally in Michigan?", "outcomePrices": "[\"0.62\", \"0.38\"]", "bestBid": 0.57, "bestAsk": 0.67}, {"question": "Will Trump say \"AI\" or \"Artificial Intelligence\" during his Midterm Rally in Michigan?", "outcomePrices": "[\"0.245\", \"0.755\"]", "bestBid": 0.22, "bestAsk": 0.27}, {"question": "Will Trump say \"Ass\" during his Midterm Rally in Michigan?", "outcomePrices": "[\"0.38\", \"0.62\"]", "bestBid": 0.29, "bestAsk": 0.47}, {"question": "Will Trump say \"Electric\" or \"Electricity\" during his Midterm Rally in Michigan?", "outcomePrices": "[\"0.61\", \"0.39\"]", "bestBid": 0.53, "bestAsk": 0.69}, {"question": "Will Trump say \"Marxist\" during his Midterm Rally in Michigan?", "outcomePrices": "[\"0.57\", \"0.43\"]", "bestBid": 0.42, "bestAsk": 0.72}, {"question": "Will Trump say \"Palestine\" or \"Palestinian\" during his Midterm Rally in Michigan?", "outcomePrices": "[\"0.24\", \"0.76\"]", "bestBid": 0.04, "bestAsk": 0.44}, {"question": "Will Trump say \"Osama Bin Laden\" during his Midterm Rally in Michigan?", "outcomePrices": "[\"0.49\", \"0.51\"]", "bestBid": 0.4, "bestAsk": 0.58}, {"question": "Will Trump say \"Maduro\" during his Midterm Rally in Michigan?", "outcomePrices": "[\"0.55\", \"0.45\"]", "bestBid": 0.5, "bestAsk": 0.6}, {"question": "Will Trump say \"Data Center\" during his Midterm Rally in Michigan?", "outcomePrices": "[\"0.265\", \"0.735\"]", "bestBid": 0.03, "bestAsk": 0.5}, {"question": "Will Trump say \"Russia\" or \"Ukraine\" during his Midterm Rally in Michigan?", "outcomePrices": "[\"0.705\", \"0.295\"]", "bestBid": 0.69, "bestAsk": 0.72}, {"question": "Will Trump say \"Hormuz\" or \"Blockade\" during his Midterm Rally in Michigan?", "outcomePrices": "[\"0.67\", \"0.33\"]", "bestBid": 0.6, "bestAsk": 0.74}, {"question": "Will Trump say \"Fentanyl\" or \"Deport\" or \"Deported\" during his Midterm Rally in Michigan?", "outcomePrices": "[\"0.29\", \"0.71\"]", "bestBid": 0.25, "bestAsk": 0.33}, {"question": "Will Trump say \"Bitcoin\" or \"Crypto\" or \"Cryptocurrency\" during his Midterm Rally in Michigan?", "outcomePrices": "[\"0.023\", \"0.977\"]", "bestBid": 0.006, "bestAsk": 0.04}, {"question": "Will Trump's Midterm Rally in Michigan not air?", "outcomePrices": "[\"0.0055\", \"0.9945\"]", "bestBid": 0.001, "bestAsk": 0.01}]
+
+web search: 
+web search: 
+web search: "Trump" "Perry" "October 24, 2026" "transcript" ...
+web search: site:stake.com "Team Liquid" "OG" "10/25/2026" ...
+web search: 
+web search: 
+web search: "United Arab Emirates" "Netherlands" "25 Oct 2026" "live" "score"
+web search: "Team Liquid" "OG" "PARI Universe" "Map 1 Winner" ...
+exec
+/usr/bin/zsh -lc "python -u - <<'PY'
+import requests,re,datetime,concurrent.futures,statistics,math,json
+slugs=['what-price-will-spy-hit-in-october-2026','bknbl-mel-syd-2026-10-25','crint-are-nld-2026-10-25','ethereum-up-or-down-october-25-2026-2am-et','bitcoin-up-or-down-october-25-2026-2am-et']
+def get(slug):
+ try:
+  d=requests.get('https://gamma-api.polymarket.com/events',params={'slug':slug},timeout=10).json()
+  return slug,[{k:m.get(k) for k in ['question','outcomePrices','bestBid','bestAsk','volume']} for e in d for m in e.get('markets',[]) if not m.get('closed') and (not 'spy' in slug or any(x in m.get('question','') for x in ['"'$740'"','"'$750'"','"'$770'"','"'$780'"']))]
+ except Exception as e:return slug,str(e)
+with concurrent.futures.ThreadPoolExecutor(max_workers=5) as ex:
+ for x in ex.map(get,slugs):print(json.dumps(x))
+u='https://mesonet.agron.iastate.edu/cgi-bin/request/daily.py?network=GA_ASOS&stations=ATL&year1=2026&month1=10&day1=24&year2=2026&month2=10&day2=24'
+r=requests.get(u,timeout=10);print('KATL',r.status_code,r.text[:2000])
+PY" in /tmp/apb-sweep-codex-q1y4gm9c
+ succeeded in 617ms:
+["what-price-will-spy-hit-in-october-2026", [{"question": "Will S&P 500 (SPY) hit (LOW) $750 in October?", "outcomePrices": "[\"0.48\", \"0.52\"]", "bestBid": 0.46, "bestAsk": 0.5, "volume": "28743.401484999995"}, {"question": "Will S&P 500 (SPY) hit (LOW) $740 in October?", "outcomePrices": "[\"0.19\", \"0.81\"]", "bestBid": 0.16, "bestAsk": 0.22, "volume": "23412.229731000003"}, {"question": "Will S&P 500 (SPY) hit (HIGH) $780 in October?", "outcomePrices": "[\"0.2245\", \"0.7755\"]", "bestBid": 0.208, "bestAsk": 0.241, "volume": "7709.627152999999"}, {"question": "Will S&P 500 (SPY) hit (HIGH) $770 in October?", "outcomePrices": "[\"0.6\", \"0.4\"]", "bestBid": 0.59, "bestAsk": 0.61, "volume": "230.959614"}]]
+["bknbl-mel-syd-2026-10-25", [{"question": "Melbourne United vs. Sydney Kings", "outcomePrices": "[\"0.355\", \"0.645\"]", "bestBid": 0.34, "bestAsk": 0.37, "volume": "34894.80830299999"}, {"question": "Spread: Sydney Kings (-1.5)", "outcomePrices": "[\"0.75\", \"0.25\"]", "bestBid": 0.51, "bestAsk": 0.99, "volume": "4849.575333000001"}, {"question": "Melbourne United vs. Sydney Kings: O/U 193.5", "outcomePrices": "[\"0.745\", \"0.255\"]", "bestBid": 0.51, "bestAsk": 0.98, "volume": "8744.926356999998"}]]
+["crint-are-nld-2026-10-25", [{"question": "Cricket World Cup League 2: UAE vs Netherlands", "outcomePrices": "[\"0.325\", \"0.675\"]", "bestBid": 0.31, "bestAsk": 0.34, "volume": "6223.649049"}]]
+["ethereum-up-or-down-october-25-2026-2am-et", [{"question": "Ethereum Up or Down - October 25, 2AM ET", "outcomePrices": "[\"0.265\", \"0.735\"]", "bestBid": 0.26, "bestAsk": 0.27, "volume": "1398.659143"}]]
+["bitcoin-up-or-down-october-25-2026-2am-et", [{"question": "Bitcoin Up or Down - October 25, 2AM ET", "outcomePrices": "[\"0.625\", \"0.375\"]", "bestBid": 0.62, "bestAsk": 0.63, "volume": "4500.944568999999"}]]
+KATL 200 station,day,max_temp_f,min_temp_f,max_dewpoint_f,min_dewpoint_f,precip_in,avg_wind_speed_kts,avg_wind_drct,min_rh,avg_rh,max_rh,snow_in,snowd_in,min_feel,avg_feel,max_feel,max_wind_speed_kts,max_wind_gust_kts,srad_mj,network,climo_high_f,climo_low_f,climo_precip_in
+ATL,2026-10-24,70.0,51.0,47.0,40.0,0.0,9.719674,63.8002,45.215736,58.843483,76.94182,None,None,51.0,59.5,69.0,16.0,22.0,None,GA_ASOS,71.6,51.6,0.11
+
+
+exec
+/usr/bin/zsh -lc "python -u - <<'PY'
+import requests,json,concurrent.futures,datetime,math,statistics
+slugs=['ethereum-up-or-down-october-25-2026-2am-et','bitcoin-up-or-down-october-25-2026-2am-et','bknbl-mel-syd-2026-10-25','crint-are-nld-2026-10-25','what-price-will-ethereum-hit-on-october-25-2026','what-price-will-bitcoin-hit-on-october-25-2026']
+def gamma(slug):
+ d=requests.get('https://gamma-api.polymarket.com/events',params={'slug':slug},timeout=10).json()
+ return slug,[{'q':m.get('question'),'p':m.get('outcomePrices'),'bid':m.get('bestBid'),'ask':m.get('bestAsk')} for e in d for m in e.get('markets',[]) if m.get('question')==e.get('title') or any(s in m.get('question','') for s in ['"'$2,400'"','"'$2,300'"','"'$81,000'"'])]
+def price(sym):
+ d=requests.get('https://api.binance.com/api/v3/klines',params={'symbol':sym+'USDT','interval':'1m','limit':240},timeout=10).json()
+ op=[x for x in d if x[0]==1792908000000][0];p=float(d[-1][4]);delta=p-float(op[1]);remain=(1792911600-d[-1][0]/1000)/60
+ out={'time':datetime.datetime.fromtimestamp(d[-1][0]/1000,datetime.timezone.utc).isoformat(),'price':p,'open':op[1],'delta':round(delta,2),'remain':remain}
+ for n in [15,30,60,120]:
+  r=[float(x[4])-float(x[1]) for x in d[-n-1:-1]];sd=statistics.stdev(r)*math.sqrt(remain)
+  out[str(n)]=[round(sd,2),round(.5*(1+math.erf(delta/sd/math.sqrt(2))),3)]
+ return sym,out
+def nbl():
+ d=requests.get('https://site.api.espn.com/apis/site/v2/sports/basketball/nbl/scoreboard?dates=20261025',timeout=10).json()
+ return 'NBL',[{'name':e.get('name'),'status':e.get('status'),'teams':[(c.get('team',{}).get('displayName'),c.get('score')) for c in e.get('competitions',[{}])[0].get('competitors',[])]} for e in d.get('events',[]) if 'Sydney' in e.get('name','')]
+with concurrent.futures.ThreadPoolExecutor(max_workers=9) as ex:
+ fs=[ex.submit(gamma,s) for s in slugs]+[ex.submit(price,s) for s in ['ETH','BTC']]+[ex.submit(nbl)]
+ for f in fs:
+  try:print(json.dumps(f.result()))
+  except Exception as e:print(str(e))
+PY" in /tmp/apb-sweep-codex-q1y4gm9c
+ succeeded in 318ms:
+["ethereum-up-or-down-october-25-2026-2am-et", [{"q": "Ethereum Up or Down - October 25, 2AM ET", "p": "[\"0.205\", \"0.795\"]", "bid": 0.2, "ask": 0.21}]]
+["bitcoin-up-or-down-october-25-2026-2am-et", [{"q": "Bitcoin Up or Down - October 25, 2AM ET", "p": "[\"0.625\", \"0.375\"]", "bid": 0.62, "ask": 0.63}]]
+["bknbl-mel-syd-2026-10-25", [{"q": "Melbourne United vs. Sydney Kings", "p": "[\"0.355\", \"0.645\"]", "bid": 0.34, "ask": 0.37}]]
+["crint-are-nld-2026-10-25", [{"q": "Cricket World Cup League 2: UAE vs Netherlands", "p": "[\"0.325\", \"0.675\"]", "bid": 0.31, "ask": 0.34}]]
+["what-price-will-ethereum-hit-on-october-25-2026", [{"q": "Will Ethereum reach $2,400 on October 25?", "p": "[\"0.295\", \"0.705\"]", "bid": 0.27, "ask": 0.32}, {"q": "Will Ethereum dip to $2,300 on October 25?", "p": "[\"0.29\", \"0.71\"]", "bid": 0.28, "ask": 0.3}]]
+["what-price-will-bitcoin-hit-on-october-25-2026", [{"q": "Will Bitcoin reach $81,000 on October 25?", "p": "[\"0.731\", \"0.269\"]", "bid": 0.727, "ask": 0.735}]]
+["ETH", {"time": "2026-10-25T06:38:00+00:00", "price": 2347.6, "open": "2353.45000000", "delta": -5.85, "remain": 22.0, "15": [4.11, 0.077], "30": [4.71, 0.107], "60": [5.73, 0.154], "120": [4.58, 0.101]}]
+["BTC", {"time": "2026-10-25T06:38:00+00:00", "price": 80545.19, "open": "80607.64000000", "delta": -62.45, "remain": 22.0, "15": [65.37, 0.17], "30": [82.99, 0.226], "60": [100.86, 0.268], "120": [86.2, 0.234]}]
+["NBL", [{"name": "Sydney Kings at Melbourne United", "status": {"clock": 352.0, "displayClock": "5:52", "period": 2, "type": {"id": "2", "name": "STATUS_IN_PROGRESS", "state": "in", "completed": false, "description": "In Progress", "detail": "5:52 - 2nd Quarter", "shortDetail": "5:52 - 2nd"}}, "teams": [["Melbourne United", "42"], ["Sydney Kings", "41"]]}]]
+
+codex
+I’ve covered all 30 markets. I’m making one final check of the live basketball score and the two hourly crypto prices, then validating that every outcome is included and each market sums to 1.
+
+exec
+/usr/bin/zsh -lc "python -u - <<'PY'
+import requests,concurrent.futures,json
+slugs=['ethereum-up-or-down-october-25-2026-2am-et','bitcoin-up-or-down-october-25-2026-2am-et','bknbl-mel-syd-2026-10-25']
+def get(s):
+ try:
+  es=requests.get('https://gamma-api.polymarket.com/events',params={'slug':s},timeout=8).json();m=es[0]['markets'][0];ids=json.loads(m['clobTokenIds']);outcomes=json.loads(m['outcomes'])
+  mids=[]
+  for tok in ids:
+   r=requests.get('https://clob.polymarket.com/book',params={'token_id':tok},timeout=8).json()
+   bid=max((float(a['price']) for a in r.get('bids',[])),default=None);ask=min((float(a['price']) for a in r.get('asks',[])),default=None)
+   mids.append({'bid':bid,'ask':ask,'timestamp':r.get('timestamp')})
+  return s,{'updated':m.get('updatedAt'),'outcomes':outcomes,'gamma':m.get('outcomePrices'),'clob':mids}
+ except Exception as e:return s,str(e)
+with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
+ for x in ex.map(get,slugs):print(json.dumps(x))
+PY" in /tmp/apb-sweep-codex-q1y4gm9c
+ succeeded in 160ms:
+["ethereum-up-or-down-october-25-2026-2am-et", {"updated": "2026-10-25T06:36:36.73149Z", "outcomes": ["Up", "Down"], "gamma": "[\"0.205\", \"0.795\"]", "clob": [{"bid": 0.04, "ask": 0.05, "timestamp": "1792910352195"}, {"bid": 0.95, "ask": 0.96, "timestamp": "1792910352289"}]}]
+["bitcoin-up-or-down-october-25-2026-2am-et", {"updated": "2026-10-25T06:34:37.204288Z", "outcomes": ["Up", "Down"], "gamma": "[\"0.625\", \"0.375\"]", "clob": [{"bid": 0.22, "ask": 0.23, "timestamp": "1792910352211"}, {"bid": 0.77, "ask": 0.78, "timestamp": "1792910352288"}]}]
+["bknbl-mel-syd-2026-10-25", {"updated": "2026-10-25T06:34:37.204288Z", "outcomes": ["Melbourne United", "Sydney Kings"], "gamma": "[\"0.355\", \"0.645\"]", "clob": [{"bid": 0.42, "ask": 0.44, "timestamp": "1792910351179"}, {"bid": 0.56, "ask": 0.58, "timestamp": "1792910352247"}]}]
+
+exec
+/usr/bin/zsh -lc "python -u - <<'PY'
+import requests,concurrent.futures,json,datetime,math,statistics
+
+def crypto(sym):
+ d=requests.get('https://api.binance.com/api/v3/klines',params={'symbol':sym+'USDT','interval':'1m','limit':180},timeout=8).json()
+ op=[x for x in d if x[0]==1792908000000][0];p=float(d[-1][4]);delta=p-float(op[1]);remain=(1792911600-d[-1][0]/1000)/60
+ out={'time':datetime.datetime.fromtimestamp(d[-1][0]/1000,datetime.timezone.utc).isoformat(),'price':p,'open':op[1],'delta':round(delta,2),'remain':remain}
+ for n in [15,30,60,120]:
+  r=[float(x[4])-float(x[1]) for x in d[-n-1:-1]];sd=statistics.stdev(r)*math.sqrt(remain)
+  out[str(n)]=[round(sd,2),round(.5*(1+math.erf(delta/sd/math.sqrt(2))),3)]
+ return sym,out
+
+def book(slug,terms):
+ d=requests.get('https://gamma-api.polymarket.com/events',params={'slug':slug},timeout=8).json();out=[]
+ for e in d:
+  for m in e.get('markets',[]):
+   if not any(s in m.get('question','') for s in terms):continue
+   tok=json.loads(m['clobTokenIds'])[0]
+   r=requests.get('https://clob.polymarket.com/book',params={'token_id':tok},timeout=8).json()
+   out.append({'q':m.get('question'),'bid':max((float(a['price']) for a in r.get('bids',[])),default=None),'ask':min((float(a['price']) for a in r.get('asks',[])),default=None),'timestamp':r.get('timestamp')})
+ return slug,out
+
+def nbl():
+ d=requests.get('https://site.api.espn.com/apis/site/v2/sports/basketball/nbl/scoreboard?dates=20261025',timeout=8).json()
+ return 'NBL',[{'status':e['status']['type']['detail'],'teams':[(c['team']['displayName'],c['score']) for c in e['competitions'][0]['competitors']]} for e in d.get('events',[]) if 'Sydney' in e.get('name','')]
+with concurrent.futures.ThreadPoolExecutor(max_workers=7) as ex:
+ fs=[ex.submit(crypto,s) for s in ['ETH','BTC']]+[ex.submit(book,'what-price-will-ethereum-hit-on-october-25-2026',['"'$2,400'"','"'$2,300'"']),ex.submit(book,'what-price-will-bitcoin-hit-on-october-25-2026',['"'$81,000'"']),ex.submit(book,'crint-are-nld-2026-10-25',['UAE']),ex.submit(nbl)]
+ for f in fs:
+  try:print(json.dumps(f.result()))
+  except Exception as e:print(str(e))
+PY" in /tmp/apb-sweep-codex-q1y4gm9c
+ succeeded in 271ms:
+["ETH", {"time": "2026-10-25T06:39:00+00:00", "price": 2347.92, "open": "2353.45000000", "delta": -5.53, "remain": 21.0, "15": [4.01, 0.084], "30": [4.59, 0.114], "60": [5.57, 0.16], "120": [4.46, 0.107]}]
+["BTC", {"time": "2026-10-25T06:39:00+00:00", "price": 80545.18, "open": "80607.64000000", "delta": -62.46, "remain": 21.0, "15": [72.2, 0.194], "30": [85.27, 0.232], "60": [97.95, 0.262], "120": [85.09, 0.231]}]
+["what-price-will-ethereum-hit-on-october-25-2026", [{"q": "Will Ethereum reach $2,400 on October 25?", "bid": 0.26, "ask": 0.29, "timestamp": "1792910392393"}, {"q": "Will Ethereum dip to $2,300 on October 25?", "bid": 0.31, "ask": 0.36, "timestamp": "1792910379187"}]]
+["what-price-will-bitcoin-hit-on-october-25-2026", [{"q": "Will Bitcoin reach $81,000 on October 25?", "bid": 0.678, "ask": 0.685, "timestamp": "1792910394116"}]]
+["crint-are-nld-2026-10-25", [{"q": "Cricket World Cup League 2: UAE vs Netherlands", "bid": 0.32, "ask": 0.34, "timestamp": "1792910393557"}]]
+["NBL", [{"status": "5:40 - 2nd Quarter", "teams": [["Melbourne United", "42"], ["Sydney Kings", "41"]]}]]
+
+codex
+{"forecasts":[{"id":"38633","probabilities":{"Yes":0.23,"No":0.77}},{"id":"38536","probabilities":{"Yes":0.38,"No":0.62}},{"id":"38642","probabilities":{"Yes":0.32,"No":0.68}},{"id":"38629","probabilities":{"Yes":0.30,"No":0.70}},{"id":"35045","probabilities":{"Yes":0.56,"No":0.44}},{"id":"38631","probabilities":{"BetBoom Team":0.54,"Nemiga":0.46}},{"id":"38600","probabilities":{"Yes":0.47,"No":0.53}},{"id":"38196","probabilities":{"Yes":0.71,"No":0.29}},{"id":"38641","probabilities":{"Yes":0.28,"No":0.72}},{"id":"38584","probabilities":{"Melbourne United":0.45,"Sydney Kings":0.55}},{"id":"3149","probabilities":{"Yes":0.23,"No":0.77}},{"id":"38452","probabilities":{"Vitality":0.705,"TheMongolz":0.295}},{"id":"38595","probabilities":{"Yes":0.39,"No":0.61}},{"id":"38195","probabilities":{"Yes":0.36,"No":0.64}},{"id":"38610","probabilities":{"Up":0.10,"Down":0.90}},{"id":"38582","probabilities":{"Wild":0.625,"Canucks":0.375}},{"id":"3142","probabilities":{"Yes":0.20,"No":0.80}},{"id":"38424","probabilities":{"Team Liquid":0.30,"Anyone's Legend":0.70}},{"id":"38592","probabilities":{"Yes":0.345,"No":0.655}},{"id":"38157","probabilities":{"Yes":0.72,"No":0.28}},{"id":"38599","probabilities":{"Up":0.235,"Down":0.765}},{"id":"38544","probabilities":{"UAE":0.33,"Netherlands":0.67}},{"id":"3141","probabilities":{"Yes":0.50,"No":0.50}},{"id":"38398","probabilities":{"Team Liquid":0.54,"OG":0.46}},{"id":"38573","probabilities":{"Yes":0.002,"No":0.998}},{"id":"38001","probabilities":{"Yes":0.69,"No":0.31}},{"id":"38509","probabilities":{"Yes":0.69,"No":0.31}},{"id":"38518","probabilities":{"Pacers":0.55,"Bucks":0.45}},{"id":"38449","probabilities":{"Yes":0.85,"No":0.15}},{"id":"38358","probabilities":{"Karmine Corp":0.30,"Bilibili Gaming":0.70}}]}
+tokens used
+183,004
+{"forecasts":[{"id":"38633","probabilities":{"Yes":0.23,"No":0.77}},{"id":"38536","probabilities":{"Yes":0.38,"No":0.62}},{"id":"38642","probabilities":{"Yes":0.32,"No":0.68}},{"id":"38629","probabilities":{"Yes":0.30,"No":0.70}},{"id":"35045","probabilities":{"Yes":0.56,"No":0.44}},{"id":"38631","probabilities":{"BetBoom Team":0.54,"Nemiga":0.46}},{"id":"38600","probabilities":{"Yes":0.47,"No":0.53}},{"id":"38196","probabilities":{"Yes":0.71,"No":0.29}},{"id":"38641","probabilities":{"Yes":0.28,"No":0.72}},{"id":"38584","probabilities":{"Melbourne United":0.45,"Sydney Kings":0.55}},{"id":"3149","probabilities":{"Yes":0.23,"No":0.77}},{"id":"38452","probabilities":{"Vitality":0.705,"TheMongolz":0.295}},{"id":"38595","probabilities":{"Yes":0.39,"No":0.61}},{"id":"38195","probabilities":{"Yes":0.36,"No":0.64}},{"id":"38610","probabilities":{"Up":0.10,"Down":0.90}},{"id":"38582","probabilities":{"Wild":0.625,"Canucks":0.375}},{"id":"3142","probabilities":{"Yes":0.20,"No":0.80}},{"id":"38424","probabilities":{"Team Liquid":0.30,"Anyone's Legend":0.70}},{"id":"38592","probabilities":{"Yes":0.345,"No":0.655}},{"id":"38157","probabilities":{"Yes":0.72,"No":0.28}},{"id":"38599","probabilities":{"Up":0.235,"Down":0.765}},{"id":"38544","probabilities":{"UAE":0.33,"Netherlands":0.67}},{"id":"3141","probabilities":{"Yes":0.50,"No":0.50}},{"id":"38398","probabilities":{"Team Liquid":0.54,"OG":0.46}},{"id":"38573","probabilities":{"Yes":0.002,"No":0.998}},{"id":"38001","probabilities":{"Yes":0.69,"No":0.31}},{"id":"38509","probabilities":{"Yes":0.69,"No":0.31}},{"id":"38518","probabilities":{"Pacers":0.55,"Bucks":0.45}},{"id":"38449","probabilities":{"Yes":0.85,"No":0.15}},{"id":"38358","probabilities":{"Karmine Corp":0.30,"Bilibili Gaming":0.70}}]}

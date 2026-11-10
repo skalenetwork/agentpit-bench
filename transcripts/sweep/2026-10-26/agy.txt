@@ -1,0 +1,44 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+40857 | Will Alphabet Inc. (GOOGL) hit (HIGH) $330 in October? | Yes 0.360, No 0.640 | 2026-11-01T03:59:59Z
+40821 | Will Cheryl Fuller win the next Central Coast mayoral election? | Yes 0.545, No 0.455 | 2026-10-28T03:59:00Z
+40928 | Bitcoin Up or Down - October 26, 3:00AM-3:15AM ET | Up 0.495, Down 0.505 | 2026-10-26T07:15:00Z
+40927 | Trail Blazers vs. Lakers | Trail Blazers 0.455, Lakers 0.545 | 2026-10-28T03:00:00Z
+40868 | S&P 500 (SPX) Opens Up or Down on October 26? | Up 0.675, Down 0.325 | 2026-10-26T20:00:00Z
+40930 | Dota 2: Team Yandex vs Team Liquid - Game 1 Winner | Team Yandex 0.715, Team Liquid 0.285 | 2026-10-26T18:00:00Z
+40852 | Will Alphabet Inc. (GOOGL) hit (HIGH) $340 in October? | Yes 0.230, No 0.770 | 2026-11-01T03:59:59Z
+40804 | Will John Kelly win the next Hobart mayoral election? | Yes 0.182, No 0.818 | 2026-10-28T03:59:00Z
+40924 | Bitcoin Up or Down - October 26, 2AM ET | Up 0.175, Down 0.825 | 2026-10-26T07:00:00Z
+40888 | Pistons vs. Knicks | Pistons 0.445, Knicks 0.555 | 2026-10-28T00:00:00Z
+38842 | Will Boeing (BA) beat quarterly earnings? | Yes 0.650, No 0.350 | 2026-10-27T13:00:00Z
+40897 | Counter-Strike: TheMongolz vs MOUZ - Map 1 Winner | TheMongolz 0.305, MOUZ 0.695 | 2026-10-26T12:00:00Z
+40820 | Will Çaykur Rizespor win on 2026-10-26? | Yes 0.255, No 0.745 | 2026-10-26T16:00:00Z
+40797 | Will Kyle Barrett win the next Launceston mayoral election? | Yes 0.250, No 0.750 | 2026-10-28T03:59:00Z
+40841 | Will Bitcoin dip to $79,000 on October 26? | Yes 0.425, No 0.575 | 2026-10-27T04:00:00Z
+40779 | Kings vs. Rangers | Kings 0.445, Rangers 0.555 | 2026-10-26T23:00:00Z
+38841 | Will Royal Caribbean (RCL) beat quarterly earnings? | Yes 0.475, No 0.525 | 2026-10-27T13:00:00Z
+40862 | Counter-Strike: FOKUS vs ex-Zero Tenacity (BO3) - NODWIN Clutch Series Playoffs | FOKUS 0.630, ex-Zero Tenacity 0.370 | 2026-10-26T18:00:00Z
+40813 | Will Falkenbergs FF win on 2026-10-26? | Yes 0.385, No 0.615 | 2026-10-26T18:05:00Z
+40792 | Will Matthew Garwood win the next Launceston mayoral election? | Yes 0.560, No 0.440 | 2026-10-28T03:59:00Z
+40840 | Will Bitcoin reach $81,000 on October 26? | Yes 0.490, No 0.510 | 2026-10-27T04:00:00Z
+40743 | Will Paris Saint-Germain FC vs. Olympique Lyonnais end in a draw? | Yes 0.155, No 0.845 | 2026-10-26T19:30:00Z
+38840 | Will SoFi (SOFI) beat quarterly earnings? | Yes 0.545, No 0.455 | 2026-10-27T13:00:00Z
+40773 | Counter-Strike: paiN Academy vs BESTIA Academy (BO3) - Gamers Club Liga Série A Group B | paiN Academy 0.420, BESTIA Academy 0.580 | 2026-10-27T03:00:00Z
+40787 | SPY (SPY) Up or Down on October 26? | Up 0.660, Down 0.340 | 2026-10-26T20:00:00Z
+40790 | Will Bill Harvey win the next Hobart mayoral election? | Yes 0.532, No 0.468 | 2026-10-28T03:59:00Z
+40839 | Will Bitcoin reach $82,000 on October 26? | Yes 0.175, No 0.825 | 2026-10-27T04:00:00Z
+40577 | Will CD Santa Clara vs. Sport Lisboa e Benfica end in a draw? | Yes 0.195, No 0.805 | 2026-10-26T18:45:00Z
+38194 | S&P 500 (SPX) Up or Down on October 26? | Up 0.660, Down 0.340 | 2026-10-26T20:00:00Z
+40554 | Counter-Strike: Nemiga vs Aurora Gaming - Map 1 Winner | Nemiga 0.305, Aurora Gaming 0.695 | 2026-10-26T12:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"forecasts": [{"id": "40857", "probabilities": {"Yes": 0.355, "No": 0.645}}, {"id": "40821", "probabilities": {"Yes": 0.55, "No": 0.45}}, {"id": "40928", "probabilities": {"Up": 0.495, "Down": 0.505}}, {"id": "40927", "probabilities": {"Trail Blazers": 0.44, "Lakers": 0.56}}, {"id": "40868", "probabilities": {"Up": 0.685, "Down": 0.315}}, {"id": "40930", "probabilities": {"Team Yandex": 0.72, "Team Liquid": 0.28}}, {"id": "40852", "probabilities": {"Yes": 0.225, "No": 0.775}}, {"id": "40804", "probabilities": {"Yes": 0.175, "No": 0.825}}, {"id": "40924", "probabilities": {"Up": 0.16, "Down": 0.84}}, {"id": "40888", "probabilities": {"Pistons": 0.435, "Knicks": 0.565}}, {"id": "38842", "probabilities": {"Yes": 0.645, "No": 0.355}}, {"id": "40897", "probabilities": {"TheMongolz": 0.295, "MOUZ": 0.705}}, {"id": "40820", "probabilities": {"Yes": 0.245, "No": 0.755}}, {"id": "40797", "probabilities": {"Yes": 0.24, "No": 0.76}}, {"id": "40841", "probabilities": {"Yes": 0.44, "No": 0.56}}, {"id": "40779", "probabilities": {"Kings": 0.435, "Rangers": 0.565}}, {"id": "38841", "probabilities": {"Yes": 0.47, "No": 0.53}}, {"id": "40862", "probabilities": {"FOKUS": 0.64, "ex-Zero Tenacity": 0.36}}, {"id": "40813", "probabilities": {"Yes": 0.375, "No": 0.625}}, {"id": "40792", "probabilities": {"Yes": 0.575, "No": 0.425}}, {"id": "40840", "probabilities": {"Yes": 0.485, "No": 0.515}}, {"id": "40743", "probabilities": {"Yes": 0.15, "No": 0.85}}, {"id": "38840", "probabilities": {"Yes": 0.575, "No": 0.425}}, {"id": "40773", "probabilities": {"paiN Academy": 0.41, "BESTIA Academy": 0.59}}, {"id": "40787", "probabilities": {"Up": 0.655, "Down": 0.345}}, {"id": "40790", "probabilities": {"Yes": 0.545, "No": 0.455}}, {"id": "40839", "probabilities": {"Yes": 0.165, "No": 0.835}}, {"id": "40577", "probabilities": {"Yes": 0.19, "No": 0.81}}, {"id": "38194", "probabilities": {"Up": 0.655, "Down": 0.345}}, {"id": "40554", "probabilities": {"Nemiga": 0.295, "Aurora Gaming": 0.705}}]}

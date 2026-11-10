@@ -1,0 +1,44 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+34035 | Will Vitória SC win on 2026-10-23? | Yes 0.605, No 0.395 | 2026-10-23T19:45:00Z
+34043 | Nets vs. Cavaliers | Nets 0.195, Cavaliers 0.805 | 2026-10-24T23:30:00Z
+33923 | Will Trump say "Iran" 5+ times during his Midterm Rally in Florida? | Yes 0.675, No 0.325 | 2026-10-23T18:05:00Z
+34074 | Will the price of Bitcoin be above $84,000 on October 29? | Yes 0.260, No 0.740 | 2026-10-29T16:00:00Z
+33652 | Will S&P 500 (SPY) hit (HIGH) $770 Week of October 19 2026? | Yes 0.325, No 0.675 | 2026-10-23T20:00:00Z
+34044 | Counter-Strike: ex-Zero Tenacity vs ex-RUSTEC (BO3) - CCT Europe Series #11 Playoffs | ex-Zero Tenacity 0.540, ex-RUSTEC 0.460 | 2026-10-23T14:00:00Z
+34018 | Will AS Nancy-Lorraine win on 2026-10-23? | Yes 0.615, No 0.385 | 2026-10-23T18:00:00Z
+34013 | Clippers vs. Thunder | Clippers 0.160, Thunder 0.840 | 2026-10-25T23:00:00Z
+33857 | Will Trump say "Fentanyl" or "Deport" or "Deported" during his Midterm Rally in Florida? | Yes 0.245, No 0.755 | 2026-10-23T18:05:00Z
+34073 | Will the price of Bitcoin be above $82,000 on October 29? | Yes 0.485, No 0.515 | 2026-10-29T16:00:00Z
+33381 | Will S&P 500 (SPY) hit (HIGH) $765 Week of October 19 2026? | Yes 0.725, No 0.275 | 2026-10-23T20:00:00Z
+34017 | Counter-Strike: K27 vs Virtus.pro (BO3) - CIS LAN Championship Playoffs | K27 0.555, Virtus.pro 0.445 | 2026-10-23T19:00:00Z
+34014 | Will Torino FC win on 2026-10-23? | Yes 0.455, No 0.545 | 2026-10-23T18:45:00Z
+33892 | Lightning vs. Utah | Lightning 0.455, Utah 0.545 | 2026-10-25T01:00:00Z
+33856 | Will Trump say "Hormuz" or "Blockade" during his Midterm Rally in Florida? | Yes 0.720, No 0.280 | 2026-10-23T18:05:00Z
+34072 | Will the price of Bitcoin be above $80,000 on October 29? | Yes 0.705, No 0.295 | 2026-10-29T16:00:00Z
+34022 | S&P 500 (SPX) Opens Up or Down on October 23? | Up 0.470, Down 0.530 | 2026-10-23T20:00:00Z
+33984 | Counter-Strike: Brute vs BakS eSports (BO3) - CCT Europe Series #11 Playoffs | Brute 0.485, BakS eSports 0.515 | 2026-10-23T23:00:00Z
+34012 | Will AC Monza win on 2026-10-23? | Yes 0.275, No 0.725 | 2026-10-23T18:45:00Z
+33524 | Predators vs. Penguins | Predators 0.435, Penguins 0.565 | 2026-10-24T23:00:00Z
+33855 | Will Trump say "Russia" or "Ukraine" during his Midterm Rally in Florida? | Yes 0.800, No 0.200 | 2026-10-23T18:05:00Z
+34033 | Ethereum Up or Down - October 23, 12:00AM-4:00AM ET | Up 0.225, Down 0.775 | 2026-10-23T08:00:00Z
+33743 | S&P 500 (SPX) Up or Down on October 23? | Up 0.485, Down 0.515 | 2026-10-23T20:00:00Z
+33964 | Counter-Strike: FURIA vs DENDELE CS (BO3) - PGL Masters Bucharest Group Stage | FURIA 0.825, DENDELE CS 0.175 | 2026-10-24T22:00:00Z
+33983 | Will VfL Wolfsburg win on 2026-10-23? | Yes 0.495, No 0.505 | 2026-10-23T16:30:00Z
+33466 | Will Manchester United FC vs. AFC Bournemouth end in a draw? | Yes 0.255, No 0.745 | 2026-10-25T14:00:00Z
+33854 | Will Trump say "Data Center" during his Midterm Rally in Florida? | Yes 0.275, No 0.725 | 2026-10-23T18:05:00Z
+33975 | Will Bitcoin dip to $80,000 on October 23? | Yes 0.165, No 0.835 | 2026-10-24T04:00:00Z
+33347 | Will Hilton (HLT) beat quarterly earnings? | Yes 0.815, No 0.185 | 2026-10-27T13:00:00Z
+33871 | Dota 2: 1win vs OG - Game 1 Winner | 1win 0.565, OG 0.435 | 2026-10-23T12:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"forecasts": [{"id": "34035", "probabilities": {"Yes": 0.605, "No": 0.395}}, {"id": "34043", "probabilities": {"Nets": 0.195, "Cavaliers": 0.805}}, {"id": "33923", "probabilities": {"Yes": 0.675, "No": 0.325}}, {"id": "34074", "probabilities": {"Yes": 0.26, "No": 0.74}}, {"id": "33652", "probabilities": {"Yes": 0.335, "No": 0.665}}, {"id": "34044", "probabilities": {"ex-Zero Tenacity": 0.54, "ex-RUSTEC": 0.46}}, {"id": "34018", "probabilities": {"Yes": 0.615, "No": 0.385}}, {"id": "34013", "probabilities": {"Clippers": 0.16, "Thunder": 0.84}}, {"id": "33857", "probabilities": {"Yes": 0.245, "No": 0.755}}, {"id": "34073", "probabilities": {"Yes": 0.485, "No": 0.515}}, {"id": "33381", "probabilities": {"Yes": 0.735, "No": 0.265}}, {"id": "34017", "probabilities": {"K27": 0.555, "Virtus.pro": 0.445}}, {"id": "34014", "probabilities": {"Yes": 0.455, "No": 0.545}}, {"id": "33892", "probabilities": {"Lightning": 0.455, "Utah": 0.545}}, {"id": "33856", "probabilities": {"Yes": 0.72, "No": 0.28}}, {"id": "34072", "probabilities": {"Yes": 0.705, "No": 0.295}}, {"id": "34022", "probabilities": {"Up": 0.48, "Down": 0.52}}, {"id": "33984", "probabilities": {"Brute": 0.485, "BakS eSports": 0.515}}, {"id": "34012", "probabilities": {"Yes": 0.275, "No": 0.725}}, {"id": "33524", "probabilities": {"Predators": 0.435, "Penguins": 0.565}}, {"id": "33855", "probabilities": {"Yes": 0.8, "No": 0.2}}, {"id": "34033", "probabilities": {"Up": 0.28, "Down": 0.72}}, {"id": "33743", "probabilities": {"Up": 0.49, "Down": 0.51}}, {"id": "33964", "probabilities": {"FURIA": 0.825, "DENDELE CS": 0.175}}, {"id": "33983", "probabilities": {"Yes": 0.495, "No": 0.505}}, {"id": "33466", "probabilities": {"Yes": 0.255, "No": 0.745}}, {"id": "33854", "probabilities": {"Yes": 0.275, "No": 0.725}}, {"id": "33975", "probabilities": {"Yes": 0.155, "No": 0.845}}, {"id": "33347", "probabilities": {"Yes": 0.815, "No": 0.185}}, {"id": "33871", "probabilities": {"1win": 0.565, "OG": 0.435}}]}

@@ -1,0 +1,44 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+43518 | Will BV Borussia 09 Dortmund win on 2026-10-27? | Yes 0.685, No 0.315 | 2026-10-27T19:45:00Z
+43530 | Golden State Valkyries vs. Atlanta Dream | Golden State Valkyries 0.415, Atlanta Dream 0.585 | 2026-10-30T00:00:00Z
+43511 | Will Trump's Midterm Rally in Lubbock, Texas not air? | Yes 0.170, No 0.830 | 2026-10-27T23:05:00Z
+43474 | Will Ethereum dip to $2,250 on October 27? | Yes 0.255, No 0.745 | 2026-10-28T04:00:00Z
+43525 | Will S&P 500 (SPY) hit (LOW) $760 in October? | Yes 0.680, No 0.320 | 2026-11-01T03:59:59Z
+43565 | Counter-Strike: Inner Circle Academy vs Lavked (BO3) - CCT Europe Series #12 Group Stage | Inner Circle Academy 0.645, Lavked 0.355 | 2026-10-28T00:00:00Z
+43492 | Will Vissel Kobe win on 2026-10-27? | Yes 0.365, No 0.635 | 2026-10-27T10:00:00Z
+43519 | Cricket World Cup League 2: Netherlands vs Oman | Netherlands 0.845, Oman 0.155 | 2026-11-03T05:30:00Z
+43221 | Will Trump say "Russia" or "Ukraine" during his Midterm Rally in Lubbock, Texas? | Yes 0.680, No 0.320 | 2026-10-27T23:05:00Z
+43472 | Will Ethereum reach $2,350 on October 27? | Yes 0.405, No 0.595 | 2026-10-28T04:00:00Z
+42210 | Will S&P 500 (SPY) hit (LOW) $760 Week of October 26 2026? | Yes 0.685, No 0.315 | 2026-10-30T20:00:00Z
+43556 | LoL: Movistar KOI vs T1 - Game 2 Winner | Movistar KOI 0.255, T1 0.745 | 2026-10-30T00:00:00Z
+43485 | Will Paris Saint-Germain FC win on 2026-10-30? | Yes 0.805, No 0.195 | 2026-10-30T18:00:00Z
+43451 | Lakers vs. Clippers | Lakers 0.625, Clippers 0.375 | 2026-10-29T02:30:00Z
+43220 | Will Trump say "Data Center" during his Midterm Rally in Lubbock, Texas? | Yes 0.270, No 0.730 | 2026-10-27T23:05:00Z
+43454 | Bitcoin Up or Down - October 27, 12:00AM-4:00AM ET | Up 0.450, Down 0.550 | 2026-10-27T08:00:00Z
+42139 | Will S&P 500 (SPY) hit (LOW) $750 Week of October 26 2026? | Yes 0.220, No 0.780 | 2026-10-30T20:00:00Z
+43555 | LoL: Movistar KOI vs T1 - Game 1 Winner | Movistar KOI 0.260, T1 0.740 | 2026-10-30T00:00:00Z
+43484 | Will SV 07 Elversberg win on 2026-10-27? | Yes 0.695, No 0.305 | 2026-10-27T19:45:00Z
+43448 | Heat vs. Hawks | Heat 0.445, Hawks 0.555 | 2026-10-28T23:00:00Z
+43219 | Will Trump say "Merit" during his Midterm Rally in Lubbock, Texas? | Yes 0.750, No 0.250 | 2026-10-27T23:05:00Z
+43433 | Will Bitcoin dip to $78,000 on October 27? | Yes 0.155, No 0.845 | 2026-10-28T04:00:00Z
+42138 | Will S&P 500 (SPY) hit (LOW) $755 Week of October 26 2026? | Yes 0.410, No 0.590 | 2026-10-30T20:00:00Z
+43529 | Counter-Strike: Team Nemesis vs Brute (BO3) - NODWIN Clutch Series Playoffs | Team Nemesis 0.735, Brute 0.265 | 2026-10-27T15:00:00Z
+43464 | Will US Sassuolo Calcio win on 2026-10-27? | Yes 0.275, No 0.725 | 2026-10-27T17:30:00Z
+43446 | Magic vs. Raptors | Magic 0.335, Raptors 0.665 | 2026-10-28T23:30:00Z
+43218 | Will Trump say "Two Percent" during his Midterm Rally in Lubbock, Texas? | Yes 0.245, No 0.755 | 2026-10-27T23:05:00Z
+43432 | Will Bitcoin reach $81,000 on October 27? | Yes 0.295, No 0.705 | 2026-10-28T04:00:00Z
+42136 | Will S&P 500 (SPY) hit (HIGH) $770 Week of October 26 2026? | Yes 0.675, No 0.325 | 2026-10-30T20:00:00Z
+43520 | Counter-Strike: Vitality vs Natus Vincere - Map 1 Winner | Vitality 0.655, Natus Vincere 0.345 | 2026-10-27T21:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"forecasts": [{"id": "43518", "probabilities": {"Yes": 0.69, "No": 0.31}}, {"id": "43530", "probabilities": {"Golden State Valkyries": 0.41, "Atlanta Dream": 0.59}}, {"id": "43511", "probabilities": {"Yes": 0.11, "No": 0.89}}, {"id": "43474", "probabilities": {"Yes": 0.21, "No": 0.79}}, {"id": "43525", "probabilities": {"Yes": 0.7, "No": 0.3}}, {"id": "43565", "probabilities": {"Inner Circle Academy": 0.68, "Lavked": 0.32}}, {"id": "43492", "probabilities": {"Yes": 0.36, "No": 0.64}}, {"id": "43519", "probabilities": {"Netherlands": 0.865, "Oman": 0.135}}, {"id": "43221", "probabilities": {"Yes": 0.71, "No": 0.29}}, {"id": "43472", "probabilities": {"Yes": 0.48, "No": 0.52}}, {"id": "42210", "probabilities": {"Yes": 0.705, "No": 0.295}}, {"id": "43556", "probabilities": {"Movistar KOI": 0.24, "T1": 0.76}}, {"id": "43485", "probabilities": {"Yes": 0.82, "No": 0.18}}, {"id": "43451", "probabilities": {"Lakers": 0.63, "Clippers": 0.37}}, {"id": "43220", "probabilities": {"Yes": 0.2, "No": 0.8}}, {"id": "43454", "probabilities": {"Up": 0.42, "Down": 0.58}}, {"id": "42139", "probabilities": {"Yes": 0.18, "No": 0.82}}, {"id": "43555", "probabilities": {"Movistar KOI": 0.245, "T1": 0.755}}, {"id": "43484", "probabilities": {"Yes": 0.7, "No": 0.3}}, {"id": "43448", "probabilities": {"Heat": 0.44, "Hawks": 0.56}}, {"id": "43219", "probabilities": {"Yes": 0.78, "No": 0.22}}, {"id": "43433", "probabilities": {"Yes": 0.13, "No": 0.87}}, {"id": "42138", "probabilities": {"Yes": 0.39, "No": 0.61}}, {"id": "43529", "probabilities": {"Team Nemesis": 0.76, "Brute": 0.24}}, {"id": "43464", "probabilities": {"Yes": 0.26, "No": 0.74}}, {"id": "43446", "probabilities": {"Magic": 0.33, "Raptors": 0.67}}, {"id": "43218", "probabilities": {"Yes": 0.18, "No": 0.82}}, {"id": "43432", "probabilities": {"Yes": 0.38, "No": 0.62}}, {"id": "42136", "probabilities": {"Yes": 0.71, "No": 0.29}}, {"id": "43520", "probabilities": {"Vitality": 0.665, "Natus Vincere": 0.335}}]}

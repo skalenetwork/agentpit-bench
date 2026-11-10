@@ -1,0 +1,44 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+38633 | Will Sogndal Fotball win on 2026-10-25? | Yes 0.210, No 0.790 | 2026-10-25T16:00:00Z
+38536 | Will Trump say "Hell" 15+ times during his Midterm Rally in Michigan? | Yes 0.460, No 0.540 | 2026-10-26T19:05:00Z
+38642 | Will Ethereum dip to $2,300 on October 25? | Yes 0.275, No 0.725 | 2026-10-26T04:00:00Z
+38629 | Will Sunderland AFC vs. Leeds United FC end in a draw? | Yes 0.295, No 0.705 | 2026-10-25T16:30:00Z
+35045 | Will S&P 500 (SPY) hit (HIGH) $770 in October? | Yes 0.600, No 0.400 | 2026-11-01T03:59:59Z
+38631 | Counter-Strike: BetBoom Team vs Nemiga - Map 1 Winner | BetBoom Team 0.545, Nemiga 0.455 | 2026-10-25T15:00:00Z
+38600 | Will FC Famalicão win on 2026-10-25? | Yes 0.465, No 0.535 | 2026-10-25T18:00:00Z
+38196 | Will Trump say "Hormuz" or "Blockade" during his Midterm Rally in Michigan? | Yes 0.670, No 0.330 | 2026-10-26T19:05:00Z
+38641 | Will Ethereum reach $2,400 on October 25? | Yes 0.285, No 0.715 | 2026-10-26T04:00:00Z
+38584 | Melbourne United vs. Sydney Kings | Melbourne United 0.395, Sydney Kings 0.605 | 2026-11-01T06:00:00Z
+3149 | Will S&P 500 (SPY) hit (HIGH) $780 in October? | Yes 0.221, No 0.779 | 2026-11-01T03:59:59Z
+38452 | Counter-Strike: Vitality vs TheMongolz - Map 1 Winner | Vitality 0.715, TheMongolz 0.285 | 2026-10-25T15:00:00Z
+38595 | Will Fortuna Sittard win on 2026-10-25? | Yes 0.375, No 0.625 | 2026-10-25T11:15:00Z
+38195 | Will Trump say "Ass" during his Midterm Rally in Michigan? | Yes 0.380, No 0.620 | 2026-10-26T19:05:00Z
+38610 | Ethereum Up or Down - October 25, 2AM ET | Up 0.255, Down 0.745 | 2026-10-25T07:00:00Z
+38582 | Wild vs. Canucks | Wild 0.635, Canucks 0.365 | 2026-10-26T02:00:00Z
+3142 | Will S&P 500 (SPY) hit (LOW) $740 in October? | Yes 0.190, No 0.810 | 2026-11-01T03:59:59Z
+38424 | LoL: Team Liquid vs Anyone's Legend (BO3) - Worlds Group Stage | Team Liquid 0.315, Anyone's Legend 0.685 | 2026-10-27T04:00:00Z
+38592 | Will SBV Excelsior win on 2026-10-25? | Yes 0.355, No 0.645 | 2026-10-25T11:15:00Z
+38157 | Will Trump say "Million" or "Billion" or "Trillion" 30+ times during his Midterm Rally in Michigan? | Yes 0.790, No 0.210 | 2026-10-26T19:05:00Z
+38599 | Bitcoin Up or Down - October 25, 2AM ET | Up 0.605, Down 0.395 | 2026-10-25T07:00:00Z
+38544 | Cricket World Cup League 2: UAE vs Netherlands | UAE 0.345, Netherlands 0.655 | 2026-11-01T05:30:00Z
+3141 | Will S&P 500 (SPY) hit (LOW) $750 in October? | Yes 0.485, No 0.515 | 2026-11-01T03:59:59Z
+38398 | Dota 2: Team Liquid vs OG - Game 1 Winner | Team Liquid 0.545, OG 0.455 | 2026-10-25T12:00:00Z
+38573 | Will it rain in Atlanta, GA on October 24? | Yes 0.495, No 0.504 | 2026-10-25T18:00:00Z
+38001 | Will Trump say "Russia" or "Ukraine" during his Midterm Rally in Michigan? | Yes 0.635, No 0.365 | 2026-10-26T19:05:00Z
+38509 | Will Bitcoin reach $81,000 on October 25? | Yes 0.735, No 0.265 | 2026-10-26T04:00:00Z
+38518 | Pacers vs. Bucks | Pacers 0.555, Bucks 0.445 | 2026-10-27T00:00:00Z
+38449 | Will Roblox (RBLX) beat quarterly earnings? | Yes 0.840, No 0.160 | 2026-10-29T21:00:00Z
+38358 | LoL: Karmine Corp vs Bilibili Gaming (BO1) - Worlds Group Stage | Karmine Corp 0.295, Bilibili Gaming 0.705 | 2026-10-26T23:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"forecasts": [{"id": "38633", "probabilities": {"Yes": 0.21, "No": 0.79}}, {"id": "38536", "probabilities": {"Yes": 0.44, "No": 0.56}}, {"id": "38642", "probabilities": {"Yes": 0.28, "No": 0.72}}, {"id": "38629", "probabilities": {"Yes": 0.285, "No": 0.715}}, {"id": "35045", "probabilities": {"Yes": 0.58, "No": 0.42}}, {"id": "38631", "probabilities": {"BetBoom Team": 0.55, "Nemiga": 0.45}}, {"id": "38600", "probabilities": {"Yes": 0.46, "No": 0.54}}, {"id": "38196", "probabilities": {"Yes": 0.72, "No": 0.28}}, {"id": "38641", "probabilities": {"Yes": 0.29, "No": 0.71}}, {"id": "38584", "probabilities": {"Melbourne United": 0.47, "Sydney Kings": 0.53}}, {"id": "3149", "probabilities": {"Yes": 0.21, "No": 0.79}}, {"id": "38452", "probabilities": {"Vitality": 0.73, "TheMongolz": 0.27}}, {"id": "38595", "probabilities": {"Yes": 0.37, "No": 0.63}}, {"id": "38195", "probabilities": {"Yes": 0.36, "No": 0.64}}, {"id": "38610", "probabilities": {"Up": 0.26, "Down": 0.74}}, {"id": "38582", "probabilities": {"Wild": 0.64, "Canucks": 0.36}}, {"id": "3142", "probabilities": {"Yes": 0.18, "No": 0.82}}, {"id": "38424", "probabilities": {"Team Liquid": 0.31, "Anyone's Legend": 0.69}}, {"id": "38592", "probabilities": {"Yes": 0.35, "No": 0.65}}, {"id": "38157", "probabilities": {"Yes": 0.8, "No": 0.2}}, {"id": "38599", "probabilities": {"Up": 0.63, "Down": 0.37}}, {"id": "38544", "probabilities": {"UAE": 0.34, "Netherlands": 0.66}}, {"id": "3141", "probabilities": {"Yes": 0.49, "No": 0.51}}, {"id": "38398", "probabilities": {"Team Liquid": 0.55, "OG": 0.45}}, {"id": "38573", "probabilities": {"Yes": 0.01, "No": 0.99}}, {"id": "38001", "probabilities": {"Yes": 0.78, "No": 0.22}}, {"id": "38509", "probabilities": {"Yes": 0.76, "No": 0.24}}, {"id": "38518", "probabilities": {"Pacers": 0.56, "Bucks": 0.44}}, {"id": "38449", "probabilities": {"Yes": 0.85, "No": 0.15}}, {"id": "38358", "probabilities": {"Karmine Corp": 0.29, "Bilibili Gaming": 0.71}}]}
