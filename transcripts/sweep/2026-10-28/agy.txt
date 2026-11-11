@@ -1,0 +1,44 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+45738 | Will the Democratic Party candidate win the 2026 PA-08 House election by 12% or more? | Yes 0.235, No 0.765 | 2026-11-04T04:59:00Z
+45885 | Will Inter Miami CF win on 2026-10-28? | Yes 0.655, No 0.345 | 2026-10-28T23:30:00Z
+45864 | Will Hapoel Ramat Gan Givatayim FC vs. Maccabi Tel Aviv FC end in a draw? | Yes 0.205, No 0.795 | 2026-11-02T18:00:00Z
+45868 | Will Ethereum dip to $2,300 October 26-November 1? | Yes 0.680, No 0.320 | 2026-11-02T05:00:00Z
+45882 | Counter-Strike: Team Nemesis vs Eternal Fire - Map 2 Winner | Team Nemesis 0.245, Eternal Fire 0.755 | 2026-10-28T17:30:00Z
+42135 | Will S&P 500 (SPY) hit (HIGH) $775 Week of October 26 2026? | Yes 0.645, No 0.355 | 2026-10-30T20:00:00Z
+45737 | Will the Democratic Party candidate win the 2026 PA-08 House election by 9%-12%? | Yes 0.169, No 0.832 | 2026-11-04T04:59:00Z
+45880 | Will Gamba Osaka win on 2026-10-28? | Yes 0.595, No 0.405 | 2026-10-28T10:00:00Z
+45779 | Flyers vs. Capitals | Flyers 0.315, Capitals 0.685 | 2026-10-28T23:30:00Z
+45846 | Will Ethereum dip to $2,300 in October? | Yes 0.635, No 0.365 | 2026-11-01T04:00:00Z
+45791 | Counter-Strike: Team Nemesis vs Eternal Fire - Map 1 Winner | Team Nemesis 0.230, Eternal Fire 0.770 | 2026-10-28T17:30:00Z
+42134 | Will S&P 500 (SPY) hit (HIGH) $780 Week of October 26 2026? | Yes 0.325, No 0.675 | 2026-10-30T20:00:00Z
+45728 | Will the Democratic Party candidate win the 2026 PA-08 House election by 3%-6%? | Yes 0.193, No 0.807 | 2026-11-04T04:59:00Z
+45879 | Will Al Rayyan SC win on 2026-10-28? | Yes 0.500, No 0.500 | 2026-10-28T16:00:00Z
+45776 | Devils vs. Avalanche | Devils 0.375, Avalanche 0.625 | 2026-10-29T01:00:00Z
+45825 | Will Bitcoin dip to $79,000 on October 28? | Yes 0.205, No 0.795 | 2026-10-29T04:00:00Z
+45729 | Counter-Strike: Liquid vs FURIA - Map 1 Winner | Liquid 0.295, FURIA 0.705 | 2026-10-28T18:00:00Z
+45746 | S&P 500 (SPX) Up or Down on October 28? | Up 0.545, Down 0.455 | 2026-10-28T20:00:00Z
+45631 | Will Republicans lose the Alaska, Iowa, Kansas, Maine, Michigan, Ohio, and Texas Senate seats? | Yes 0.250, No 0.750 | 2026-11-03T23:59:00Z
+45873 | Will Fortuna Sittard win on 2026-10-28? | Yes 0.270, No 0.730 | 2026-10-28T17:45:00Z
+45703 | Paine Lions vs. Jacksonville Dolphins | Paine Lions 0.180, Jacksonville Dolphins 0.820 | 2026-11-03T00:00:00Z
+45824 | Will Bitcoin dip to $80,000 on October 28? | Yes 0.545, No 0.455 | 2026-10-29T04:00:00Z
+45726 | Counter-Strike: Liquid vs FURIA - Map 2 Winner | Liquid 0.340, FURIA 0.660 | 2026-10-28T18:00:00Z
+45663 | Will Yum! Brands (YUM) beat quarterly earnings? | Yes 0.520, No 0.480 | 2026-11-03T14:00:00Z
+45567 | Will total votes cast in the 2026 midterm election for Senator from Delaware be between 400,000 and 425,000? | Yes 0.155, No 0.845 | 2026-11-04T04:59:00Z
+45872 | Will Austin FC win on 2026-10-28? | Yes 0.325, No 0.675 | 2026-10-29T00:30:00Z
+45559 | Flames vs. Oilers | Flames 0.345, Oilers 0.655 | 2026-10-29T00:30:00Z
+45823 | Will Bitcoin reach $82,000 on October 28? | Yes 0.455, No 0.545 | 2026-10-29T04:00:00Z
+45717 | Counter-Strike: Team Nemesis vs Eternal Fire (BO3) - Stake Ranked Episode 5 Playoffs | Team Nemesis 0.160, Eternal Fire 0.840 | 2026-10-28T19:30:00Z
+45419 | Will Hilton Grand Vacations (HGV) beat quarterly earnings? | Yes 0.450, No 0.550 | 2026-10-29T13:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"forecasts": [{"id": "45738", "probabilities": {"Yes": 0.08, "No": 0.92}}, {"id": "45885", "probabilities": {"Yes": 0.665, "No": 0.335}}, {"id": "45864", "probabilities": {"Yes": 0.17, "No": 0.83}}, {"id": "45868", "probabilities": {"Yes": 0.76, "No": 0.24}}, {"id": "45882", "probabilities": {"Team Nemesis": 0.24, "Eternal Fire": 0.76}}, {"id": "42135", "probabilities": {"Yes": 0.68, "No": 0.32}}, {"id": "45737", "probabilities": {"Yes": 0.085, "No": 0.915}}, {"id": "45880", "probabilities": {"Yes": 0.575, "No": 0.425}}, {"id": "45779", "probabilities": {"Flyers": 0.31, "Capitals": 0.69}}, {"id": "45846", "probabilities": {"Yes": 0.72, "No": 0.28}}, {"id": "45791", "probabilities": {"Team Nemesis": 0.225, "Eternal Fire": 0.775}}, {"id": "42134", "probabilities": {"Yes": 0.3, "No": 0.7}}, {"id": "45728", "probabilities": {"Yes": 0.155, "No": 0.845}}, {"id": "45879", "probabilities": {"Yes": 0.34, "No": 0.66}}, {"id": "45776", "probabilities": {"Devils": 0.38, "Avalanche": 0.62}}, {"id": "45825", "probabilities": {"Yes": 0.195, "No": 0.805}}, {"id": "45729", "probabilities": {"Liquid": 0.29, "FURIA": 0.71}}, {"id": "45746", "probabilities": {"Up": 0.54, "Down": 0.46}}, {"id": "45631", "probabilities": {"Yes": 0.1, "No": 0.9}}, {"id": "45873", "probabilities": {"Yes": 0.25, "No": 0.75}}, {"id": "45703", "probabilities": {"Paine Lions": 0.08, "Jacksonville Dolphins": 0.92}}, {"id": "45824", "probabilities": {"Yes": 0.57, "No": 0.43}}, {"id": "45726", "probabilities": {"Liquid": 0.345, "FURIA": 0.655}}, {"id": "45663", "probabilities": {"Yes": 0.58, "No": 0.42}}, {"id": "45567", "probabilities": {"Yes": 0.09, "No": 0.91}}, {"id": "45872", "probabilities": {"Yes": 0.33, "No": 0.67}}, {"id": "45559", "probabilities": {"Flames": 0.345, "Oilers": 0.655}}, {"id": "45823", "probabilities": {"Yes": 0.44, "No": 0.56}}, {"id": "45717", "probabilities": {"Team Nemesis": 0.155, "Eternal Fire": 0.845}}, {"id": "45419", "probabilities": {"Yes": 0.38, "No": 0.62}}]}
