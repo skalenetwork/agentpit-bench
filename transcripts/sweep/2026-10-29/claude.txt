@@ -1,0 +1,47 @@
+$ claude -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+48140 | Will the Michigan Democrat perform best among these tossup Senate races? | Yes 0.210, No 0.790 | 2026-11-03T23:59:00Z
+48119 | SPY (SPY) Up or Down on October 29? | Up 0.395, Down 0.605 | 2026-10-29T20:00:00Z
+48063 | Jets vs. Lightning | Jets 0.325, Lightning 0.675 | 2026-10-29T23:00:00Z
+48084 | Will Ethereum dip to $2,300 on October 29? | Yes 0.740, No 0.260 | 2026-10-30T04:00:00Z
+48148 | Counter-Strike: WBT Academy vs SAW Youngsters (BO1) - Circuito Retake Group A | WBT Academy 0.625, SAW Youngsters 0.375 | 2026-10-29T15:00:00Z
+47156 | Will S&P 500 (SPY) hit (LOW) $765 Week of October 26 2026? | Yes 0.495, No 0.505 | 2026-10-30T20:00:00Z
+48139 | Will the Ohio Democrat perform best among these tossup Senate races? | Yes 0.224, No 0.776 | 2026-11-03T23:59:00Z
+48110 | Will Hammarby IF win on 2026-10-29? | Yes 0.645, No 0.355 | 2026-10-29T17:30:00Z
+48037 | Oilers vs. Islanders | Oilers 0.545, Islanders 0.455 | 2026-10-31T18:00:00Z
+48083 | Will Ethereum reach $2,350 on October 29? | Yes 0.450, No 0.550 | 2026-10-30T04:00:00Z
+48117 | Counter-Strike: BetBoom Team vs FURIA - Map 2 Winner | BetBoom Team 0.425, FURIA 0.575 | 2026-10-29T23:00:00Z
+48093 | Will McDonald's (MCD) beat quarterly earnings? | Yes 0.310, No 0.690 | 2026-11-04T14:00:00Z
+48136 | Will the Texas Democrat perform best among these tossup Senate races? | Yes 0.360, No 0.640 | 2026-11-03T23:59:00Z
+48095 | Will Airbnb, Inc. (ABNB) hit (HIGH) $192 in October? | Yes 0.500, No 0.500 | 2026-11-01T03:59:59Z
+48025 | Pistons vs. Nets | Pistons 0.755, Nets 0.245 | 2026-10-30T23:30:00Z
+48077 | Will Ethereum dip to $2,250 on October 29? | Yes 0.165, No 0.835 | 2026-10-30T04:00:00Z
+48108 | Counter-Strike: Aurora Gaming vs MOUZ - Map 2 Winner | Aurora Gaming 0.425, MOUZ 0.575 | 2026-10-29T20:00:00Z
+47799 | Will Estée Lauder (EL) beat quarterly earnings? | Yes 0.775, No 0.225 | 2026-11-02T14:00:00Z
+47925 | Will total votes cast in the 2026 midterm election for Senator from Massachusetts be between 2,650,000 and 2,800,000? | Yes 0.275, No 0.725 | 2026-11-04T04:59:00Z
+48092 | Will Everton FC win on 2026-10-29? | Yes 0.435, No 0.565 | 2026-10-29T19:45:00Z
+48016 | Timberwolves vs. Spurs | Timberwolves 0.255, Spurs 0.745 | 2026-11-01T00:00:00Z
+48051 | Will Bitcoin dip to $79,000 on October 29? | Yes 0.370, No 0.630 | 2026-10-30T04:00:00Z
+48011 | LoL: Karmine Corp vs CTBC Flying Oyster - Game 1 Winner | Karmine Corp 0.715, CTBC Flying Oyster 0.285 | 2026-10-30T02:00:00Z
+47760 | S&P 500 (SPX) Up or Down on October 29? | Up 0.400, Down 0.600 | 2026-10-29T20:00:00Z
+47924 | Will total votes cast in the 2026 midterm election for Senator from Massachusetts be between 2,500,000 and 2,650,000? | Yes 0.205, No 0.795 | 2026-11-04T04:59:00Z
+48076 | Will Real Betis Balompié win on 2026-10-31? | Yes 0.725, No 0.275 | 2026-10-31T17:30:00Z
+47939 | Rockets vs. Mavericks | Rockets 0.645, Mavericks 0.355 | 2026-10-31T00:00:00Z
+48050 | Will Bitcoin reach $81,000 on October 29? | Yes 0.440, No 0.560 | 2026-10-30T04:00:00Z
+47937 | Counter-Strike: FUT Esports vs Nemiga - Map 1 Winner | FUT Esports 0.625, Nemiga 0.375 | 2026-10-29T14:00:00Z
+47660 | Will FTI Consulting (FCN) beat quarterly earnings? | Yes 0.540, No 0.460 | 2026-10-29T13:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"type":"system","subtype":"init","cwd":"/tmp/apb-sweep-claude-ehq8w4ki","session_id":"afeca254-411b-4fac-8315-df37e851907d","tools":["Task","Bash","CronCreate","CronDelete","CronList","DesignSync","Edit","EnterWorktree","ExitWorktree","ListAgents","Monitor","NotebookEdit","PushNotification","Read","RemoteTrigger","ReportFindings","ScheduleWakeup","SendMessage","TaskStop","ToolSearch","WebFetch","WebSearch","Workflow","Write"],"mcp_servers":[],"model":"claude-fable-5-1","permissionMode":"bypassPermissions","slash_commands":[],"apiKeySource":"none","claude_code_version":"2.1.300","output_style":"default","agents":["claude","Explore","general-purpose","Plan","statusline-setup"],"skills":[],"plugins":[{"name":"cc-plugin-agents-md","path":"builtin","source":"cc-plugin-agents-md@builtin"},{"name":"cc-plugin-telemetry","path":"builtin","source":"cc-plugin-telemetry@builtin"},{"name":"cc-plugin-plugin-authoring","path":"builtin","source":"cc-plugin-plugin-authoring@builtin"}],"capabilities":["interrupt_receipt_v1","interrupt_cancel_queued_v1","interrupt_send_now_v1","msg_lifecycle_v1","request_marker_lists_v1","sdk_mcp_tools_list_changed","sdk_mcp_manifests","mcp_read_resource_v1","mcp_tool_ui_meta_v1","ui_surface_v1"],"analytics_disabled":false,"product_feedback_disabled":false,"uuid":"1b708974-1c44-432b-90d5-1dda195c65d2","memory_paths":{"auto":"/tmp/apbh-claude-ri5f8xdt/.claude/projects/-tmp-apb-sweep-claude-ehq8w4ki/memory/"},"fast_mode_state":"off","fast_mode_disabled_reason":"sdk_opt_in_required","per_turn_effort_active":true,"view_mode":"default"}
+{"type":"rate_limit_event","rate_limit_info":{"status":"rejected","resetsAt":1793509200,"rateLimitType":"seven_day","overageStatus":"rejected","overageDisabledReason":"org_level_disabled","isUsingOverage":false,"unifiedWindows":{"five_hour":{"utilization":0,"resetsAt":1793272800},"seven_day":{"utilization":1,"resetsAt":1793509200},"seven_day_overage_included":{"utilization":0.11,"resetsAt":1793509200}}},"uuid":"4d88f3f4-8ecd-4df9-bee3-ddc2d7e5d9d5","session_id":"afeca254-411b-4fac-8315-df37e851907d"}
+{"type":"assistant","message":{"diagnostics":null,"id":"480a60da-e80c-4104-bc1c-8fbc736cdfab","container":null,"model":"<synthetic>","role":"assistant","stop_details":null,"stop_reason":"stop_sequence","stop_sequence":"","type":"message","usage":{"output_tokens_details":null,"input_tokens":0,"output_tokens":0,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":null,"cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":0},"inference_geo":null,"iterations":null,"speed":null,"fallback_credit":null},"content":[{"type":"text","text":"You've hit your weekly limit · resets Nov 1, 5am (Europe/Lisbon)"}],"context_management":null},"parent_tool_use_id":null,"session_id":"afeca254-411b-4fac-8315-df37e851907d","uuid":"2c33cfe6-f7a8-4de3-80cb-0628d546d8dd","timestamp":"2026-10-29T06:21:53.348Z","error":"rate_limit","request_id":"req_011CgW3enWutEHiYjPijtatY","is_api_error_message":true,"api_error_status":429,"api_error":"usage_limit_reached","api_error_params":{"rate_limit_info":{"status":"rejected","resetsAt":1793509200,"rateLimitType":"seven_day","overageStatus":"rejected","overageDisabledReason":"org_level_disabled","isUsingOverage":false}},"api_error_origin":"first_party"}
+{"duration_api_ms":0,"stop_reason":"stop_sequence","session_id":"afeca254-411b-4fac-8315-df37e851907d","total_cost_usd":0,"usage":{"output_tokens_details":{"thinking_tokens":0},"input_tokens":0,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":0,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":0},"inference_geo":"","iterations":[],"speed":"standard","fallback_credit":null},"modelUsage":{},"permission_denials":[],"terminal_reason":"api_error","fast_mode_state":"off","fast_mode_disabled_reason":"sdk_opt_in_required","subagent_stats":{"spawned":0,"requested":{"background":0,"foreground":0,"unset":0},"started_in_background":0,"max_depth":0,"spawned_by_subagents":0,"completed":0,"failed":0,"killed":{"parent":0,"user":0,"system":0},"refused":{"depth_limit":0,"concurrency_limit":0,"budget":0},"by_type":{}},"safety_stops":0,"is_error":true,"num_turns":1,"subtype":"success","api_error_status":429,"api_error_origin":"first_party","api_error":"usage_limit_reached","result":"You've hit your weekly limit · resets Nov 1, 5am (Europe/Lisbon)","type":"result","duration_ms":643,"uuid":"a46c44ff-3059-4ca1-b520-13bc37c0070b","queued_turn_count":0,"result_index":0}

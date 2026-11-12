@@ -1,0 +1,44 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+48140 | Will the Michigan Democrat perform best among these tossup Senate races? | Yes 0.210, No 0.790 | 2026-11-03T23:59:00Z
+48119 | SPY (SPY) Up or Down on October 29? | Up 0.395, Down 0.605 | 2026-10-29T20:00:00Z
+48063 | Jets vs. Lightning | Jets 0.325, Lightning 0.675 | 2026-10-29T23:00:00Z
+48084 | Will Ethereum dip to $2,300 on October 29? | Yes 0.740, No 0.260 | 2026-10-30T04:00:00Z
+48148 | Counter-Strike: WBT Academy vs SAW Youngsters (BO1) - Circuito Retake Group A | WBT Academy 0.625, SAW Youngsters 0.375 | 2026-10-29T15:00:00Z
+47156 | Will S&P 500 (SPY) hit (LOW) $765 Week of October 26 2026? | Yes 0.495, No 0.505 | 2026-10-30T20:00:00Z
+48139 | Will the Ohio Democrat perform best among these tossup Senate races? | Yes 0.224, No 0.776 | 2026-11-03T23:59:00Z
+48110 | Will Hammarby IF win on 2026-10-29? | Yes 0.645, No 0.355 | 2026-10-29T17:30:00Z
+48037 | Oilers vs. Islanders | Oilers 0.545, Islanders 0.455 | 2026-10-31T18:00:00Z
+48083 | Will Ethereum reach $2,350 on October 29? | Yes 0.450, No 0.550 | 2026-10-30T04:00:00Z
+48117 | Counter-Strike: BetBoom Team vs FURIA - Map 2 Winner | BetBoom Team 0.425, FURIA 0.575 | 2026-10-29T23:00:00Z
+48093 | Will McDonald's (MCD) beat quarterly earnings? | Yes 0.310, No 0.690 | 2026-11-04T14:00:00Z
+48136 | Will the Texas Democrat perform best among these tossup Senate races? | Yes 0.360, No 0.640 | 2026-11-03T23:59:00Z
+48095 | Will Airbnb, Inc. (ABNB) hit (HIGH) $192 in October? | Yes 0.500, No 0.500 | 2026-11-01T03:59:59Z
+48025 | Pistons vs. Nets | Pistons 0.755, Nets 0.245 | 2026-10-30T23:30:00Z
+48077 | Will Ethereum dip to $2,250 on October 29? | Yes 0.165, No 0.835 | 2026-10-30T04:00:00Z
+48108 | Counter-Strike: Aurora Gaming vs MOUZ - Map 2 Winner | Aurora Gaming 0.425, MOUZ 0.575 | 2026-10-29T20:00:00Z
+47799 | Will Estée Lauder (EL) beat quarterly earnings? | Yes 0.775, No 0.225 | 2026-11-02T14:00:00Z
+47925 | Will total votes cast in the 2026 midterm election for Senator from Massachusetts be between 2,650,000 and 2,800,000? | Yes 0.275, No 0.725 | 2026-11-04T04:59:00Z
+48092 | Will Everton FC win on 2026-10-29? | Yes 0.435, No 0.565 | 2026-10-29T19:45:00Z
+48016 | Timberwolves vs. Spurs | Timberwolves 0.255, Spurs 0.745 | 2026-11-01T00:00:00Z
+48051 | Will Bitcoin dip to $79,000 on October 29? | Yes 0.370, No 0.630 | 2026-10-30T04:00:00Z
+48011 | LoL: Karmine Corp vs CTBC Flying Oyster - Game 1 Winner | Karmine Corp 0.715, CTBC Flying Oyster 0.285 | 2026-10-30T02:00:00Z
+47760 | S&P 500 (SPX) Up or Down on October 29? | Up 0.400, Down 0.600 | 2026-10-29T20:00:00Z
+47924 | Will total votes cast in the 2026 midterm election for Senator from Massachusetts be between 2,500,000 and 2,650,000? | Yes 0.205, No 0.795 | 2026-11-04T04:59:00Z
+48076 | Will Real Betis Balompié win on 2026-10-31? | Yes 0.725, No 0.275 | 2026-10-31T17:30:00Z
+47939 | Rockets vs. Mavericks | Rockets 0.645, Mavericks 0.355 | 2026-10-31T00:00:00Z
+48050 | Will Bitcoin reach $81,000 on October 29? | Yes 0.440, No 0.560 | 2026-10-30T04:00:00Z
+47937 | Counter-Strike: FUT Esports vs Nemiga - Map 1 Winner | FUT Esports 0.625, Nemiga 0.375 | 2026-10-29T14:00:00Z
+47660 | Will FTI Consulting (FCN) beat quarterly earnings? | Yes 0.540, No 0.460 | 2026-10-29T13:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"forecasts": [{"id": "48140", "probabilities": {"Yes": 0.21, "No": 0.79}}, {"id": "48119", "probabilities": {"Up": 0.39, "Down": 0.61}}, {"id": "48063", "probabilities": {"Jets": 0.325, "Lightning": 0.675}}, {"id": "48084", "probabilities": {"Yes": 0.78, "No": 0.22}}, {"id": "48148", "probabilities": {"WBT Academy": 0.625, "SAW Youngsters": 0.375}}, {"id": "47156", "probabilities": {"Yes": 0.51, "No": 0.49}}, {"id": "48139", "probabilities": {"Yes": 0.224, "No": 0.776}}, {"id": "48110", "probabilities": {"Yes": 0.645, "No": 0.355}}, {"id": "48037", "probabilities": {"Oilers": 0.545, "Islanders": 0.455}}, {"id": "48083", "probabilities": {"Yes": 0.44, "No": 0.56}}, {"id": "48117", "probabilities": {"BetBoom Team": 0.425, "FURIA": 0.575}}, {"id": "48093", "probabilities": {"Yes": 0.31, "No": 0.69}}, {"id": "48136", "probabilities": {"Yes": 0.36, "No": 0.64}}, {"id": "48095", "probabilities": {"Yes": 0.02, "No": 0.98}}, {"id": "48025", "probabilities": {"Pistons": 0.755, "Nets": 0.245}}, {"id": "48077", "probabilities": {"Yes": 0.18, "No": 0.82}}, {"id": "48108", "probabilities": {"Aurora Gaming": 0.425, "MOUZ": 0.575}}, {"id": "47799", "probabilities": {"Yes": 0.775, "No": 0.225}}, {"id": "47925", "probabilities": {"Yes": 0.275, "No": 0.725}}, {"id": "48092", "probabilities": {"Yes": 0.435, "No": 0.565}}, {"id": "48016", "probabilities": {"Timberwolves": 0.255, "Spurs": 0.745}}, {"id": "48051", "probabilities": {"Yes": 0.385, "No": 0.615}}, {"id": "48011", "probabilities": {"Karmine Corp": 0.715, "CTBC Flying Oyster": 0.285}}, {"id": "47760", "probabilities": {"Up": 0.38, "Down": 0.62}}, {"id": "47924", "probabilities": {"Yes": 0.205, "No": 0.795}}, {"id": "48076", "probabilities": {"Yes": 0.725, "No": 0.275}}, {"id": "47939", "probabilities": {"Rockets": 0.645, "Mavericks": 0.355}}, {"id": "48050", "probabilities": {"Yes": 0.43, "No": 0.57}}, {"id": "47937", "probabilities": {"FUT Esports": 0.625, "Nemiga": 0.375}}, {"id": "47660", "probabilities": {"Yes": 0.54, "No": 0.46}}]}
