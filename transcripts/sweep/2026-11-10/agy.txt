@@ -1,0 +1,44 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+74538 | Will Sport Lisboa e Benfica win on 2026-11-11? | Yes 0.245, No 0.755 | 2026-11-11T20:00:00Z
+74572 | Wizards vs. Pacers | Wizards 0.385, Pacers 0.615 | 2026-11-12T00:00:00Z
+74372 | Bitcoin Up or Down - November 10, 8:00AM-12:00PM ET | Up 0.315, Down 0.685 | 2026-11-10T17:00:00Z
+74568 | Counter-Strike: Butterfly vs Honvéd - Map 1 Winner | Butterfly 0.415, Honvéd 0.585 | 2026-11-10T21:00:00Z
+68078 | Will "Trump" be in the headlines on Sunday? | Yes 0.530, No 0.470 | 2026-11-16T04:59:00Z
+74507 | S&P 500 (SPY) closes above $750 on November 10? | Yes 0.450, No 0.550 | 2026-11-10T21:00:00Z
+74499 | Will SD Eibar win on 2026-10-28? | Yes 0.720, No 0.280 | 2026-11-10T18:00:00Z
+74498 | Will Sport Lisboa e Benfica vs. FK Austria Wien end in a draw? | Yes 0.695, No 0.305 | 2026-11-11T20:00:00Z
+74066 | Will the price of Bitcoin be between $74,000 and $76,000 on November 11? | Yes 0.425, No 0.575 | 2026-11-11T17:00:00Z
+74566 | Counter-Strike: G2 Ares vs maybe - Map 1 Winner | G2 Ares 0.675, maybe 0.325 | 2026-11-10T21:00:00Z
+67604 | Will Trump's approval rating be at least 39.0 on November 13, 2026? | Yes 0.325, No 0.675 | 2026-11-14T04:59:00Z
+74502 | S&P 500 (SPY) closes above $745 on November 10? | Yes 0.830, No 0.170 | 2026-11-10T21:00:00Z
+74497 | Micron (MU) Up or Down on November 10? | Up 0.325, Down 0.675 | 2026-11-10T21:00:00Z
+74410 | Rangers vs. Flames | Rangers 0.585, Flames 0.415 | 2026-11-12T00:30:00Z
+74065 | Will the price of Bitcoin be between $72,000 and $74,000 on November 11? | Yes 0.372, No 0.628 | 2026-11-11T17:00:00Z
+74530 | Dota 2: Xipto Esports vs PlayTime - Game 2 Winner | Xipto Esports 0.425, PlayTime 0.575 | 2026-11-10T19:50:00Z
+63812 | Will the AP call the Alaska Senate race by November 15? | Yes 0.260, No 0.740 | 2026-11-16T04:59:00Z
+73257 | S&P 500 (SPX) Up or Down on November 10? | Up 0.235, Down 0.765 | 2026-11-10T21:00:00Z
+74433 | Will Meta Platforms, Inc. (META) hit (LOW) $630 Week of November 9 2026? | Yes 0.625, No 0.375 | 2026-11-13T21:00:00Z
+74409 | Abu Dhabi T10 League: Yas Lions vs United Tigers | Yas Lions 0.450, United Tigers 0.550 | 2026-11-17T13:45:00Z
+73845 | Will Ethereum dip to $2,000 on November 10? | Yes 0.185, No 0.815 | 2026-11-11T05:00:00Z
+74529 | Counter-Strike: FORZE Reload vs ex-RUSTEC - Map 1 Winner | FORZE Reload 0.460, ex-RUSTEC 0.540 | 2026-11-10T21:00:00Z
+61359 | Will Andy Burnham say "Trump" during the next PMQ? | Yes 0.305, No 0.695 | 2026-11-12T04:59:00Z
+62846 | Will Newsmax (NMAX) beat quarterly earnings? | Yes 0.615, No 0.385 | 2026-11-12T21:00:00Z
+74290 | Will Chelsea FC win on 2026-11-10? | Yes 0.835, No 0.165 | 2026-11-10T17:45:00Z
+74377 | Michigan State Spartans vs. Duke Blue Devils | Michigan State Spartans 0.255, Duke Blue Devils 0.745 | 2026-11-11T00:00:00Z
+73746 | Will Bitcoin dip to $73,000 on November 10? | Yes 0.365, No 0.635 | 2026-11-11T05:00:00Z
+74501 | Counter-Strike: FORZE Reload vs ex-RUSTEC - Map 2 Winner | FORZE Reload 0.585, ex-RUSTEC 0.415 | 2026-11-10T21:00:00Z
+61122 | Will Philippines win the public vote for Eurovision Asia 2026? | Yes 0.345, No 0.655 | 2026-11-15T04:59:00Z
+50548 | Will Japan Q3 GDP growth (annualized) be between 0.8% and 1.6%? | Yes 0.172, No 0.828 | 2026-11-16T00:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"forecasts": [{"id": "74538", "probabilities": {"Yes": 0.245, "No": 0.755}}, {"id": "74572", "probabilities": {"Wizards": 0.385, "Pacers": 0.615}}, {"id": "74372", "probabilities": {"Up": 0.315, "Down": 0.685}}, {"id": "74568", "probabilities": {"Butterfly": 0.415, "Honvéd": 0.585}}, {"id": "68078", "probabilities": {"Yes": 0.53, "No": 0.47}}, {"id": "74507", "probabilities": {"Yes": 0.45, "No": 0.55}}, {"id": "74499", "probabilities": {"Yes": 0.72, "No": 0.28}}, {"id": "74498", "probabilities": {"Yes": 0.695, "No": 0.305}}, {"id": "74066", "probabilities": {"Yes": 0.425, "No": 0.575}}, {"id": "74566", "probabilities": {"G2 Ares": 0.675, "maybe": 0.325}}, {"id": "67604", "probabilities": {"Yes": 0.325, "No": 0.675}}, {"id": "74502", "probabilities": {"Yes": 0.83, "No": 0.17}}, {"id": "74497", "probabilities": {"Up": 0.325, "Down": 0.675}}, {"id": "74410", "probabilities": {"Rangers": 0.585, "Flames": 0.415}}, {"id": "74065", "probabilities": {"Yes": 0.372, "No": 0.628}}, {"id": "74530", "probabilities": {"Xipto Esports": 0.425, "PlayTime": 0.575}}, {"id": "63812", "probabilities": {"Yes": 0.26, "No": 0.74}}, {"id": "73257", "probabilities": {"Up": 0.235, "Down": 0.765}}, {"id": "74433", "probabilities": {"Yes": 0.625, "No": 0.375}}, {"id": "74409", "probabilities": {"Yas Lions": 0.45, "United Tigers": 0.55}}, {"id": "73845", "probabilities": {"Yes": 0.185, "No": 0.815}}, {"id": "74529", "probabilities": {"FORZE Reload": 0.46, "ex-RUSTEC": 0.54}}, {"id": "61359", "probabilities": {"Yes": 0.305, "No": 0.695}}, {"id": "62846", "probabilities": {"Yes": 0.615, "No": 0.385}}, {"id": "74290", "probabilities": {"Yes": 0.835, "No": 0.165}}, {"id": "74377", "probabilities": {"Michigan State Spartans": 0.255, "Duke Blue Devils": 0.745}}, {"id": "73746", "probabilities": {"Yes": 0.365, "No": 0.635}}, {"id": "74501", "probabilities": {"FORZE Reload": 0.585, "ex-RUSTEC": 0.415}}, {"id": "61122", "probabilities": {"Yes": 0.345, "No": 0.655}}, {"id": "50548", "probabilities": {"Yes": 0.172, "No": 0.828}}]}
