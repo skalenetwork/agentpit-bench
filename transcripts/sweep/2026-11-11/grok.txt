@@ -1,0 +1,48 @@
+$ grok -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+75533 | SPY (SPY) Up or Down on November 11? | Up 0.805, Down 0.195 | 2026-11-11T21:00:00Z
+75666 | Singer-MCA Super Premier T20: CDB vs Hayleys Group | CDB 0.290, Hayleys Group 0.710 | 2026-11-18T04:15:00Z
+75669 | Bitcoin Up or Down - November 11, 1AM ET | Up 0.325, Down 0.675 | 2026-11-11T07:00:00Z
+75665 | Counter-Strike: MOUZ vs G2 - Map 1 Winner | MOUZ 0.675, G2 0.325 | 2026-11-11T15:30:00Z
+75274 | Will Trump's approval rating be between 38.5 and 38.9 on November 13, 2026? | Yes 0.515, No 0.485 | 2026-11-14T04:59:00Z
+75490 | S&P 500 (SPX) Up or Down on November 11? | Up 0.810, Down 0.190 | 2026-11-11T21:00:00Z
+75465 | Will Italy win on 2026-11-12? | Yes 0.205, No 0.795 | 2026-11-12T19:45:00Z
+75643 | Campbell Fighting Camels vs. East Tennessee State Buccaneers | Campbell Fighting Camels 0.320, East Tennessee State Buccaneers 0.680 | 2026-11-12T00:00:00Z
+75632 | Will Bitcoin dip to $73,000 on November 11? | Yes 0.540, No 0.460 | 2026-11-12T05:00:00Z
+75536 | Dota 2: Froglings vs Nemiga Gaming (BO3) - DreamLeague Division 2 Group A | Froglings 0.823, Nemiga Gaming 0.177 | 2026-11-12T01:00:00Z
+75273 | Will Trump's approval rating be between 38.0 and 38.4 on November 13, 2026? | Yes 0.220, No 0.780 | 2026-11-14T04:59:00Z
+64077 | Will La-Z-Boy (LZB) beat quarterly earnings? | Yes 0.615, No 0.385 | 2026-11-17T22:00:00Z
+75345 | NVIDIA (NVDA) Up or Down on November 11? | Up 0.800, Down 0.200 | 2026-11-11T21:00:00Z
+75622 | Lightning vs. Sabres | Lightning 0.555, Sabres 0.445 | 2026-11-12T00:00:00Z
+75630 | Will Bitcoin reach $75,000 on November 11? | Yes 0.405, No 0.595 | 2026-11-12T05:00:00Z
+75513 | LoL: Ground Zero Gaming vs Frank Esports (BO5) - LCP Promotion Playoffs | Ground Zero Gaming 0.800, Frank Esports 0.200 | 2026-11-11T15:00:00Z
+75271 | Will Trump's approval rating be between 39.0 and 39.4 on November 13, 2026? | Yes 0.195, No 0.805 | 2026-11-14T04:59:00Z
+63197 | Will Home Depot (HD) beat quarterly earnings? | Yes 0.233, No 0.767 | 2026-11-17T14:00:00Z
+75286 | Will Kosovo win on 2026-11-14? | Yes 0.525, No 0.475 | 2026-11-14T14:00:00Z
+75579 | Valparaiso Beacons vs. South Dakota State Jackrabbits | Valparaiso Beacons 0.525, South Dakota State Jackrabbits 0.475 | 2026-11-12T01:00:00Z
+75619 | Will Bitcoin dip to $72,000 on November 11? | Yes 0.205, No 0.795 | 2026-11-12T05:00:00Z
+75510 | Counter-Strike: Nexus vs BakS eSports (BO3) - CCT Europe Group Stage | Nexus 0.430, BakS eSports 0.570 | 2026-11-11T21:00:00Z
+69101 | Will Donald Trump post 100-119 Truth Social posts from November 10 to November 17, 2026? | Yes 0.195, No 0.805 | 2026-11-17T17:00:00Z
+50549 | Will Japan Q3 GDP growth (annualized) be between 1.6% and 2.4%? | Yes 0.212, No 0.787 | 2026-11-16T00:00:00Z
+74979 | Will Sparta Prague win on 2026-11-11? | Yes 0.154, No 0.846 | 2026-11-11T18:00:00Z
+75270 | Jets vs. Stars | Jets 0.375, Stars 0.625 | 2026-11-13T01:00:00Z
+75303 | Solana Up or Down on November 11? | Up 0.740, Down 0.260 | 2026-11-11T17:00:00Z
+75482 | Dota 2: InterActive Philippines vs Amaru Gaming (BO3) - DreamLeague Division 2 Group B | InterActive Philippines 0.730, Amaru Gaming 0.270 | 2026-11-11T19:00:00Z
+69100 | Will Donald Trump post 80-99 Truth Social posts from November 10 to November 17, 2026? | Yes 0.186, No 0.814 | 2026-11-17T17:00:00Z
+50547 | Will Japan Q3 GDP growth (annualized) be between -0.8% and 0.0%? | Yes 0.195, No 0.805 | 2026-11-16T00:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"type":"error","message":"Not signed in. To authenticate without a browser, run:\n  grok login --device-code\n\nAlternatively, set the XAI_API_KEY environment variable or run `grok login` on a machine with a browser."}
+Error: Not signed in. To authenticate without a browser, run:
+  grok login --device-code
+
+Alternatively, set the XAI_API_KEY environment variable or run `grok login` on a machine with a browser.

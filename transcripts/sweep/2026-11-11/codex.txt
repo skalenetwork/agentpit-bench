@@ -1,0 +1,844 @@
+$ codex exec <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+75533 | SPY (SPY) Up or Down on November 11? | Up 0.805, Down 0.195 | 2026-11-11T21:00:00Z
+75666 | Singer-MCA Super Premier T20: CDB vs Hayleys Group | CDB 0.290, Hayleys Group 0.710 | 2026-11-18T04:15:00Z
+75669 | Bitcoin Up or Down - November 11, 1AM ET | Up 0.325, Down 0.675 | 2026-11-11T07:00:00Z
+75665 | Counter-Strike: MOUZ vs G2 - Map 1 Winner | MOUZ 0.675, G2 0.325 | 2026-11-11T15:30:00Z
+75274 | Will Trump's approval rating be between 38.5 and 38.9 on November 13, 2026? | Yes 0.515, No 0.485 | 2026-11-14T04:59:00Z
+75490 | S&P 500 (SPX) Up or Down on November 11? | Up 0.810, Down 0.190 | 2026-11-11T21:00:00Z
+75465 | Will Italy win on 2026-11-12? | Yes 0.205, No 0.795 | 2026-11-12T19:45:00Z
+75643 | Campbell Fighting Camels vs. East Tennessee State Buccaneers | Campbell Fighting Camels 0.320, East Tennessee State Buccaneers 0.680 | 2026-11-12T00:00:00Z
+75632 | Will Bitcoin dip to $73,000 on November 11? | Yes 0.540, No 0.460 | 2026-11-12T05:00:00Z
+75536 | Dota 2: Froglings vs Nemiga Gaming (BO3) - DreamLeague Division 2 Group A | Froglings 0.823, Nemiga Gaming 0.177 | 2026-11-12T01:00:00Z
+75273 | Will Trump's approval rating be between 38.0 and 38.4 on November 13, 2026? | Yes 0.220, No 0.780 | 2026-11-14T04:59:00Z
+64077 | Will La-Z-Boy (LZB) beat quarterly earnings? | Yes 0.615, No 0.385 | 2026-11-17T22:00:00Z
+75345 | NVIDIA (NVDA) Up or Down on November 11? | Up 0.800, Down 0.200 | 2026-11-11T21:00:00Z
+75622 | Lightning vs. Sabres | Lightning 0.555, Sabres 0.445 | 2026-11-12T00:00:00Z
+75630 | Will Bitcoin reach $75,000 on November 11? | Yes 0.405, No 0.595 | 2026-11-12T05:00:00Z
+75513 | LoL: Ground Zero Gaming vs Frank Esports (BO5) - LCP Promotion Playoffs | Ground Zero Gaming 0.800, Frank Esports 0.200 | 2026-11-11T15:00:00Z
+75271 | Will Trump's approval rating be between 39.0 and 39.4 on November 13, 2026? | Yes 0.195, No 0.805 | 2026-11-14T04:59:00Z
+63197 | Will Home Depot (HD) beat quarterly earnings? | Yes 0.233, No 0.767 | 2026-11-17T14:00:00Z
+75286 | Will Kosovo win on 2026-11-14? | Yes 0.525, No 0.475 | 2026-11-14T14:00:00Z
+75579 | Valparaiso Beacons vs. South Dakota State Jackrabbits | Valparaiso Beacons 0.525, South Dakota State Jackrabbits 0.475 | 2026-11-12T01:00:00Z
+75619 | Will Bitcoin dip to $72,000 on November 11? | Yes 0.205, No 0.795 | 2026-11-12T05:00:00Z
+75510 | Counter-Strike: Nexus vs BakS eSports (BO3) - CCT Europe Group Stage | Nexus 0.430, BakS eSports 0.570 | 2026-11-11T21:00:00Z
+69101 | Will Donald Trump post 100-119 Truth Social posts from November 10 to November 17, 2026? | Yes 0.195, No 0.805 | 2026-11-17T17:00:00Z
+50549 | Will Japan Q3 GDP growth (annualized) be between 1.6% and 2.4%? | Yes 0.212, No 0.787 | 2026-11-16T00:00:00Z
+74979 | Will Sparta Prague win on 2026-11-11? | Yes 0.154, No 0.846 | 2026-11-11T18:00:00Z
+75270 | Jets vs. Stars | Jets 0.375, Stars 0.625 | 2026-11-13T01:00:00Z
+75303 | Solana Up or Down on November 11? | Up 0.740, Down 0.260 | 2026-11-11T17:00:00Z
+75482 | Dota 2: InterActive Philippines vs Amaru Gaming (BO3) - DreamLeague Division 2 Group B | InterActive Philippines 0.730, Amaru Gaming 0.270 | 2026-11-11T19:00:00Z
+69100 | Will Donald Trump post 80-99 Truth Social posts from November 10 to November 17, 2026? | Yes 0.186, No 0.814 | 2026-11-17T17:00:00Z
+50547 | Will Japan Q3 GDP growth (annualized) be between -0.8% and 0.0%? | Yes 0.195, No 0.805 | 2026-11-16T00:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+WARNING: proceeding, even though we could not create PATH aliases: Refusing to create helper binaries under temporary dir "/tmp" (codex_home: AbsolutePathBuf("/tmp/apbh-codex-9adk6z8k/.codex"))
+Reading additional input from stdin...
+OpenAI Codex v0.161.0
+--------
+workdir: /tmp/apb-sweep-codex-t1xryweg
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: max
+reasoning summaries: none
+session id: 01a1c940-a6c9-7e50-93a4-98d2c1ebe0bd
+--------
+user
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+75533 | SPY (SPY) Up or Down on November 11? | Up 0.805, Down 0.195 | 2026-11-11T21:00:00Z
+75666 | Singer-MCA Super Premier T20: CDB vs Hayleys Group | CDB 0.290, Hayleys Group 0.710 | 2026-11-18T04:15:00Z
+75669 | Bitcoin Up or Down - November 11, 1AM ET | Up 0.325, Down 0.675 | 2026-11-11T07:00:00Z
+75665 | Counter-Strike: MOUZ vs G2 - Map 1 Winner | MOUZ 0.675, G2 0.325 | 2026-11-11T15:30:00Z
+75274 | Will Trump's approval rating be between 38.5 and 38.9 on November 13, 2026? | Yes 0.515, No 0.485 | 2026-11-14T04:59:00Z
+75490 | S&P 500 (SPX) Up or Down on November 11? | Up 0.810, Down 0.190 | 2026-11-11T21:00:00Z
+75465 | Will Italy win on 2026-11-12? | Yes 0.205, No 0.795 | 2026-11-12T19:45:00Z
+75643 | Campbell Fighting Camels vs. East Tennessee State Buccaneers | Campbell Fighting Camels 0.320, East Tennessee State Buccaneers 0.680 | 2026-11-12T00:00:00Z
+75632 | Will Bitcoin dip to $73,000 on November 11? | Yes 0.540, No 0.460 | 2026-11-12T05:00:00Z
+75536 | Dota 2: Froglings vs Nemiga Gaming (BO3) - DreamLeague Division 2 Group A | Froglings 0.823, Nemiga Gaming 0.177 | 2026-11-12T01:00:00Z
+75273 | Will Trump's approval rating be between 38.0 and 38.4 on November 13, 2026? | Yes 0.220, No 0.780 | 2026-11-14T04:59:00Z
+64077 | Will La-Z-Boy (LZB) beat quarterly earnings? | Yes 0.615, No 0.385 | 2026-11-17T22:00:00Z
+75345 | NVIDIA (NVDA) Up or Down on November 11? | Up 0.800, Down 0.200 | 2026-11-11T21:00:00Z
+75622 | Lightning vs. Sabres | Lightning 0.555, Sabres 0.445 | 2026-11-12T00:00:00Z
+75630 | Will Bitcoin reach $75,000 on November 11? | Yes 0.405, No 0.595 | 2026-11-12T05:00:00Z
+75513 | LoL: Ground Zero Gaming vs Frank Esports (BO5) - LCP Promotion Playoffs | Ground Zero Gaming 0.800, Frank Esports 0.200 | 2026-11-11T15:00:00Z
+75271 | Will Trump's approval rating be between 39.0 and 39.4 on November 13, 2026? | Yes 0.195, No 0.805 | 2026-11-14T04:59:00Z
+63197 | Will Home Depot (HD) beat quarterly earnings? | Yes 0.233, No 0.767 | 2026-11-17T14:00:00Z
+75286 | Will Kosovo win on 2026-11-14? | Yes 0.525, No 0.475 | 2026-11-14T14:00:00Z
+75579 | Valparaiso Beacons vs. South Dakota State Jackrabbits | Valparaiso Beacons 0.525, South Dakota State Jackrabbits 0.475 | 2026-11-12T01:00:00Z
+75619 | Will Bitcoin dip to $72,000 on November 11? | Yes 0.205, No 0.795 | 2026-11-12T05:00:00Z
+75510 | Counter-Strike: Nexus vs BakS eSports (BO3) - CCT Europe Group Stage | Nexus 0.430, BakS eSports 0.570 | 2026-11-11T21:00:00Z
+69101 | Will Donald Trump post 100-119 Truth Social posts from November 10 to November 17, 2026? | Yes 0.195, No 0.805 | 2026-11-17T17:00:00Z
+50549 | Will Japan Q3 GDP growth (annualized) be between 1.6% and 2.4%? | Yes 0.212, No 0.787 | 2026-11-16T00:00:00Z
+74979 | Will Sparta Prague win on 2026-11-11? | Yes 0.154, No 0.846 | 2026-11-11T18:00:00Z
+75270 | Jets vs. Stars | Jets 0.375, Stars 0.625 | 2026-11-13T01:00:00Z
+75303 | Solana Up or Down on November 11? | Up 0.740, Down 0.260 | 2026-11-11T17:00:00Z
+75482 | Dota 2: InterActive Philippines vs Amaru Gaming (BO3) - DreamLeague Division 2 Group B | InterActive Philippines 0.730, Amaru Gaming 0.270 | 2026-11-11T19:00:00Z
+69100 | Will Donald Trump post 80-99 Truth Social posts from November 10 to November 17, 2026? | Yes 0.186, No 0.814 | 2026-11-17T17:00:00Z
+50547 | Will Japan Q3 GDP growth (annualized) be between -0.8% and 0.0%? | Yes 0.195, No 0.805 | 2026-11-16T00:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+codex
+I’ll check available current data and resolution details, then return probabilities for all 30 markets within the time budget.
+web search: 
+exec
+/usr/bin/zsh -lc pwd in /tmp/apb-sweep-codex-t1xryweg
+ succeeded in 0ms:
+/tmp/apb-sweep-codex-t1xryweg
+
+web search: SPY November 11 2026 stock market today ...
+web search: 
+web search: 
+web search: Italy November 12 2026 football odds opponent ...
+web search: site:polymarket.com "SPY" "November 11" "2026" ...
+web search: 
+web search: "Trump" "November 13" "2026" "approval" polymarket ...
+codex
+The approval markets use RealClearPolling’s average, so the other polling trackers aren’t directly comparable. I’m also checking sportsbook odds and the latest GDP forecasts for evidence that warrants moving away from the supplied prices.
+web search: 
+web search: 
+web search: 
+web search: "Froglings" "Nemiga" "November 11" 2026 odds ...
+web search: "Campbell" "East Tennessee State" "November 11, 2026" odds ...
+web search: https://www.realclearpolling.com/polls/approval/donald-trump/approval-rating
+web search: 
+web search: "CDB" "Hayleys" "2026" "November" T20 odds ...
+web search: 
+web search: 
+web search: 
+web search: "CDB" "Hayleys" "November" "2026" ...
+web search: https://polymarket.com/event/spy-up-or-down-on-november-11-2026
+web search: "Trump" "posts" "November 10" "November 17" "2026" ...
+web search: 
+web search: 
+web search: Froglings Nemiga Gaming November 11 2026 odds bookmaker ...
+web search: Sparta Prague November 11 2026 women champions league odds ...
+web search: 
+web search: 
+web search: 
+web search: "Will Home Depot" "beat" "earnings" "2026" Polymarket ...
+web search: https://cricheroes.com/team-profile/4232772/hayleys-group-a/matches?colorcode=4991c1&type=m
+web search: "Bitcoin" "November 11, 1AM" "2026" ...
+web search: 
+web search: 
+web search: 
+web search: 'Sparta'
+web search: 
+web search: "Home Depot" "earnings" "3.86" "Polymarket" ...
+codex
+[RealClearPolling currently reports 38.7% approval](https://www.realclearpolling.com/polls/approval/donald-trump/approval-rating). The cricket listing also shows CDB–Hayleys already live, despite the later market close date, so I’m checking the score before assigning its probability. [Match listing](https://cricheroes.com/team-profile/4232772/hayleys-group-a/matches?colorcode=4991c1&type=m)
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests, concurrent.futures
+urls={
+'btc':'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=5',
+'sol':'https://api.binance.com/api/v3/klines?symbol=SOLUSDT&interval=1h&limit=24',
+'poly':'https://gamma-api.polymarket.com/public-search?q=SPY%20November%2011&limit_per_type=5',
+'cricket':'https://cricheroes.com/scorecard/28205411/33rd-singer-mca-super-premier-t20-2026/hayleys-group-a-vs-cdb/scorecard'
+}
+def run(kv):
+ k,u=kv
+ try:
+  r=requests.get(u,timeout=20)
+  print(k,r.status_code,r.text[:16000])
+ except Exception as e: print(k,str(e))
+with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool: list(pool.map(run,urls.items()))
+PY" in /tmp/apb-sweep-codex-t1xryweg
+ succeeded in 763ms:
+cricket 403 <!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js ie6 oldie" lang="en-US"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js ie7 oldie" lang="en-US"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js ie8 oldie" lang="en-US"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en-US"> <!--<![endif]-->
+<head>
+<title>Attention Required! | Cloudflare</title>
+<meta charset="UTF-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" id="cf_styles-css" href="/cdn-cgi/styles/cf.errors.css" />
+<!--[if lt IE 9]><link rel="stylesheet" id='cf_styles-ie-css' href="/cdn-cgi/styles/cf.errors.ie.css" /><![endif]-->
+<style>body{margin:0;padding:0}</style>
+
+
+<!--[if gte IE 10]><!-->
+<script>
+  if (!navigator.cookieEnabled) {
+    window.addEventListener('DOMContentLoaded', function () {
+      var cookieEl = document.getElementById('cookie-alert');
+      cookieEl.style.display = 'block';
+    })
+  }
+</script>
+<!--<![endif]-->
+
+</head>
+<body>
+  <div id="cf-wrapper">
+    <div class="cf-alert cf-alert-error cf-cookie-error" id="cookie-alert" data-translate="enable_cookies">Please enable cookies.</div>
+    <div id="cf-error-details" class="cf-error-details-wrapper">
+      <div class="cf-wrapper cf-header cf-error-overview">
+        <h1 data-translate="block_headline">Sorry, you have been blocked</h1>
+        <h2 class="cf-subheadline"><span data-translate="unable_to_access">You are unable to access</span> cricheroes.com</h2>
+      </div><!-- /.header -->
+
+      <div class="cf-section cf-highlight">
+        <div class="cf-wrapper">
+          <div class="cf-screenshot-container cf-screenshot-full">
+            
+              <span class="cf-no-screenshot error"></span>
+            
+          </div>
+        </div>
+      </div><!-- /.captcha-container -->
+
+      <div class="cf-section cf-wrapper">
+        <div class="cf-columns two">
+          <div class="cf-column">
+            <h2 data-translate="blocked_why_headline">Why have I been blocked?</h2>
+
+            <p data-translate="blocked_why_detail">This website is using a security service to protect itself from online attacks. The action you just performed triggered the security solution. There are several actions that could trigger this block including submitting a certain word or phrase, a SQL command or malformed data.</p>
+          </div>
+
+          <div class="cf-column">
+            <h2 data-translate="blocked_resolve_headline">What can I do to resolve this?</h2>
+
+            <p data-translate="blocked_resolve_detail">You can email the site owner to let them know you were blocked. Please include what you were doing when this page came up and the Cloudflare Ray ID found at the bottom of this page.</p>
+          </div>
+        </div>
+      </div><!-- /.section -->
+
+      <div class="cf-error-footer cf-wrapper w-240 lg:w-full py-10 sm:py-4 sm:px-8 mx-auto text-center sm:text-left border-solid border-0 border-t border-gray-300">
+    <p class="text-13">
+      <span class="cf-footer-item sm:block sm:mb-1">Cloudflare Ray ID: <strong class="font-semibold">a58b2fb12f2258fc</strong></span>
+      <span class="cf-footer-separator sm:hidden">&bull;</span>
+      <span id="cf-footer-item-ip" class="cf-footer-item hidden sm:block sm:mb-1">
+        Your IP:
+        <button type="button" id="cf-footer-ip-reveal" class="cf-footer-ip-reveal-btn">Click to reveal</button>
+        <span class="hidden" id="cf-footer-ip">89.114.202.190</span>
+        <span class="cf-footer-separator sm:hidden">&bull;</span>
+      </span>
+      <span class="cf-footer-item sm:block sm:mb-1"><span>Performance &amp; security by</span> <a rel="noopener noreferrer" href="https://www.cloudflare.com/5xx-error-landing" id="brand_link" target="_blank">Cloudflare</a></span>
+      
+    </p>
+    <script>(function(){function d(){var b=a.getElementById("cf-footer-item-ip"),c=a.getElementById("cf-footer-ip-reveal");b&&"classList"in b&&(b.classList.remove("hidden"),c.addEventListener("click",function(){c.classList.add("hidden");a.getElementById("cf-footer-ip").classList.remove("hidden")}))}var a=document;document.addEventListener&&a.addEventListener("DOMContentLoaded",d)})();</script>
+  </div><!-- /.error-footer -->
+
+    </div><!-- /#cf-error-details -->
+  </div><!-- /#cf-wrapper -->
+
+  <script>
+    window._cf_translation = {};
+    
+    
+  </script>
+</body>
+</html>
+poly 200 {"events":[{"id":"1356456","ticker":"spy-closes-above-on-november-11-2026","slug":"spy-closes-above-on-november-11-2026","title":"S&P 500 (SPY) closes above ___ on November 11?","description":"S&P 500 (SPY) closes above ___ on November 11?","resolutionSource":"https://pythdata.app/explore/Equity.US.SPY%2FUSD","startDate":"2026-11-10T13:00:59.08Z","creationDate":"2026-11-10T13:00:59.08Z","endDate":"2026-11-11T21:00:00Z","image":"https://polymarket-upload.s3.us-east-2.amazonaws.com/s-and-p-500-1e40af6979.png","icon":"https://polymarket-upload.s3.us-east-2.amazonaws.com/s-and-p-500-1e40af6979.png","active":true,"closed":false,"archived":false,"new":false,"featured":false,"restricted":true,"liquidity":9299.1592,"volume":1239.416085,"openInterest":1073.866085,"createdAt":"2026-11-10T13:00:59.434276Z","updatedAt":"2026-11-11T06:18:24.987764Z","competitive":0.9997750506136119,"volume24hr":1239.416085,"volume1wk":1239.416085,"volume1mo":1239.416085,"volume1yr":1239.416085,"enableOrderBook":true,"liquidityClob":9299.1592,"negRisk":false,"commentCount":0,"markets":[{"id":"6930421","question":"S&P 500 (SPY) closes above $780 on November 11?","conditionId":"0x140e804276fe1e66ec5dfc7594e338a94868ba059876962bab9cf1c06dbe19e6","slug":"spy-closes-above-780-on-november-11-2026","resolutionSource":"https://pythdata.app/explore/Equity.US.SPY%2FUSD","endDate":"2026-11-11T21:00:00Z","liquidity":"771.64084","startDate":"2026-11-10T13:01:10Z","image":"https://polymarket-upload.s3.us-east-2.amazonaws.com/s-and-p-500-1e40af6979.png","icon":"https://polymarket-upload.s3.us-east-2.amazonaws.com/s-and-p-500-1e40af6979.png","description":"This market will resolve to \"Yes\" if the Close price for S&P 500 (SPY) on November 11, 2026 is higher than the listed price. Otherwise, this market will resolve to \"No.\"\n\nIf the two specified prices are exactly equal, this market will resolve to \"No\".\n\nClosing prices will be used exactly as published by Pyth, without rounding.\n\nIf S&P 500 (SPY) does not trade at all during the regular session, the market will resolve 50-50.\n\nFor a standard full trading session, the closing price refers to the Pyth \"Close\" value of the 1-minute candle corresponding to the final minute of regular trading hours on the primary exchange.\n\nIf the specified day has no valid Pyth Close value for the 1-minute candle corresponding to the end of regular trading hours on the primary exchange, the market will use the last valid Pyth price achieved during the regular trading hours of the primary exchange as the effective closing price. If no valid Pyth price exists for that trading day due to a system outage, data failure, or other technical disruption, the official closing price published by the primary exchange on which the listed security trades will be used to determine the closing price for that day.\n\nIf the listed date is not a trading day under the applicable trading-hours schedule as listed on Pyth, this market will resolve 50-50.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed security during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth. The target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market will be Pyth, specifically the \"Close\" values for the relevant 1-minute candle available at https://pythdata.app/explore/Equity.US.SPY%2FUSD.","outcomes":"[\"Yes\", \"No\"]","outcomePrices":"[\"0.0105\", \"0.9895\"]","volume":"85","active":true,"closed":false,"marketMakerAddress":"","createdAt":"2026-11-10T13:00:59.867597Z","updatedAt":"2026-11-11T06:12:15.770055Z","new":false,"featured":false,"submitted_by":"0xAC9930b2AE455a671b62dE86876A7e8587825294","archived":false,"resolvedBy":"0x65070BE91477460D8A7AeEb94ef92fe056C2f2A7","restricted":true,"groupItemTitle":"$780","groupItemThreshold":"0","questionID":"0x4191ecfb0656e7362f959f4ba5bc9da4df73bbaa28499cede0c0600dba394570","enableOrderBook":true,"orderPriceMinTickSize":0.001,"orderMinSize":5,"volumeNum":85,"liquidityNum":771.64084,"endDateIso":"2026-11-11","startDateIso":"2026-11-10","hasReviewedDates":true,"volume24hr":85,"volume1wk":85,"volume1mo":85,"volume1yr":85,"clobTokenIds":"[\"67659220093782291049289289510579239015437645479231808600420216781558414968982\", \"65273234190506058705023277631541053991258746334508579364224975229809657722510\"]","comboStatus":"disabled","umaBond":"500","umaReward":"3.5","volume24hrClob":85,"volume1wkClob":85,"volume1moClob":85,"volume1yrClob":85,"volumeClob":85,"liquidityClob":771.64084,"makerBaseFee":1000,"takerBaseFee":1000,"customLiveness":900,"acceptingOrders":true,"negRisk":false,"ready":false,"funded":false,"acceptingOrdersTimestamp":"2026-11-10T13:01:10Z","cyom":false,"competitive":0.8067051720490372,"approved":true,"rewardsMinSize":20,"rewardsMaxSpread":4.5,"spread":0.021,"bestAsk":0.021,"automaticallyActive":true,"clearBookOnStart":false,"manualActivation":false,"negRiskOther":false,"umaResolutionStatuses":"[]","pendingDeployment":false,"deploying":false,"deployingTimestamp":"2026-11-10T13:01:02.704112Z","rfqEnabled":false,"eventStartTime":"2026-11-10T13:00:59.08Z","holdingRewardsEnabled":false,"feesEnabled":true,"feeType":"finance_prices_fees","feeSchedule":{"exponent":1,"rate":0.04,"takerOnly":true,"rebateRate":0.25},"fallbackResolutionType":"equal_split","resolutionMechanism":"oracle","tradingEligible":true,"version":"v1"},{"id":"6930422","question":"S&P 500 (SPY) closes above $775 on November 11?","conditionId":"0xfe1642bced68904f774ac51eccbc783d2ff45bcb3951e679b7b8efa5e3c0774d","slug":"spy-closes-above-775-on-november-11-2026","resolutionSource":"https://pythdata.app/explore/Equity.US.SPY%2FUSD","endDate":"2026-11-11T21:00:00Z","liquidity":"772.14641","startDate":"2026-11-10T13:01:10Z","image":"https://polymarket-upload.s3.us-east-2.amazonaws.com/s-and-p-500-1e40af6979.png","icon":"https://polymarket-upload.s3.us-east-2.amazonaws.com/s-and-p-500-1e40af6979.png","description":"This market will resolve to \"Yes\" if the Close price for S&P 500 (SPY) on November 11, 2026 is higher than the listed price. Otherwise, this market will resolve to \"No.\"\n\nIf the two specified prices are exactly equal, this market will resolve to \"No\".\n\nClosing prices will be used exactly as published by Pyth, without rounding.\n\nIf S&P 500 (SPY) does not trade at all during the regular session, the market will resolve 50-50.\n\nFor a standard full trading session, the closing price refers to the Pyth \"Close\" value of the 1-minute candle corresponding to the final minute of regular trading hours on the primary exchange.\n\nIf the specified day has no valid Pyth Close value for the 1-minute candle corresponding to the end of regular trading hours on the primary exchange, the market will use the last valid Pyth price achieved during the regular trading hours of the primary exchange as the effective closing price. If no valid Pyth price exists for that trading day due to a system outage, data failure, or other technical disruption, the official closing price published by the primary exchange on which the listed security trades will be used to determine the closing price for that day.\n\nIf the listed date is not a trading day under the applicable trading-hours schedule as listed on Pyth, this market will resolve 50-50.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed security during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth. The target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market will be Pyth, specifically the \"Close\" values for the relevant 1-minute candle available at https://pythdata.app/explore/Equity.US.SPY%2FUSD.","outcomes":"[\"Yes\", \"No\"]","outcomePrices":"[\"0.0115\", \"0.9885\"]","volume":"5","active":true,"closed":false,"marketMakerAddress":"","createdAt":"2026-11-10T13:01:00.09869Z","updatedAt":"2026-11-11T06:14:16.008161Z","new":false,"featured":false,"submitted_by":"0xAC9930b2AE455a671b62dE86876A7e8587825294","archived":false,"resolvedBy":"0x65070BE91477460D8A7AeEb94ef92fe056C2f2A7","restricted":true,"groupItemTitle":"$775","groupItemThreshold":"1","questionID":"0xfe5599898d2a3c7658fb9b404fb15eb417c3f1e1a288736184467dca6ac3c1dc","enableOrderBook":true,"orderPriceMinTickSize":0.001,"orderMinSize":5,"volumeNum":5,"liquidityNum":772.14641,"endDateIso":"2026-11-11","startDateIso":"2026-11-10","hasReviewedDates":true,"volume24hr":5,"volume1wk":5,"volume1mo":5,"volume1yr":5,"clobTokenIds":"[\"83718763321365608889783374109374756183561402767525116541142046049795846486452\", \"109052637653847082774973819417406603254942576487187809528043382470626488234735\"]","comboStatus":"disabled","umaBond":"500","umaReward":"3.5","volume24hrClob":5,"volume1wkClob":5,"volume1moClob":5,"volume1yrClob":5,"volumeClob":5,"liquidityClob":772.14641,"makerBaseFee":1000,"takerBaseFee":1000,"customLiveness":900,"acceptingOrders":true,"negRisk":false,"ready":false,"funded":false,"acceptingOrdersTimestamp":"2026-11-10T13:01:10Z","cyom":false,"competitive":0.8073421308059757,"approved":true,"rewardsMinSize":20,"rewardsMaxSpread":4.5,"spread":0.021,"oneHourPriceChange":0.0005,"bestBid":0.001,"bestAsk":0.022,"automaticallyActive":true,"clearBookOnStart":false,"manualActivation":false,"negRiskOther":false,"umaResolutionStatuses":"[]","pendingDeployment":false,"deploying":false,"deployingTimestamp":"2026-11-10T13:01:02.663615Z","rfqEnabled":false,"eventStartTime":"2026-11-10T13:00:59.08Z","holdingRewardsEnabled":false,"feesEnabled":true,"feeType":"finance_prices_fees","feeSchedule":{"exponent":1,"rate":0.04,"takerOnly":true,"rebateRate":0.25},"fallbackResolutionType":"equal_split","resolutionMechanism":"oracle","tradingEligible":true,"version":"v1"},{"id":"6930424","question":"S&P 500 (SPY) closes above $770 on November 11?","conditionId":"0x074d7855476597fdae5a3161d0efa5ea3c44c719614995af00bf5f3a9c5e4154","slug":"spy-closes-above-770-on-november-11-2026","resolutionSource":"https://pythdata.app/explore/Equity.US.SPY%2FUSD","endDate":"2026-11-11T21:00:00Z","liquidity":"773.08063","startDate":"2026-11-10T13:01:10Z","image":"https://polymarket-upload.s3.us-east-2.amazonaws.com/s-and-p-500-1e40af6979.png","icon":"https://polymarket-upload.s3.us-east-2.amazonaws.com/s-and-p-500-1e40af6979.png","description":"This market will resolve to \"Yes\" if the Close price for S&P 500 (SPY) on November 11, 2026 is higher than the listed price. Otherwise, this market will resolve to \"No.\"\n\nIf the two specified prices are exactly equal, this market will resolve to \"No\".\n\nClosing prices will be used exactly as published by Pyth, without rounding.\n\nIf S&P 500 (SPY) does not trade at all during the regular session, the market will resolve 50-50.\n\nFor a standard full trading session, the closing price refers to the Pyth \"Close\" value of the 1-minute candle corresponding to the final minute of regular trading hours on the primary exchange.\n\nIf the specified day has no valid Pyth Close value for the 1-minute candle corresponding to the end of regular trading hours on the primary exchange, the market will use the last valid Pyth price achieved during the regular trading hours of the primary exchange as the effective closing price. If no valid Pyth price exists for that trading day due to a system outage, data failure, or other technical disruption, the official closing price published by the primary exchange on which the listed security trades will be used to determine the closing price for that day.\n\nIf the listed date is not a trading day under the applicable trading-hours schedule as listed on Pyth, this market will resolve 50-50.\n\nIn the event of a stock split, reverse stock split, or similar corporate action affecting the listed security during the listed time frame, this market will resolve based on split-adjusted prices as displayed on Pyth. The target price will be adjusted proportionally to reflect any stock splits. Resolution will be based on the historical price data as shown on Pyth after any adjustments have been applied.\n\nThe resolution source for this market will be Pyth, specifically the \"Close\" values for the relevant 1-minute candle available at https://pythdata.app/explore/Equity.US.SPY%2FUSD.","outcomes":"[\"Yes\", \"No\"]","outcomePrices":"[\"0.0135\", \"0.9865\"]","volume":"5","active":true,"closed":false,"marketMakerAddress":"","createdAt":"2026-11-10T13:01:00.325806Z","updatedAt":"2026-11-11T06:18:15.561787Z","new":false,"featured":false,"submitted_by":"0xAC9930b2AE455a671b62dE86876A7e8587825294","archived":false,"resolvedBy":"0x65070BE91477460D8A7AeEb94ef92fe056C2f2A7","restricted":true,"groupItemTitle":"$770","groupItemThreshold":"2","questionID":"0xbb29825d266c4e380a2e269bcd5ed8f09ba9bc25df1a0c2102d6d76438c89b6d","enableOrderBook":true,"orderPriceMinTickSize":0.001,"orderMinSize":5,"volumeNum":5,"liquidityNum":773.08063,"endDateIso":"2026-11-11","startDateIso":"2026-11-10","hasReviewedDates":true,"volume24hr":5,"volume1wk":5,"volume1mo":5,"volume1yr":5,"clobTokenIds":"[\"56495323871316927337928232362436544328826712298547906099290184317650764068354\", \"46921542607356399430957602207945751821851567276835891927009797686553341757950\"]","comboStatus":"disabled","umaBond":"500","umaReward":"3.5","volume24hrClob":5,"volume1wkClob":5,"volume1moClob":5,"volume1yrClob":5,"volumeClob":5,"liquidityClob":773.08063,"makerBaseFee":1000,"takerBaseFee":1000,"customLiveness":900,"acceptingOrders":true,"negRisk":false,"ready":false,"funded":false,"acceptingOrdersTimestamp":"2026-11-10T13:01:10Z","cyom":false,"competitive":0.8086151475045429,"approved":true,"rewardsMinSize":20,"rewardsMaxSpread":4.5,"spread":0.023,"oneHourPriceChange":0.001,"bestBid":0.002,"bestAsk":0.025,"automaticallyActive":true,"clearBookOnStart":false,"manualActivation":false,"negRiskOther":false,"umaResolutionStatuses":"[]","pendingDeployment":false,"deploying":false,"deployingTimestamp":"2026-11-10T13:01:02.653565Z","rfqEnabled":false,"eventStartTime":"2026-11-10T13:00:59.08Z","holdingRewardsEnabled":false,"feesEnabled":true,"feeType":"finance_prices_fees","feeSchedule":{"exponent":1,"rate":0.04,"takerOnly":true,"rebateRate":0.25},"fallbackResolutionType":"equal_split","resolutionMechanism":"oracle","tradingEligible":true,"version":"v1"},{"id":"6930425","question":"S&P 500 (SPY) closes above $765 on November 11?","conditionId":"0xc9e412fd996630e3a322916841ded9ae1d4f80dcada82415375e151fdf1ca04a","slug":"spy-closes-above-765-on-november-11-2026","resolutionSource":"https://pythdata.app/explore/Equity.US.SPY%2FUSD","endDate":"2026-11-11T21:00:00Z","liquidity":"1126.05767","startDate":"2026-11-10T13:01:10Z","image":"https://polymarket-upload.s3.us-east-2.amazonaws.com/s-and-p-500-1e40af6979.png","icon":"https://polymarket-upload.s3.us-east-2.amazonaws.com/s-and-p-500-1e40af6979.png","description":"This market will resolve to \"Yes\" if the Close price for S&P 500 (SPY) on November 11, 2026 is higher than the listed price. Otherwise, this market will resolve to \"No.\"\n\nIf the two specified prices are exactly equal, this market will resolve to \"No\".\n\nClosing prices will be used exactly as published by Pyth, without rounding.\n\nIf S&P 500 (SPY) does not trade at all during the regular session, the market will resolve 50-50.\n\nFor a standard full trading session, the closing price refers to the Pyth \"Close\" value of the 1-minute candle corresponding to the final minute of regular trading hours on the primary exchange.\n\nIf the specified day has no valid Pyth Close value for the 1-minute cand
+sol 200 [[1794294000000,"86.13000000","86.50000000","86.05000000","86.10000000","42312.74900000",1794297599999,"3651142.65440000",11096,"24438.45300000","2108565.45967000","0"],[1794297600000,"86.09000000","86.18000000","85.50000000","85.92000000","58586.04800000",1794301199999,"5029021.76552000",16037,"26154.91700000","2244381.29312000","0"],[1794301200000,"85.92000000","85.92000000","84.91000000","85.59000000","128064.80000000",1794304799999,"10925722.62486000",31106,"38373.71500000","3275250.40274000","0"],[1794304800000,"85.58000000","85.69000000","84.35000000","84.46000000","149788.02600000",1794308399999,"12705494.98940000",29490,"66086.54400000","5607577.14456000","0"],[1794308400000,"84.46000000","84.93000000","84.20000000","84.70000000","79155.39100000",1794311999999,"6693428.11447000",18375,"43463.80500000","3676357.61884000","0"],[1794312000000,"84.71000000","85.00000000","84.60000000","84.96000000","44536.35600000",1794315599999,"3775086.16044000",14879,"23601.46800000","2000894.02062000","0"],[1794315600000,"84.96000000","85.24000000","82.61000000","84.13000000","309373.37500000",1794319199999,"26016597.25385000",73934,"146363.52500000","12320734.56662000","0"],[1794319200000,"84.12000000","84.74000000","83.47000000","84.36000000","277027.78800000",1794322799999,"23262156.52464000",61365,"111661.58900000","9382731.30430000","0"],[1794322800000,"84.36000000","85.10000000","81.34000000","82.30000000","352036.44300000",1794326399999,"29219286.80484000",116365,"169547.56900000","14072313.28306000","0"],[1794326400000,"82.29000000","82.72000000","81.52000000","81.95000000","261898.72500000",1794329999999,"21514698.93760000",77546,"141712.07500000","11639865.58882000","0"],[1794330000000,"81.94000000","82.60000000","81.77000000","82.36000000","115675.13100000",1794333599999,"9508428.02992000",37183,"54677.14500000","4494351.26000000","0"],[1794333600000,"82.35000000","83.30000000","82.17000000","82.98000000","88663.26700000",1794337199999,"7334709.44265000",25351,"53006.81600000","4383431.96279000","0"],[1794337200000,"82.99000000","83.05000000","82.52000000","82.95000000","46821.95700000",1794340799999,"3877446.87216000",16569,"26083.38600000","2159844.46149000","0"],[1794340800000,"82.95000000","83.57000000","82.70000000","83.31000000","72325.37800000",1794344399999,"6021838.33712000",20120,"43103.73300000","3588506.41200000","0"],[1794344400000,"83.31000000","83.68000000","83.30000000","83.35000000","44255.79600000",1794347999999,"3693756.39456000",13331,"24827.82200000","2072138.22067000","0"],[1794348000000,"83.36000000","83.53000000","82.91000000","82.92000000","38994.03000000",1794351599999,"3244332.23004000",10038,"17671.84400000","1469838.45759000","0"],[1794351600000,"82.92000000","83.47000000","82.61000000","83.35000000","50393.03100000",1794355199999,"4185766.81821000",11965,"23705.27600000","1969430.01212000","0"],[1794355200000,"83.35000000","83.63000000","83.13000000","83.15000000","62422.11700000",1794358799999,"5204690.22877000",11534,"25318.88300000","2111430.09267000","0"],[1794358800000,"83.15000000","84.07000000","82.86000000","83.21000000","85230.78600000",1794362399999,"7113717.41571000",22572,"49167.06900000","4108084.26305000","0"],[1794362400000,"83.21000000","83.60000000","82.88000000","83.26000000","57008.39400000",1794365999999,"4742756.19573000",16198,"28030.02100000","2331396.89364000","0"],[1794366000000,"83.26000000","83.78000000","83.15000000","83.35000000","51139.77200000",1794369599999,"4272561.73733000",12172,"24136.73200000","2016211.60617000","0"],[1794369600000,"83.34000000","83.47000000","82.72000000","82.82000000","70147.14700000",1794373199999,"5826290.07806000",15065,"31147.16100000","2586583.80989000","0"],[1794373200000,"82.82000000","83.47000000","82.65000000","83.39000000","46277.36200000",1794376799999,"3844641.06926000",14052,"25271.10800000","2099873.96530000","0"],[1794376800000,"83.39000000","83.44000000","83.09000000","83.15000000","14057.88200000",1794380399999,"1169975.07080000",4180,"5511.93900000","458771.42220000","0"]]
+btc 200 [[1794362400000,"73605.01000000","73787.36000000","73209.12000000","73642.56000000","623.35218000",1794365999999,"45820074.84012350",193475,"310.58098000","22831979.96698790","0"],[1794366000000,"73642.57000000","73883.79000000","73600.01000000","73770.16000000","270.24606000",1794369599999,"19938518.55893640",103448,"145.99526000","10770710.94694630","0"],[1794369600000,"73770.16000000","73888.00000000","73478.00000000","73736.01000000","583.26303000",1794373199999,"43012456.34381190",114690,"308.13163000","22724415.30242370","0"],[1794373200000,"73736.01000000","73970.00000000","73686.26000000","73924.02000000","568.01351000",1794376799999,"41948497.13167710",126855,"306.90349000","22665263.17123880","0"],[1794376800000,"73924.02000000","73942.01000000","73811.44000000","73860.01000000","438.04593000",1794380399999,"32368440.88319880",36314,"234.59504000","17335573.61521550","0"]]
+
+web search: 
+web search: "Sparta Prague" "November 11, 2026" ...
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests, concurrent.futures, json, pathlib
+queries=['SPY Up or Down November 11','SPX Up or Down November 11','NVDA Up or Down November 11','Bitcoin Up or Down November 11 1AM','Solana Up or Down November 11','Home Depot beat quarterly earnings','La-Z-Boy beat quarterly earnings','Japan Q3 GDP growth','CDB Hayleys','Trump approval November 13','Truth Social November 10 November 17']
+results={}
+def run(q):
+ try:
+  d=requests.get('https://gamma-api.polymarket.com/public-search',params={'q':q,'limit_per_type':6},timeout=15).json()
+  results[q]=d
+  out=[]
+  for e in d.get('events',[]):
+   out.append({'title':e.get('title'),'slug':e.get('slug'),'closed':e.get('closed'),'markets':[{k:m.get(k) for k in ['id','question','slug','outcomes','outcomePrices','bestBid','bestAsk','spread','volume','liquidity','endDate','lastTradePrice']} for m in e.get('markets',[])]})
+  return {'q':q,'events':out}
+ except Exception as e:return {'q':q,'error':str(e)}
+with concurrent.futures.ThreadPoolExecutor(max_workers=5) as p:
+ for d in p.map(run,queries):print(json.dumps(d))
+pathlib.Path('/tmp/forecast_search.json').write_text(json.dumps(results))
+PY" in /tmp/apb-sweep-codex-t1xryweg
+ succeeded in 1000ms:
+{"q": "SPY Up or Down November 11", "events": [{"title": "SPY (SPY) Up or Down on November 11?", "slug": "spy-up-or-down-on-november-11-2026", "closed": false, "markets": [{"id": "6930416", "question": "SPY (SPY) Up or Down on November 11?", "slug": "spy-up-or-down-on-november-11-2026", "outcomes": "[\"Up\", \"Down\"]", "outcomePrices": "[\"0.815\", \"0.185\"]", "bestBid": 0.81, "bestAsk": 0.82, "spread": 0.01, "volume": "1344.787881", "liquidity": "2932.8866", "endDate": "2026-11-11T21:00:00Z", "lastTradePrice": 0.82}]}, {"title": "SPY Opens Up or Down on November 11?", "slug": "spy-opens-up-or-down-on-november-11-2026", "closed": false, "markets": [{"id": "6945279", "question": "SPY Opens Up or Down on November 11?", "slug": "spy-opens-up-or-down-on-november-11-2026", "outcomes": "[\"Up\", \"Down\"]", "outcomePrices": "[\"0.5\", \"0.5\"]", "bestBid": 0.01, "bestAsk": 0.99, "spread": 0.98, "volume": null, "liquidity": "9.32", "endDate": "2026-11-11T21:00:00Z", "lastTradePrice": null}]}, {"title": "S&P 500 (SPY) closes above ___ on November 11?", "slug": "spy-closes-above-on-november-11-2026", "closed": false, "markets": [{"id": "6930421", "question": "S&P 500 (SPY) closes above $780 on November 11?", "slug": "spy-closes-above-780-on-november-11-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.0105\", \"0.9895\"]", "bestBid": null, "bestAsk": 0.021, "spread": 0.021, "volume": "85", "liquidity": "771.64084", "endDate": "2026-11-11T21:00:00Z", "lastTradePrice": null}, {"id": "6930422", "question": "S&P 500 (SPY) closes above $775 on November 11?", "slug": "spy-closes-above-775-on-november-11-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.0115\", \"0.9885\"]", "bestBid": 0.001, "bestAsk": 0.022, "spread": 0.021, "volume": "5", "liquidity": "772.14641", "endDate": "2026-11-11T21:00:00Z", "lastTradePrice": null}, {"id": "6930424", "question": "S&P 500 (SPY) closes above $770 on November 11?", "slug": "spy-closes-above-770-on-november-11-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.0135\", \"0.9865\"]", "bestBid": 0.002, "bestAsk": 0.025, "spread": 0.023, "volume": "5", "liquidity": "773.08063", "endDate": "2026-11-11T21:00:00Z", "lastTradePrice": null}, {"id": "6930425", "question": "S&P 500 (SPY) closes above $765 on November 11?", "slug": "spy-closes-above-765-on-november-11-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.0185\", \"0.9815\"]", "bestBid": 0.011, "bestAsk": 0.026, "spread": 0.015, "volume": null, "liquidity": "1126.05767", "endDate": "2026-11-11T21:00:00Z", "lastTradePrice": null}, {"id": "6930426", "question": "S&P 500 (SPY) closes above $760 on November 11?", "slug": "spy-closes-above-760-on-november-11-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.175\", \"0.825\"]", "bestBid": 0.16, "bestAsk": 0.19, "spread": 0.03, "volume": "20", "liquidity": "755.4776", "endDate": "2026-11-11T21:00:00Z", "lastTradePrice": 0.19}, {"id": "6930427", "question": "S&P 500 (SPY) closes above $755 on November 11?", "slug": "spy-closes-above-755-on-november-11-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.51\", \"0.49\"]", "bestBid": 0.5, "bestAsk": 0.52, "spread": 0.02, "volume": "63.519999999999996", "liquidity": "345.6472", "endDate": "2026-11-11T21:00:00Z", "lastTradePrice": 0.33}, {"id": "6930428", "question": "S&P 500 (SPY) closes above $750 on November 11?", "slug": "spy-closes-above-750-on-november-11-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.81\", \"0.19\"]", "bestBid": 0.79, "bestAsk": 0.83, "spread": 0.04, "volume": "423.81753000000003", "liquidity": "795.6046", "endDate": "2026-11-11T21:00:00Z", "lastTradePrice": 0.82}, {"id": "6930429", "question": "S&P 500 (SPY) closes above $745 on November 11?", "slug": "spy-closes-above-745-on-november-11-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.915\", \"0.085\"]", "bestBid": 0.9, "bestAsk": 0.93, "spread": 0.03, "volume": "529.4402460000001", "liquidity": "1197.4597", "endDate": "2026-11-11T21:00:00Z", "lastTradePrice": 0.93}, {"id": "6930430", "question": "S&P 500 (SPY) closes above $740 on November 11?", "slug": "spy-closes-above-740-on-november-11-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.971\", \"0.029\"]", "bestBid": 0.962, "bestAsk": 0.98, "spread": 0.018, "volume": "40", "liquidity": "35.34273", "endDate": "2026-11-11T21:00:00Z", "lastTradePrice": 0.89}, {"id": "6930431", "question": "S&P 500 (SPY) closes above $735 on November 11?", "slug": "spy-closes-above-735-on-november-11-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.9815\", \"0.0185\"]", "bestBid": 0.974, "bestAsk": 0.989, "spread": 0.015, "volume": "15.0505", "liquidity": "824.9667", "endDate": "2026-11-11T21:00:00Z", "lastTradePrice": 0.99}, {"id": "6930432", "question": "S&P 500 (SPY) closes above $730 on November 11?", "slug": "spy-closes-above-730-on-november-11-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.9975\", \"0.0025\"]", "bestBid": 0.997, "bestAsk": 0.998, "spread": 0.001, "volume": "52.587809", "liquidity": "859.67024", "endDate": "2026-11-11T21:00:00Z", "lastTradePrice": 0.989}]}]}
+{"q": "SPX Up or Down November 11", "events": [{"title": "S&P 500 (SPX) Up or Down on November 11?", "slug": "spx-up-or-down-on-november-11-2026", "closed": false, "markets": [{"id": "6930376", "question": "S&P 500 (SPX) Up or Down on November 11?", "slug": "spx-up-or-down-on-november-11-2026", "outcomes": "[\"Up\", \"Down\"]", "outcomePrices": "[\"0.82\", \"0.18\"]", "bestBid": 0.81, "bestAsk": 0.83, "spread": 0.02, "volume": "3259.8786539999996", "liquidity": "3228.2957", "endDate": "2026-11-11T21:00:00Z", "lastTradePrice": 0.82}]}, {"title": "S&P 500 (SPX) Up or Down on November 11?", "slug": "spx-up-or-down-on-november-11-2025", "closed": true, "markets": [{"id": "674164", "question": "S&P 500 (SPX) Up or Down on November 11?", "slug": "spx-up-or-down-on-november-11-2025", "outcomes": "[\"Up\", \"Down\"]", "outcomePrices": "[\"1\", \"0\"]", "bestBid": 0.999, "bestAsk": 1, "spread": 0.001, "volume": "32943.974191", "liquidity": null, "endDate": "2025-11-11T21:00:00Z", "lastTradePrice": 1}]}, {"title": "S&P 500 (SPX) Opens Up or Down on November 11?", "slug": "spx-opens-up-or-down-on-november-11-2026", "closed": false, "markets": [{"id": "6930413", "question": "S&P 500 (SPX) Opens Up or Down on November 11?", "slug": "spx-opens-up-or-down-on-november-11-2026", "outcomes": "[\"Up\", \"Down\"]", "outcomePrices": "[\"0.865\", \"0.135\"]", "bestBid": 0.83, "bestAsk": 0.9, "spread": 0.07, "volume": "1658.5929110000002", "liquidity": "1196.8025", "endDate": "2026-11-11T21:00:00Z", "lastTradePrice": 0.82}]}]}
+{"q": "NVDA Up or Down November 11", "events": [{"title": "NVIDIA (NVDA) Up or Down on November 11?", "slug": "nvda-up-or-down-on-november-11-2026", "closed": false, "markets": [{"id": "6930355", "question": "NVIDIA (NVDA) Up or Down on November 11?", "slug": "nvda-up-or-down-on-november-11-2026", "outcomes": "[\"Up\", \"Down\"]", "outcomePrices": "[\"0.765\", \"0.235\"]", "bestBid": 0.72, "bestAsk": 0.81, "spread": 0.09, "volume": "1988.428991", "liquidity": "633.1602", "endDate": "2026-11-11T21:00:00Z", "lastTradePrice": 0.82}]}, {"title": "NVIDIA (NVDA) Up or Down on November 11?", "slug": "nvda-up-or-down-on-november-11-2025", "closed": true, "markets": [{"id": "674190", "question": "NVIDIA (NVDA) Up or Down on November 11?", "slug": "nvda-up-or-down-on-november-11-2025", "outcomes": "[\"Up\", \"Down\"]", "outcomePrices": "[\"0\", \"1\"]", "bestBid": null, "bestAsk": 0.001, "spread": 0.001, "volume": "3873.395368", "liquidity": null, "endDate": "2025-11-11T21:00:00Z", "lastTradePrice": 1}]}]}
+{"q": "Bitcoin Up or Down November 11 1AM", "events": [{"title": "Bitcoin Up or Down - November 11, 1AM ET", "slug": "bitcoin-up-or-down-november-11-2026-1am-et", "closed": false, "markets": [{"id": "6893367", "question": "Bitcoin Up or Down - November 11, 1AM ET", "slug": "bitcoin-up-or-down-november-11-2026-1am-et", "outcomes": "[\"Up\", \"Down\"]", "outcomePrices": "[\"0.375\", \"0.625\"]", "bestBid": 0.37, "bestAsk": 0.38, "spread": 0.01, "volume": "50.61367", "liquidity": "6449.5933", "endDate": "2026-11-11T07:00:00Z", "lastTradePrice": 0.36}]}, {"title": "Bitcoin Up or Down - November 11, 1AM ET", "slug": "bitcoin-up-or-down-november-11-1am-et", "closed": true, "markets": [{"id": "672227", "question": "Bitcoin Up or Down - November 11, 1AM ET", "slug": "bitcoin-up-or-down-november-11-1am-et", "outcomes": "[\"Up\", \"Down\"]", "outcomePrices": "[\"1\", \"0\"]", "bestBid": 0.999, "bestAsk": 1, "spread": 0.001, "volume": "93084.667158", "liquidity": null, "endDate": "2025-11-11T07:00:00Z", "lastTradePrice": 1}]}]}
+{"q": "Solana Up or Down November 11", "events": [{"title": "Solana Up or Down - November 11, 12:00AM-12:15AM ET", "slug": "sol-updown-15m-1794373200", "closed": true, "markets": [{"id": "6922383", "question": "Solana Up or Down - November 11, 12:00AM-12:15AM ET", "slug": "sol-updown-15m-1794373200", "outcomes": "[\"Up\", \"Down\"]", "outcomePrices": "[\"0\", \"1\"]", "bestBid": null, "bestAsk": 0.01, "spread": 0.01, "volume": "842.371009", "liquidity": null, "endDate": "2026-11-11T05:15:00Z", "lastTradePrice": 0.03}]}, {"title": "Solana Up or Down - November 11, 12:35AM-12:40AM ET", "slug": "sol-updown-5m-1794375300", "closed": true, "markets": [{"id": "6922960", "question": "Solana Up or Down - November 11, 12:35AM-12:40AM ET", "slug": "sol-updown-5m-1794375300", "outcomes": "[\"Up\", \"Down\"]", "outcomePrices": "[\"0\", \"1\"]", "bestBid": null, "bestAsk": 0.001, "spread": 0.001, "volume": "842.1603170000001", "liquidity": null, "endDate": "2026-11-11T05:40:00Z", "lastTradePrice": 0.01}]}, {"title": "Solana Up or Down - November 11, 12:05AM-12:10AM ET", "slug": "sol-updown-5m-1794373500", "closed": true, "markets": [{"id": "6922412", "question": "Solana Up or Down - November 11, 12:05AM-12:10AM ET", "slug": "sol-updown-5m-1794373500", "outcomes": "[\"Up\", \"Down\"]", "outcomePrices": "[\"0\", \"1\"]", "bestBid": null, "bestAsk": 0.001, "spread": 0.001, "volume": "802.8883500000001", "liquidity": null, "endDate": "2026-11-11T05:10:00Z", "lastTradePrice": 0.009}]}, {"title": "Solana Up or Down - November 11, 12:50AM-12:55AM ET", "slug": "sol-updown-5m-1794376200", "closed": true, "markets": [{"id": "6923517", "question": "Solana Up or Down - November 11, 12:50AM-12:55AM ET", "slug": "sol-updown-5m-1794376200", "outcomes": "[\"Up\", \"Down\"]", "outcomePrices": "[\"0\", \"1\"]", "bestBid": null, "bestAsk": 0.01, "spread": 0.01, "volume": "800.965414", "liquidity": null, "endDate": "2026-11-11T05:55:00Z", "lastTradePrice": 0.08}]}, {"title": "Solana Up or Down - November 11, 12:55AM-1:00AM ET", "slug": "sol-updown-5m-1794376500", "closed": true, "markets": [{"id": "6923801", "question": "Solana Up or Down - November 11, 12:55AM-1:00AM ET", "slug": "sol-updown-5m-1794376500", "outcomes": "[\"Up\", \"Down\"]", "outcomePrices": "[\"1\", \"0\"]", "bestBid": 0.999, "bestAsk": 1, "spread": 0.001, "volume": "309.62617800000004", "liquidity": null, "endDate": "2026-11-11T06:00:00Z", "lastTradePrice": 0.99}]}, {"title": "Solana Up or Down - November 11, 12:20AM-12:25AM ET", "slug": "sol-updown-5m-1794374400", "closed": true, "markets": [{"id": "6922473", "question": "Solana Up or Down - November 11, 12:20AM-12:25AM ET", "slug": "sol-updown-5m-1794374400", "outcomes": "[\"Up\", \"Down\"]", "outcomePrices": "[\"1\", \"0\"]", "bestBid": 0.999, "bestAsk": 1, "spread": 0.001, "volume": "497.49250700000005", "liquidity": null, "endDate": "2026-11-11T05:25:00Z", "lastTradePrice": 0.999}]}]}
+{"q": "Home Depot beat quarterly earnings", "events": [{"title": "Will Home Depot (HD) beat quarterly earnings?", "slug": "hd-quarterly-earnings-nongaap-eps-11-17-2026-3pt95", "closed": false, "markets": [{"id": "6639361", "question": "Will Home Depot (HD) beat quarterly earnings?", "slug": "hd-quarterly-earnings-nongaap-eps-11-17-2026-3pt95", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.233\", \"0.767\"]", "bestBid": 0.05, "bestAsk": 0.416, "spread": 0.366, "volume": "5147.053953", "liquidity": "438.0212", "endDate": "2026-11-17T14:00:00Z", "lastTradePrice": 0.5}]}, {"title": "Will Home Depot (HD) beat quarterly earnings?", "slug": "hd-quarterly-earnings-nongaap-eps-11-18-2025-3pt85", "closed": true, "markets": [{"id": "674912", "question": "Will Home Depot (HD) beat quarterly earnings?", "slug": "hd-quarterly-earnings-nongaap-eps-11-18-2025-3pt85", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0\", \"1\"]", "bestBid": 0.001, "bestAsk": 0.008, "spread": 0.007, "volume": "46598.316583", "liquidity": null, "endDate": "2025-11-18T14:00:00Z", "lastTradePrice": 1}]}, {"title": "Will Home Depot (HD) beat quarterly earnings?", "slug": "hd-quarterly-earnings-nongaap-eps-02-24-2026-2pt52", "closed": true, "markets": [{"id": "1362683", "question": "Will Home Depot (HD) beat quarterly earnings?", "slug": "hd-quarterly-earnings-nongaap-eps-02-24-2026-2pt52", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"1\", \"0\"]", "bestBid": 0.999, "bestAsk": 1, "spread": 0.001, "volume": "26008.384746", "liquidity": null, "endDate": "2026-02-24T14:00:00Z", "lastTradePrice": 0.999}]}, {"title": "Will Home Depot (HD) beat quarterly earnings?", "slug": "hd-quarterly-earnings-nongaap-eps-08-18-2026-4pt73", "closed": true, "markets": [{"id": "3347198", "question": "Will Home Depot (HD) beat quarterly earnings?", "slug": "hd-quarterly-earnings-nongaap-eps-08-18-2026-4pt73", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"1\", \"0\"]", "bestBid": 0.999, "bestAsk": 1, "spread": 0.001, "volume": "12198.020909000003", "liquidity": null, "endDate": "2026-08-18T13:00:00Z", "lastTradePrice": 0.901}]}, {"title": "Will Home Depot (HD) beat quarterly earnings?", "slug": "hd-quarterly-earnings-nongaap-eps-05-19-2026-3pt41", "closed": true, "markets": [{"id": "2168998", "question": "Will Home Depot (HD) beat quarterly earnings?", "slug": "hd-quarterly-earnings-nongaap-eps-05-19-2026-3pt41", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"1\", \"0\"]", "bestBid": 0.999, "bestAsk": 1, "spread": 0.001, "volume": "1397.151517", "liquidity": null, "endDate": "2026-05-19T13:00:00Z", "lastTradePrice": 0.999}]}]}
+{"q": "La-Z-Boy beat quarterly earnings", "events": [{"title": "Will La-Z-Boy (LZB) beat quarterly earnings?", "slug": "lzb-quarterly-earnings-nongaap-eps-12-02-2026-0pt48", "closed": false, "markets": [{"id": "6639367", "question": "Will La-Z-Boy (LZB) beat quarterly earnings?", "slug": "lzb-quarterly-earnings-nongaap-eps-12-02-2026-0pt48", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.615\", \"0.385\"]", "bestBid": 0.56, "bestAsk": 0.67, "spread": 0.11, "volume": "2536.4664510000002", "liquidity": "201.8328", "endDate": "2026-11-17T22:00:00Z", "lastTradePrice": 0.57}]}, {"title": "Will La-Z-Boy (LZB) beat quarterly earnings?", "slug": "lzb-quarterly-earnings-nongaap-eps-06-16-2026-0pt82", "closed": true, "markets": [{"id": "2437885", "question": "Will La-Z-Boy (LZB) beat quarterly earnings?", "slug": "lzb-quarterly-earnings-nongaap-eps-06-16-2026-0pt82", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"1\", \"0\"]", "bestBid": 0.99, "bestAsk": 1, "spread": 0.01, "volume": "6159.32219", "liquidity": null, "endDate": "2026-06-16T21:00:00Z", "lastTradePrice": 0.99}]}, {"title": "Will La-Z-Boy (LZB) beat quarterly earnings?", "slug": "lzb-quarterly-earnings-nongaap-eps-11-18-2025-0pt54", "closed": true, "markets": [{"id": "675503", "question": "Will La-Z-Boy (LZB) beat quarterly earnings?", "slug": "lzb-quarterly-earnings-nongaap-eps-11-18-2025-0pt54", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"1\", \"0\"]", "bestBid": 0.999, "bestAsk": 1, "spread": 0.001, "volume": "5668.618389", "liquidity": null, "endDate": "2025-11-18T17:00:00Z", "lastTradePrice": 1}]}, {"title": "Will La-Z-Boy (LZB) beat quarterly earnings?", "slug": "lzb-quarterly-earnings-nongaap-eps-08-18-2026-0pt49", "closed": true, "markets": [{"id": "3347262", "question": "Will La-Z-Boy (LZB) beat quarterly earnings?", "slug": "lzb-quarterly-earnings-nongaap-eps-08-18-2026-0pt49", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0\", \"1\"]", "bestBid": null, "bestAsk": 0.001, "spread": 0.001, "volume": "4414.102958", "liquidity": null, "endDate": "2026-08-18T21:00:00Z", "lastTradePrice": 0.73}]}, {"title": "Will La-Z-Boy (LZB) beat quarterly earnings?", "slug": "lzb-quarterly-earnings-nongaap-eps-02-17-2026-0pt59", "closed": true, "markets": [{"id": "1339362", "question": "Will La-Z-Boy (LZB) beat quarterly earnings?", "slug": "lzb-quarterly-earnings-nongaap-eps-02-17-2026-0pt59", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"1\", \"0\"]", "bestBid": 0.999, "bestAsk": 1, "spread": 0.001, "volume": "4378.374551", "liquidity": null, "endDate": "2026-02-17T22:00:00Z", "lastTradePrice": 0.999}]}]}
+{"q": "Japan Q3 GDP growth", "events": [{"title": "Japan GDP growth in Q3 2026 (QoQ Annualized)?", "slug": "japan-gdp-growth-in-q3-2026-qoq-annualized", "closed": false, "markets": [{"id": "3681000", "question": "Will Japan Q3 GDP growth (annualized) be less than -2.4%?", "slug": "will-japan-q3-gdp-growth-annualized-be-less-than-2pt4", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.0125\", \"0.9875\"]", "bestBid": 0.006, "bestAsk": 0.019, "spread": 0.013, "volume": "3470.659238", "liquidity": "986.15875", "endDate": "2026-11-17T04:59:00Z", "lastTradePrice": 0.014}, {"id": "3681001", "question": "Will Japan Q3 GDP growth (annualized) be between -2.4% and -1.6%?", "slug": "will-japan-q3-gdp-growth-annualized-be-between-2pt4-and-1pt6", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.0315\", \"0.9685\"]", "bestBid": 0.013, "bestAsk": 0.05, "spread": 0.037, "volume": "5597.033015", "liquidity": "1096.21577", "endDate": "2026-11-17T04:59:00Z", "lastTradePrice": 0.04}, {"id": "3681002", "question": "Will Japan Q3 GDP growth (annualized) be between -1.6% and -0.8%?", "slug": "will-japan-q3-gdp-growth-annualized-be-between-1pt6-and-0pt8", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.131\", \"0.869\"]", "bestBid": 0.123, "bestAsk": 0.139, "spread": 0.016, "volume": "3947.5527730000003", "liquidity": "1813.0459", "endDate": "2026-11-17T04:59:00Z", "lastTradePrice": 0.143}, {"id": "3681003", "question": "Will Japan Q3 GDP growth (annualized) be between -0.8% and 0.0%?", "slug": "will-japan-q3-gdp-growth-annualized-be-between-0pt8-and-0pt0", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.195\", \"0.805\"]", "bestBid": 0.19, "bestAsk": 0.2, "spread": 0.01, "volume": "10079.902795", "liquidity": "1347.6431", "endDate": "2026-11-16T00:00:00Z", "lastTradePrice": 0.2}, {"id": "3681004", "question": "Will Japan Q3 GDP growth (annualized) be between 0.0% and 0.8%?", "slug": "will-japan-q3-gdp-growth-annualized-be-between-0pt0-and-0pt8", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.222\", \"0.778\"]", "bestBid": 0.212, "bestAsk": 0.232, "spread": 0.02, "volume": "34146.985511", "liquidity": "1470.88418", "endDate": "2026-11-16T00:00:00Z", "lastTradePrice": 0.26}, {"id": "3681005", "question": "Will Japan Q3 GDP growth (annualized) be between 0.8% and 1.6%?", "slug": "will-japan-q3-gdp-growth-annualized-be-between-0pt8-and-1pt6", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.2575\", \"0.7425\"]", "bestBid": 0.061, "bestAsk": 0.454, "spread": 0.393, "volume": "9100.27426", "liquidity": "869.41244", "endDate": "2026-11-16T00:00:00Z", "lastTradePrice": 0.359}, {"id": "3681006", "question": "Will Japan Q3 GDP growth (annualized) be between 1.6% and 2.4%?", "slug": "will-japan-q3-gdp-growth-annualized-be-between-1pt6-and-2pt4", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.209\", \"0.791\"]", "bestBid": 0.005, "bestAsk": 0.413, "spread": 0.408, "volume": "5400.0920049999995", "liquidity": "1183.33973", "endDate": "2026-11-16T00:00:00Z", "lastTradePrice": 0.029}, {"id": "3681007", "question": "Will Japan Q3 GDP growth (annualized) be between 2.4% and 3.2%?", "slug": "will-japan-q3-gdp-growth-annualized-be-between-2pt4-and-3pt2", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.011\", \"0.989\"]", "bestBid": 0.004, "bestAsk": 0.018, "spread": 0.014, "volume": "5142.88457", "liquidity": "1325.36217", "endDate": "2026-11-17T04:59:00Z", "lastTradePrice": 0.019}, {"id": "3681008", "question": "Will Japan Q3 GDP growth (annualized) be between 3.2% and 4.0%?", "slug": "will-japan-q3-gdp-growth-annualized-be-between-3pt2-and-4pt0", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.009\", \"0.991\"]", "bestBid": 0.004, "bestAsk": 0.014, "spread": 0.01, "volume": "2576.778246", "liquidity": "1307.51989", "endDate": "2026-11-17T04:59:00Z", "lastTradePrice": 0.014}, {"id": "3681009", "question": "Will Japan Q3 GDP growth (annualized) be at least 4.0%?", "slug": "will-japan-q3-gdp-growth-annualized-be-at-least-4pt0", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.014\", \"0.986\"]", "bestBid": 0.006, "bestAsk": 0.022, "spread": 0.016, "volume": "2430.288907", "liquidity": "780.53904", "endDate": "2026-11-17T04:59:00Z", "lastTradePrice": 0.021}]}]}
+{"q": "CDB Hayleys", "events": [{"title": "Singer-MCA Super Premier T20: CDB vs Hayleys Group", "slug": "cricmcat20-cdb-hay-2026-11-10", "closed": false, "markets": [{"id": "6942431", "question": "Singer-MCA Super Premier T20: CDB vs Hayleys Group", "slug": "cricmcat20-cdb-hay-2026-11-10", "outcomes": "[\"CDB\", \"Hayleys Group\"]", "outcomePrices": "[\"0.355\", \"0.645\"]", "bestBid": 0.32, "bestAsk": 0.39, "spread": 0.07, "volume": "823.347675", "liquidity": "1540.8968", "endDate": "2026-11-18T04:15:00Z", "lastTradePrice": 0.33}]}]}
+{"q": "Trump approval November 13", "events": [{"title": "Trump approval rating on November 13?", "slug": "trump-approval-rating-on-november-13", "closed": false, "markets": [{"id": "6757705", "question": "Will Trump's approval rating be less than 38.0 on November 13, 2026?", "slug": "will-trumps-approval-rating-be-less-than-38pt0-on-november-13-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.044\", \"0.956\"]", "bestBid": 0.029, "bestAsk": 0.059, "spread": 0.03, "volume": "254.46113999999997", "liquidity": "590.34208", "endDate": "2026-11-14T04:59:00Z", "lastTradePrice": 0.059}, {"id": "6757708", "question": "Will Trump's approval rating be between 38.0 and 38.4 on November 13, 2026?", "slug": "will-trumps-approval-rating-be-between-38pt0-and-38pt4-on-november-13-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.24\", \"0.76\"]", "bestBid": 0.08, "bestAsk": 0.4, "spread": 0.32, "volume": "200.02", "liquidity": "897.649", "endDate": "2026-11-14T04:59:00Z", "lastTradePrice": 0.18}, {"id": "6757710", "question": "Will Trump's approval rating be between 38.5 and 38.9 on November 13, 2026?", "slug": "will-trumps-approval-rating-be-between-38pt5-and-38pt9-on-november-13-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.53\", \"0.47\"]", "bestBid": 0.36, "bestAsk": 0.7, "spread": 0.34, "volume": "121.61000000000001", "liquidity": "433.702", "endDate": "2026-11-14T04:59:00Z", "lastTradePrice": 0.58}, {"id": "6757712", "question": "Will Trump's approval rating be between 39.0 and 39.4 on November 13, 2026?", "slug": "will-trumps-approval-rating-be-between-39pt0-and-39pt4-on-november-13-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.165\", \"0.835\"]", "bestBid": 0.15, "bestAsk": 0.18, "spread": 0.03, "volume": "1199.400646", "liquidity": "976.4794", "endDate": "2026-11-14T04:59:00Z", "lastTradePrice": 0.2}, {"id": "6757714", "question": "Will Trump's approval rating be between 39.5 and 39.9 on November 13, 2026?", "slug": "will-trumps-approval-rating-be-between-39pt5-and-39pt9-on-november-13-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.06\", \"0.94\"]", "bestBid": 0.03, "bestAsk": 0.09, "spread": 0.06, "volume": "196.52569999999997", "liquidity": "990.4895", "endDate": "2026-11-14T04:59:00Z", "lastTradePrice": 0.1}, {"id": "6757715", "question": "Will Trump's approval rating be at least 40.0 on November 13, 2026?", "slug": "will-trumps-approval-rating-be-at-least-40pt0-on-november-13-2026-2", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.055\", \"0.945\"]", "bestBid": 0.02, "bestAsk": 0.09, "spread": 0.07, "volume": "273.2157", "liquidity": "846.3528", "endDate": "2026-11-14T04:59:00Z", "lastTradePrice": 0.13}]}, {"title": "Trump approval rating at least ___ on November 13?", "slug": "trump-approval-rating-at-least-on-november-13", "closed": false, "markets": [{"id": "6757703", "question": "Will Trump's approval rating be at least 37.0 on November 13, 2026?", "slug": "will-trumps-approval-rating-be-at-least-37pt0-on-november-13-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.928\", \"0.072\"]", "bestBid": 0.881, "bestAsk": 0.975, "spread": 0.094, "volume": "89.431151", "liquidity": "138.07849", "endDate": "2026-11-14T04:59:00Z", "lastTradePrice": 0.995}, {"id": "6757704", "question": "Will Trump's approval rating be at least 38.0 on November 13, 2026?", "slug": "will-trumps-approval-rating-be-at-least-38pt0-on-november-13-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.9325\", \"0.0675\"]", "bestBid": 0.891, "bestAsk": 0.974, "spread": 0.083, "volume": "1230.4921519999998", "liquidity": "161.79746", "endDate": "2026-11-14T04:59:00Z", "lastTradePrice": 0.98}, {"id": "6757707", "question": "Will Trump's approval rating be at least 39.0 on November 13, 2026?", "slug": "will-trumps-approval-rating-be-at-least-39pt0-on-november-13-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.265\", \"0.735\"]", "bestBid": 0.25, "bestAsk": 0.28, "spread": 0.03, "volume": "1232.5446150000002", "liquidity": "409.2515", "endDate": "2026-11-14T04:59:00Z", "lastTradePrice": 0.3}, {"id": "6757709", "question": "Will Trump's approval rating be at least 40.0 on November 13, 2026?", "slug": "will-trumps-approval-rating-be-at-least-40pt0-on-november-13-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.0215\", \"0.9785\"]", "bestBid": 0.015, "bestAsk": 0.028, "spread": 0.013, "volume": "2897.613022", "liquidity": "1314.50849", "endDate": "2026-11-14T04:59:00Z", "lastTradePrice": 0.016}, {"id": "6757711", "question": "Will Trump's approval rating be at least 41.0 on November 13, 2026?", "slug": "will-trumps-approval-rating-be-at-least-41pt0-on-november-13-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.0065\", \"0.9935\"]", "bestBid": 0.003, "bestAsk": 0.01, "spread": 0.007, "volume": "325.17575000000005", "liquidity": "2193.76197", "endDate": "2026-11-14T04:59:00Z", "lastTradePrice": 0.01}, {"id": "6757713", "question": "Will Trump's approval rating be at least 42.0 on November 13, 2026?", "slug": "will-trumps-approval-rating-be-at-least-42pt0-on-november-13-2026", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.008\", \"0.992\"]", "bestBid": 0.006, "bestAsk": 0.01, "spread": 0.004, "volume": "1912.7462380000002", "liquidity": "518.96846", "endDate": "2026-11-14T04:59:00Z", "lastTradePrice": 0.007}]}]}
+{"q": "Truth Social November 10 November 17", "events": [{"title": "Donald Trump # Truth Social posts November 10 - November 17, 2026?", "slug": "donald-trump-of-truth-social-posts-november-10-november-17-2026", "closed": false, "markets": [{"id": "6771073", "question": "Will Donald Trump post 0-19 Truth Social posts from November 10 to November 17, 2026?", "slug": "donald-trump-of-truth-social-posts-november-10-november-17-2026-0-19", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.0035\", \"0.9965\"]", "bestBid": 0.001, "bestAsk": 0.006, "spread": 0.005, "volume": "1148.1092119999998", "liquidity": "1383.21975", "endDate": "2026-11-17T17:00:00Z", "lastTradePrice": 0.009}, {"id": "6771080", "question": "Will Donald Trump post 20-39 Truth Social posts from November 10 to November 17, 2026?", "slug": "donald-trump-of-truth-social-posts-november-10-november-17-2026-20-39", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.01\", \"0.99\"]", "bestBid": 0.004, "bestAsk": 0.016, "spread": 0.012, "volume": "1040.870651", "liquidity": "800.92716", "endDate": "2026-11-17T17:00:00Z", "lastTradePrice": 0.015}, {"id": "6771089", "question": "Will Donald Trump post 40-59 Truth Social posts from November 10 to November 17, 2026?", "slug": "donald-trump-of-truth-social-posts-november-10-november-17-2026-40-59", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.081\", \"0.919\"]", "bestBid": 0.014, "bestAsk": 0.148, "spread": 0.134, "volume": "632.947189", "liquidity": "458.46055", "endDate": "2026-11-17T17:00:00Z", "lastTradePrice": 0.064}, {"id": "6771097", "question": "Will Donald Trump post 60-79 Truth Social posts from November 10 to November 17, 2026?", "slug": "donald-trump-of-truth-social-posts-november-10-november-17-2026-60-79", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.208\", \"0.792\"]", "bestBid": 0.137, "bestAsk": 0.279, "spread": 0.142, "volume": "1183.0447689999999", "liquidity": "391.52267", "endDate": "2026-11-17T17:00:00Z", "lastTradePrice": 0.279}, {"id": "6771103", "question": "Will Donald Trump post 80-99 Truth Social posts from November 10 to November 17, 2026?", "slug": "donald-trump-of-truth-social-posts-november-10-november-17-2026-80-99", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.186\", \"0.814\"]", "bestBid": 0.176, "bestAsk": 0.196, "spread": 0.02, "volume": "1309.320966", "liquidity": "794.67144", "endDate": "2026-11-17T17:00:00Z", "lastTradePrice": 0.194}, {"id": "6771112", "question": "Will Donald Trump post 100-119 Truth Social posts from November 10 to November 17, 2026?", "slug": "donald-trump-of-truth-social-posts-november-10-november-17-2026-100-119", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.195\", \"0.805\"]", "bestBid": 0.11, "bestAsk": 0.28, "spread": 0.17, "volume": "1113.007143", "liquidity": "531.4811", "endDate": "2026-11-17T17:00:00Z", "lastTradePrice": 0.16}, {"id": "6771121", "question": "Will Donald Trump post 120-139 Truth Social posts from November 10 to November 17, 2026?", "slug": "donald-trump-of-truth-social-posts-november-10-november-17-2026-120-139", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.07\", \"0.93\"]", "bestBid": 0.04, "bestAsk": 0.1, "spread": 0.06, "volume": "1225.750589", "liquidity": "933.6939", "endDate": "2026-11-17T17:00:00Z", "lastTradePrice": 0.04}, {"id": "6771130", "question": "Will Donald Trump post 140-159 Truth Social posts from November 10 to November 17, 2026?", "slug": "donald-trump-of-truth-social-posts-november-10-november-17-2026-140-159", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.075\", \"0.925\"]", "bestBid": 0.03, "bestAsk": 0.12, "spread": 0.09, "volume": "3333.1048220000002", "liquidity": "677.3592", "endDate": "2026-11-17T17:00:00Z", "lastTradePrice": 0.13}, {"id": "6771139", "question": "Will Donald Trump post 160-179 Truth Social posts from November 10 to November 17, 2026?", "slug": "donald-trump-of-truth-social-posts-november-10-november-17-2026-160-179", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.055\", \"0.945\"]", "bestBid": 0.03, "bestAsk": 0.08, "spread": 0.05, "volume": "1821.982781", "liquidity": "450.8599", "endDate": "2026-11-17T17:00:00Z", "lastTradePrice": 0.06}, {"id": "6771148", "question": "Will Donald Trump post 180-199 Truth Social posts from November 10 to November 17, 2026?", "slug": "donald-trump-of-truth-social-posts-november-10-november-17-2026-180-199", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.035\", \"0.965\"]", "bestBid": 0.03, "bestAsk": 0.04, "spread": 0.01, "volume": "1029.819126", "liquidity": "466.5603", "endDate": "2026-11-17T17:00:00Z", "lastTradePrice": 0.08}, {"id": "6771159", "question": "Will Donald Trump post 200+ Truth Social posts from November 10 to November 17, 2026?", "slug": "donald-trump-of-truth-social-posts-november-10-november-17-2026-200plus", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0.085\", \"0.915\"]", "bestBid": 0.07, "bestAsk": 0.1, "spread": 0.03, "volume": "2867.4555060000002", "liquidity": "1050.2912", "endDate": "2026-11-17T17:00:00Z", "lastTradePrice": 0.19}]}, {"title": "Donald Trump # Truth Social posts November 3 - November 10, 2026?", "slug": "donald-trump-of-truth-social-posts-november-3-november-10-2026", "closed": true, "markets": [{"id": "6443427", "question": "Will Donald Trump post 0-19 Truth Social posts from November 3 to November 10, 2026?", "slug": "donald-trump-of-truth-social-posts-november-3-november-10-2026-0-19", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0\", \"1\"]", "bestBid": null, "bestAsk": 0.001, "spread": 0.001, "volume": "2296.339", "liquidity": null, "endDate": "2026-11-10T17:00:00Z", "lastTradePrice": 0.001}, {"id": "6443436", "question": "Will Donald Trump post 20-39 Truth Social posts from November 3 to November 10, 2026?", "slug": "donald-trump-of-truth-social-posts-november-3-november-10-2026-20-39", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0\", \"1\"]", "bestBid": null, "bestAsk": 0.001, "spread": 0.001, "volume": "4189.623181", "liquidity": null, "endDate": "2026-11-10T17:00:00Z", "lastTradePrice": 0.001}, {"id": "6443444", "question": "Will Donald Trump post 40-59 Truth Social posts from November 3 to November 10, 2026?", "slug": "donald-trump-of-truth-social-posts-november-3-november-10-2026-40-59", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0\", \"1\"]", "bestBid": null, "bestAsk": 0.001, "spread": 0.001, "volume": "5109.832674", "liquidity": null, "endDate": "2026-11-10T17:00:00Z", "lastTradePrice": 0.006}, {"id": "6443452", "question": "Will Donald Trump post 60-79 Truth Social posts from November 3 to November 10, 2026?", "slug": "donald-trump-of-truth-social-posts-november-3-november-10-2026-60-79", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0\", \"1\"]", "bestBid": null, "bestAsk": 0.001, "spread": 0.001, "volume": "15107.897154", "liquidity": null, "endDate": "2026-11-10T17:00:00Z", "lastTradePrice": 0.002}, {"id": "6443459", "question": "Will Donald Trump post 80-99 Truth Social posts from November 3 to November 10, 2026?", "slug": "donald-trump-of-truth-social-posts-november-3-november-10-2026-80-99", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"1\", \"0\"]", "bestBid": 0.999, "bestAsk": 1, "spread": 0.001, "volume": "9841.381666000001", "liquidity": null, "endDate": "2026-11-10T17:00:00Z", "lastTradePrice": 0.999}, {"id": "6443467", "question": "Will Donald Trump post 100-119 Truth Social posts from November 3 to November 10, 2026?", "slug": "donald-trump-of-truth-social-posts-november-3-november-10-2026-100-119", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0\", \"1\"]", "bestBid": null, "bestAsk": 0.001, "spread": 0.001, "volume": "6130.598193", "liquidity": null, "endDate": "2026-11-10T17:00:00Z", "lastTradePrice": 0.034}, {"id": "6443475", "question": "Will Donald Trump post 120-139 Truth Social posts from November 3 to November 10, 2026?", "slug": "donald-trump-of-truth-social-posts-november-3-november-10-2026-120-139", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0\", \"1\"]", "bestBid": null, "bestAsk": 0.001, "spread": 0.001, "volume": "5449.113047", "liquidity": null, "endDate": "2026-11-10T17:00:00Z", "lastTradePrice": 0.029}, {"id": "6443484", "question": "Will Donald Trump post 140-159 Truth Social posts from November 3 to November 10, 2026?", "slug": "donald-trump-of-truth-social-posts-november-3-november-10-2026-140-159", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0\", \"1\"]", "bestBid": null, "bestAsk": 0.001, "spread": 0.001, "volume": "8319.301765", "liquidity": null, "endDate": "2026-11-10T17:00:00Z", "lastTradePrice": 0.021}, {"id": "6443493", "question": "Will Donald Trump post 160-179 Truth Social posts from November 3 to November 10, 2026?", "slug": "donald-trump-of-truth-social-posts-november-3-november-10-2026-160-179", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0\", \"1\"]", "bestBid": null, "bestAsk": 0.001, "spread": 0.001, "volume": "9427.498612", "liquidity": null, "endDate": "2026-11-10T17:00:00Z", "lastTradePrice": 0.019}, {"id": "6443503", "question": "Will Donald Trump post 180-199 Truth Social posts from November 3 to November 10, 2026?", "slug": "donald-trump-of-truth-social-posts-november-3-november-10-2026-180-199", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0\", \"1\"]", "bestBid": null, "bestAsk": 0.001, "spread": 0.001, "volume": "8316.011697", "liquidity": null, "endDate": "2026-11-10T17:00:00Z", "lastTradePrice": 0.04}, {"id": "6443511", "question": "Will Donald Trump post 200+ Truth Social posts from November 3 to November 10, 2026?", "slug": "donald-trump-of-truth-social-posts-november-3-november-10-2026-200plus", "outcomes": "[\"Yes\", \"No\"]", "outcomePrices": "[\"0\", \"1\"]", "bestBid": null, "bestAsk": 0.001, "spread": 0.001, "volume": "19482.047591000002", "liquidity": null, "endDate": "2026-11-10T17:00:00Z", "lastTradePrice": 0.052}]}]}
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,concurrent.futures,json,datetime
+symbols=['ES=F','NQ=F','SPY','NVDA','"'^VIX'"','BTC-USD','SOL-USD']
+def run(s):
+ try:
+  r=requests.get('https://query1.finance.yahoo.com/v8/finance/chart/'+s,params={'interval':'5m','range':'1d','includePrePost':'true'},timeout=15).json()['chart']['result'][0]
+  m=r['meta']; a=r['indicators']['quote'][0]
+  return {'symbol':s,'meta':m,'recent':[{'time':datetime.datetime.fromtimestamp(t,datetime.timezone.utc).isoformat(),'close':c} for t,c in list(zip(r.get('timestamp',[]),a.get('close',[])))[-6:]]}
+ except Exception as e:return {'symbol':s,'error':str(e)}
+with concurrent.futures.ThreadPoolExecutor(max_workers=5) as p:
+ for x in p.map(run,symbols):print(json.dumps(x))
+PY" in /tmp/apb-sweep-codex-t1xryweg
+ succeeded in 325ms:
+{"symbol": "ES=F", "error": "Expecting value: line 1 column 1 (char 0)"}
+{"symbol": "NQ=F", "error": "Expecting value: line 1 column 1 (char 0)"}
+{"symbol": "SPY", "error": "Expecting value: line 1 column 1 (char 0)"}
+{"symbol": "NVDA", "error": "Expecting value: line 1 column 1 (char 0)"}
+{"symbol": "^VIX", "error": "Expecting value: line 1 column 1 (char 0)"}
+{"symbol": "BTC-USD", "error": "Expecting value: line 1 column 1 (char 0)"}
+{"symbol": "SOL-USD", "error": "Expecting value: line 1 column 1 (char 0)"}
+
+web search: 
+web search: "Torreense" "Sparta" "11" "2026" odds ...
+web search: 
+web search: 
+web search: "CDB" "Hayleys Group" "live" "2026" 11 ...
+web search: "Home Depot" "November" "2026" "Earnings ESP" ...
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import json
+x=json.load(open('/tmp/forecast_search.json'))
+for key in ['Home Depot beat quarterly earnings','La-Z-Boy beat quarterly earnings','Japan Q3 GDP growth','Truth Social November 10 November 17','CDB Hayleys']:
+ for e in x[key].get('events',[]):
+  if e.get('closed'):continue
+  print(e['title'])
+  print(e.get('description','')[:2000])
+  print(e['markets'][0].get('description','')[:4500])
+  if 'Japan' in key:
+   for m in e['markets']:print(m['question'],m.get('bestBid'),m.get('bestAsk'),m.get('lastTradePrice'))
+PY" in /tmp/apb-sweep-codex-t1xryweg
+ succeeded in 0ms:
+Will Home Depot (HD) beat quarterly earnings?
+As of market creation, Home Depot is estimated to release earnings on November 17, 2026. The Street consensus estimate for Home Depot’s non-GAAP EPS for the relevant quarter is $3.95 as of market creation. This market will resolve to "Yes" if Home Depot reports non-GAAP EPS greater than $3.95 for the relevant quarter in its next quarterly earnings release. Otherwise, it will resolve to "No." The resolution source will be the non-GAAP EPS listed in the company’s official earnings documents.
+
+If Home Depot releases earnings without non-GAAP EPS, then the market will resolve according to the non-GAAP EPS figure reported by SeekingAlpha. If no such figure is published within 96h of market close (4:00:00pm ET) on the day earnings are announced, the market will resolve according to the GAAP EPS listed in the company’s official earnings documents; or, if not published there, according to the GAAP EPS provided by SeekingAlpha. If no GAAP EPS number is available from either source at that time, the market will resolve to “No.” (For the purposes of this market, GAAP EPS refers to diluted GAAP EPS, unless it is not published, in which case it refers to basic GAAP EPS.)
+
+If the company does not release earnings within 45 calendar days of the estimated earnings date, this market will resolve to “No.”
+
+Note: Subsequent restatements, corrections, or revisions made to the initially announced non-GAAP EPS figure will not qualify for resolution, except in the case of obvious and immediate mistakes (e.g., fat finger errors, as with Lyft's (LYFT) earnings release in February 2024).
+Note: The strike prices used in these markets reflect the selected street consensus estimate for non-GAAP EPS as of market creation.
+Note: All figures will be rounded to the nearest cent using standard rounding.
+Note: For the purposes of this market, IFRS EPS will be treated as GAAP EPS.
+Note: If multiple versions of non-GAAP EPS are published, the market will resolve according to the primary headline non-GA
+As of market creation, Home Depot is estimated to release earnings on November 17, 2026. The Street consensus estimate for Home Depot’s non-GAAP EPS for the relevant quarter is $3.95 as of market creation. This market will resolve to "Yes" if Home Depot reports non-GAAP EPS greater than $3.95 for the relevant quarter in its next quarterly earnings release. Otherwise, it will resolve to "No." The resolution source will be the non-GAAP EPS listed in the company’s official earnings documents.
+
+If Home Depot releases earnings without non-GAAP EPS, then the market will resolve according to the non-GAAP EPS figure reported by SeekingAlpha. If no such figure is published within 96h of market close (4:00:00pm ET) on the day earnings are announced, the market will resolve according to the GAAP EPS listed in the company’s official earnings documents; or, if not published there, according to the GAAP EPS provided by SeekingAlpha. If no GAAP EPS number is available from either source at that time, the market will resolve to “No.” (For the purposes of this market, GAAP EPS refers to diluted GAAP EPS, unless it is not published, in which case it refers to basic GAAP EPS.)
+
+If the company does not release earnings within 45 calendar days of the estimated earnings date, this market will resolve to “No.”
+
+Note: Subsequent restatements, corrections, or revisions made to the initially announced non-GAAP EPS figure will not qualify for resolution, except in the case of obvious and immediate mistakes (e.g., fat finger errors, as with Lyft's (LYFT) earnings release in February 2024).
+Note: The strike prices used in these markets reflect the selected street consensus estimate for non-GAAP EPS as of market creation.
+Note: All figures will be rounded to the nearest cent using standard rounding.
+Note: For the purposes of this market, IFRS EPS will be treated as GAAP EPS.
+Note: If multiple versions of non-GAAP EPS are published, the market will resolve according to the primary headline non-GAAP EPS number, which is typically presented on a diluted basis. If diluted is not published, then basic non-GAAP EPS will qualify.
+Note: All figures are expressed in USD, unless otherwise indicated.
+Note: For primarily internationally listed companies, this market refers specifically to the shares traded in the United States on U.S. stock exchanges such as the NYSE or Nasdaq. In cases where the company trades in the U.S. through an American Depositary Receipt (ADR) or American Depositary Share (ADS), this market will refer to the ADR/ADS.
+
+Will La-Z-Boy (LZB) beat quarterly earnings?
+As of market creation, La-Z-Boy is estimated to release earnings on December 2, 2026. The Street consensus estimate for La-Z-Boy’s non-GAAP EPS for the relevant quarter is $0.48 as of market creation. This market will resolve to "Yes" if La-Z-Boy reports non-GAAP EPS greater than $0.48 for the relevant quarter in its next quarterly earnings release. Otherwise, it will resolve to "No." The resolution source will be the non-GAAP EPS listed in the company’s official earnings documents.
+
+If La-Z-Boy releases earnings without non-GAAP EPS, then the market will resolve according to the non-GAAP EPS figure reported by SeekingAlpha. If no such figure is published within 96h of market close (4:00:00pm ET) on the day earnings are announced, the market will resolve according to the GAAP EPS listed in the company’s official earnings documents; or, if not published there, according to the GAAP EPS provided by SeekingAlpha. If no GAAP EPS number is available from either source at that time, the market will resolve to “No.” (For the purposes of this market, GAAP EPS refers to diluted GAAP EPS, unless it is not published, in which case it refers to basic GAAP EPS.)
+
+If the company does not release earnings within 45 calendar days of the estimated earnings date, this market will resolve to “No.”
+
+Note: Subsequent restatements, corrections, or revisions made to the initially announced non-GAAP EPS figure will not qualify for resolution, except in the case of obvious and immediate mistakes (e.g., fat finger errors, as with Lyft's (LYFT) earnings release in February 2024).
+Note: The strike prices used in these markets reflect the selected street consensus estimate for non-GAAP EPS as of market creation.
+Note: All figures will be rounded to the nearest cent using standard rounding.
+Note: For the purposes of this market, IFRS EPS will be treated as GAAP EPS.
+Note: If multiple versions of non-GAAP EPS are published, the market will resolve according to the primary headline non-GAAP EPS nu
+As of market creation, La-Z-Boy is estimated to release earnings on December 2, 2026. The Street consensus estimate for La-Z-Boy’s non-GAAP EPS for the relevant quarter is $0.48 as of market creation. This market will resolve to "Yes" if La-Z-Boy reports non-GAAP EPS greater than $0.48 for the relevant quarter in its next quarterly earnings release. Otherwise, it will resolve to "No." The resolution source will be the non-GAAP EPS listed in the company’s official earnings documents.
+
+If La-Z-Boy releases earnings without non-GAAP EPS, then the market will resolve according to the non-GAAP EPS figure reported by SeekingAlpha. If no such figure is published within 96h of market close (4:00:00pm ET) on the day earnings are announced, the market will resolve according to the GAAP EPS listed in the company’s official earnings documents; or, if not published there, according to the GAAP EPS provided by SeekingAlpha. If no GAAP EPS number is available from either source at that time, the market will resolve to “No.” (For the purposes of this market, GAAP EPS refers to diluted GAAP EPS, unless it is not published, in which case it refers to basic GAAP EPS.)
+
+If the company does not release earnings within 45 calendar days of the estimated earnings date, this market will resolve to “No.”
+
+Note: Subsequent restatements, corrections, or revisions made to the initially announced non-GAAP EPS figure will not qualify for resolution, except in the case of obvious and immediate mistakes (e.g., fat finger errors, as with Lyft's (LYFT) earnings release in February 2024).
+Note: The strike prices used in these markets reflect the selected street consensus estimate for non-GAAP EPS as of market creation.
+Note: All figures will be rounded to the nearest cent using standard rounding.
+Note: For the purposes of this market, IFRS EPS will be treated as GAAP EPS.
+Note: If multiple versions of non-GAAP EPS are published, the market will resolve according to the primary headline non-GAAP EPS number, which is typically presented on a diluted basis. If diluted is not published, then basic non-GAAP EPS will qualify.
+Note: All figures are expressed in USD, unless otherwise indicated.
+Note: For primarily internationally listed companies, this market refers specifically to the shares traded in the United States on U.S. stock exchanges such as the NYSE or Nasdaq. In cases where the company trades in the U.S. through an American Depositary Receipt (ADR) or American Depositary Share (ADS), this market will refer to the ADR/ADS.
+
+Japan GDP growth in Q3 2026 (QoQ Annualized)?
+This market will resolve according to Japan's real gross domestic product growth rate (Quarter-over-Quarter Annualized, %) in the third quarter of 2026, as reported in the Japan Cabinet Office's Quarterly Estimates of GDP (First Preliminary Estimates) release for Q3 of 2026, scheduled for release on November 16, 2026.
+
+The relevant figure may be found in the summary document, in table 1-1 'Quarterly Real Growth Rate (Seasonally Adjusted Series, Quarter-to-Quarter)' — this figure expresses the quarterly growth rate compounded over four quarters to produce an annualized equivalent. Changes in the Japan Cabinet Office's GDP reporting format will not disqualify a published figure from counting.
+
+The GDP release will be made available here: https://www.esri.cao.go.jp/en/sna/sokuhou/sokuhou_top.html
+
+If the reported value falls exactly between two brackets, this market will resolve to the higher range bracket.
+
+If no data for the specified quarter is released by the date the next quarter's data is scheduled to be released, this market will resolve based on data from the last available quarter.
+
+Note: the resolution source for this market reports Quarter-over-Quarter Annualized GDP growth rates to only one decimal point (e.g. 2.1%). Thus, this is the level of precision that will be used when resolving the market.
+
+Note: data from the initial release of the referenced GDP report is what will be used to resolve this market. Data may be revised during the following quarter or as a part of the next estimate's publication, however any revisions to GDP report data made after the initial release will not be considered for this market's resolution. For the full release schedule, see: https://www.esri.cao.go.jp/en/sna/kouhyou/kouhyou_top.html
+This market will resolve according to Japan's real gross domestic product growth rate (Quarter-over-Quarter Annualized, %) in the third quarter of 2026, as reported in the Japan Cabinet Office's Quarterly Estimates of GDP (First Preliminary Estimates) release for Q3 of 2026, scheduled for release on November 16, 2026.
+
+The relevant figure may be found in the summary document, in table 1-1 'Quarterly Real Growth Rate (Seasonally Adjusted Series, Quarter-to-Quarter)' — this figure expresses the quarterly growth rate compounded over four quarters to produce an annualized equivalent. Changes in the Japan Cabinet Office's GDP reporting format will not disqualify a published figure from counting.
+
+The GDP release will be made available here: https://www.esri.cao.go.jp/en/sna/sokuhou/sokuhou_top.html
+
+If the reported value falls exactly between two brackets, this market will resolve to the higher range bracket.
+
+If no data for the specified quarter is released by the date the next quarter's data is scheduled to be released, this market will resolve based on data from the last available quarter.
+
+Note: the resolution source for this market reports Quarter-over-Quarter Annualized GDP growth rates to only one decimal point (e.g. 2.1%). Thus, this is the level of precision that will be used when resolving the market.
+
+Note: data from the initial release of the referenced GDP report is what will be used to resolve this market. Data may be revised during the following quarter or as a part of the next estimate's publication, however any revisions to GDP report data made after the initial release will not be considered for this market's resolution. For the full release schedule, see: https://www.esri.cao.go.jp/en/sna/kouhyou/kouhyou_top.html
+Will Japan Q3 GDP growth (annualized) be less than -2.4%? 0.006 0.019 0.014
+Will Japan Q3 GDP growth (annualized) be between -2.4% and -1.6%? 0.013 0.05 0.04
+Will Japan Q3 GDP growth (annualized) be between -1.6% and -0.8%? 0.123 0.139 0.143
+Will Japan Q3 GDP growth (annualized) be between -0.8% and 0.0%? 0.19 0.2 0.2
+Will Japan Q3 GDP growth (annualized) be between 0.0% and 0.8%? 0.212 0.232 0.26
+Will Japan Q3 GDP growth (annualized) be between 0.8% and 1.6%? 0.061 0.454 0.359
+Will Japan Q3 GDP growth (annualized) be between 1.6% and 2.4%? 0.005 0.413 0.029
+Will Japan Q3 GDP growth (annualized) be between 2.4% and 3.2%? 0.004 0.018 0.019
+Will Japan Q3 GDP growth (annualized) be between 3.2% and 4.0%? 0.004 0.014 0.014
+Will Japan Q3 GDP growth (annualized) be at least 4.0%? 0.006 0.022 0.021
+Donald Trump # Truth Social posts November 10 - November 17, 2026?
+This market will resolve according to the number of times Donald Trump (@realDonaldTrump), posts on Truth Social between November 10, 12:00 PM ET and November 17, 2026, 12:00 PM ET.
+
+For the purposes of this market, only main feed posts, quote posts and reposts will count.
+
+Replies will NOT count towards the total - however, replies which are recorded on the main feed will be counted by the tracker.
+
+Deleted posts will count as long as they remain available long enough to be captured by the tracker (~5 minutes).
+
+The resolution source for this market is the "Post Counter" figure for posts found at https://xtracker.polymarket.com. Individual posts can be viewed by clicking "Export Data". If the tracker does not update correctly in accordance with the rules, Truth Social itself may be used as a secondary resolution source.
+This market will resolve according to the number of times Donald Trump (@realDonaldTrump), posts on Truth Social between November 10, 12:00 PM ET and November 17, 2026, 12:00 PM ET.
+
+For the purposes of this market, only main feed posts, quote posts and reposts will count.
+
+Replies will NOT count towards the total - however, replies which are recorded on the main feed will be counted by the tracker.
+
+Deleted posts will count as long as they remain available long enough to be captured by the tracker (~5 minutes).
+
+The resolution source for this market is the "Post Counter" figure for posts found at https://xtracker.polymarket.com. Individual posts can be viewed by clicking "Export Data". If the tracker does not update correctly in accordance with the rules, Truth Social itself may be used as a secondary resolution source.
+Singer-MCA Super Premier T20: CDB vs Hayleys Group
+In the upcoming Singer-MCA Super Premier T20 cricket match between CDB and Hayleys Group, originally scheduled for Tuesday, November 10, 2026 at 11:15 PM ET (as of creation of the first market related to the event):
+
+DLS/DRS, over-rate penalties, forfeit/walkover, or any other on-field ruling that leads the competition to declare a winner are treated as ordinary wins.
+
+If the match ends tied and the playing conditions provide an on-field tiebreak (e.g., Super Over), the winner determined by that tiebreak will be used for resolution. If the match ends tied and no on-field tiebreak is used or available under the playing conditions (e.g., group-stage ODI with no Super Over), the market will resolve 50-50.
+
+If this market's outcome was definitively determined under its rules by the listed resolution sources before abandonment, that outcome will stand. Otherwise, the following no-result provisions apply. If the match is canceled, does not start by Thursday, November 12, 2026, 11:59 PM ET, or is abandoned with no official result by that time, the market will resolve 50-50. If the match otherwise is completed without a winner, the market will resolve 50-50.
+
+The primary resolution source for this market is the official statistics of the event as recognized by the governing body or event organizers. However, if the governing body or event organizers have not published final match statistics within 2 hours after the event's conclusion, a consensus of credible reporting may be used instead.
+
+In the upcoming Singer-MCA Super Premier T20 cricket match between CDB and Hayleys Group, originally scheduled for Tuesday, November 10, 2026 at 11:15 PM ET (as of creation of the first market related to the event):
+
+DLS/DRS, over-rate penalties, forfeit/walkover, or any other on-field ruling that leads the competition to declare a winner are treated as ordinary wins.
+
+If the match ends tied and the playing conditions provide an on-field tiebreak (e.g., Super Over), the winner determined by that tiebreak will be used for resolution. If the match ends tied and no on-field tiebreak is used or available under the playing conditions (e.g., group-stage ODI with no Super Over), the market will resolve 50-50.
+
+If this market's outcome was definitively determined under its rules by the listed resolution sources before abandonment, that outcome will stand. Otherwise, the following no-result provisions apply. If the match is canceled, does not start by Thursday, November 12, 2026, 11:59 PM ET, or is abandoned with no official result by that time, the market will resolve 50-50. If the match otherwise is completed without a winner, the market will resolve 50-50.
+
+The primary resolution source for this market is the official statistics of the event as recognized by the governing body or event organizers. However, if the governing body or event organizers have not published final match statistics within 2 hours after the event's conclusion, a consensus of credible reporting may be used instead.
+
+
+web search: 
+web search: 
+web search: https://finance.yahoo.com/quote/ES=F/
+web search: "CDB" "Hayleys" "scorecard" "November 11" 2026 ...
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,concurrent.futures,json
+slugs=['solana-up-or-down-on-november-11-2026','what-price-will-bitcoin-hit-on-november-11-2026','cricmcat20-cdb-hay-2026-11-10','uwec-tor-spa-2026-11-11']
+def run(s):
+ try:
+  d=requests.get('https://gamma-api.polymarket.com/events',params={'slug':s},timeout=15).json()
+  out=[]
+  for e in d:
+   out.append({'title':e['title'],'markets':[{'q':m['question'],'description':m.get('description','')[:2000],'prices':m.get('outcomePrices'),'bid':m.get('bestBid'),'ask':m.get('bestAsk')} for m in e['markets']]})
+  return {'slug':s,'data':out}
+ except Exception as e:return {'slug':s,'error':str(e)}
+with concurrent.futures.ThreadPoolExecutor(max_workers=4) as p:
+ for d in p.map(run,slugs):print(json.dumps(d))
+PY" in /tmp/apb-sweep-codex-t1xryweg
+ succeeded in 44ms:
+{"slug": "solana-up-or-down-on-november-11-2026", "data": [{"title": "Solana Up or Down on November 11?", "markets": [{"q": "Solana Up or Down on November 11?", "description": "This market will resolve to \"Up\" if the \"Close\" price for the Binance 1 minute candle for SOL/USDT Nov 10 '26 12:00 in the ET timezone (noon) is lower than the final \"Close\" price for the Nov 11 '26 12:00 ET candle.\n\nThis market will resolve to \"Down\" if the \"Close\" price for the Binance 1 minute candle for SOL/USDT Nov 10 '26 12:00 in the ET timezone (noon) is higher than the final \"Close\" price for the Nov 11 '26 12:00 ET candle.\n\nIf the final \"Close\" price for both of these candles is exactly equal on Binance, this market will resolve 50-50.\n\nThe resolution source for this market is Binance, specifically the SOL/USDT \"Close\" prices currently available at https://www.binance.com/en/trade/SOL_USDT with \"1m\" and \"Candles\" selected on the top bar.\n\nPlease note that this market is about the price according to Binance SOL/USDT, not according to other exchanges or trading pairs.", "prices": "[\"0.76\", \"0.24\"]", "bid": 0.75, "ask": 0.77}]}]}
+{"slug": "what-price-will-bitcoin-hit-on-november-11-2026", "data": [{"title": "What price will Bitcoin hit on November 11?", "markets": [{"q": "Will Bitcoin reach $81,000 on November 11?", "description": "This market will immediately resolve to \"Yes\" if any Binance 1-minute candle for Bitcoin (BTC/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"High\" price equal to or greater than the price specified in the title. Otherwise, this market will resolve to \"No\".\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"High\" prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.002\", \"0.998\"]", "bid": null, "ask": 0.004}, {"q": "Will Bitcoin reach $80,000 on November 11?", "description": "This market will immediately resolve to \"Yes\" if any Binance 1-minute candle for Bitcoin (BTC/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"High\" price equal to or greater than the price specified in the title. Otherwise, this market will resolve to \"No\".\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"High\" prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.004\", \"0.996\"]", "bid": 0.001, "ask": 0.007}, {"q": "Will Bitcoin reach $79,000 on November 11?", "description": "This market will immediately resolve to \"Yes\" if any Binance 1-minute candle for Bitcoin (BTC/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"High\" price equal to or greater than the price specified in the title. Otherwise, this market will resolve to \"No\".\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"High\" prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.004\", \"0.996\"]", "bid": 0.003, "ask": 0.005}, {"q": "Will Bitcoin reach $78,000 on November 11?", "description": "This market will immediately resolve to \"Yes\" if any Binance 1-minute candle for Bitcoin (BTC/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"High\" price equal to or greater than the price specified in the title. Otherwise, this market will resolve to \"No\".\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"High\" prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.011\", \"0.989\"]", "bid": 0.01, "ask": 0.012}, {"q": "Will Bitcoin reach $77,000 on November 11?", "description": "This market will immediately resolve to \"Yes\" if any Binance 1-minute candle for Bitcoin (BTC/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"High\" price equal to or greater than the price specified in the title. Otherwise, this market will resolve to \"No\".\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"High\" prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.032\", \"0.968\"]", "bid": 0.024, "ask": 0.04}, {"q": "Will Bitcoin reach $76,000 on November 11?", "description": "This market will immediately resolve to \"Yes\" if any Binance 1-minute candle for Bitcoin (BTC/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"High\" price equal to or greater than the price specified in the title. Otherwise, this market will resolve to \"No\".\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"High\" prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.135\", \"0.865\"]", "bid": 0.13, "ask": 0.14}, {"q": "Will Bitcoin reach $75,000 on November 11?", "description": "This market will immediately resolve to \"Yes\" if any Binance 1-minute candle for Bitcoin (BTC/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"High\" price equal to or greater than the price specified in the title. Otherwise, this market will resolve to \"No\".\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"High\" prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.405\", \"0.595\"]", "bid": 0.4, "ask": 0.41}, {"q": "Will Bitcoin reach $74,000 on November 11?", "description": "This market will immediately resolve to \"Yes\" if any Binance 1-minute candle for Bitcoin (BTC/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"High\" price equal to or greater than the price specified in the title. Otherwise, this market will resolve to \"No\".\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"High\" prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.9115\", \"0.0885\"]", "bid": 0.905, "ask": 0.918}, {"q": "Will Bitcoin dip to $73,000 on November 11?", "description": "This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for Bitcoin (BTC/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"Low\" price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"Low\" prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.535\", \"0.465\"]", "bid": 0.53, "ask": 0.54}, {"q": "Will Bitcoin dip to $72,000 on November 11?", "description": "This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for Bitcoin (BTC/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"Low\" price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"Low\" prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.205\", \"0.795\"]", "bid": 0.2, "ask": 0.21}, {"q": "Will Bitcoin dip to $71,000 on November 11?", "description": "This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for Bitcoin (BTC/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"Low\" price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"Low\" prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.065\", \"0.935\"]", "bid": 0.06, "ask": 0.07}, {"q": "Will Bitcoin dip to $70,000 on November 11?", "description": "This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for Bitcoin (BTC/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"Low\" price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"Low\" prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.025\", \"0.975\"]", "bid": 0.024, "ask": 0.026}, {"q": "Will Bitcoin dip to $69,000 on November 11?", "description": "This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for Bitcoin (BTC/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"Low\" price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"Low\" prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.0085\", \"0.9915\"]", "bid": 0.008, "ask": 0.009}, {"q": "Will Bitcoin dip to $68,000 on November 11?", "description": "This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for Bitcoin (BTC/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"Low\" price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"Low\" prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.0045\", \"0.9955\"]", "bid": 0.002, "ask": 0.007}, {"q": "Will Bitcoin dip to $67,000 on November 11?", "description": "This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for Bitcoin (BTC/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"Low\" price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"Low\" prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.0055\", \"0.9945\"]", "bid": 0.004, "ask": 0.007}, {"q": "Will Bitcoin dip to $66,000 on November 11?", "description": "This market will immediately resolve to \"Yes\" if any Binance 1 minute candle for Bitcoin (BTC/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final \"Low\" price equal to or lower than the price specified in the title. Otherwise, this market will resolve to \"No.\"\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"Low\" prices available at https://www.binance.com/en/trade/BTC_USDT, with the chart settings on \"1m\" for one-minute candles selected on the top bar.\n\nPlease note that the outcome of this market depends solely on the price data from the Binance BTC/USDT trading pair. Prices from other exchanges, different trading pairs, or spot markets will not be considered for the resolution of this market.", "prices": "[\"0.0025\", \"0.9975\"]", "bid": 0.001, "ask": 0.004}]}]}
+{"slug": "cricmcat20-cdb-hay-2026-11-10", "data": [{"title": "Singer-MCA Super Premier T20: CDB vs Hayleys Group", "markets": [{"q": "Singer-MCA Super Premier T20: CDB vs Hayleys Group", "description": "In the upcoming Singer-MCA Super Premier T20 cricket match between CDB and Hayleys Group, originally scheduled for Tuesday, November 10, 2026 at 11:15 PM ET (as of creation of the first market related to the event):\n\nDLS/DRS, over-rate penalties, forfeit/walkover, or any other on-field ruling that leads the competition to declare a winner are treated as ordinary wins.\n\nIf the match ends tied and the playing conditions provide an on-field tiebreak (e.g., Super Over), the winner determined by that tiebreak will be used for resolution. If the match ends tied and no on-field tiebreak is used or available under the playing conditions (e.g., group-stage ODI with no Super Over), the market will resolve 50-50.\n\nIf this market's outcome was definitively determined under its rules by the listed resolution sources before abandonment, that outcome will stand. Otherwise, the following no-result provisions apply. If the match is canceled, does not start by Thursday, November 12, 2026, 11:59 PM ET, or is abandoned with no official result by that time, the market will resolve 50-50. If the match otherwise is completed without a winner, the market will resolve 50-50.\n\nThe primary resolution source for this market is the official statistics of the event as recognized by the governing body or event organizers. However, if the governing body or event organizers have not published final match statistics within 2 hours after the event's conclusion, a consensus of credible reporting may be used instead.\n", "prices": "[\"0.475\", \"0.525\"]", "bid": 0.44, "ask": 0.51}]}]}
+{"slug": "uwec-tor-spa-2026-11-11", "data": [{"title": "SCU Torreense vs. Sparta Prague", "markets": [{"q": "Will SCU Torreense win on 2026-11-11?", "description": "In the upcoming UEFA Women's Europa Cup game between SCU Torreense and Sparta Prague, originally scheduled for Wednesday, November 11, 2026 at 1:00 PM ET (as of creation of the first market related to the event):\nIf SCU Torreense wins, this market will resolve to \"Yes\".\nOtherwise, this market will resolve to \"No\".\nIf this market's outcome was definitively determined under its rules by the listed resolution sources before abandonment, that outcome will stand. Otherwise, the following no-result provisions apply. If the game is canceled, does not start by Friday, November 13, 2026, 11:59 PM ET, or is abandoned with no official result by that time, this market will resolve to \"No\".\nThe following abandonment rules apply only when this market's outcome was not already definitively determined under its rules before abandonment. If the game is abandoned, this market will resolve according to the official ruling of the governing body or event organizers on the abandoned game. If a result is awarded by Friday, November 13, 2026, 11:59 PM ET that determines this market's outcome, this market will resolve based on the awarded result, regardless of the score as played. If no such result is awarded and the result as played at the time of abandonment is declared to stand by Friday, November 13, 2026, 11:59 PM ET, this market will resolve based on the game as played. If the game is replayed or resumed from the point of abandonment and has an official result by Friday, November 13, 2026, 11:59 PM ET, this market will resolve based on the completed result. In any other case, this market will resolve to \"No\".\nThis market refers only to the outcome within the first 90 minutes of regular play plus stoppage time.\n\nRecognizable abbreviations, alternate or erroneous spellings, sponsor names, regional identifiers, and minor formatting differences in a team's or player's name will not affect resolution, provided the intended team or player can be clearly and uniquely identified as a particip", "prices": "[\"0.575\", \"0.425\"]", "bid": 0.57, "ask": 0.58}, {"q": "Will SCU Torreense vs. Sparta Prague end in a draw?", "description": "In the upcoming UEFA Women's Europa Cup game between SCU Torreense and Sparta Prague, originally scheduled for Wednesday, November 11, 2026 at 1:00 PM ET (as of creation of the first market related to the event):\nIf the game ends in a draw, this market will resolve to \"Yes\".\nOtherwise, this market will resolve to \"No\".\nIf this market's outcome was definitively determined under its rules by the listed resolution sources before abandonment, that outcome will stand. Otherwise, the following no-result provisions apply. If the game is canceled, does not start by Friday, November 13, 2026, 11:59 PM ET, or is abandoned with no official result by that time, this market will resolve to \"Yes\".\nThe following abandonment rules apply only when this market's outcome was not already definitively determined under its rules before abandonment. If the game is abandoned, this market will resolve according to the official ruling of the governing body or event organizers on the abandoned game. If a result is awarded by Friday, November 13, 2026, 11:59 PM ET that determines this market's outcome, this market will resolve based on the awarded result, regardless of the score as played. If no such result is awarded and the result as played at the time of abandonment is declared to stand by Friday, November 13, 2026, 11:59 PM ET, this market will resolve based on the game as played. If the game is replayed or resumed from the point of abandonment and has an official result by Friday, November 13, 2026, 11:59 PM ET, this market will resolve based on the completed result. In any other case, this market will resolve to \"Yes\".\nThis market refers only to the outcome within the first 90 minutes of regular play plus stoppage time.\n\nRecognizable abbreviations, alternate or erroneous spellings, sponsor names, regional identifiers, and minor formatting differences in a team's or player's name will not affect resolution, provided the intended team or player can be clearly and uniquely identified as a p", "prices": "[\"0.285\", \"0.715\"]", "bid": 0.26, "ask": 0.31}, {"q": "Will Sparta Prague win on 2026-11-11?", "description": "In the upcoming UEFA Women's Europa Cup game between SCU Torreense and Sparta Prague, originally scheduled for Wednesday, November 11, 2026 at 1:00 PM ET (as of creation of the first market related to the event):\nIf Sparta Prague wins, this market will resolve to \"Yes\".\nOtherwise, this market will resolve to \"No\".\nIf this market's outcome was definitively determined under its rules by the listed resolution sources before abandonment, that outcome will stand. Otherwise, the following no-result provisions apply. If the game is canceled, does not start by Friday, November 13, 2026, 11:59 PM ET, or is abandoned with no official result by that time, this market will resolve to \"No\".\nThe following abandonment rules apply only when this market's outcome was not already definitively determined under its rules before abandonment. If the game is abandoned, this market will resolve according to the official ruling of the governing body or event organizers on the abandoned game. If a result is awarded by Friday, November 13, 2026, 11:59 PM ET that determines this market's outcome, this market will resolve based on the awarded result, regardless of the score as played. If no such result is awarded and the result as played at the time of abandonment is declared to stand by Friday, November 13, 2026, 11:59 PM ET, this market will resolve based on the game as played. If the game is replayed or resumed from the point of abandonment and has an official result by Friday, November 13, 2026, 11:59 PM ET, this market will resolve based on the completed result. In any other case, this market will resolve to \"No\".\nThis market refers only to the outcome within the first 90 minutes of regular play plus stoppage time.\n\nRecognizable abbreviations, alternate or erroneous spellings, sponsor names, regional identifiers, and minor formatting differences in a team's or player's name will not affect resolution, provided the intended team or player can be clearly and uniquely identified as a particip", "prices": "[\"0.1485\", \"0.8515\"]", "bid": 0.102, "ask": 0.195}]}]}
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,concurrent.futures,json,datetime,math,statistics
+jobs=[('BTCUSDT','5m',1000),('BTCUSDT','1h',240),('SOLUSDT','1h',240)]
+def run(job):
+ s,i,n=job
+ try:
+  d=requests.get('https://api.binance.com/api/v3/klines',params={'symbol':s,'interval':i,'limit':n},timeout=10).json()
+  out={'symbol':s,'interval':i,'n':len(d),'last':[{'t':datetime.datetime.fromtimestamp(x[0]/1000,datetime.timezone.utc).isoformat(),'o':x[1],'h':x[2],'l':x[3],'c':x[4]} for x in d[-3:]]}
+  rets=[math.log(float(b[4])/float(a[4])) for a,b in zip(d,d[1:])][:-1]
+  scale=288 if i=='5m' else 24
+  out['daily_rv']={str(h):round(statistics.stdev(rets[-int(h*scale/24):])*math.sqrt(scale),5) for h in [6,12,24,48,120] if len(rets)>=h*scale/24}
+  out['ranges_last24']=[min(float(x[3]) for x in d[-scale:]),max(float(x[2]) for x in d[-scale:])]
+  return out
+ except Exception as e:return {'error':str(e)}
+with concurrent.futures.ThreadPoolExecutor(max_workers=3) as p:
+ for o in p.map(run,jobs):print(json.dumps(o))
+t=int(datetime.datetime(2026,11,10,17,0,tzinfo=datetime.timezone.utc).timestamp()*1000)
+d=requests.get('https://api.binance.com/api/v3/klines',params={'symbol':'SOLUSDT','interval':'1m','startTime':t,'limit':1},timeout=10).json()
+print('SOL threshold',json.dumps(d))
+PY" in /tmp/apb-sweep-codex-t1xryweg
+ succeeded in 809ms:
+{"symbol": "BTCUSDT", "interval": "5m", "n": 1000, "last": [{"t": "2026-11-11T06:10:00+00:00", "o": "73869.12000000", "h": "73887.98000000", "l": "73842.00000000", "c": "73852.89000000"}, {"t": "2026-11-11T06:15:00+00:00", "o": "73852.89000000", "h": "73900.01000000", "l": "73811.44000000", "c": "73854.01000000"}, {"t": "2026-11-11T06:20:00+00:00", "o": "73854.00000000", "h": "73875.18000000", "l": "73838.00000000", "c": "73875.18000000"}], "daily_rv": {"6": 0.0191, "12": 0.01816, "24": 0.02359, "48": 0.02298}, "ranges_last24": [72727.27, 74996.01]}
+{"symbol": "BTCUSDT", "interval": "1h", "n": 240, "last": [{"t": "2026-11-11T04:00:00+00:00", "o": "73770.16000000", "h": "73888.00000000", "l": "73478.00000000", "c": "73736.01000000"}, {"t": "2026-11-11T05:00:00+00:00", "o": "73736.01000000", "h": "73970.00000000", "l": "73686.26000000", "c": "73924.02000000"}, {"t": "2026-11-11T06:00:00+00:00", "o": "73924.02000000", "h": "73942.01000000", "l": "73811.44000000", "c": "73875.18000000"}], "daily_rv": {"6": 0.01041, "12": 0.01039, "24": 0.02407, "48": 0.02232, "120": 0.01876}, "ranges_last24": [72727.27, 74996.01]}
+{"symbol": "SOLUSDT", "interval": "1h", "n": 240, "last": [{"t": "2026-11-11T04:00:00+00:00", "o": "83.34000000", "h": "83.47000000", "l": "82.72000000", "c": "82.82000000"}, {"t": "2026-11-11T05:00:00+00:00", "o": "82.82000000", "h": "83.47000000", "l": "82.65000000", "c": "83.39000000"}, {"t": "2026-11-11T06:00:00+00:00", "o": "83.39000000", "h": "83.44000000", "l": "83.09000000", "c": "83.19000000"}], "daily_rv": {"6": 0.02141, "12": 0.02148, "24": 0.03465, "48": 0.0313, "120": 0.02877}, "ranges_last24": [81.34, 86.5]}
+SOL threshold [[1794330000000, "81.94000000", "82.08000000", "81.89000000", "82.07000000", "1444.86100000", 1794330059999, "118450.15727000", 966, "648.71600000", "53185.74107000", "0"]]
+
+web search: 
+web search: "Cdb A" "Hayleys Group A" live score today ...
+web search: 
+web search: 
+web search: https://www.fortunaligazen.cz/clanek/304-aktualizace-odveta-sparty-v-portugalsku-je-odlozena
+web search: https://www.zacks.com/stock/news/3027325/home-depot-hd-reports-next-week-wall-street-expects-earnings-growth
+codex
+Two details affect the forecasts: Home Depot must exceed a fixed **$3.95 EPS threshold**, and Sparta’s match has been postponed because of the storm in Portugal. I’m checking whether the replacement date will fall within the market’s deadline. [Home Depot rules](https://polymarket.com/event/hd-quarterly-earnings-nongaap-eps-11-17-2026-3pt95), [postponement notice](https://www.fortunaligazen.cz/clanek/304-aktualizace-odveta-sparty-v-portugalsku-je-odlozena)
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,json,collections,concurrent.futures,pathlib
+jobs={
+'x_posts':('https://xtracker.polymarket.com/api/users/realDonaldTrump/posts',{'platform':'TRUTH_SOCIAL','startDate':'2026-10-01T00:00:00Z','endDate':'2026-11-11T06:25:00Z'}),
+'x_trackings':('https://xtracker.polymarket.com/api/users/realDonaldTrump/trackings',{'platform':'TRUTH_SOCIAL','activeOnly':'false'}),
+'cricket':('https://www.sofascore.com/api/v1/sport/cricket/scheduled-events/2026-11-11',{})
+}
+def run(kv):
+ k,(u,p)=kv
+ try:
+  r=requests.get(u,params=p,timeout=15);d=r.json();pathlib.Path('/tmp/'+k+'.json').write_text(json.dumps(d))
+  if k=='x_posts':
+   a=d.get('data',[]) if isinstance(d,dict) else d
+   print(k,'structure',list(d) if isinstance(d,dict) else 'array','len',len(a),'first',str(a[:1])[:1500])
+   counts=collections.Counter(str(x.get('createdAt',x.get('created_at',x.get('timestamp','?'))))[:10] for x in a)
+   print('date counts',json.dumps(sorted(counts.items())))
+  elif k=='x_trackings':
+   a=d.get('data',[]) if isinstance(d,dict) else d
+   print(k,str(a)[-12000:])
+  else:
+   print(k,[e for e in d.get('events',[]) if any(t in str(e).lower() for t in ['hayley','cdb'])])
+ except Exception as e:print(k,'error',str(e),r.text[:100] if 'r' in locals() else '')
+with concurrent.futures.ThreadPoolExecutor(max_workers=3) as p:list(p.map(run,jobs.items()))
+PY" in /tmp/apb-sweep-codex-t1xryweg
+ succeeded in 294ms:
+cricket []
+x_trackings ld-trump-of-truth-social-posts-april-28-may-5', 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-04-25T04:00:03.489Z', 'updatedAt': '2026-05-05T16:00:08.654Z'}, {'id': '9656a672-3ca0-4bc2-8dd2-6cec79d52dfd', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts April 24 - May 1, 2026?', 'startDate': '2026-04-24T16:00:00.000Z', 'endDate': '2026-05-01T15:59:59.000Z', 'target': None, 'marketLink': 'https://polymarket.com/event/donald-trump-of-truth-social-posts-april-24-may-1', 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-04-21T04:00:04.214Z', 'updatedAt': '2026-05-01T16:00:09.333Z'}, {'id': '638cf12c-01c4-4671-a81d-e80a552e4b70', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts April 21 - April 28, 2026?', 'startDate': '2026-04-21T16:00:00.000Z', 'endDate': '2026-04-28T15:59:59.000Z', 'target': None, 'marketLink': 'https://polymarket.com/event/donald-trump-of-truth-social-posts-april-21-april-28', 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-04-18T04:00:03.594Z', 'updatedAt': '2026-04-28T16:00:08.718Z'}, {'id': '81b5e3f5-bab4-44c9-b27f-4441573a44bd', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts April 17 - April 24, 2026?', 'startDate': '2026-04-17T16:00:00.000Z', 'endDate': '2026-04-24T15:59:59.000Z', 'target': None, 'marketLink': 'https://polymarket.com/event/donald-trump-of-truth-social-posts-april-17-april-24', 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-04-14T04:00:02.922Z', 'updatedAt': '2026-04-24T16:00:08.301Z'}, {'id': '05e53515-80ff-4a8e-ae9f-800461f78706', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts April 14 - April 21, 2026?', 'startDate': '2026-04-14T16:00:00.000Z', 'endDate': '2026-04-21T15:59:59.000Z', 'target': None, 'marketLink': 'https://polymarket.com/event/donald-trump-of-truth-social-posts-april-14-april-21', 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-04-11T04:00:03.978Z', 'updatedAt': '2026-04-21T16:00:08.597Z'}, {'id': '27616c5b-23ba-41e2-9d8d-1c0be1ef5674', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts April 10 - April 17, 2026?', 'startDate': '2026-04-10T16:00:00.000Z', 'endDate': '2026-04-17T15:59:59.000Z', 'target': None, 'marketLink': 'https://polymarket.com/event/donald-trump-of-truth-social-posts-april-10-april-17', 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-04-07T04:00:03.591Z', 'updatedAt': '2026-04-17T16:00:08.571Z'}, {'id': 'b459a1ed-0214-4d85-ba91-2908d058e55a', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts April 7 - April 14, 2026?', 'startDate': '2026-04-07T16:00:00.000Z', 'endDate': '2026-04-14T15:59:59.000Z', 'target': None, 'marketLink': 'https://polymarket.com/event/donald-trump-of-truth-social-posts-april-7-april-14', 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-04-04T04:00:03.705Z', 'updatedAt': '2026-04-14T16:00:10.143Z'}, {'id': '5bbf11f3-3970-4fd1-8704-1be33e781109', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts April 3 - April 10, 2026?', 'startDate': '2026-04-03T16:00:00.000Z', 'endDate': '2026-04-10T15:59:59.000Z', 'target': None, 'marketLink': 'https://polymarket.com/event/donald-trump-of-truth-social-posts-april-3-april-10', 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-03-31T04:00:03.069Z', 'updatedAt': '2026-04-10T16:00:08.551Z'}, {'id': '9f35cbad-4204-4aa3-9ea5-157a88b0b32c', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts March 31 - April 7, 2026?', 'startDate': '2026-03-31T16:00:00.000Z', 'endDate': '2026-04-07T15:59:59.000Z', 'target': None, 'marketLink': 'https://polymarket.com/event/donald-trump-of-truth-social-posts-march-31-april-7', 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-03-28T04:00:03.392Z', 'updatedAt': '2026-04-07T16:00:08.652Z'}, {'id': 'a7b2df10-aac7-44d2-b36b-9ca4db5b5d74', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts March 27 - April 3, 2026?', 'startDate': '2026-03-27T16:00:00.000Z', 'endDate': '2026-04-03T15:59:59.000Z', 'target': None, 'marketLink': 'https://polymarket.com/event/donald-trump-of-truth-social-posts-march-27-april-3', 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-03-24T04:00:03.617Z', 'updatedAt': '2026-04-03T16:00:08.521Z'}, {'id': 'c453e6cc-a0c5-4985-a1f3-6d533674e104', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts March 24 - March 31, 2026?', 'startDate': '2026-03-24T16:00:00.000Z', 'endDate': '2026-03-31T15:59:59.000Z', 'target': None, 'marketLink': 'https://polymarket.com/event/donald-trump-of-truth-social-posts-march-24-march-31', 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-03-21T04:00:03.582Z', 'updatedAt': '2026-03-31T16:00:08.521Z'}, {'id': '1354b404-241b-4e54-8f0f-63c77deda299', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts March 20 - March 27, 2026?', 'startDate': '2026-03-20T16:00:00.000Z', 'endDate': '2026-03-27T15:59:59.000Z', 'target': None, 'marketLink': 'https://polymarket.com/event/donald-trump-of-truth-social-posts-march-20-march-27', 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-03-17T04:00:03.950Z', 'updatedAt': '2026-03-27T16:00:08.349Z'}, {'id': 'e4b84002-6642-42c3-b580-781926ba718c', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts March 17 - March 24, 2026?', 'startDate': '2026-03-17T16:00:00.000Z', 'endDate': '2026-03-24T16:00:59.000Z', 'target': None, 'marketLink': None, 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-03-10T01:45:05.216Z', 'updatedAt': '2026-03-24T16:01:08.396Z'}, {'id': '7e95241f-df39-4e06-95d7-34fe733aea1e', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts March 13 - March 20, 2026?', 'startDate': '2026-03-13T16:00:00.000Z', 'endDate': '2026-03-20T15:59:59.000Z', 'target': None, 'marketLink': 'https://polymarket.com/event/donald-trump-of-truth-social-posts-march-13-march-20', 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-03-16T22:24:46.822Z', 'updatedAt': '2026-03-20T16:00:08.402Z'}, {'id': '25f238cd-3b8e-48e4-bf39-f96be414febe', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts March 10 - March 17, 2026?', 'startDate': '2026-03-10T16:00:00.000Z', 'endDate': '2026-03-17T16:00:59.000Z', 'target': None, 'marketLink': None, 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-03-17T15:20:56.177Z', 'updatedAt': '2026-03-17T16:01:31.386Z'}, {'id': 'c61ead3d-d3eb-4670-827e-c09818996438', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts March 6 - March 13, 2026?', 'startDate': '2026-03-06T17:00:00.000Z', 'endDate': '2026-03-13T16:00:59.000Z', 'target': None, 'marketLink': None, 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-03-04T15:09:58.868Z', 'updatedAt': '2026-03-13T16:01:31.452Z'}, {'id': '06920df3-667c-4037-8e5d-864352d9b10b', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts March 3 - March 10, 2026?', 'startDate': '2026-03-03T17:00:00.000Z', 'endDate': '2026-03-10T16:00:59.000Z', 'target': None, 'marketLink': None, 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-03-02T19:12:58.510Z', 'updatedAt': '2026-03-10T16:01:31.395Z'}, {'id': '91a46b1a-2494-4279-bc2d-ff610d6e624a', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts February 27 - March 6, 2026?', 'startDate': '2026-02-27T17:00:00.000Z', 'endDate': '2026-03-06T17:00:59.000Z', 'target': None, 'marketLink': None, 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-02-24T16:35:22.051Z', 'updatedAt': '2026-03-06T17:01:31.261Z'}, {'id': 'a67eb9cf-1028-42b2-a022-0c763c86e1d6', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts February 24 - March 3, 2026?', 'startDate': '2026-02-24T17:00:00.000Z', 'endDate': '2026-03-03T17:00:59.000Z', 'target': None, 'marketLink': None, 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-02-23T15:19:17.869Z', 'updatedAt': '2026-03-03T17:01:31.337Z'}, {'id': 'cbe3c925-e91e-42af-892f-35af7e12c084', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts February 20 - February 27, 2026?', 'startDate': '2026-02-20T17:00:00.000Z', 'endDate': '2026-02-27T17:00:59.000Z', 'target': None, 'marketLink': None, 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-02-20T16:27:36.852Z', 'updatedAt': '2026-02-27T17:01:31.266Z'}, {'id': 'bf13957c-cba5-4c85-bc86-2cb60bcd3a45', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts February 17 - February 24, 2026?', 'startDate': '2026-02-17T17:00:00.000Z', 'endDate': '2026-02-24T17:00:59.000Z', 'target': None, 'marketLink': None, 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-02-16T19:32:37.817Z', 'updatedAt': '2026-02-24T17:01:31.282Z'}, {'id': '869ee9c0-2512-47ff-9dd8-60076bd34941', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts February 13 - February 20, 2026?', 'startDate': '2026-02-13T17:00:00.000Z', 'endDate': '2026-02-20T17:00:59.000Z', 'target': None, 'marketLink': None, 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-02-11T16:31:05.768Z', 'updatedAt': '2026-02-20T17:01:31.691Z'}, {'id': '0248c20a-615b-42d5-8bff-7a42477434a1', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts February 10 - February 17, 2026?', 'startDate': '2026-02-10T17:00:00.000Z', 'endDate': '2026-02-17T17:00:59.000Z', 'target': None, 'marketLink': None, 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-02-09T16:22:13.039Z', 'updatedAt': '2026-02-17T17:01:06.365Z'}, {'id': 'fbddb68e-0de4-449e-bdac-0d6b6b5be6ed', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald Trump # Truth Social posts February 6 - February 13, 2026?', 'startDate': '2026-02-06T17:00:00.000Z', 'endDate': '2026-02-13T17:00:59.000Z', 'target': None, 'marketLink': None, 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-02-04T21:01:07.002Z', 'updatedAt': '2026-02-13T17:01:07.226Z'}, {'id': 'f7b80124-2628-4dc3-8b88-eada4f7f72d5', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald J. Trump # Truths from Jan 24 12:00 PM to Jan 31 11:59 AM?', 'startDate': '2026-01-24T17:00:00.000Z', 'endDate': '2026-01-31T16:59:59.000Z', 'target': None, 'marketLink': None, 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-01-30T19:19:47.403Z', 'updatedAt': '2026-01-31T17:00:07.480Z'}, {'id': 'ad054ea8-172e-4d97-b1ec-a34b73130a70', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald J. Trump # Truths from Jan 23 12:00 PM to Jan 30 12:00 PM?', 'startDate': '2026-01-23T17:00:00.000Z', 'endDate': '2026-01-30T17:00:59.000Z', 'target': None, 'marketLink': None, 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-01-30T19:06:12.752Z', 'updatedAt': '2026-01-30T19:07:07.234Z'}, {'id': '01cc4343-4c37-4fd2-aaa0-174411e60131', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'title': 'Donald J. Trump # Truths from Jan 16 12:00 PM to Jan 23 12:00 PM?', 'startDate': '2026-01-16T17:00:00.000Z', 'endDate': '2026-01-23T17:00:59.000Z', 'target': None, 'marketLink': None, 'isActive': False, 'metrics': {}, 'config': {}, 'createdAt': '2026-01-22T17:44:26.495Z', 'updatedAt': '2026-01-23T17:01:07.380Z'}]
+x_posts structure ['success', 'data'] len 1510 first [{'id': 'cmwbcltf002pukz086wdyx94t', 'userId': 'd178fa75-3e53-4aae-a826-2128ba91823f', 'platformId': '117594826848361683', 'content': '<p>A Huge Victory against Fake News BBC, a terrible abuser of the truth, just handed down by highly respected District Court Judge, Jeffrey T. Kuntz, of the Southern District of Florida. In his powerful ruling, Judge Kuntz wrote, “Here, the news entity created the story. BBC admitted as much by confirming it had edited a video to make it appear as though President Trump made a statement he never made.” We will continue fighting against, and defeating, all of those who try to deceive the American People! Thank you for your attention to this matter. President DONALD J. TRUMP</p>', 'createdAt': '2026-11-10T23:50:57.720Z', 'importedAt': '2026-11-10T23:55:46.083Z', 'metrics': {'reblogs_count': 362, 'replies_count': 84, 'favourites_count': 1118}}]
+date counts [["2026-10-01", 39], ["2026-10-02", 11], ["2026-10-03", 39], ["2026-10-04", 36], ["2026-10-05", 10], ["2026-10-06", 12], ["2026-10-07", 12], ["2026-10-08", 11], ["2026-10-09", 11], ["2026-10-10", 22], ["2026-10-11", 15], ["2026-10-12", 43], ["2026-10-13", 22], ["2026-10-14", 38], ["2026-10-15", 21], ["2026-10-16", 10], ["2026-10-17", 13], ["2026-10-18", 14], ["2026-10-19", 31], ["2026-10-20", 77], ["2026-10-21", 30], ["2026-10-22", 122], ["2026-10-23", 11], ["2026-10-24", 17], ["2026-10-25", 17], ["2026-10-26", 50], ["2026-10-27", 34], ["2026-10-28", 15], ["2026-10-29", 52], ["2026-10-30", 102], ["2026-10-31", 115], ["2026-11-01", 63], ["2026-11-02", 117], ["2026-11-03", 208], ["2026-11-04", 9], ["2026-11-05", 4], ["2026-11-06", 7], ["2026-11-07", 25], ["2026-11-08", 8], ["2026-11-09", 7], ["2026-11-10", 10]]
+
+web search: 
+web search: NVIDIA NVDA overnight price November 11 2026 1 AM ...
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import json,datetime,collections
+p=json.load(open('/tmp/x_posts.json'))['data'];ts=json.load(open('/tmp/x_trackings.json'))['data']
+def dt(s):return datetime.datetime.fromisoformat(s.replace('Z','+00:00'))
+for t in ts:
+ if t['startDate']>='2026-10-01':
+  a,b=dt(t['startDate']),dt(t['endDate']);count=sum(a<=dt(x['createdAt'])<=b for x in p)
+  print(t['title'],count,t['id'])
+print('since current period start',sum(x['createdAt']>='2026-11-10T17:00:00.000Z' for x in p))
+PY" in /tmp/apb-sweep-codex-t1xryweg
+ succeeded in 0ms:
+Donald Trump # Truth Social posts November 13 - November 20, 2026? 0 bee0ddba-f8a9-4f9a-a38c-8b60dabe4de0
+Donald Trump # Truth Social posts November 6 - November 13, 2026? 53 553858bd-957c-4be8-adbc-52cfa77d9668
+Donald Trump # Truth Social posts November 3 - November 10, 2026? 81 eaac3281-7e62-4097-a963-a2ffb988bd52
+Donald Trump # Truth Social posts October 30 - November 6, 2026? 605 00daa030-523f-4d88-b76e-710df8e56513
+Donald Trump # Truth Social posts October 27 - November 3, 2026? 681 843e559d-7b7c-4290-b934-00a61a077eef
+Donald Trump # Truth Social posts October 23 - October 30, 2026? 208 924e40d9-4495-4345-a73e-a23ea54d6a86
+Donald Trump # Truth Social posts October 20 - October 27, 2026? 270 3dce0717-0f38-4c6f-a332-4bb003177098
+Donald Trump # Truth Social posts October 16 - October 23, 2026? 297 a8092236-aed7-404f-93b1-ea9c79466f2e
+Donald Trump # Truth Social posts October 13 - October 20, 2026? 208 dbe94686-57bf-43a0-a6ed-0d708d3aee55
+Donald Trump # Truth Social posts October 9 - October 16, 2026? 170 145f8d12-0cc7-42c6-97c2-f8c3e519c944
+Donald Trump # Truth Social posts October 6 - October 13, 2026? 120 56f42199-77ce-41ff-acf4-c40fd56de851
+Donald Trump # Truth Social posts October 2 - October 9, 2026? 132 1f1a0254-7f71-447a-9a10-9be2b8d016de
+since current period start 3
+
+web search: 
+web search: "Trump" "November 11, 2026" approval YouGov Rasmussen ...
+web search: 
+web search: 
+web search: "Nexus" "BAKS" "11/11/2026" odds ...
+web search: https://cricheroes.com/scorecard/28205411/33rd-singer-mca-super-premier-t20-2026/hayleys-group-a-vs-cdb/live
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,concurrent.futures,json
+qs=['Nexus BakS November 11','InterActive Amaru November 11','Froglings Nemiga November 11','MOUZ G2 November 11','Campbell East Tennessee November 11','Valparaiso South Dakota November 11','Lightning Sabres November 11','Jets Stars November 12']
+def run(q):
+ try:
+  d=requests.get('https://gamma-api.polymarket.com/public-search',params={'q':q,'limit_per_type':3},timeout=10).json()
+  a=[]
+  for e in d.get('events',[]):
+   if '2026' not in e['slug'] or e.get('closed'):continue
+   ms=[]
+   for m in e.get('markets',[]):
+    if ('Map 1 Winner' in m['question'] and 'MOUZ' in q) or (not any(z in m['question'] for z in ['Map','Total','Spread','O/U','Handicap'])):
+     ms.append({'q':m['question'],'p':m.get('outcomePrices'),'bid':m.get('bestBid'),'ask':m.get('bestAsk'),'vol':m.get('volume')})
+   a.append({'event':e['title'],'markets':ms})
+  return {'query':q,'data':a}
+ except Exception as e:return {'q':q,'error':str(e)}
+with concurrent.futures.ThreadPoolExecutor(max_workers=4) as p:
+ for d in p.map(run,qs):print(json.dumps(d))
+PY" in /tmp/apb-sweep-codex-t1xryweg
+ succeeded in 585ms:
+{"query": "Nexus BakS November 11", "data": [{"event": "Counter-Strike: Nexus vs BakS eSports (BO3) - CCT Europe Group Stage", "markets": [{"q": "Counter-Strike: Nexus vs BakS eSports (BO3) - CCT Europe Group Stage", "p": "[\"0.435\", \"0.565\"]", "bid": 0.43, "ask": 0.44, "vol": "3169.620964"}]}]}
+{"query": "InterActive Amaru November 11", "data": [{"event": "Dota 2: InterActive Philippines vs Amaru Gaming (BO3) - DreamLeague Division 2 Group B", "markets": [{"q": "Dota 2: InterActive Philippines vs Amaru Gaming - Game 1 Winner", "p": "[\"0.51\", \"0.49\"]", "bid": 0.13, "ask": 0.89, "vol": null}, {"q": "Dota 2: InterActive Philippines vs Amaru Gaming - Game 2 Winner", "p": "[\"0.55\", \"0.45\"]", "bid": 0.21, "ask": 0.89, "vol": null}, {"q": "Dota 2: InterActive Philippines vs Amaru Gaming (BO3) - DreamLeague Division 2 Group B", "p": "[\"0.675\", \"0.325\"]", "bid": 0.64, "ask": 0.71, "vol": "2441.174021"}, {"q": "Game 1: Ends in Daytime?", "p": "[\"0.5\", \"0.5\"]", "bid": 0.01, "ask": 0.99, "vol": null}, {"q": "Game 1: Both Teams Beat Roshan?", "p": "[\"0.5\", \"0.5\"]", "bid": 0.01, "ask": 0.99, "vol": null}, {"q": "Game 1: Both Teams Destroy Barracks?", "p": "[\"0.5\", \"0.5\"]", "bid": null, "ask": 1, "vol": null}, {"q": "Game 1: Any Player Ultra Kill?", "p": "[\"0.5\", \"0.5\"]", "bid": null, "ask": 1, "vol": null}, {"q": "Game 1: Any Player Rampage?", "p": "[\"0.5\", \"0.5\"]", "bid": null, "ask": 1, "vol": null}, {"q": "Game 2: Ends in Daytime?", "p": "[\"0.495\", \"0.5\"]", "bid": 0.01, "ask": 0.99, "vol": null}, {"q": "Game 2: Both Teams Beat Roshan?", "p": "[\"0.5\", \"0.5\"]", "bid": 0.01, "ask": 0.99, "vol": null}, {"q": "Game 2: Both Teams Destroy Barracks?", "p": "[\"0.5\", \"0.5\"]", "bid": null, "ask": 1, "vol": null}, {"q": "Game 2: Any Player Ultra Kill?", "p": "[\"0.5\", \"0.5\"]", "bid": null, "ask": 1, "vol": null}, {"q": "Game 2: Any Player Rampage?", "p": "[\"0.5\", \"0.5\"]", "bid": null, "ask": 1, "vol": null}, {"q": "Game 3: Ends in Daytime?", "p": "[\"0.5\", \"0.5\"]", "bid": 0.01, "ask": 0.99, "vol": null}, {"q": "Game 3: Both Teams Beat Roshan?", "p": "[\"0.5\", \"0.5\"]", "bid": 0.01, "ask": 0.99, "vol": null}, {"q": "Game 3: Both Teams Destroy Barracks?", "p": "[\"0.5\", \"0.5\"]", "bid": null, "ask": 1, "vol": null}, {"q": "Game 3: Any Player Ultra Kill?", "p": "[\"0.5\", \"0.5\"]", "bid": null, "ask": 1, "vol": null}, {"q": "Game 3: Any Player Rampage?", "p": "[\"0.5\", \"0.5\"]", "bid": null, "ask": 1, "vol": null}]}]}
+{"query": "Froglings Nemiga November 11", "data": [{"event": "Dota 2: Froglings vs Nemiga Gaming (BO3) - DreamLeague Division 2 Group A", "markets": [{"q": "Dota 2: Froglings vs Nemiga Gaming - Game 1 Winner", "p": "[\"0.645\", \"0.355\"]", "bid": 0.55, "ask": 0.74, "vol": "376.206922"}, {"q": "Dota 2: Froglings vs Nemiga Gaming - Game 2 Winner", "p": "[\"0.635\", \"0.365\"]", "bid": 0.52, "ask": 0.75, "vol": null}, {"q": "Dota 2: Froglings vs Nemiga Gaming (BO3) - DreamLeague Division 2 Group A", "p": "[\"0.8245\", \"0.1755\"]", "bid": 0.82, "ask": 0.829, "vol": "2440.9933659999997"}, {"q": "Game 1: Ends in Daytime?", "p": "[\"0.5\", \"0.5\"]", "bid": 0.01, "ask": 0.99, "vol": null}, {"q": "Game 1: Both Teams Beat Roshan?", "p": "[\"0.5\", \"0.5\"]", "bid": 0.01, "ask": 0.99, "vol": null}, {"q": "Game 1: Both Teams Destroy Barracks?", "p": "[\"0.5\", \"0.5\"]", "bid": null, "ask": 1, "vol": null}, {"q": "Game 1: Any Player Ultra Kill?", "p": "[\"0.5\", \"0.5\"]", "bid": null, "ask": 1, "vol": null}, {"q": "Game 1: Any Player Rampage?", "p": "[\"0.5\", \"0.5\"]", "bid": null, "ask": 1, "vol": null}, {"q": "Game 2: Ends in Daytime?", "p": "[\"0.5\", \"0.5\"]", "bid": 0.01, "ask": 0.99, "vol": null}, {"q": "Game 2: Both Teams Beat Roshan?", "p": "[\"0.5\", \"0.5\"]", "bid": 0.01, "ask": 0.99, "vol": null}, {"q": "Game 2: Both Teams Destroy Barracks?", "p": "[\"0.5\", \"0.5\"]", "bid": null, "ask": 1, "vol": null}, {"q": "Game 2: Any Player Ultra Kill?", "p": "[\"0.5\", \"0.5\"]", "bid": null, "ask": 1, "vol": null}, {"q": "Game 2: Any Player Rampage?", "p": "[\"0.5\", \"0.5\"]", "bid": null, "ask": 1, "vol": null}, {"q": "Game 3: Ends in Daytime?", "p": "[\"0.5\", \"0.5\"]", "bid": 0.01, "ask": 0.99, "vol": null}, {"q": "Game 3: Both Teams Beat Roshan?", "p": "[\"0.5\", \"0.5\"]", "bid": 0.01, "ask": 0.99, "vol": null}, {"q": "Game 3: Both Teams Destroy Barracks?", "p": "[\"0.5\", \"0.5\"]", "bid": null, "ask": 1, "vol": null}, {"q": "Game 3: Any Player Ultra Kill?", "p": "[\"0.5\", \"0.5\"]", "bid": null, "ask": 1, "vol": null}, {"q": "Game 3: Any Player Rampage?", "p": "[\"0.5\", \"0.5\"]", "bid": null, "ask": 1, "vol": null}]}]}
+{"query": "MOUZ G2 November 11", "data": [{"event": "Counter-Strike: MOUZ vs G2 (BO3) - BLAST Rivals Group B", "markets": [{"q": "Counter-Strike: MOUZ vs G2 - Map 1 Winner", "p": "[\"0.675\", \"0.325\"]", "bid": 0.67, "ask": 0.68, "vol": "2289.3201070000005"}, {"q": "Counter-Strike: MOUZ vs G2 (BO3) - BLAST Rivals Group B", "p": "[\"0.785\", \"0.215\"]", "bid": 0.78, "ask": 0.79, "vol": "324375.43623299996"}]}]}
+{"query": "Campbell East Tennessee November 11", "data": [{"event": "Campbell Fighting Camels vs. East Tennessee State Buccaneers", "markets": [{"q": "Campbell Fighting Camels vs. East Tennessee State Buccaneers", "p": "[\"0.32\", \"0.68\"]", "bid": 0.31, "ask": 0.33, "vol": "3383"}]}]}
+{"query": "Valparaiso South Dakota November 11", "data": [{"event": "Valparaiso Beacons vs. South Dakota State Jackrabbits", "markets": [{"q": "Valparaiso Beacons vs. South Dakota State Jackrabbits", "p": "[\"0.525\", \"0.475\"]", "bid": 0.52, "ask": 0.53, "vol": "1072.242975"}]}]}
+{"query": "Lightning Sabres November 11", "data": [{"event": "Lightning vs. Sabres", "markets": [{"q": "Lightning vs. Sabres", "p": "[\"0.555\", \"0.445\"]", "bid": 0.55, "ask": 0.56, "vol": "16413.650688"}]}]}
+{"query": "Jets Stars November 12", "data": [{"event": "Jets vs. Stars", "markets": [{"q": "Jets vs. Stars", "p": "[\"0.375\", \"0.625\"]", "bid": 0.37, "ask": 0.38, "vol": "2669.0946590000003"}]}]}
+
+web search: 
+web search: S&P 500 Futures ESZ26 November 11 2026 live 7580 ...
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,concurrent.futures,json
+urls={
+'cnbc_es':'https://quote.cnbc.com/quote-html-webservice/quote.htm?symbols=@SP.1&output=json',
+'cnbc_nvda':'https://quote.cnbc.com/quote-html-webservice/quote.htm?symbols=NVDA&output=json',
+'yahoo2':'https://query2.finance.yahoo.com/v8/finance/chart/ES=F?interval=5m&range=1d&includePrePost=true',
+'stocks_prices':'https://gamma-api.polymarket.com/events?slug=nvda-closes-above-on-november-11-2026'
+}
+def run(kv):
+ k,u=kv
+ try:
+  r=requests.get(u,timeout=10)
+  if k=='stocks_prices':
+   d=r.json();print(k,[{m['question']:m.get('outcomePrices')} for e in d for m in e['markets']])
+  else:print(k,r.status_code,r.text[:1500])
+ except Exception as e:print(k,str(e))
+with concurrent.futures.ThreadPoolExecutor(max_workers=4) as p:list(p.map(run,urls.items()))
+PY" in /tmp/apb-sweep-codex-t1xryweg
+ succeeded in 112ms:
+stocks_prices []
+cnbc_es 403 <HTML><HEAD>
+<TITLE>Access Denied</TITLE>
+</HEAD><BODY>
+<H1>Access Denied</H1>
+ 
+You don't have permission to access "http&#58;&#47;&#47;quote&#46;cnbc&#46;com&#47;quote&#45;html&#45;webservice&#47;quote&#46;htm&#63;" on this server.<P>
+Reference&#32;&#35;18&#46;161f1eb8&#46;1794378328&#46;2a221090
+<P>https&#58;&#47;&#47;errors&#46;edgesuite&#46;net&#47;18&#46;161f1eb8&#46;1794378328&#46;2a221090</P>
+</BODY>
+</HTML>
+
+cnbc_nvda 403 <HTML><HEAD>
+<TITLE>Access Denied</TITLE>
+</HEAD><BODY>
+<H1>Access Denied</H1>
+ 
+You don't have permission to access "http&#58;&#47;&#47;quote&#46;cnbc&#46;com&#47;quote&#45;html&#45;webservice&#47;quote&#46;htm&#63;" on this server.<P>
+Reference&#32;&#35;18&#46;161f1eb8&#46;1794378328&#46;2a221092
+<P>https&#58;&#47;&#47;errors&#46;edgesuite&#46;net&#47;18&#46;161f1eb8&#46;1794378328&#46;2a221092</P>
+</BODY>
+</HTML>
+
+yahoo2 429 Edge: Too Many Requests
+
+web search: 
+web search: https://finance.yahoo.com/quote/NVDA/?action=scout
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests, concurrent.futures,json
+queries=['NVDA closes above November 11','CDB Hayleys','Bitcoin Up or Down November 11 1AM']
+def run(q):
+ d=requests.get('https://gamma-api.polymarket.com/public-search',params={'q':q,'limit_per_type':3},timeout=10).json()
+ return {'q':q,'events':[{'e':e['title'],'slug':e['slug'],'m':[{'q':m['question'],'p':m.get('outcomePrices'),'bid':m.get('bestBid'),'ask':m.get('bestAsk')} for m in e['markets']]} for e in d.get('events',[]) if not e.get('closed')]}
+with concurrent.futures.ThreadPoolExecutor(max_workers=3) as p:
+ for x in p.map(run,queries):print(json.dumps(x))
+PY" in /tmp/apb-sweep-codex-t1xryweg
+ succeeded in 168ms:
+{"q": "NVDA closes above November 11", "events": [{"e": "NVIDIA (NVDA) closes above ___ on November 11?", "slug": "nvda-close-above-on-november-11-2026", "m": [{"q": "Will NVIDIA (NVDA) close above $165 on November 11?", "p": "[\"0.915\", \"0.085\"]", "bid": 0.89, "ask": 0.94}, {"q": "Will NVIDIA (NVDA) close above $170 on November 11?", "p": "[\"0.68\", \"0.32\"]", "bid": 0.66, "ask": 0.7}, {"q": "Will NVIDIA (NVDA) close above $175 on November 11?", "p": "[\"0.335\", \"0.665\"]", "bid": 0.3, "ask": 0.37}, {"q": "Will NVIDIA (NVDA) close above $180 on November 11?", "p": "[\"0.085\", \"0.915\"]", "bid": 0.04, "ask": 0.13}, {"q": "Will NVIDIA (NVDA) close above $185 on November 11?", "p": "[\"0.0605\", \"0.9395\"]", "bid": 0.011, "ask": 0.11}]}]}
+{"q": "CDB Hayleys", "events": [{"e": "Singer-MCA Super Premier T20: CDB vs Hayleys Group", "slug": "cricmcat20-cdb-hay-2026-11-10", "m": [{"q": "Singer-MCA Super Premier T20: CDB vs Hayleys Group", "p": "[\"0.615\", \"0.385\"]", "bid": 0.58, "ask": 0.65}]}]}
+{"q": "Bitcoin Up or Down November 11 1AM", "events": [{"e": "Bitcoin Up or Down - November 11, 1AM ET", "slug": "bitcoin-up-or-down-november-11-2026-1am-et", "m": [{"q": "Bitcoin Up or Down - November 11, 1AM ET", "p": "[\"0.325\", \"0.675\"]", "bid": 0.32, "ask": 0.33}]}]}
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,json
+u='https://gamma-api.polymarket.com/events'
+r=requests.get(u,params={'slug':'cricmcat20-cdb-hay-2026-11-10'},timeout=10).json()[0]
+print(json.dumps({k:v for k,v in r.items() if k not in ['markets','tags','series','description']},indent=2)[:6000])
+PY" in /tmp/apb-sweep-codex-t1xryweg
+ succeeded in 35ms:
+{
+  "id": "1358233",
+  "ticker": "cricmcat20-cdb-hay-2026-11-10",
+  "slug": "cricmcat20-cdb-hay-2026-11-10",
+  "title": "Singer-MCA Super Premier T20: CDB vs Hayleys Group",
+  "resolutionSource": "https://www.espncricinfo.com/",
+  "startDate": "2026-11-10T18:39:08Z",
+  "creationDate": "2026-11-11T04:15:00Z",
+  "endDate": "2026-11-18T04:15:00Z",
+  "image": "https://polymarket-upload.s3.us-east-2.amazonaws.com/cricket-ball-a0b0bf2dc9.png",
+  "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/cricket-ball-a0b0bf2dc9.png",
+  "active": true,
+  "closed": false,
+  "archived": false,
+  "new": false,
+  "featured": false,
+  "restricted": true,
+  "liquidity": 1402.1815,
+  "volume": 1701.0338290000002,
+  "openInterest": 1652.826329,
+  "createdAt": "2026-11-10T18:39:00.962253Z",
+  "updatedAt": "2026-11-11T06:24:25.615065Z",
+  "competitive": 0.998402555910543,
+  "volume24hr": 1701.033829,
+  "volume1wk": 1701.033829,
+  "volume1mo": 1701.033829,
+  "volume1yr": 1701.033829,
+  "enableOrderBook": true,
+  "liquidityClob": 1402.1815,
+  "negRisk": false,
+  "commentCount": 0,
+  "cyom": false,
+  "showAllOutcomes": true,
+  "showMarketImages": false,
+  "enableNegRisk": false,
+  "automaticallyActive": true,
+  "eventDate": "2026-11-10",
+  "startTime": "2026-11-11T04:15:00Z",
+  "seriesSlug": "cricmcat20",
+  "negRiskAugmented": false,
+  "pendingDeployment": false,
+  "deploying": false,
+  "teams": [
+    {
+      "id": 3299037,
+      "name": "CDB",
+      "league": "cricmcat20",
+      "record": "0-0",
+      "logo": "https://polymarket-upload.s3.us-east-2.amazonaws.com/cricket-ball-a0b0bf2dc9.png",
+      "abbreviation": "cdb",
+      "createdAt": "2026-11-04T22:00:13.489594Z",
+      "providerId": 100001359,
+      "ordering": "home"
+    },
+    {
+      "id": 3299042,
+      "name": "Hayleys Group",
+      "league": "cricmcat20",
+      "record": "0-0",
+      "logo": "https://polymarket-upload.s3.us-east-2.amazonaws.com/cricket-ball-a0b0bf2dc9.png",
+      "abbreviation": "hay",
+      "createdAt": "2026-11-04T22:00:13.541544Z",
+      "providerId": 100001357,
+      "ordering": "away"
+    }
+  ],
+  "sport": {
+    "id": 983,
+    "sport": "cricmcat20",
+    "name": "Singer-MCA Super Premier T20",
+    "image": "https://polymarket-upload.s3.us-east-2.amazonaws.com/cricket-ball-a0b0bf2dc9.png",
+    "resolution": "https://www.espncricinfo.com/",
+    "ordering": "home",
+    "tags": "1,100639,517,106554",
+    "primaryTagId": 106554,
+    "series": "13001",
+    "createdAt": "2026-11-04T22:00:11.580108Z"
+  },
+  "eventMetadata": {
+    "gameId": "1000171786LIVE2026",
+    "league": "Singer-MCA Super Premier T20",
+    "originalStart": "2026-11-11T04:15:00.000Z"
+  },
+  "version": "v1"
+}
+
+web search: 
+web search: "CDB" "Hayleys" "live" "November 11" ...
+codex
+Sparta’s match has been rescheduled for November 12, within the market’s deadline, so the postponement alone won’t produce a “No.” I’ve also checked Binance’s reference prices and Trump’s posting tracker; I’m now reconciling the estimates and checking that all 30 markets are covered. [Revised fixture](https://www.zerozero.pt/noticias/benfica-e-torreense-ja-conhecem-novos-horarios-para-os-compromissos-europeus/1258526?redirm=1)
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,concurrent.futures,json,datetime,math,statistics
+jobs={
+'cricket':'https://gamma-api.polymarket.com/events?slug=cricmcat20-cdb-hay-2026-11-10',
+'btc_hour_market':'https://gamma-api.polymarket.com/events?slug=bitcoin-up-or-down-november-11-2026-1am-et',
+'btc_bars':'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&limit=240',
+'btc_barriers':'https://gamma-api.polymarket.com/events?slug=what-price-will-bitcoin-hit-on-november-11-2026'
+}
+def run(kv):
+ k,u=kv
+ try:
+  d=requests.get(u,timeout=10).json()
+  if k=='btc_bars':
+   end=d[-1]; rs=[math.log(float(b[4])/float(a[4])) for a,b in zip(d,d[1:])][:-1]
+   return {k:{'lastminute':datetime.datetime.fromtimestamp(end[0]/1000,datetime.timezone.utc).isoformat(),'spot':end[4],'daily_rv_4h':statistics.stdev(rs)*math.sqrt(1440),'hour_open':[x[1] for x in d if datetime.datetime.fromtimestamp(x[0]/1000,datetime.timezone.utc).isoformat().startswith('2026-11-11T06:00')]}}
+  return {k:[{'question':m['question'],'p':m.get('outcomePrices'),'bid':m.get('bestBid'),'ask':m.get('bestAsk'),'updated':m.get('updatedAt'),'lasttrade':m.get('lastTradePrice')} for e in d for m in e['markets'] if k"'!='"'btc_barriers' or any(s in m['question'] for s in ['"'$72,000'"','"'$73,000'"','"'$75,000'"'])]}
+ except Exception as e:return {k:str(e)}
+with concurrent.futures.ThreadPoolExecutor(max_workers=4) as p:
+ for x in p.map(run,jobs.items()):print(json.dumps(x))
+PY" in /tmp/apb-sweep-codex-t1xryweg
+ succeeded in 267ms:
+{"cricket": [{"question": "Singer-MCA Super Premier T20: CDB vs Hayleys Group", "p": "[\"0.615\", \"0.385\"]", "bid": 0.58, "ask": 0.65, "updated": "2026-11-11T06:24:15.238614Z", "lasttrade": 0.33}]}
+{"btc_hour_market": [{"question": "Bitcoin Up or Down - November 11, 1AM ET", "p": "[\"0.325\", \"0.675\"]", "bid": 0.32, "ask": 0.33, "updated": "2026-11-11T06:24:15.238614Z", "lasttrade": 0.45}]}
+{"btc_bars": {"lastminute": "2026-11-11T06:27:00+00:00", "spot": "73845.17000000", "daily_rv_4h": 0.016775142995588674, "hour_open": ["73924.02000000"]}}
+{"btc_barriers": [{"question": "Will Bitcoin reach $75,000 on November 11?", "p": "[\"0.41\", \"0.59\"]", "bid": 0.4, "ask": 0.42, "updated": "2026-11-11T06:22:15.992742Z", "lasttrade": 0.37}, {"question": "Will Bitcoin dip to $73,000 on November 11?", "p": "[\"0.52\", \"0.48\"]", "bid": 0.51, "ask": 0.53, "updated": "2026-11-11T06:22:15.992742Z", "lasttrade": 0.54}, {"question": "Will Bitcoin dip to $72,000 on November 11?", "p": "[\"0.195\", \"0.805\"]", "bid": 0.19, "ask": 0.2, "updated": "2026-11-11T06:22:15.992742Z", "lasttrade": 0.23}]}
+
+codex
+The main adjustments are to CDB’s live-match probability, Japan’s higher GDP bracket, and Home Depot’s fixed earnings threshold. I’ve kept the other forecasts close to market or sportsbook estimates where the evidence is mixed. I’m checking the final JSON for completeness and probability sums.
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests, json, concurrent.futures
+ids={'cricket':'6942431','btc_hour':'6893367'}
+def run(kv):
+ k,mid=kv
+ try:
+  d=requests.get('https://gamma-api.polymarket.com/markets/'+mid,timeout=7).json()
+  tid=json.loads(d['clobTokenIds'])[0]
+  b=requests.get('https://clob.polymarket.com/book',params={'token_id':tid},timeout=7).json()
+  bids=sorted(b.get('bids',[]),key=lambda x:float(x['price']),reverse=True)[:3]
+  asks=sorted(b.get('asks',[]),key=lambda x:float(x['price']))[:3]
+  return {k:{'market_price':d.get('outcomePrices'),'updated':d.get('updatedAt'),'book_timestamp':b.get('timestamp'),'bids':bids,'asks':asks}}
+ except Exception as e:return {k:str(e)}
+with concurrent.futures.ThreadPoolExecutor(max_workers=2) as p:
+ for x in p.map(run,ids.items()):print(json.dumps(x))
+PY" in /tmp/apb-sweep-codex-t1xryweg
+ succeeded in 157ms:
+{"cricket": {"market_price": "[\"0.435\", \"0.565\"]", "updated": "2026-11-11T06:30:15.178114Z", "book_timestamp": "1794378626750", "bids": [{"price": "0.41", "size": "18.89"}, {"price": "0.39", "size": "27"}, {"price": "0.38", "size": "10"}], "asks": [{"price": "0.47", "size": "119.34"}, {"price": "0.48", "size": "277"}, {"price": "0.49", "size": "419"}]}}
+{"btc_hour": {"market_price": "[\"0.285\", \"0.715\"]", "updated": "2026-11-11T06:26:15.619344Z", "book_timestamp": "1794378626365", "bids": [{"price": "0.2", "size": "558.13"}, {"price": "0.19", "size": "292.5"}, {"price": "0.18", "size": "326.25"}], "asks": [{"price": "0.21", "size": "124.5"}, {"price": "0.22", "size": "146.25"}, {"price": "0.23", "size": "485.32"}]}}
+
+exec
+/usr/bin/zsh -lc "python - <<'PY'
+import requests,datetime,json
+r=requests.get('https://api.binance.com/api/v3/klines',params={'symbol':'BTCUSDT','interval':'1m','limit':2},timeout=6).json()
+print(json.dumps([{'time':datetime.datetime.fromtimestamp(x[0]/1000,datetime.timezone.utc).isoformat(),'close':x[4]} for x in r]))
+PY" in /tmp/apb-sweep-codex-t1xryweg
+ succeeded in 269ms:
+[{"time": "2026-11-11T06:29:00+00:00", "close": "73811.46000000"}, {"time": "2026-11-11T06:30:00+00:00", "close": "73800.01000000"}]
+
+codex
+{"forecasts":[{"id":"75533","probabilities":{"Up":0.79,"Down":0.21}},{"id":"75666","probabilities":{"CDB":0.44,"Hayleys Group":0.56}},{"id":"75669","probabilities":{"Up":0.22,"Down":0.78}},{"id":"75665","probabilities":{"MOUZ":0.665,"G2":0.335}},{"id":"75274","probabilities":{"Yes":0.54,"No":0.46}},{"id":"75490","probabilities":{"Up":0.795,"Down":0.205}},{"id":"75465","probabilities":{"Yes":0.215,"No":0.785}},{"id":"75643","probabilities":{"Campbell Fighting Camels":0.33,"East Tennessee State Buccaneers":0.67}},{"id":"75632","probabilities":{"Yes":0.54,"No":0.46}},{"id":"75536","probabilities":{"Froglings":0.82,"Nemiga Gaming":0.18}},{"id":"75273","probabilities":{"Yes":0.235,"No":0.765}},{"id":"64077","probabilities":{"Yes":0.62,"No":0.38}},{"id":"75345","probabilities":{"Up":0.75,"Down":0.25}},{"id":"75622","probabilities":{"Lightning":0.54,"Sabres":0.46}},{"id":"75630","probabilities":{"Yes":0.42,"No":0.58}},{"id":"75513","probabilities":{"Ground Zero Gaming":0.815,"Frank Esports":0.185}},{"id":"75271","probabilities":{"Yes":0.18,"No":0.82}},{"id":"63197","probabilities":{"Yes":0.35,"No":0.65}},{"id":"75286","probabilities":{"Yes":0.525,"No":0.475}},{"id":"75579","probabilities":{"Valparaiso Beacons":0.545,"South Dakota State Jackrabbits":0.455}},{"id":"75619","probabilities":{"Yes":0.205,"No":0.795}},{"id":"75510","probabilities":{"Nexus":0.47,"BakS eSports":0.53}},{"id":"69101","probabilities":{"Yes":0.16,"No":0.84}},{"id":"50549","probabilities":{"Yes":0.065,"No":0.935}},{"id":"74979","probabilities":{"Yes":0.158,"No":0.842}},{"id":"75270","probabilities":{"Jets":0.36,"Stars":0.64}},{"id":"75303","probabilities":{"Up":0.75,"Down":0.25}},{"id":"75482","probabilities":{"InterActive Philippines":0.69,"Amaru Gaming":0.31}},{"id":"69100","probabilities":{"Yes":0.215,"No":0.785}},{"id":"50547","probabilities":{"Yes":0.25,"No":0.75}}]}
+tokens used
+229,335
+{"forecasts":[{"id":"75533","probabilities":{"Up":0.79,"Down":0.21}},{"id":"75666","probabilities":{"CDB":0.44,"Hayleys Group":0.56}},{"id":"75669","probabilities":{"Up":0.22,"Down":0.78}},{"id":"75665","probabilities":{"MOUZ":0.665,"G2":0.335}},{"id":"75274","probabilities":{"Yes":0.54,"No":0.46}},{"id":"75490","probabilities":{"Up":0.795,"Down":0.205}},{"id":"75465","probabilities":{"Yes":0.215,"No":0.785}},{"id":"75643","probabilities":{"Campbell Fighting Camels":0.33,"East Tennessee State Buccaneers":0.67}},{"id":"75632","probabilities":{"Yes":0.54,"No":0.46}},{"id":"75536","probabilities":{"Froglings":0.82,"Nemiga Gaming":0.18}},{"id":"75273","probabilities":{"Yes":0.235,"No":0.765}},{"id":"64077","probabilities":{"Yes":0.62,"No":0.38}},{"id":"75345","probabilities":{"Up":0.75,"Down":0.25}},{"id":"75622","probabilities":{"Lightning":0.54,"Sabres":0.46}},{"id":"75630","probabilities":{"Yes":0.42,"No":0.58}},{"id":"75513","probabilities":{"Ground Zero Gaming":0.815,"Frank Esports":0.185}},{"id":"75271","probabilities":{"Yes":0.18,"No":0.82}},{"id":"63197","probabilities":{"Yes":0.35,"No":0.65}},{"id":"75286","probabilities":{"Yes":0.525,"No":0.475}},{"id":"75579","probabilities":{"Valparaiso Beacons":0.545,"South Dakota State Jackrabbits":0.455}},{"id":"75619","probabilities":{"Yes":0.205,"No":0.795}},{"id":"75510","probabilities":{"Nexus":0.47,"BakS eSports":0.53}},{"id":"69101","probabilities":{"Yes":0.16,"No":0.84}},{"id":"50549","probabilities":{"Yes":0.065,"No":0.935}},{"id":"74979","probabilities":{"Yes":0.158,"No":0.842}},{"id":"75270","probabilities":{"Jets":0.36,"Stars":0.64}},{"id":"75303","probabilities":{"Up":0.75,"Down":0.25}},{"id":"75482","probabilities":{"InterActive Philippines":0.69,"Amaru Gaming":0.31}},{"id":"69100","probabilities":{"Yes":0.215,"No":0.785}},{"id":"50547","probabilities":{"Yes":0.25,"No":0.75}}]}

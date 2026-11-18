@@ -1,0 +1,44 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+75533 | SPY (SPY) Up or Down on November 11? | Up 0.805, Down 0.195 | 2026-11-11T21:00:00Z
+75666 | Singer-MCA Super Premier T20: CDB vs Hayleys Group | CDB 0.290, Hayleys Group 0.710 | 2026-11-18T04:15:00Z
+75669 | Bitcoin Up or Down - November 11, 1AM ET | Up 0.325, Down 0.675 | 2026-11-11T07:00:00Z
+75665 | Counter-Strike: MOUZ vs G2 - Map 1 Winner | MOUZ 0.675, G2 0.325 | 2026-11-11T15:30:00Z
+75274 | Will Trump's approval rating be between 38.5 and 38.9 on November 13, 2026? | Yes 0.515, No 0.485 | 2026-11-14T04:59:00Z
+75490 | S&P 500 (SPX) Up or Down on November 11? | Up 0.810, Down 0.190 | 2026-11-11T21:00:00Z
+75465 | Will Italy win on 2026-11-12? | Yes 0.205, No 0.795 | 2026-11-12T19:45:00Z
+75643 | Campbell Fighting Camels vs. East Tennessee State Buccaneers | Campbell Fighting Camels 0.320, East Tennessee State Buccaneers 0.680 | 2026-11-12T00:00:00Z
+75632 | Will Bitcoin dip to $73,000 on November 11? | Yes 0.540, No 0.460 | 2026-11-12T05:00:00Z
+75536 | Dota 2: Froglings vs Nemiga Gaming (BO3) - DreamLeague Division 2 Group A | Froglings 0.823, Nemiga Gaming 0.177 | 2026-11-12T01:00:00Z
+75273 | Will Trump's approval rating be between 38.0 and 38.4 on November 13, 2026? | Yes 0.220, No 0.780 | 2026-11-14T04:59:00Z
+64077 | Will La-Z-Boy (LZB) beat quarterly earnings? | Yes 0.615, No 0.385 | 2026-11-17T22:00:00Z
+75345 | NVIDIA (NVDA) Up or Down on November 11? | Up 0.800, Down 0.200 | 2026-11-11T21:00:00Z
+75622 | Lightning vs. Sabres | Lightning 0.555, Sabres 0.445 | 2026-11-12T00:00:00Z
+75630 | Will Bitcoin reach $75,000 on November 11? | Yes 0.405, No 0.595 | 2026-11-12T05:00:00Z
+75513 | LoL: Ground Zero Gaming vs Frank Esports (BO5) - LCP Promotion Playoffs | Ground Zero Gaming 0.800, Frank Esports 0.200 | 2026-11-11T15:00:00Z
+75271 | Will Trump's approval rating be between 39.0 and 39.4 on November 13, 2026? | Yes 0.195, No 0.805 | 2026-11-14T04:59:00Z
+63197 | Will Home Depot (HD) beat quarterly earnings? | Yes 0.233, No 0.767 | 2026-11-17T14:00:00Z
+75286 | Will Kosovo win on 2026-11-14? | Yes 0.525, No 0.475 | 2026-11-14T14:00:00Z
+75579 | Valparaiso Beacons vs. South Dakota State Jackrabbits | Valparaiso Beacons 0.525, South Dakota State Jackrabbits 0.475 | 2026-11-12T01:00:00Z
+75619 | Will Bitcoin dip to $72,000 on November 11? | Yes 0.205, No 0.795 | 2026-11-12T05:00:00Z
+75510 | Counter-Strike: Nexus vs BakS eSports (BO3) - CCT Europe Group Stage | Nexus 0.430, BakS eSports 0.570 | 2026-11-11T21:00:00Z
+69101 | Will Donald Trump post 100-119 Truth Social posts from November 10 to November 17, 2026? | Yes 0.195, No 0.805 | 2026-11-17T17:00:00Z
+50549 | Will Japan Q3 GDP growth (annualized) be between 1.6% and 2.4%? | Yes 0.212, No 0.787 | 2026-11-16T00:00:00Z
+74979 | Will Sparta Prague win on 2026-11-11? | Yes 0.154, No 0.846 | 2026-11-11T18:00:00Z
+75270 | Jets vs. Stars | Jets 0.375, Stars 0.625 | 2026-11-13T01:00:00Z
+75303 | Solana Up or Down on November 11? | Up 0.740, Down 0.260 | 2026-11-11T17:00:00Z
+75482 | Dota 2: InterActive Philippines vs Amaru Gaming (BO3) - DreamLeague Division 2 Group B | InterActive Philippines 0.730, Amaru Gaming 0.270 | 2026-11-11T19:00:00Z
+69100 | Will Donald Trump post 80-99 Truth Social posts from November 10 to November 17, 2026? | Yes 0.186, No 0.814 | 2026-11-17T17:00:00Z
+50547 | Will Japan Q3 GDP growth (annualized) be between -0.8% and 0.0%? | Yes 0.195, No 0.805 | 2026-11-16T00:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"forecasts": [{"id": "75533", "probabilities": {"Up": 0.81, "Down": 0.19}}, {"id": "75666", "probabilities": {"CDB": 0.54, "Hayleys Group": 0.46}}, {"id": "75669", "probabilities": {"Up": 0.28, "Down": 0.72}}, {"id": "75665", "probabilities": {"MOUZ": 0.68, "G2": 0.32}}, {"id": "75274", "probabilities": {"Yes": 0.52, "No": 0.48}}, {"id": "75490", "probabilities": {"Up": 0.81, "Down": 0.19}}, {"id": "75465", "probabilities": {"Yes": 0.21, "No": 0.79}}, {"id": "75643", "probabilities": {"Campbell Fighting Camels": 0.32, "East Tennessee State Buccaneers": 0.68}}, {"id": "75632", "probabilities": {"Yes": 0.56, "No": 0.44}}, {"id": "75536", "probabilities": {"Froglings": 0.83, "Nemiga Gaming": 0.17}}, {"id": "75273", "probabilities": {"Yes": 0.21, "No": 0.79}}, {"id": "64077", "probabilities": {"Yes": 0.62, "No": 0.38}}, {"id": "75345", "probabilities": {"Up": 0.79, "Down": 0.21}}, {"id": "75622", "probabilities": {"Lightning": 0.55, "Sabres": 0.45}}, {"id": "75630", "probabilities": {"Yes": 0.39, "No": 0.61}}, {"id": "75513", "probabilities": {"Ground Zero Gaming": 0.8, "Frank Esports": 0.2}}, {"id": "75271", "probabilities": {"Yes": 0.16, "No": 0.84}}, {"id": "63197", "probabilities": {"Yes": 0.2, "No": 0.8}}, {"id": "75286", "probabilities": {"Yes": 0.52, "No": 0.48}}, {"id": "75579", "probabilities": {"Valparaiso Beacons": 0.53, "South Dakota State Jackrabbits": 0.47}}, {"id": "75619", "probabilities": {"Yes": 0.2, "No": 0.8}}, {"id": "75510", "probabilities": {"Nexus": 0.45, "BakS eSports": 0.55}}, {"id": "69101", "probabilities": {"Yes": 0.16, "No": 0.84}}, {"id": "50549", "probabilities": {"Yes": 0.08, "No": 0.92}}, {"id": "74979", "probabilities": {"Yes": 0.14, "No": 0.86}}, {"id": "75270", "probabilities": {"Jets": 0.38, "Stars": 0.62}}, {"id": "75303", "probabilities": {"Up": 0.75, "Down": 0.25}}, {"id": "75482", "probabilities": {"InterActive Philippines": 0.66, "Amaru Gaming": 0.34}}, {"id": "69100", "probabilities": {"Yes": 0.18, "No": 0.82}}, {"id": "50547", "probabilities": {"Yes": 0.18, "No": 0.82}}]}
