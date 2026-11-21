@@ -1,0 +1,48 @@
+$ grok -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+81324 | Will FC Andorra win on 2026-11-14? | Yes 0.215, No 0.785 | 2026-11-14T17:30:00Z
+81464 | Altiri Chiba vs. SAN-EN NeoPhoenix | Altiri Chiba 0.195, SAN-EN NeoPhoenix 0.805 | 2026-11-21T05:05:00Z
+81466 | Ethereum Up or Down - November 14, 12:00AM-4:00AM ET | Up 0.770, Down 0.230 | 2026-11-14T09:00:00Z
+81465 | Counter-Strike: FORZE Reload vs Nice Try (BO3) - NODWIN Clutch Series Group Stage | FORZE Reload 0.655, Nice Try 0.345 | 2026-11-14T15:00:00Z
+80030 | Will Trump say "Bibi" this week? | Yes 0.480, No 0.520 | 2026-11-16T04:59:00Z
+80748 | S&P 500 (SPY) closes above $740 on November 16? | Yes 0.655, No 0.345 | 2026-11-16T21:00:00Z
+81307 | Will China PR win on 2026-11-14? | Yes 0.625, No 0.375 | 2026-11-14T12:00:00Z
+81432 | Honor of Kings: JD Gaming vs Weibo Gaming (BO7) - King Pro League Grand Finals Playoffs | JD Gaming 0.680, Weibo Gaming 0.320 | 2026-11-14T15:30:00Z
+81429 | Bitcoin Up or Down - November 14, 12:00AM-4:00AM ET | Up 0.790, Down 0.210 | 2026-11-14T09:00:00Z
+81461 | Counter-Strike: ex-INOX Division vs Alliance (BO3) - ESL Challenger League Europe Cup #12 Playoffs | ex-INOX Division 0.370, Alliance 0.630 | 2026-11-14T20:00:00Z
+80029 | Will Trump say "Fire and Fury" this week? | Yes 0.240, No 0.760 | 2026-11-16T04:59:00Z
+80747 | S&P 500 (SPY) closes above $745 on November 16? | Yes 0.645, No 0.355 | 2026-11-16T21:00:00Z
+81287 | Will NAC Breda win on 2026-11-14? | Yes 0.645, No 0.355 | 2026-11-14T15:30:00Z
+81423 | Yokohama B-Corsairs vs. Shiga Lakestars | Yokohama B-Corsairs 0.265, Shiga Lakestars 0.735 | 2026-11-21T06:05:00Z
+81401 | Will the price of Solana be above $75 on November 15? | Yes 0.617, No 0.383 | 2026-11-15T17:00:00Z
+81357 | Counter-Strike: 9INE vs WRAITH PCIFIC (BO3) - European Pro League Playoffs | 9INE 0.715, WRAITH PCIFIC 0.285 | 2026-11-14T17:30:00Z
+80028 | Will Trump say "Ballroom" this week? | Yes 0.260, No 0.740 | 2026-11-16T04:59:00Z
+80746 | S&P 500 (SPY) closes above $750 on November 16? | Yes 0.550, No 0.450 | 2026-11-16T21:00:00Z
+81285 | Will Austria win on 2026-11-14? | Yes 0.605, No 0.395 | 2026-11-14T19:45:00Z
+81383 | KCC Egis vs. Seoul Knights | KCC Egis 0.640, Seoul Knights 0.360 | 2026-11-21T05:00:00Z
+81369 | Will Ethereum dip to $1,850 on November 14? | Yes 0.155, No 0.845 | 2026-11-15T05:00:00Z
+81308 | Counter-Strike: GenOne vs Balkan Outlaws (BO3) - European Pro League Playoffs | GenOne 0.605, Balkan Outlaws 0.395 | 2026-11-14T15:00:00Z
+80027 | Will Trump say "Thanksgiving" this week? | Yes 0.265, No 0.735 | 2026-11-16T04:59:00Z
+80745 | S&P 500 (SPY) closes above $755 on November 16? | Yes 0.315, No 0.685 | 2026-11-16T21:00:00Z
+81208 | Will Japan win on 2026-11-14? | Yes 0.240, No 0.760 | 2026-11-14T10:15:00Z
+81202 | Pistons vs. Heat | Pistons 0.635, Heat 0.365 | 2026-11-15T01:00:00Z
+81368 | Will Ethereum reach $1,950 on November 14? | Yes 0.245, No 0.755 | 2026-11-15T05:00:00Z
+81206 | Counter-Strike: STATE vs EYEBALLERS (BO3) - United21 Playoffs | STATE 0.385, EYEBALLERS 0.615 | 2026-11-14T15:00:00Z
+80026 | Will Trump say "Hakeem" or "Jeffries" this week? | Yes 0.235, No 0.765 | 2026-11-16T04:59:00Z
+81033 | S&P 500 (SPX) Up or Down on November 16? | Up 0.395, Down 0.605 | 2026-11-16T21:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"type":"error","message":"Not signed in. To authenticate without a browser, run:\n  grok login --device-code\n\nAlternatively, set the XAI_API_KEY environment variable or run `grok login` on a machine with a browser."}
+Error: Not signed in. To authenticate without a browser, run:
+  grok login --device-code
+
+Alternatively, set the XAI_API_KEY environment variable or run `grok login` on a machine with a browser.
