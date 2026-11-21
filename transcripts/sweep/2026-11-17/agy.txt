@@ -1,0 +1,44 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+87242 | Will NVIDIA (NVDA) hit (LOW) $140 Week of November 16 2026? | Yes 0.335, No 0.665 | 2026-11-20T21:00:00Z
+87302 | Will Bosnia and Herzegovina vs. Romania end in a draw? | Yes 0.265, No 0.735 | 2026-11-17T19:45:00Z
+87310 | Bitcoin Up or Down - November 17, 1AM ET | Up 0.325, Down 0.675 | 2026-11-17T07:00:00Z
+87303 | Counter-Strike: Infinite vs MOUZ NXT (BO3) - European Pro League Playoffs | Infinite 0.645, MOUZ NXT 0.355 | 2026-11-17T17:30:00Z
+87198 | Will S&P 500 (SPY) hit (LOW) $715 Week of November 16 2026? | Yes 0.180, No 0.820 | 2026-11-20T21:00:00Z
+87135 | Will Trump say "Superintelligence" or "SI" during his trilateral meeting with Xi and Putin? | Yes 0.190, No 0.810 | 2026-11-19T23:59:00Z
+87241 | Will NVIDIA (NVDA) hit (LOW) $144 Week of November 16 2026? | Yes 0.435, No 0.565 | 2026-11-20T21:00:00Z
+87154 | Jazz vs. Clippers | Jazz 0.325, Clippers 0.675 | 2026-11-18T04:00:00Z
+87251 | Will Bitcoin dip to $63,000 on November 17? | Yes 0.295, No 0.705 | 2026-11-18T05:00:00Z
+87301 | Valorant: XJG vs Hyper Tide Gaming (BO3) - China National Tournament Split Omega: Pro Division Group B | XJG 0.720, Hyper Tide Gaming 0.280 | 2026-11-17T12:00:00Z
+86815 | Will S&P 500 (SPY) hit (HIGH) $745 Week of November 16 2026? | Yes 0.745, No 0.255 | 2026-11-20T21:00:00Z
+87133 | Will Trump say "Iran" during his trilateral meeting with Xi and Putin? | Yes 0.460, No 0.540 | 2026-11-19T23:59:00Z
+87240 | Will NVIDIA (NVDA) hit (LOW) $148 Week of November 16 2026? | Yes 0.570, No 0.430 | 2026-11-20T21:00:00Z
+87074 | Flames vs. Sharks | Flames 0.465, Sharks 0.535 | 2026-11-18T03:00:00Z
+87250 | Will Bitcoin dip to $64,000 on November 17? | Yes 0.645, No 0.355 | 2026-11-18T05:00:00Z
+87278 | Dota 2: Power Rangers vs Team Synapse (BO3) - European Pro League Group B | Power Rangers 0.595, Team Synapse 0.405 | 2026-11-17T16:00:00Z
+86814 | Will S&P 500 (SPY) hit (LOW) $720 Week of November 16 2026? | Yes 0.285, No 0.715 | 2026-11-20T21:00:00Z
+87132 | Will Trump say "NATO" during his trilateral meeting with Xi and Putin? | Yes 0.230, No 0.770 | 2026-11-19T23:59:00Z
+87239 | Will NVIDIA (NVDA) hit (LOW) $152 Week of November 16 2026? | Yes 0.730, No 0.270 | 2026-11-20T21:00:00Z
+87011 | Stars vs. Golden Knights | Stars 0.455, Golden Knights 0.545 | 2026-11-18T03:00:00Z
+87231 | Will Bitcoin reach $66,000 on November 17? | Yes 0.415, No 0.585 | 2026-11-18T05:00:00Z
+87263 | Counter-Strike: Envy vs Metizport (BO3) - Tipsport RUSH Brno Group B | Envy 0.555, Metizport 0.445 | 2026-11-18T01:00:00Z
+86813 | Will S&P 500 (SPY) hit (LOW) $730 Week of November 16 2026? | Yes 0.625, No 0.375 | 2026-11-20T21:00:00Z
+87131 | Will Trump say "Alaska" during his trilateral meeting with Xi and Putin? | Yes 0.175, No 0.825 | 2026-11-19T23:59:00Z
+87238 | Will NVIDIA (NVDA) hit (HIGH) $164 Week of November 16 2026? | Yes 0.620, No 0.380 | 2026-11-20T21:00:00Z
+86998 | Will Ethiopia vs. Mozambique end in a draw? | Yes 0.345, No 0.655 | 2026-11-17T13:00:00Z
+87224 | Will Bitcoin reach $67,000 on November 17? | Yes 0.155, No 0.845 | 2026-11-18T05:00:00Z
+87164 | Dota 2: PARIVISION vs Froglings - Game 1 Winner | PARIVISION 0.815, Froglings 0.185 | 2026-11-17T16:00:00Z
+86812 | Will S&P 500 (SPY) hit (LOW) $735 Week of November 16 2026? | Yes 0.795, No 0.205 | 2026-11-20T21:00:00Z
+87130 | Will Trump say "Nobel" during his trilateral meeting with Xi and Putin? | Yes 0.160, No 0.840 | 2026-11-19T23:59:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"forecasts": [{"id": "87242", "probabilities": {"Yes": 0.28, "No": 0.72}}, {"id": "87302", "probabilities": {"Yes": 0.26, "No": 0.74}}, {"id": "87310", "probabilities": {"Up": 0.27, "Down": 0.73}}, {"id": "87303", "probabilities": {"Infinite": 0.66, "MOUZ NXT": 0.34}}, {"id": "87198", "probabilities": {"Yes": 0.16, "No": 0.84}}, {"id": "87135", "probabilities": {"Yes": 0.11, "No": 0.89}}, {"id": "87241", "probabilities": {"Yes": 0.39, "No": 0.61}}, {"id": "87154", "probabilities": {"Jazz": 0.29, "Clippers": 0.71}}, {"id": "87251", "probabilities": {"Yes": 0.28, "No": 0.72}}, {"id": "87301", "probabilities": {"XJG": 0.74, "Hyper Tide Gaming": 0.26}}, {"id": "86815", "probabilities": {"Yes": 0.98, "No": 0.02}}, {"id": "87133", "probabilities": {"Yes": 0.62, "No": 0.38}}, {"id": "87240", "probabilities": {"Yes": 0.56, "No": 0.44}}, {"id": "87074", "probabilities": {"Flames": 0.46, "Sharks": 0.54}}, {"id": "87250", "probabilities": {"Yes": 0.82, "No": 0.18}}, {"id": "87278", "probabilities": {"Power Rangers": 0.61, "Team Synapse": 0.39}}, {"id": "86814", "probabilities": {"Yes": 0.27, "No": 0.73}}, {"id": "87132", "probabilities": {"Yes": 0.22, "No": 0.78}}, {"id": "87239", "probabilities": {"Yes": 0.78, "No": 0.22}}, {"id": "87011", "probabilities": {"Stars": 0.45, "Golden Knights": 0.55}}, {"id": "87231", "probabilities": {"Yes": 0.36, "No": 0.64}}, {"id": "87263", "probabilities": {"Envy": 0.56, "Metizport": 0.44}}, {"id": "86813", "probabilities": {"Yes": 0.66, "No": 0.34}}, {"id": "87131", "probabilities": {"Yes": 0.13, "No": 0.87}}, {"id": "87238", "probabilities": {"Yes": 0.75, "No": 0.25}}, {"id": "86998", "probabilities": {"Yes": 0.34, "No": 0.66}}, {"id": "87224", "probabilities": {"Yes": 0.12, "No": 0.88}}, {"id": "87164", "probabilities": {"PARIVISION": 0.85, "Froglings": 0.15}}, {"id": "86812", "probabilities": {"Yes": 0.85, "No": 0.15}}, {"id": "87130", "probabilities": {"Yes": 0.14, "No": 0.86}}]}

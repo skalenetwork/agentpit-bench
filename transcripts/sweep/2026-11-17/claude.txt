@@ -1,0 +1,46 @@
+$ claude -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+87242 | Will NVIDIA (NVDA) hit (LOW) $140 Week of November 16 2026? | Yes 0.335, No 0.665 | 2026-11-20T21:00:00Z
+87302 | Will Bosnia and Herzegovina vs. Romania end in a draw? | Yes 0.265, No 0.735 | 2026-11-17T19:45:00Z
+87310 | Bitcoin Up or Down - November 17, 1AM ET | Up 0.325, Down 0.675 | 2026-11-17T07:00:00Z
+87303 | Counter-Strike: Infinite vs MOUZ NXT (BO3) - European Pro League Playoffs | Infinite 0.645, MOUZ NXT 0.355 | 2026-11-17T17:30:00Z
+87198 | Will S&P 500 (SPY) hit (LOW) $715 Week of November 16 2026? | Yes 0.180, No 0.820 | 2026-11-20T21:00:00Z
+87135 | Will Trump say "Superintelligence" or "SI" during his trilateral meeting with Xi and Putin? | Yes 0.190, No 0.810 | 2026-11-19T23:59:00Z
+87241 | Will NVIDIA (NVDA) hit (LOW) $144 Week of November 16 2026? | Yes 0.435, No 0.565 | 2026-11-20T21:00:00Z
+87154 | Jazz vs. Clippers | Jazz 0.325, Clippers 0.675 | 2026-11-18T04:00:00Z
+87251 | Will Bitcoin dip to $63,000 on November 17? | Yes 0.295, No 0.705 | 2026-11-18T05:00:00Z
+87301 | Valorant: XJG vs Hyper Tide Gaming (BO3) - China National Tournament Split Omega: Pro Division Group B | XJG 0.720, Hyper Tide Gaming 0.280 | 2026-11-17T12:00:00Z
+86815 | Will S&P 500 (SPY) hit (HIGH) $745 Week of November 16 2026? | Yes 0.745, No 0.255 | 2026-11-20T21:00:00Z
+87133 | Will Trump say "Iran" during his trilateral meeting with Xi and Putin? | Yes 0.460, No 0.540 | 2026-11-19T23:59:00Z
+87240 | Will NVIDIA (NVDA) hit (LOW) $148 Week of November 16 2026? | Yes 0.570, No 0.430 | 2026-11-20T21:00:00Z
+87074 | Flames vs. Sharks | Flames 0.465, Sharks 0.535 | 2026-11-18T03:00:00Z
+87250 | Will Bitcoin dip to $64,000 on November 17? | Yes 0.645, No 0.355 | 2026-11-18T05:00:00Z
+87278 | Dota 2: Power Rangers vs Team Synapse (BO3) - European Pro League Group B | Power Rangers 0.595, Team Synapse 0.405 | 2026-11-17T16:00:00Z
+86814 | Will S&P 500 (SPY) hit (LOW) $720 Week of November 16 2026? | Yes 0.285, No 0.715 | 2026-11-20T21:00:00Z
+87132 | Will Trump say "NATO" during his trilateral meeting with Xi and Putin? | Yes 0.230, No 0.770 | 2026-11-19T23:59:00Z
+87239 | Will NVIDIA (NVDA) hit (LOW) $152 Week of November 16 2026? | Yes 0.730, No 0.270 | 2026-11-20T21:00:00Z
+87011 | Stars vs. Golden Knights | Stars 0.455, Golden Knights 0.545 | 2026-11-18T03:00:00Z
+87231 | Will Bitcoin reach $66,000 on November 17? | Yes 0.415, No 0.585 | 2026-11-18T05:00:00Z
+87263 | Counter-Strike: Envy vs Metizport (BO3) - Tipsport RUSH Brno Group B | Envy 0.555, Metizport 0.445 | 2026-11-18T01:00:00Z
+86813 | Will S&P 500 (SPY) hit (LOW) $730 Week of November 16 2026? | Yes 0.625, No 0.375 | 2026-11-20T21:00:00Z
+87131 | Will Trump say "Alaska" during his trilateral meeting with Xi and Putin? | Yes 0.175, No 0.825 | 2026-11-19T23:59:00Z
+87238 | Will NVIDIA (NVDA) hit (HIGH) $164 Week of November 16 2026? | Yes 0.620, No 0.380 | 2026-11-20T21:00:00Z
+86998 | Will Ethiopia vs. Mozambique end in a draw? | Yes 0.345, No 0.655 | 2026-11-17T13:00:00Z
+87224 | Will Bitcoin reach $67,000 on November 17? | Yes 0.155, No 0.845 | 2026-11-18T05:00:00Z
+87164 | Dota 2: PARIVISION vs Froglings - Game 1 Winner | PARIVISION 0.815, Froglings 0.185 | 2026-11-17T16:00:00Z
+86812 | Will S&P 500 (SPY) hit (LOW) $735 Week of November 16 2026? | Yes 0.795, No 0.205 | 2026-11-20T21:00:00Z
+87130 | Will Trump say "Nobel" during his trilateral meeting with Xi and Putin? | Yes 0.160, No 0.840 | 2026-11-19T23:59:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"type":"system","subtype":"init","cwd":"/tmp/apb-sweep-claude-qjk7u2kk","session_id":"bd02c00b-4636-4c74-8fa0-40da0e728015","tools":["Task","Bash","CronCreate","CronDelete","CronList","DesignSync","Edit","EnterWorktree","ExitWorktree","ListAgents","NotebookEdit","Read","ReportFindings","ScheduleWakeup","SendMessage","TaskStop","ToolSearch","WebFetch","WebSearch","Workflow","Write"],"mcp_servers":[],"model":"claude-fable-5-1","permissionMode":"bypassPermissions","slash_commands":[],"apiKeySource":"none","claude_code_version":"2.1.300","output_style":"default","agents":["claude","Explore","general-purpose","Plan","statusline-setup"],"skills":[],"plugins":[{"name":"cc-plugin-agents-md","path":"builtin","source":"cc-plugin-agents-md@builtin"},{"name":"cc-plugin-telemetry","path":"builtin","source":"cc-plugin-telemetry@builtin"},{"name":"cc-plugin-plugin-authoring","path":"builtin","source":"cc-plugin-plugin-authoring@builtin"}],"capabilities":["interrupt_receipt_v1","interrupt_cancel_queued_v1","interrupt_send_now_v1","msg_lifecycle_v1","request_marker_lists_v1","sdk_mcp_tools_list_changed","sdk_mcp_manifests","mcp_read_resource_v1","mcp_tool_ui_meta_v1","ui_surface_v1"],"analytics_disabled":false,"product_feedback_disabled":false,"uuid":"e26e04f9-6a8b-42ba-9875-0b5cbb696e83","memory_paths":{"auto":"/tmp/apbh-claude-8w3_hsj2/.claude/projects/-tmp-apb-sweep-claude-qjk7u2kk/memory/"},"fast_mode_state":"off","fast_mode_disabled_reason":"sdk_opt_in_required","per_turn_effort_active":true,"view_mode":"default"}
+{"type":"assistant","message":{"diagnostics":null,"id":"8a575390-6aeb-4fc4-b51f-486071e15d91","container":null,"model":"<synthetic>","role":"assistant","stop_details":null,"stop_reason":"stop_sequence","stop_sequence":"","type":"message","usage":{"output_tokens_details":null,"input_tokens":0,"output_tokens":0,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":null,"cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":0},"inference_geo":null,"iterations":null,"speed":null,"fallback_credit":null},"content":[{"type":"text","text":"Failed to authenticate: OAuth session expired and could not be refreshed"}],"context_management":null},"parent_tool_use_id":null,"session_id":"bd02c00b-4636-4c74-8fa0-40da0e728015","uuid":"d0356209-14b1-413f-9bcc-186f7a978f46","timestamp":"2026-11-17T06:17:26.816Z","error":"authentication_failed","is_api_error_message":true}
+{"duration_api_ms":0,"stop_reason":"stop_sequence","session_id":"bd02c00b-4636-4c74-8fa0-40da0e728015","total_cost_usd":0,"usage":{"output_tokens_details":{"thinking_tokens":0},"input_tokens":0,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":0,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":0},"inference_geo":"","iterations":[],"speed":"standard","fallback_credit":null},"modelUsage":{},"permission_denials":[],"terminal_reason":"api_error","fast_mode_state":"off","fast_mode_disabled_reason":"sdk_opt_in_required","subagent_stats":{"spawned":0,"requested":{"background":0,"foreground":0,"unset":0},"started_in_background":0,"max_depth":0,"spawned_by_subagents":0,"completed":0,"failed":0,"killed":{"parent":0,"user":0,"system":0},"refused":{"depth_limit":0,"concurrency_limit":0,"budget":0},"by_type":{}},"safety_stops":0,"is_error":true,"num_turns":1,"subtype":"success","api_error_status":null,"result":"Failed to authenticate: OAuth session expired and could not be refreshed","type":"result","duration_ms":55,"uuid":"ac0e995c-1ff0-47d2-a8da-d670b323d104","queued_turn_count":0,"result_index":0}
