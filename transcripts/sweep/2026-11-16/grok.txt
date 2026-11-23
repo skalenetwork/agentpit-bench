@@ -1,0 +1,48 @@
+$ grok -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+85233 | Will Cameroon win on 2026-11-16? | Yes 0.675, No 0.325 | 2026-11-16T13:00:00Z
+85368 | Will Bitcoin dip to $60,000 November 16-22? | Yes 0.235, No 0.765 | 2026-11-23T05:00:00Z
+85271 | ICC Women's Emerging Nations Trophy T20s: Bangladesh Women vs Netherlands Women | Bangladesh Women 0.650, Netherlands Women 0.350 | 2026-11-23T05:00:00Z
+85229 | Counter-Strike: ex-RUSTEC vs Butterfly (BO3) - NODWIN Clutch Series Group Stage | ex-RUSTEC 0.415, Butterfly 0.585 | 2026-11-16T15:00:00Z
+84069 | Will Trump's approval rating be between 39.0 and 39.4 on November 20, 2026? | Yes 0.185, No 0.815 | 2026-11-21T04:59:00Z
+80958 | Will Nvidia (NVDA) beat quarterly earnings? | Yes 0.825, No 0.175 | 2026-11-17T22:00:00Z
+85232 | Will Hungary win on 2026-11-17? | Yes 0.500, No 0.500 | 2026-11-17T19:45:00Z
+85367 | Will Bitcoin dip to $62,000 November 16-22? | Yes 0.525, No 0.475 | 2026-11-23T05:00:00Z
+85254 | Will Switzerland vs. Scotland end in a draw? | Yes 0.255, No 0.745 | 2026-11-16T19:45:00Z
+85200 | Counter-Strike: Spirit Academy vs ILLYRIANS (BO3) - NODWIN Clutch Series Group Stage | Spirit Academy 0.550, ILLYRIANS 0.450 | 2026-11-16T21:00:00Z
+84068 | Will Trump's approval rating be between 38.0 and 38.4 on November 20, 2026? | Yes 0.240, No 0.760 | 2026-11-21T04:59:00Z
+85300 | Will Dolby (DLB) beat quarterly earnings? | Yes 0.670, No 0.330 | 2026-11-17T22:00:00Z
+85208 | SPY (SPY) Up or Down on November 16? | Up 0.300, Down 0.700 | 2026-11-16T21:00:00Z
+85365 | Bitcoin Up or Down - November 16, 12:00AM-4:00AM ET | Up 0.230, Down 0.770 | 2026-11-16T09:00:00Z
+85253 | Pistons vs. Spurs | Pistons 0.275, Spurs 0.725 | 2026-11-18T01:00:00Z
+85157 | Counter-Strike: Alliance vs Iberian Soul (BO3) - Tipsport RUSH Brno Group A | Alliance 0.525, Iberian Soul 0.475 | 2026-11-17T19:00:00Z
+84067 | Will Trump's approval rating be less than 38.0 on November 20, 2026? | Yes 0.195, No 0.805 | 2026-11-21T04:59:00Z
+85273 | S&P 500 (SPX) Opens Up or Down on November 16? | Up 0.325, Down 0.675 | 2026-11-16T21:00:00Z
+85011 | Will I Knew It, I Knew You (Taylor Swift) be nominated for Song of the Year at the 69th Annual GRAMMY Awards? | Yes 0.830, No 0.170 | 2026-11-17T04:59:00Z
+85349 | Will Ethereum dip to $1,750 on November 16? | Yes 0.315, No 0.685 | 2026-11-17T05:00:00Z
+85241 | Knicks vs. Raptors | Knicks 0.620, Raptors 0.380 | 2026-11-18T00:30:00Z
+85022 | Counter-Strike: Heroic vs PARIVISION (BO3) - PGL Cluj-Napoca: Closed Qualifier Playoffs | Heroic 0.475, PARIVISION 0.525 | 2026-11-17T00:00:00Z
+84065 | Will Trump's approval rating be between 38.5 and 38.9 on November 20, 2026? | Yes 0.385, No 0.615 | 2026-11-21T04:59:00Z
+85007 | Will Andorra win on 2026-11-16? | Yes 0.195, No 0.805 | 2026-11-16T18:00:00Z
+85348 | Will Ethereum dip to $1,800 on November 16? | Yes 0.790, No 0.210 | 2026-11-17T05:00:00Z
+85240 | Avalanche vs. Utah | Avalanche 0.500, Utah 0.500 | 2026-11-19T02:00:00Z
+84996 | Dota 2: PARIVISION vs Team Spirit (BO3) - 1win Essence Playoffs | PARIVISION 0.545, Team Spirit 0.455 | 2026-11-16T22:00:00Z
+74105 | Will Donald Trump post 100-119 Truth Social posts from November 13 to November 20, 2026? | Yes 0.175, No 0.825 | 2026-11-20T17:00:00Z
+84876 | Will Iceland win on 2026-11-16? | Yes 0.785, No 0.215 | 2026-11-16T17:00:00Z
+85347 | Will Ethereum reach $1,850 on November 16? | Yes 0.320, No 0.680 | 2026-11-17T05:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"type":"error","message":"Not signed in. To authenticate without a browser, run:\n  grok login --device-code\n\nAlternatively, set the XAI_API_KEY environment variable or run `grok login` on a machine with a browser."}
+Error: Not signed in. To authenticate without a browser, run:
+  grok login --device-code
+
+Alternatively, set the XAI_API_KEY environment variable or run `grok login` on a machine with a browser.
