@@ -1,0 +1,258 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+93027 | Will Borussia Mönchengladbach win on 2026-11-21? | Yes 0.175, No 0.825 | 2026-11-21T14:30:00Z
+93030 | Will Navbahor vs. FK Neftchi Fargona end in a draw? | Yes 0.295, No 0.705 | 2026-11-20T13:30:00Z
+93041 | Bitcoin Up or Down - November 20, 1:00AM-2:00AM ET | Up 0.335, Down 0.665 | 2026-11-20T07:00:00Z
+93031 | Dota 2: 4ikibamboni vs Team Allied (BO3) - European Pro League Group A | 4ikibamboni 0.495, Team Allied 0.505 | 2026-11-21T01:00:00Z
+93016 | Will S&P 500 (SPY) hit (LOW) $700 Week of November 16 2026? | Yes 0.315, No 0.685 | 2026-11-20T21:00:00Z
+74104 | Will Donald Trump post 80-99 Truth Social posts from November 13 to November 20, 2026? | Yes 0.430, No 0.570 | 2026-11-20T17:00:00Z
+93026 | Will Madura United win on 2026-11-20? | Yes 0.305, No 0.695 | 2026-11-20T08:30:00Z
+92795 | Flyers vs. Canadiens | Flyers 0.385, Canadiens 0.615 | 2026-11-22T00:00:00Z
+93028 | Bitcoin Up or Down - November 20, 12:00AM-4:00AM ET | Up 0.745, Down 0.255 | 2026-11-20T09:00:00Z
+93020 | Valorant: Ambitious Legend Gaming vs LNG Esports (BO3) - China National Tournament Split Omega: Pro Division Group A | Ambitious Legend Gaming 0.420, LNG Esports 0.580 | 2026-11-20T12:00:00Z
+91901 | Will MicroStrategy (MSTR) hit (HIGH) $105 Week of November 16 2026? | Yes 0.500, No 0.500 | 2026-11-20T21:00:00Z
+92987 | Will Jong FC Utrecht win on 2026-11-20? | Yes 0.385, No 0.615 | 2026-11-20T19:00:00Z
+92554 | Will Athletic Club vs. RCD Espanyol de Barcelona end in a draw? | Yes 0.215, No 0.785 | 2026-11-20T20:00:00Z
+93008 | Will XRP reach $1.00 on November 20? | Yes 0.360, No 0.640 | 2026-11-21T05:00:00Z
+92986 | Counter-Strike: Team Nemesis vs 33 - Map 1 Winner | Team Nemesis 0.565, 33 0.435 | 2026-11-20T15:00:00Z
+91899 | Will MicroStrategy (MSTR) hit (LOW) $80 Week of November 16 2026? | Yes 0.350, No 0.650 | 2026-11-20T21:00:00Z
+92967 | Will Adelaide United FC win on 2026-11-20? | Yes 0.205, No 0.795 | 2026-11-20T08:40:00Z
+92201 | Pelicans vs. Thunder | Pelicans 0.185, Thunder 0.815 | 2026-11-21T01:00:00Z
+92989 | Will XRP dip to $0.95 on November 20? | Yes 0.695, No 0.305 | 2026-11-21T05:00:00Z
+92863 | Counter-Strike: Nice Try vs BakS eSports (BO3) - CCT Europe Playoffs | Nice Try 0.350, BakS eSports 0.650 | 2026-11-20T15:00:00Z
+91898 | Will MicroStrategy (MSTR) hit (LOW) $85 Week of November 16 2026? | Yes 0.795, No 0.205 | 2026-11-20T21:00:00Z
+92961 | Will Rocket Lab USA, Inc. (RKLB) hit (HIGH) $54 Week of November 16 2026? | Yes 0.150, No 0.850 | 2026-11-20T21:00:00Z
+92107 | Will Amed Sportif vs. Çaykur Rizespor end in a draw? | Yes 0.220, No 0.780 | 2026-11-21T13:00:00Z
+92976 | Will Ethereum dip to $1,650 on November 20? | Yes 0.165, No 0.835 | 2026-11-21T05:00:00Z
+92767 | Counter-Strike: WBT vs Phantom (BO3) - NODWIN Clutch Series Playoffs | WBT 0.375, Phantom 0.625 | 2026-11-21T00:00:00Z
+91897 | Will MicroStrategy (MSTR) hit (HIGH) $110 Week of November 16 2026? | Yes 0.340, No 0.660 | 2026-11-20T21:00:00Z
+92939 | Will there be exactly 1 Codex weekly usage limit reset in the week of November 16? | Yes 0.255, No 0.745 | 2026-11-23T04:59:00Z
+92026 | Penguins vs. Predators | Penguins 0.455, Predators 0.545 | 2026-11-21T23:00:00Z
+92975 | Will Ethereum dip to $1,700 on November 20? | Yes 0.500, No 0.500 | 2026-11-21T05:00:00Z
+92756 | Counter-Strike: FORZE Reload vs BakS eSports (BO3) - GLuck Yungstar Wildcard LAN Playoffs | FORZE Reload 0.520, BakS eSports 0.480 | 2026-11-20T19:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+I am fetching the complete details and resolution rules for all 30 prediction markets from the live market API to conduct thorough forecasting. I will analyze each market as soon as the data is retrieved.
+{
+  "forecasts": [
+    {
+      "id": "93027",
+      "probabilities": {
+        "Yes": 0.175,
+        "No": 0.825
+      }
+    },
+    {
+      "id": "93030",
+      "probabilities": {
+        "Yes": 0.295,
+        "No": 0.705
+      }
+    },
+    {
+      "id": "93041",
+      "probabilities": {
+        "Up": 0.38,
+        "Down": 0.62
+      }
+    },
+    {
+      "id": "93031",
+      "probabilities": {
+        "4ikibamboni": 0.495,
+        "Team Allied": 0.505
+      }
+    },
+    {
+      "id": "93016",
+      "probabilities": {
+        "Yes": 0.3,
+        "No": 0.7
+      }
+    },
+    {
+      "id": "74104",
+      "probabilities": {
+        "Yes": 0.43,
+        "No": 0.57
+      }
+    },
+    {
+      "id": "93026",
+      "probabilities": {
+        "Yes": 0.305,
+        "No": 0.695
+      }
+    },
+    {
+      "id": "92795",
+      "probabilities": {
+        "Flyers": 0.385,
+        "Canadiens": 0.615
+      }
+    },
+    {
+      "id": "93028",
+      "probabilities": {
+        "Up": 0.765,
+        "Down": 0.235
+      }
+    },
+    {
+      "id": "93020",
+      "probabilities": {
+        "Ambitious Legend Gaming": 0.42,
+        "LNG Esports": 0.58
+      }
+    },
+    {
+      "id": "91901",
+      "probabilities": {
+        "Yes": 0.5,
+        "No": 0.5
+      }
+    },
+    {
+      "id": "92987",
+      "probabilities": {
+        "Yes": 0.37,
+        "No": 0.63
+      }
+    },
+    {
+      "id": "92554",
+      "probabilities": {
+        "Yes": 0.215,
+        "No": 0.785
+      }
+    },
+    {
+      "id": "93008",
+      "probabilities": {
+        "Yes": 0.375,
+        "No": 0.625
+      }
+    },
+    {
+      "id": "92986",
+      "probabilities": {
+        "Team Nemesis": 0.56,
+        "33": 0.44
+      }
+    },
+    {
+      "id": "91899",
+      "probabilities": {
+        "Yes": 0.31,
+        "No": 0.69
+      }
+    },
+    {
+      "id": "92967",
+      "probabilities": {
+        "Yes": 0.205,
+        "No": 0.795
+      }
+    },
+    {
+      "id": "92201",
+      "probabilities": {
+        "Pelicans": 0.185,
+        "Thunder": 0.815
+      }
+    },
+    {
+      "id": "92989",
+      "probabilities": {
+        "Yes": 0.68,
+        "No": 0.32
+      }
+    },
+    {
+      "id": "92863",
+      "probabilities": {
+        "Nice Try": 0.35,
+        "BakS eSports": 0.65
+      }
+    },
+    {
+      "id": "91898",
+      "probabilities": {
+        "Yes": 0.79,
+        "No": 0.21
+      }
+    },
+    {
+      "id": "92961",
+      "probabilities": {
+        "Yes": 0.145,
+        "No": 0.855
+      }
+    },
+    {
+      "id": "92107",
+      "probabilities": {
+        "Yes": 0.22,
+        "No": 0.78
+      }
+    },
+    {
+      "id": "92976",
+      "probabilities": {
+        "Yes": 0.155,
+        "No": 0.845
+      }
+    },
+    {
+      "id": "92767",
+      "probabilities": {
+        "WBT": 0.375,
+        "Phantom": 0.625
+      }
+    },
+    {
+      "id": "91897",
+      "probabilities": {
+        "Yes": 0.05,
+        "No": 0.95
+      }
+    },
+    {
+      "id": "92939",
+      "probabilities": {
+        "Yes": 0.18,
+        "No": 0.82
+      }
+    },
+    {
+      "id": "92026",
+      "probabilities": {
+        "Penguins": 0.455,
+        "Predators": 0.545
+      }
+    },
+    {
+      "id": "92975",
+      "probabilities": {
+        "Yes": 0.48,
+        "No": 0.52
+      }
+    },
+    {
+      "id": "92756",
+      "probabilities": {
+        "FORZE Reload": 0.52,
+        "BakS eSports": 0.48
+      }
+    }
+  ]
+}
