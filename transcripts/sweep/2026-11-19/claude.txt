@@ -1,0 +1,46 @@
+$ claude -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+91147 | Will CR Flamengo win on 2026-11-21? | Yes 0.370, No 0.630 | 2026-11-21T19:30:00Z
+90987 | Kings vs. Maple Leafs | Kings 0.495, Maple Leafs 0.505 | 2026-11-20T00:00:00Z
+91160 | Bitcoin Up or Down - November 19, 1:00AM-2:00AM ET | Up 0.665, Down 0.335 | 2026-11-19T07:00:00Z
+91162 | Valorant: Qian Xing Gaming vs SEC (BO3) - China National Tournament Split Omega: Pro Division Group A | Qian Xing Gaming 0.195, SEC 0.805 | 2026-11-19T12:00:00Z
+87127 | Will Trump say "China" or "Russia" 15+ times during his trilateral meeting with Xi and Putin? | Yes 0.290, No 0.710 | 2026-11-19T23:59:00Z
+90914 | S&P 500 (SPX) Up or Down on November 19? | Up 0.730, Down 0.270 | 2026-11-19T21:00:00Z
+91048 | Will CR Vasco da Gama win on 2026-11-19? | Yes 0.605, No 0.395 | 2026-11-19T22:30:00Z
+90985 | Pacers vs. Cavaliers | Pacers 0.295, Cavaliers 0.705 | 2026-11-21T00:30:00Z
+91138 | Will Bitcoin reach $64,000 on November 19? | Yes 0.735, No 0.265 | 2026-11-20T05:00:00Z
+91159 | Counter-Strike: 33 vs ex-RUSTEC (BO3) - CCT Europe Playoffs | 33 0.665, ex-RUSTEC 0.335 | 2026-11-19T15:00:00Z
+81449 | Will Donald Trump post 60-79 Truth Social posts from November 17 to November 24, 2026? | Yes 0.275, No 0.725 | 2026-11-24T17:00:00Z
+38922 | Will Moog (MOG.A) beat quarterly earnings? | Yes 0.690, No 0.310 | 2026-11-20T14:00:00Z
+90997 | Will NVIDIA (NVDA) hit (HIGH) $156 Week of November 16 2026? | Yes 0.645, No 0.355 | 2026-11-20T21:00:00Z
+90962 | Will FK Termez Surkhon vs. FC Andijon end in a draw? | Yes 0.295, No 0.705 | 2026-11-19T13:00:00Z
+91125 | Will Ethereum dip to $1,750 on November 19? | Yes 0.365, No 0.635 | 2026-11-20T05:00:00Z
+91055 | Counter-Strike: Sangal vs Luminosity - Map 1 Winner | Sangal 0.415, Luminosity 0.585 | 2026-11-19T22:00:00Z
+81448 | Will Donald Trump post 40-59 Truth Social posts from November 17 to November 24, 2026? | Yes 0.330, No 0.670 | 2026-11-24T17:00:00Z
+90913 | SPY (SPY) Up or Down on November 19? | Up 0.740, Down 0.260 | 2026-11-19T21:00:00Z
+90916 | Wizards vs. Bulls | Wizards 0.475, Bulls 0.525 | 2026-11-21T01:00:00Z
+91109 | Will Ethereum reach $1,850 on November 19? | Yes 0.395, No 0.605 | 2026-11-20T05:00:00Z
+91002 | Counter-Strike: G2 Ares vs maybe (BO3) - CCT Europe Closed Qualifier: Series #15 Group B | G2 Ares 0.565, maybe 0.435 | 2026-11-19T21:00:00Z
+81447 | Will Donald Trump post 20-39 Truth Social posts from November 17 to November 24, 2026? | Yes 0.152, No 0.848 | 2026-11-24T17:00:00Z
+90784 | Will FC Andijon win on 2026-11-19? | Yes 0.415, No 0.585 | 2026-11-19T13:00:00Z
+90570 | Warriors vs. Grizzlies | Warriors 0.265, Grizzlies 0.735 | 2026-11-20T01:00:00Z
+91098 | Will Bitcoin dip to $61,000 on November 19? | Yes 0.155, No 0.845 | 2026-11-20T05:00:00Z
+90982 | Counter-Strike: maybe vs ex-INOX Division (BO3) - European Pro League Playoffs | maybe 0.310, ex-INOX Division 0.690 | 2026-11-19T15:00:00Z
+74103 | Will Donald Trump post 60-79 Truth Social posts from November 13 to November 20, 2026? | Yes 0.446, No 0.554 | 2026-11-20T17:00:00Z
+90722 | Will Celtic FC win on 2026-11-21? | Yes 0.835, No 0.165 | 2026-11-21T15:00:00Z
+90476 | Penguins vs. Stars | Penguins 0.345, Stars 0.655 | 2026-11-23T00:00:00Z
+91097 | Will Bitcoin dip to $62,000 on November 19? | Yes 0.385, No 0.615 | 2026-11-20T05:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"type":"system","subtype":"init","cwd":"/tmp/apb-sweep-claude-b8sknr5d","session_id":"9fdd61f0-f896-48b7-94ad-1b2301f107f5","tools":["Task","Bash","CronCreate","CronDelete","CronList","DesignSync","Edit","EnterWorktree","ExitWorktree","ListAgents","Monitor","NotebookEdit","Read","ReportFindings","ScheduleWakeup","SendMessage","TaskStop","ToolSearch","WebFetch","WebSearch","Workflow","Write"],"mcp_servers":[],"model":"claude-fable-5-1","permissionMode":"bypassPermissions","slash_commands":[],"apiKeySource":"none","claude_code_version":"2.1.326","output_style":"default","agents":["claude","Explore","general-purpose","Plan","statusline-setup"],"skills":[],"plugins":[{"name":"cc-plugin-agents-md","path":"builtin","source":"cc-plugin-agents-md@builtin"},{"name":"cc-plugin-telemetry","path":"builtin","source":"cc-plugin-telemetry@builtin"},{"name":"cc-plugin-privacy","path":"builtin","source":"cc-plugin-privacy@builtin"},{"name":"cc-plugin-plugin-authoring","path":"builtin","source":"cc-plugin-plugin-authoring@builtin"}],"capabilities":["interrupt_receipt_v1","interrupt_cancel_queued_v1","interrupt_send_now_v1","interrupt_requeue_taken_v1","msg_lifecycle_v1","request_marker_lists_v1","ask_user_question_unanswered_v1","lifecycle_wakeup_source_v1","sdk_mcp_tools_list_changed","sdk_mcp_manifests","mcp_read_resource_v1","mcp_tool_ui_meta_v1","ui_surface_v1","mcp_call_result_not_for_model_v1","mcp_call_check_permissions_v1","voice_call_talk_line_v1","withdrawn_files_note_v2","ui_pane_widget_v1","reload_plugins_refuse_if_busy_v1","silent_resend_files_v1"],"analytics_disabled":false,"product_feedback_disabled":false,"uuid":"6825cba1-a1ff-4f9c-bc86-3f83f54eb6a2","memory_paths":{"auto":"/tmp/apbh-claude-5isl8suy/.claude/projects/-tmp-apb-sweep-claude-b8sknr5d/memory/"},"original_cwd":"/tmp/apb-sweep-claude-b8sknr5d","additional_directories":[],"fast_mode_state":"off","fast_mode_disabled_reason":"sdk_opt_in_required","per_turn_effort_active":true,"ultrathink_available":false,"ultrathink_typed_raises":false,"view_mode":"default"}
+{"type":"assistant","message":{"diagnostics":null,"id":"e543c085-5f12-408e-9c20-6e2b9dd28636","container":null,"model":"<synthetic>","role":"assistant","stop_details":null,"stop_reason":"stop_sequence","stop_sequence":"","type":"message","usage":{"output_tokens_details":null,"input_tokens":0,"output_tokens":0,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":null,"cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":0},"inference_geo":null,"iterations":null,"speed":null,"fallback_credit":null},"content":[{"type":"text","text":"Failed to authenticate: OAuth session expired and could not be refreshed"}],"context_management":null},"parent_tool_use_id":null,"session_id":"9fdd61f0-f896-48b7-94ad-1b2301f107f5","uuid":"9e59f182-9014-4ff0-9312-40ff7fda636f","timestamp":"2026-11-19T06:13:25.556Z","error":"authentication_failed","is_api_error_message":true}
+{"duration_api_ms":0,"stop_reason":"stop_sequence","session_id":"9fdd61f0-f896-48b7-94ad-1b2301f107f5","total_cost_usd":0,"usage":{"output_tokens_details":{"thinking_tokens":0},"input_tokens":0,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":0,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":0},"inference_geo":"","iterations":[],"speed":"standard","fallback_credit":null},"modelUsage":{},"permission_denials":[],"terminal_reason":"api_error","fast_mode_state":"off","fast_mode_disabled_reason":"sdk_opt_in_required","subagent_stats":{"spawned":0,"requested":{"background":0,"foreground":0,"unset":0},"started_in_background":0,"max_depth":0,"spawned_by_subagents":0,"completed":0,"failed":0,"killed":{"parent":0,"user":0,"system":0},"refused":{"depth_limit":0,"concurrency_limit":0,"budget":0},"by_type":{}},"safety_stops":0,"is_error":true,"num_turns":1,"subtype":"success","api_error_status":null,"result":"Failed to authenticate: OAuth session expired and could not be refreshed","type":"result","duration_ms":58,"uuid":"019aa013-209f-44cb-a162-6c24c1be02e1","queued_turn_count":0,"result_index":0,"model_usage_since_last_result":{}}

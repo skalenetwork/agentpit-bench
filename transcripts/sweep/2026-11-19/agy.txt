@@ -1,0 +1,44 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+91147 | Will CR Flamengo win on 2026-11-21? | Yes 0.370, No 0.630 | 2026-11-21T19:30:00Z
+90987 | Kings vs. Maple Leafs | Kings 0.495, Maple Leafs 0.505 | 2026-11-20T00:00:00Z
+91160 | Bitcoin Up or Down - November 19, 1:00AM-2:00AM ET | Up 0.665, Down 0.335 | 2026-11-19T07:00:00Z
+91162 | Valorant: Qian Xing Gaming vs SEC (BO3) - China National Tournament Split Omega: Pro Division Group A | Qian Xing Gaming 0.195, SEC 0.805 | 2026-11-19T12:00:00Z
+87127 | Will Trump say "China" or "Russia" 15+ times during his trilateral meeting with Xi and Putin? | Yes 0.290, No 0.710 | 2026-11-19T23:59:00Z
+90914 | S&P 500 (SPX) Up or Down on November 19? | Up 0.730, Down 0.270 | 2026-11-19T21:00:00Z
+91048 | Will CR Vasco da Gama win on 2026-11-19? | Yes 0.605, No 0.395 | 2026-11-19T22:30:00Z
+90985 | Pacers vs. Cavaliers | Pacers 0.295, Cavaliers 0.705 | 2026-11-21T00:30:00Z
+91138 | Will Bitcoin reach $64,000 on November 19? | Yes 0.735, No 0.265 | 2026-11-20T05:00:00Z
+91159 | Counter-Strike: 33 vs ex-RUSTEC (BO3) - CCT Europe Playoffs | 33 0.665, ex-RUSTEC 0.335 | 2026-11-19T15:00:00Z
+81449 | Will Donald Trump post 60-79 Truth Social posts from November 17 to November 24, 2026? | Yes 0.275, No 0.725 | 2026-11-24T17:00:00Z
+38922 | Will Moog (MOG.A) beat quarterly earnings? | Yes 0.690, No 0.310 | 2026-11-20T14:00:00Z
+90997 | Will NVIDIA (NVDA) hit (HIGH) $156 Week of November 16 2026? | Yes 0.645, No 0.355 | 2026-11-20T21:00:00Z
+90962 | Will FK Termez Surkhon vs. FC Andijon end in a draw? | Yes 0.295, No 0.705 | 2026-11-19T13:00:00Z
+91125 | Will Ethereum dip to $1,750 on November 19? | Yes 0.365, No 0.635 | 2026-11-20T05:00:00Z
+91055 | Counter-Strike: Sangal vs Luminosity - Map 1 Winner | Sangal 0.415, Luminosity 0.585 | 2026-11-19T22:00:00Z
+81448 | Will Donald Trump post 40-59 Truth Social posts from November 17 to November 24, 2026? | Yes 0.330, No 0.670 | 2026-11-24T17:00:00Z
+90913 | SPY (SPY) Up or Down on November 19? | Up 0.740, Down 0.260 | 2026-11-19T21:00:00Z
+90916 | Wizards vs. Bulls | Wizards 0.475, Bulls 0.525 | 2026-11-21T01:00:00Z
+91109 | Will Ethereum reach $1,850 on November 19? | Yes 0.395, No 0.605 | 2026-11-20T05:00:00Z
+91002 | Counter-Strike: G2 Ares vs maybe (BO3) - CCT Europe Closed Qualifier: Series #15 Group B | G2 Ares 0.565, maybe 0.435 | 2026-11-19T21:00:00Z
+81447 | Will Donald Trump post 20-39 Truth Social posts from November 17 to November 24, 2026? | Yes 0.152, No 0.848 | 2026-11-24T17:00:00Z
+90784 | Will FC Andijon win on 2026-11-19? | Yes 0.415, No 0.585 | 2026-11-19T13:00:00Z
+90570 | Warriors vs. Grizzlies | Warriors 0.265, Grizzlies 0.735 | 2026-11-20T01:00:00Z
+91098 | Will Bitcoin dip to $61,000 on November 19? | Yes 0.155, No 0.845 | 2026-11-20T05:00:00Z
+90982 | Counter-Strike: maybe vs ex-INOX Division (BO3) - European Pro League Playoffs | maybe 0.310, ex-INOX Division 0.690 | 2026-11-19T15:00:00Z
+74103 | Will Donald Trump post 60-79 Truth Social posts from November 13 to November 20, 2026? | Yes 0.446, No 0.554 | 2026-11-20T17:00:00Z
+90722 | Will Celtic FC win on 2026-11-21? | Yes 0.835, No 0.165 | 2026-11-21T15:00:00Z
+90476 | Penguins vs. Stars | Penguins 0.345, Stars 0.655 | 2026-11-23T00:00:00Z
+91097 | Will Bitcoin dip to $62,000 on November 19? | Yes 0.385, No 0.615 | 2026-11-20T05:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"forecasts": [{"id": "91147", "probabilities": {"Yes": 0.32, "No": 0.68}}, {"id": "90987", "probabilities": {"Kings": 0.485, "Maple Leafs": 0.515}}, {"id": "91160", "probabilities": {"Up": 0.71, "Down": 0.29}}, {"id": "91162", "probabilities": {"Qian Xing Gaming": 0.185, "SEC": 0.815}}, {"id": "87127", "probabilities": {"Yes": 0.22, "No": 0.78}}, {"id": "90914", "probabilities": {"Up": 0.74, "Down": 0.26}}, {"id": "91048", "probabilities": {"Yes": 0.565, "No": 0.435}}, {"id": "90985", "probabilities": {"Pacers": 0.29, "Cavaliers": 0.71}}, {"id": "91138", "probabilities": {"Yes": 0.77, "No": 0.23}}, {"id": "91159", "probabilities": {"33": 0.67, "ex-RUSTEC": 0.33}}, {"id": "81449", "probabilities": {"Yes": 0.27, "No": 0.73}}, {"id": "38922", "probabilities": {"Yes": 0.71, "No": 0.29}}, {"id": "90997", "probabilities": {"Yes": 0.71, "No": 0.29}}, {"id": "90962", "probabilities": {"Yes": 0.33, "No": 0.67}}, {"id": "91125", "probabilities": {"Yes": 0.34, "No": 0.66}}, {"id": "91055", "probabilities": {"Sangal": 0.42, "Luminosity": 0.58}}, {"id": "81448", "probabilities": {"Yes": 0.355, "No": 0.645}}, {"id": "90913", "probabilities": {"Up": 0.745, "Down": 0.255}}, {"id": "90916", "probabilities": {"Wizards": 0.475, "Bulls": 0.525}}, {"id": "91109", "probabilities": {"Yes": 0.41, "No": 0.59}}, {"id": "91002", "probabilities": {"G2 Ares": 0.565, "maybe": 0.435}}, {"id": "81447", "probabilities": {"Yes": 0.145, "No": 0.855}}, {"id": "90784", "probabilities": {"Yes": 0.36, "No": 0.64}}, {"id": "90570", "probabilities": {"Warriors": 0.265, "Grizzlies": 0.735}}, {"id": "91098", "probabilities": {"Yes": 0.14, "No": 0.86}}, {"id": "90982", "probabilities": {"maybe": 0.3, "ex-INOX Division": 0.7}}, {"id": "74103", "probabilities": {"Yes": 0.45, "No": 0.55}}, {"id": "90722", "probabilities": {"Yes": 0.85, "No": 0.15}}, {"id": "90476", "probabilities": {"Penguins": 0.365, "Stars": 0.635}}, {"id": "91097", "probabilities": {"Yes": 0.365, "No": 0.635}}]}

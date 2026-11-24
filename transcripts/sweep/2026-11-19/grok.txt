@@ -1,0 +1,48 @@
+$ grok -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+91147 | Will CR Flamengo win on 2026-11-21? | Yes 0.370, No 0.630 | 2026-11-21T19:30:00Z
+90987 | Kings vs. Maple Leafs | Kings 0.495, Maple Leafs 0.505 | 2026-11-20T00:00:00Z
+91160 | Bitcoin Up or Down - November 19, 1:00AM-2:00AM ET | Up 0.665, Down 0.335 | 2026-11-19T07:00:00Z
+91162 | Valorant: Qian Xing Gaming vs SEC (BO3) - China National Tournament Split Omega: Pro Division Group A | Qian Xing Gaming 0.195, SEC 0.805 | 2026-11-19T12:00:00Z
+87127 | Will Trump say "China" or "Russia" 15+ times during his trilateral meeting with Xi and Putin? | Yes 0.290, No 0.710 | 2026-11-19T23:59:00Z
+90914 | S&P 500 (SPX) Up or Down on November 19? | Up 0.730, Down 0.270 | 2026-11-19T21:00:00Z
+91048 | Will CR Vasco da Gama win on 2026-11-19? | Yes 0.605, No 0.395 | 2026-11-19T22:30:00Z
+90985 | Pacers vs. Cavaliers | Pacers 0.295, Cavaliers 0.705 | 2026-11-21T00:30:00Z
+91138 | Will Bitcoin reach $64,000 on November 19? | Yes 0.735, No 0.265 | 2026-11-20T05:00:00Z
+91159 | Counter-Strike: 33 vs ex-RUSTEC (BO3) - CCT Europe Playoffs | 33 0.665, ex-RUSTEC 0.335 | 2026-11-19T15:00:00Z
+81449 | Will Donald Trump post 60-79 Truth Social posts from November 17 to November 24, 2026? | Yes 0.275, No 0.725 | 2026-11-24T17:00:00Z
+38922 | Will Moog (MOG.A) beat quarterly earnings? | Yes 0.690, No 0.310 | 2026-11-20T14:00:00Z
+90997 | Will NVIDIA (NVDA) hit (HIGH) $156 Week of November 16 2026? | Yes 0.645, No 0.355 | 2026-11-20T21:00:00Z
+90962 | Will FK Termez Surkhon vs. FC Andijon end in a draw? | Yes 0.295, No 0.705 | 2026-11-19T13:00:00Z
+91125 | Will Ethereum dip to $1,750 on November 19? | Yes 0.365, No 0.635 | 2026-11-20T05:00:00Z
+91055 | Counter-Strike: Sangal vs Luminosity - Map 1 Winner | Sangal 0.415, Luminosity 0.585 | 2026-11-19T22:00:00Z
+81448 | Will Donald Trump post 40-59 Truth Social posts from November 17 to November 24, 2026? | Yes 0.330, No 0.670 | 2026-11-24T17:00:00Z
+90913 | SPY (SPY) Up or Down on November 19? | Up 0.740, Down 0.260 | 2026-11-19T21:00:00Z
+90916 | Wizards vs. Bulls | Wizards 0.475, Bulls 0.525 | 2026-11-21T01:00:00Z
+91109 | Will Ethereum reach $1,850 on November 19? | Yes 0.395, No 0.605 | 2026-11-20T05:00:00Z
+91002 | Counter-Strike: G2 Ares vs maybe (BO3) - CCT Europe Closed Qualifier: Series #15 Group B | G2 Ares 0.565, maybe 0.435 | 2026-11-19T21:00:00Z
+81447 | Will Donald Trump post 20-39 Truth Social posts from November 17 to November 24, 2026? | Yes 0.152, No 0.848 | 2026-11-24T17:00:00Z
+90784 | Will FC Andijon win on 2026-11-19? | Yes 0.415, No 0.585 | 2026-11-19T13:00:00Z
+90570 | Warriors vs. Grizzlies | Warriors 0.265, Grizzlies 0.735 | 2026-11-20T01:00:00Z
+91098 | Will Bitcoin dip to $61,000 on November 19? | Yes 0.155, No 0.845 | 2026-11-20T05:00:00Z
+90982 | Counter-Strike: maybe vs ex-INOX Division (BO3) - European Pro League Playoffs | maybe 0.310, ex-INOX Division 0.690 | 2026-11-19T15:00:00Z
+74103 | Will Donald Trump post 60-79 Truth Social posts from November 13 to November 20, 2026? | Yes 0.446, No 0.554 | 2026-11-20T17:00:00Z
+90722 | Will Celtic FC win on 2026-11-21? | Yes 0.835, No 0.165 | 2026-11-21T15:00:00Z
+90476 | Penguins vs. Stars | Penguins 0.345, Stars 0.655 | 2026-11-23T00:00:00Z
+91097 | Will Bitcoin dip to $62,000 on November 19? | Yes 0.385, No 0.615 | 2026-11-20T05:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"type":"error","message":"Not signed in. To authenticate without a browser, run:\n  grok login --device-code\n\nAlternatively, set the XAI_API_KEY environment variable or run `grok login` on a machine with a browser."}
+Error: Not signed in. To authenticate without a browser, run:
+  grok login --device-code
+
+Alternatively, set the XAI_API_KEY environment variable or run `grok login` on a machine with a browser.
