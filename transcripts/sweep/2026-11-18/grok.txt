@@ -1,0 +1,48 @@
+$ grok -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+89414 | Will Netflix (NFLX) close at $60-$70 on the final day of trading of the week of Nov 16 – Nov 20? | Yes 0.425, No 0.575 | 2026-11-20T21:00:00Z
+89420 | New Zealand Breakers vs. South East Melbourne Phoenix | New Zealand Breakers 0.475, South East Melbourne Phoenix 0.525 | 2026-11-25T06:30:00Z
+89400 | Will Ethereum dip to $1,750 on November 18? | Yes 0.270, No 0.730 | 2026-11-19T05:00:00Z
+89373 | Valorant: Ambitious Legend Gaming vs SEC (BO3) - China National Tournament Split Omega: Pro Division Group A | Ambitious Legend Gaming 0.260, SEC 0.740 | 2026-11-18T12:00:00Z
+87134 | Will Trump say "Japan" during his trilateral meeting with Xi and Putin? | Yes 0.175, No 0.825 | 2026-11-19T23:59:00Z
+88736 | Will S&P 500 (SPY) hit (LOW) $705 Week of November 16 2026? | Yes 0.185, No 0.815 | 2026-11-20T21:00:00Z
+89413 | Will Netflix (NFLX) close at $50-$60 on the final day of trading of the week of Nov 16 – Nov 20? | Yes 0.535, No 0.465 | 2026-11-20T21:00:00Z
+89349 | ATP World Tour Finals, John McEnroe Group: Alexander Zverev vs Arthur Fils | Alexander Zverev 0.730, Arthur Fils 0.270 | 2026-11-24T13:00:00Z
+89399 | Will Ethereum dip to $1,800 on November 18? | Yes 0.792, No 0.208 | 2026-11-19T05:00:00Z
+89207 | Dota 2: Aurora vs PARIVISION (BO3) - 1win Essence Playoffs | Aurora 0.155, PARIVISION 0.845 | 2026-11-18T18:00:00Z
+87128 | Will Trump say "Nuclear" or "Nuke" during his trilateral meeting with Xi and Putin? | Yes 0.545, No 0.455 | 2026-11-19T23:59:00Z
+88104 | Will S&P 500 (SPY) hit (HIGH) $750 Week of November 16 2026? | Yes 0.360, No 0.640 | 2026-11-20T21:00:00Z
+89366 | Will SC Freiburg win on 2026-11-21? | Yes 0.495, No 0.505 | 2026-11-21T14:30:00Z
+89265 | Wichita State Shockers vs. Loyola Chicago Ramblers | Wichita State Shockers 0.520, Loyola Chicago Ramblers 0.480 | 2026-11-19T01:00:00Z
+89398 | Will Ethereum reach $1,850 on November 18? | Yes 0.370, No 0.630 | 2026-11-19T05:00:00Z
+89189 | Counter-Strike: Phantom vs Metizport (BO3) - RUSH Brno Group B | Phantom 0.535, Metizport 0.465 | 2026-11-18T19:00:00Z
+87125 | Will Trump say "Ukraine" during his trilateral meeting with Xi and Putin? | Yes 0.385, No 0.615 | 2026-11-19T23:59:00Z
+86811 | Will S&P 500 (SPY) hit (HIGH) $760 Week of November 16 2026? | Yes 0.150, No 0.850 | 2026-11-20T21:00:00Z
+89364 | Will Liverpool FC win on 2026-11-22? | Yes 0.555, No 0.445 | 2026-11-22T16:30:00Z
+89238 | ATP World Tour Finals Doubles, Mark Woodforde Group (Doubles): Harrison/Skupski vs Bolelli/Vavassori | Harrison/Skupski 0.545, Bolelli/Vavassori 0.455 | 2026-11-24T10:30:00Z
+89376 | Bitcoin Up or Down - November 18, 12:00AM-4:00AM ET | Up 0.770, Down 0.230 | 2026-11-18T09:00:00Z
+89154 | Valorant: TEC Esports vs KeepBest Gaming (BO3) - China National Tournament Split Omega: Pro Division Group A | TEC Esports 0.345, KeepBest Gaming 0.655 | 2026-11-18T14:30:00Z
+87124 | Will Trump say "Zelensky" during his trilateral meeting with Xi and Putin? | Yes 0.150, No 0.850 | 2026-11-19T23:59:00Z
+86804 | Will S&P 500 (SPY) hit (HIGH) $755 Week of November 16 2026? | Yes 0.230, No 0.770 | 2026-11-20T21:00:00Z
+89292 | Will FBC Melgar win on 2026-11-18? | Yes 0.285, No 0.715 | 2026-11-18T20:00:00Z
+89211 | Clippers vs. Spurs | Clippers 0.195, Spurs 0.805 | 2026-11-20T01:00:00Z
+89322 | Will Bitcoin dip to $63,000 on November 18? | Yes 0.265, No 0.735 | 2026-11-19T05:00:00Z
+89152 | Counter-Strike: Nexus vs Iberian Soul - Map 1 Winner | Nexus 0.475, Iberian Soul 0.525 | 2026-11-18T16:00:00Z
+81450 | Will Donald Trump post 80-99 Truth Social posts from November 17 to November 24, 2026? | Yes 0.175, No 0.825 | 2026-11-24T17:00:00Z
+86803 | Will S&P 500 (SPY) hit (LOW) $725 Week of November 16 2026? | Yes 0.610, No 0.390 | 2026-11-20T21:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"type":"error","message":"Not signed in. To authenticate without a browser, run:\n  grok login --device-code\n\nAlternatively, set the XAI_API_KEY environment variable or run `grok login` on a machine with a browser."}
+Error: Not signed in. To authenticate without a browser, run:
+  grok login --device-code
+
+Alternatively, set the XAI_API_KEY environment variable or run `grok login` on a machine with a browser.
