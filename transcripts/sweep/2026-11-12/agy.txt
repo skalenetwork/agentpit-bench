@@ -1,0 +1,75 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+77555 | Jensen Huang announced resignation or removal from NVIDIA board by November 13, 2026? | Yes 0.305, No 0.695 | 2026-11-14T04:59:00Z
+77534 | Blues vs. Utah | Blues 0.455, Utah 0.545 | 2026-11-13T02:00:00Z
+77537 | Bitcoin Up or Down - November 12, 12:00AM-4:00AM ET | Up 0.395, Down 0.605 | 2026-11-12T09:00:00Z
+77541 | LoL: Nothin'Here vs Saigon Warriors - Game 3 Winner | Nothin'Here 0.280, Saigon Warriors 0.720 | 2026-11-12T12:00:00Z
+77075 | Will S&P 500 (SPY) hit (LOW) $745 Week of November 9 2026? | Yes 0.235, No 0.765 | 2026-11-13T21:00:00Z
+69099 | Will Donald Trump post 60-79 Truth Social posts from November 10 to November 17, 2026? | Yes 0.234, No 0.766 | 2026-11-17T17:00:00Z
+77428 | Will Germany win on 2026-11-13? | Yes 0.765, No 0.235 | 2026-11-13T19:45:00Z
+77533 | Will Albania vs. Finland end in a draw? | Yes 0.305, No 0.695 | 2026-11-12T19:45:00Z
+77509 | Will Bitcoin dip to $73,000 on November 12? | Yes 0.625, No 0.375 | 2026-11-13T05:00:00Z
+77481 | Rainbow Six Siege: G2 Esports vs FaZe Clan (BO3) - BLAST R6 Major Osaka Phase 3 - Playoffs | G2 Esports 0.400, FaZe Clan 0.600 | 2026-11-13T15:30:00Z
+77001 | Will S&P 500 (SPY) hit (HIGH) $765 Week of November 9 2026? | Yes 0.235, No 0.765 | 2026-11-13T21:00:00Z
+61118 | Will Malaysia win the public vote for Eurovision Asia 2026? | Yes 0.440, No 0.560 | 2026-11-15T04:59:00Z
+77401 | Will FC Barcelona win on 2026-11-12? | Yes 0.805, No 0.195 | 2026-11-12T17:45:00Z
+77427 | Big Bash League, Women: Melbourne Stars vs Brisbane Heat | Melbourne Stars 0.645, Brisbane Heat 0.355 | 2026-11-19T04:40:00Z
+77508 | Will Bitcoin reach $74,000 on November 12? | Yes 0.765, No 0.235 | 2026-11-13T05:00:00Z
+77294 | Counter-Strike: ex-Bounty Hunters vs QUINTESSÊNCIA (BO3) - CCT South America Playoffs | ex-Bounty Hunters 0.505, QUINTESSÊNCIA 0.495 | 2026-11-13T04:00:00Z
+77105 | S&P 500 (SPX) Up or Down on November 12? | Up 0.260, Down 0.740 | 2026-11-12T21:00:00Z
+60244 | Will Donald Trump post 80-99 Truth Social posts from November 6 to November 13, 2026? | Yes 0.190, No 0.810 | 2026-11-13T17:00:00Z
+77297 | SPY (SPY) Up or Down on November 12? | Up 0.260, Down 0.740 | 2026-11-12T21:00:00Z
+77425 | Nuggets vs. Pelicans | Nuggets 0.800, Pelicans 0.200 | 2026-11-15T00:00:00Z
+77507 | Will Bitcoin reach $75,000 on November 12? | Yes 0.295, No 0.705 | 2026-11-13T05:00:00Z
+77262 | Dota 2: Zero Tenacity vs angry birds (BO3) - Esports Pro Circuit  Playoffs | Zero Tenacity 0.395, angry birds 0.605 | 2026-11-12T15:00:00Z
+67547 | Will UK annual inflation be between 3.7% and 3.9% in October? | Yes 0.655, No 0.345 | 2026-11-18T11:59:00Z
+60243 | Will Donald Trump post 60-79 Truth Social posts from November 6 to November 13, 2026? | Yes 0.730, No 0.271 | 2026-11-13T17:00:00Z
+77214 | Will Barbados win on 2026-11-12? | Yes 0.335, No 0.665 | 2026-11-12T19:00:00Z
+77322 | Canadiens vs. Bruins | Canadiens 0.465, Bruins 0.535 | 2026-11-13T00:00:00Z
+77487 | Will Bitcoin dip to $72,000 on November 12? | Yes 0.245, No 0.755 | 2026-11-13T05:00:00Z
+77126 | Counter-Strike: BakS eSports vs The Last Resort (BO3) - CCT Europe Group Stage | BakS eSports 0.805, The Last Resort 0.195 | 2026-11-12T21:00:00Z
+67546 | Will UK annual inflation be between 3.4% and 3.6% in October? | Yes 0.295, No 0.705 | 2026-11-18T11:59:00Z
+43338 | Will Serbia call its presidential election by November 15, 2026? | Yes 0.390, No 0.610 | 2026-11-16T04:59:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"forecasts": [
+  {"id": "77555", "probabilities": {"Yes": 0.30, "No": 0.70}},
+  {"id": "77534", "probabilities": {"Blues": 0.45, "Utah": 0.55}},
+  {"id": "77537", "probabilities": {"Up": 0.40, "Down": 0.60}},
+  {"id": "77541", "probabilities": {"Nothin'Here": 0.28, "Saigon Warriors": 0.72}},
+  {"id": "77075", "probabilities": {"Yes": 0.24, "No": 0.76}},
+  {"id": "69099", "probabilities": {"Yes": 0.23, "No": 0.77}},
+  {"id": "77428", "probabilities": {"Yes": 0.77, "No": 0.23}},
+  {"id": "77533", "probabilities": {"Yes": 0.31, "No": 0.69}},
+  {"id": "77509", "probabilities": {"Yes": 0.63, "No": 0.37}},
+  {"id": "77481", "probabilities": {"G2 Esports": 0.40, "FaZe Clan": 0.60}},
+  {"id": "77001", "probabilities": {"Yes": 0.23, "No": 0.77}},
+  {"id": "61118", "probabilities": {"Yes": 0.44, "No": 0.56}},
+  {"id": "77401", "probabilities": {"Yes": 0.81, "No": 0.19}},
+  {"id": "77427", "probabilities": {"Melbourne Stars": 0.65, "Brisbane Heat": 0.35}},
+  {"id": "77508", "probabilities": {"Yes": 0.77, "No": 0.23}},
+  {"id": "77294", "probabilities": {"ex-Bounty Hunters": 0.51, "QUINTESSÊNCIA": 0.49}},
+  {"id": "77105", "probabilities": {"Up": 0.26, "Down": 0.74}},
+  {"id": "60244", "probabilities": {"Yes": 0.19, "No": 0.81}},
+  {"id": "77297", "probabilities": {"Up": 0.26, "Down": 0.74}},
+  {"id": "77425", "probabilities": {"Nuggets": 0.80, "Pelicans": 0.20}},
+  {"id": "77507", "probabilities": {"Yes": 0.29, "No": 0.71}},
+  {"id": "77262", "probabilities": {"Zero Tenacity": 0.39, "angry birds": 0.61}},
+  {"id": "67547", "probabilities": {"Yes": 0.66, "No": 0.34}},
+  {"id": "60243", "probabilities": {"Yes": 0.73, "No": 0.27}},
+  {"id": "77214", "probabilities": {"Yes": 0.33, "No": 0.67}},
+  {"id": "77322", "probabilities": {"Canadiens": 0.46, "Bruins": 0.54}},
+  {"id": "77487", "probabilities": {"Yes": 0.24, "No": 0.76}},
+  {"id": "77126", "probabilities": {"BakS eSports": 0.81, "The Last Resort": 0.19}},
+  {"id": "67546", "probabilities": {"Yes": 0.29, "No": 0.71}},
+  {"id": "43338", "probabilities": {"Yes": 0.38, "No": 0.62}}
+]}
