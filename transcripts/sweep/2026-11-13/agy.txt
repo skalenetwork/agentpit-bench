@@ -1,0 +1,44 @@
+$ agy -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+79296 | Will Kazakhstan win on 2026-11-13? | Yes 0.335, No 0.665 | 2026-11-13T17:00:00Z
+79287 | Will the match end in a draw? | Yes 0.305, No 0.695 | 2026-11-20T05:30:00Z
+79343 | Will Ethereum dip to $1,850 on November 13? | Yes 0.340, No 0.660 | 2026-11-14T05:00:00Z
+79305 | LoL: DetonatioN FocusMe vs Saigon Warriors - Game 1 Winner | DetonatioN FocusMe 0.650, Saigon Warriors 0.350 | 2026-11-13T12:00:00Z
+78142 | Will S&P 500 (SPY) hit (LOW) $750 Week of November 9 2026? | Yes 0.380, No 0.620 | 2026-11-13T21:00:00Z
+69098 | Will Donald Trump post 40-59 Truth Social posts from November 10 to November 17, 2026? | Yes 0.243, No 0.757 | 2026-11-17T17:00:00Z
+79290 | Will Zimbabwe win? | Yes 0.335, No 0.665 | 2026-11-20T05:30:00Z
+79279 | Predators vs. Golden Knights | Predators 0.385, Golden Knights 0.615 | 2026-11-14T03:00:00Z
+79341 | Will Ethereum reach $1,950 on November 13? | Yes 0.630, No 0.370 | 2026-11-14T05:00:00Z
+79288 | Counter-Strike: ex-UPGRADE vs Drama eSports (BO3) - NODWIN Clutch Series Group Stage | ex-UPGRADE 0.565, Drama eSports 0.435 | 2026-11-13T21:00:00Z
+77009 | Will S&P 500 (SPY) hit (LOW) $740 Week of November 9 2026? | Yes 0.285, No 0.715 | 2026-11-13T21:00:00Z
+8825 | Will Luka Mesec win the 2026 Ljubljana mayoral election? | Yes 0.275, No 0.725 | 2026-11-16T04:59:00Z
+79289 | Will Afghanistan win? | Yes 0.375, No 0.625 | 2026-11-20T05:30:00Z
+79262 | Stanford Cardinal vs. UNLV Runnin' Rebels | Stanford Cardinal 0.520, UNLV Runnin' Rebels 0.480 | 2026-11-14T02:00:00Z
+79340 | Will Ethereum reach $2,000 on November 13? | Yes 0.245, No 0.755 | 2026-11-14T05:00:00Z
+79109 | Rainbow Six Siege: Falcons Esport vs Geekay Esports (BO3) - BLAST R6 Major Osaka Phase 3 - Playoffs | Falcons Esport 0.710, Geekay Esports 0.290 | 2026-11-13T12:30:00Z
+79145 | S&P 500 (SPX) Opens Up or Down on November 13? | Up 0.480, Down 0.520 | 2026-11-13T21:00:00Z
+8802 | Will Zoran Janković win the 2026 Ljubljana mayoral election? | Yes 0.715, No 0.285 | 2026-11-16T04:59:00Z
+79286 | Will Slovakia win on 2026-11-13? | Yes 0.715, No 0.285 | 2026-11-13T19:45:00Z
+79230 | Hornets vs. Clippers | Hornets 0.405, Clippers 0.595 | 2026-11-15T21:30:00Z
+79303 | Bitcoin Up or Down - November 13, 1AM ET | Up 0.655, Down 0.345 | 2026-11-13T07:00:00Z
+79102 | Counter-Strike: Metizport vs Nexus (BO3) - CCT Europe Playoffs | Metizport 0.545, Nexus 0.455 | 2026-11-13T15:00:00Z
+78673 | S&P 500 (SPX) Up or Down on November 13? | Up 0.505, Down 0.495 | 2026-11-13T21:00:00Z
+79198 | Will The Life of a Showgirl (feat. Sabrina Carpenter) (Taylor Swift feat. Sabrina Carpenter) be nominated for Best Pop Duo/Group Performance at the 69th Annual GRAMMY Awards? | Yes 0.630, No 0.370 | 2026-11-17T04:59:00Z
+79174 | Will Netherlands vs. Greece end in a draw? | Yes 0.215, No 0.785 | 2026-11-13T19:45:00Z
+79274 | Will Bitcoin reach $70,000 on November 13? | Yes 0.345, No 0.655 | 2026-11-14T05:00:00Z
+78957 | Counter-Strike: Butterfly vs Leo Team (BO3) - CCT Europe Group Stage | Butterfly 0.625, Leo Team 0.375 | 2026-11-13T15:00:00Z
+50542 | Will Japan Q3 GDP growth (annualized) be between 0.0% and 0.8%? | Yes 0.402, No 0.599 | 2026-11-16T00:00:00Z
+79175 | Will Internacional de Bogotá win on 2026-11-13? | Yes 0.275, No 0.725 | 2026-11-14T01:30:00Z
+78925 | Avalanche vs. Canadiens | Avalanche 0.480, Canadiens 0.520 | 2026-11-15T00:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"forecasts": [{"id": "79296", "probabilities": {"Yes": 0.335, "No": 0.665}}, {"id": "79287", "probabilities": {"Yes": 0.31, "No": 0.69}}, {"id": "79343", "probabilities": {"Yes": 0.28, "No": 0.72}}, {"id": "79305", "probabilities": {"DetonatioN FocusMe": 0.765, "Saigon Warriors": 0.235}}, {"id": "78142", "probabilities": {"Yes": 0.38, "No": 0.62}}, {"id": "69098", "probabilities": {"Yes": 0.26, "No": 0.74}}, {"id": "79290", "probabilities": {"Yes": 0.345, "No": 0.655}}, {"id": "79279", "probabilities": {"Predators": 0.385, "Golden Knights": 0.615}}, {"id": "79341", "probabilities": {"Yes": 0.705, "No": 0.295}}, {"id": "79288", "probabilities": {"ex-UPGRADE": 0.565, "Drama eSports": 0.435}}, {"id": "77009", "probabilities": {"Yes": 0.28, "No": 0.72}}, {"id": "8825", "probabilities": {"Yes": 0.275, "No": 0.725}}, {"id": "79289", "probabilities": {"Yes": 0.345, "No": 0.655}}, {"id": "79262", "probabilities": {"Stanford Cardinal": 0.52, "UNLV Runnin' Rebels": 0.48}}, {"id": "79340", "probabilities": {"Yes": 0.255, "No": 0.745}}, {"id": "79109", "probabilities": {"Falcons Esport": 0.71, "Geekay Esports": 0.29}}, {"id": "79145", "probabilities": {"Up": 0.47, "Down": 0.53}}, {"id": "8802", "probabilities": {"Yes": 0.72, "No": 0.28}}, {"id": "79286", "probabilities": {"Yes": 0.715, "No": 0.285}}, {"id": "79230", "probabilities": {"Hornets": 0.405, "Clippers": 0.595}}, {"id": "79303", "probabilities": {"Up": 0.86, "Down": 0.14}}, {"id": "79102", "probabilities": {"Metizport": 0.545, "Nexus": 0.455}}, {"id": "78673", "probabilities": {"Up": 0.485, "Down": 0.515}}, {"id": "79198", "probabilities": {"Yes": 0.63, "No": 0.37}}, {"id": "79174", "probabilities": {"Yes": 0.215, "No": 0.785}}, {"id": "79274", "probabilities": {"Yes": 0.355, "No": 0.645}}, {"id": "78957", "probabilities": {"Butterfly": 0.625, "Leo Team": 0.375}}, {"id": "50542", "probabilities": {"Yes": 0.45, "No": 0.55}}, {"id": "79175", "probabilities": {"Yes": 0.275, "No": 0.725}}, {"id": "78925", "probabilities": {"Avalanche": 0.48, "Canadiens": 0.52}}]}

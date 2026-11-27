@@ -1,0 +1,46 @@
+$ claude -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+79296 | Will Kazakhstan win on 2026-11-13? | Yes 0.335, No 0.665 | 2026-11-13T17:00:00Z
+79287 | Will the match end in a draw? | Yes 0.305, No 0.695 | 2026-11-20T05:30:00Z
+79343 | Will Ethereum dip to $1,850 on November 13? | Yes 0.340, No 0.660 | 2026-11-14T05:00:00Z
+79305 | LoL: DetonatioN FocusMe vs Saigon Warriors - Game 1 Winner | DetonatioN FocusMe 0.650, Saigon Warriors 0.350 | 2026-11-13T12:00:00Z
+78142 | Will S&P 500 (SPY) hit (LOW) $750 Week of November 9 2026? | Yes 0.380, No 0.620 | 2026-11-13T21:00:00Z
+69098 | Will Donald Trump post 40-59 Truth Social posts from November 10 to November 17, 2026? | Yes 0.243, No 0.757 | 2026-11-17T17:00:00Z
+79290 | Will Zimbabwe win? | Yes 0.335, No 0.665 | 2026-11-20T05:30:00Z
+79279 | Predators vs. Golden Knights | Predators 0.385, Golden Knights 0.615 | 2026-11-14T03:00:00Z
+79341 | Will Ethereum reach $1,950 on November 13? | Yes 0.630, No 0.370 | 2026-11-14T05:00:00Z
+79288 | Counter-Strike: ex-UPGRADE vs Drama eSports (BO3) - NODWIN Clutch Series Group Stage | ex-UPGRADE 0.565, Drama eSports 0.435 | 2026-11-13T21:00:00Z
+77009 | Will S&P 500 (SPY) hit (LOW) $740 Week of November 9 2026? | Yes 0.285, No 0.715 | 2026-11-13T21:00:00Z
+8825 | Will Luka Mesec win the 2026 Ljubljana mayoral election? | Yes 0.275, No 0.725 | 2026-11-16T04:59:00Z
+79289 | Will Afghanistan win? | Yes 0.375, No 0.625 | 2026-11-20T05:30:00Z
+79262 | Stanford Cardinal vs. UNLV Runnin' Rebels | Stanford Cardinal 0.520, UNLV Runnin' Rebels 0.480 | 2026-11-14T02:00:00Z
+79340 | Will Ethereum reach $2,000 on November 13? | Yes 0.245, No 0.755 | 2026-11-14T05:00:00Z
+79109 | Rainbow Six Siege: Falcons Esport vs Geekay Esports (BO3) - BLAST R6 Major Osaka Phase 3 - Playoffs | Falcons Esport 0.710, Geekay Esports 0.290 | 2026-11-13T12:30:00Z
+79145 | S&P 500 (SPX) Opens Up or Down on November 13? | Up 0.480, Down 0.520 | 2026-11-13T21:00:00Z
+8802 | Will Zoran Janković win the 2026 Ljubljana mayoral election? | Yes 0.715, No 0.285 | 2026-11-16T04:59:00Z
+79286 | Will Slovakia win on 2026-11-13? | Yes 0.715, No 0.285 | 2026-11-13T19:45:00Z
+79230 | Hornets vs. Clippers | Hornets 0.405, Clippers 0.595 | 2026-11-15T21:30:00Z
+79303 | Bitcoin Up or Down - November 13, 1AM ET | Up 0.655, Down 0.345 | 2026-11-13T07:00:00Z
+79102 | Counter-Strike: Metizport vs Nexus (BO3) - CCT Europe Playoffs | Metizport 0.545, Nexus 0.455 | 2026-11-13T15:00:00Z
+78673 | S&P 500 (SPX) Up or Down on November 13? | Up 0.505, Down 0.495 | 2026-11-13T21:00:00Z
+79198 | Will The Life of a Showgirl (feat. Sabrina Carpenter) (Taylor Swift feat. Sabrina Carpenter) be nominated for Best Pop Duo/Group Performance at the 69th Annual GRAMMY Awards? | Yes 0.630, No 0.370 | 2026-11-17T04:59:00Z
+79174 | Will Netherlands vs. Greece end in a draw? | Yes 0.215, No 0.785 | 2026-11-13T19:45:00Z
+79274 | Will Bitcoin reach $70,000 on November 13? | Yes 0.345, No 0.655 | 2026-11-14T05:00:00Z
+78957 | Counter-Strike: Butterfly vs Leo Team (BO3) - CCT Europe Group Stage | Butterfly 0.625, Leo Team 0.375 | 2026-11-13T15:00:00Z
+50542 | Will Japan Q3 GDP growth (annualized) be between 0.0% and 0.8%? | Yes 0.402, No 0.599 | 2026-11-16T00:00:00Z
+79175 | Will Internacional de Bogotá win on 2026-11-13? | Yes 0.275, No 0.725 | 2026-11-14T01:30:00Z
+78925 | Avalanche vs. Canadiens | Avalanche 0.480, Canadiens 0.520 | 2026-11-15T00:00:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"type":"system","subtype":"init","cwd":"/tmp/apb-sweep-claude-74al9yyi","session_id":"2ef14acc-5cdb-4c0e-a242-d1f65184afd6","tools":["Task","Bash","CronCreate","CronDelete","CronList","DesignSync","Edit","EnterWorktree","ExitWorktree","ListAgents","NotebookEdit","Read","ReportFindings","ScheduleWakeup","SendMessage","TaskStop","ToolSearch","WebFetch","WebSearch","Workflow","Write"],"mcp_servers":[],"model":"claude-fable-5-1","permissionMode":"bypassPermissions","slash_commands":[],"apiKeySource":"none","claude_code_version":"2.1.300","output_style":"default","agents":["claude","Explore","general-purpose","Plan","statusline-setup"],"skills":[],"plugins":[{"name":"cc-plugin-agents-md","path":"builtin","source":"cc-plugin-agents-md@builtin"},{"name":"cc-plugin-telemetry","path":"builtin","source":"cc-plugin-telemetry@builtin"},{"name":"cc-plugin-plugin-authoring","path":"builtin","source":"cc-plugin-plugin-authoring@builtin"}],"capabilities":["interrupt_receipt_v1","interrupt_cancel_queued_v1","interrupt_send_now_v1","msg_lifecycle_v1","request_marker_lists_v1","sdk_mcp_tools_list_changed","sdk_mcp_manifests","mcp_read_resource_v1","mcp_tool_ui_meta_v1","ui_surface_v1"],"analytics_disabled":false,"product_feedback_disabled":false,"uuid":"63c93f68-dc6b-4f7c-88d1-002b18d4ddae","memory_paths":{"auto":"/tmp/apbh-claude-7rrjiozg/.claude/projects/-tmp-apb-sweep-claude-74al9yyi/memory/"},"fast_mode_state":"off","fast_mode_disabled_reason":"sdk_opt_in_required","per_turn_effort_active":true,"view_mode":"default"}
+{"type":"assistant","message":{"diagnostics":null,"id":"f1e03266-b2a0-42cf-af4c-192c7bcbf0be","container":null,"model":"<synthetic>","role":"assistant","stop_details":null,"stop_reason":"stop_sequence","stop_sequence":"","type":"message","usage":{"output_tokens_details":null,"input_tokens":0,"output_tokens":0,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":null,"cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":0},"inference_geo":null,"iterations":null,"speed":null,"fallback_credit":null},"content":[{"type":"text","text":"Failed to authenticate: OAuth session expired and could not be refreshed"}],"context_management":null},"parent_tool_use_id":null,"session_id":"2ef14acc-5cdb-4c0e-a242-d1f65184afd6","uuid":"160a363e-2beb-41c3-939f-2786b33c2c2e","timestamp":"2026-11-13T06:16:55.415Z","error":"authentication_failed","is_api_error_message":true}
+{"duration_api_ms":0,"stop_reason":"stop_sequence","session_id":"2ef14acc-5cdb-4c0e-a242-d1f65184afd6","total_cost_usd":0,"usage":{"output_tokens_details":{"thinking_tokens":0},"input_tokens":0,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":0,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":0},"inference_geo":"","iterations":[],"speed":"standard","fallback_credit":null},"modelUsage":{},"permission_denials":[],"terminal_reason":"api_error","fast_mode_state":"off","fast_mode_disabled_reason":"sdk_opt_in_required","subagent_stats":{"spawned":0,"requested":{"background":0,"foreground":0,"unset":0},"started_in_background":0,"max_depth":0,"spawned_by_subagents":0,"completed":0,"failed":0,"killed":{"parent":0,"user":0,"system":0},"refused":{"depth_limit":0,"concurrency_limit":0,"budget":0},"by_type":{}},"safety_stops":0,"is_error":true,"num_turns":1,"subtype":"success","api_error_status":null,"result":"Failed to authenticate: OAuth session expired and could not be refreshed","type":"result","duration_ms":55,"uuid":"28fdcc87-ef6d-4da0-880b-1db8c0dc4c27","queued_turn_count":0,"result_index":0}
