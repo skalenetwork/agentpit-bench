@@ -1,0 +1,48 @@
+$ grok -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+94966 | Will Middlesbrough FC win on 2026-11-21? | Yes 0.695, No 0.305 | 2026-11-21T15:00:00Z
+94949 | Will CE Sabadell FC vs. Granada CF end in a draw? | Yes 0.315, No 0.685 | 2026-11-21T13:00:00Z
+95028 | Will Bitcoin reach $62,000 on November 21? | Yes 0.500, No 0.500 | 2026-11-22T05:00:00Z
+95018 | Valorant: Young Gaming vs XJG (BO3) - China National Tournament Split Omega: Pro Division Group B | Young Gaming 0.705, XJG 0.295 | 2026-11-21T12:00:00Z
+94765 | Democratic 2028 presidential odds 64-66% on November 27? | Yes 0.375, No 0.625 | 2026-11-27T17:00:00Z
+94950 | Will CE Sabadell FC win on 2026-11-21? | Yes 0.405, No 0.595 | 2026-11-21T13:00:00Z
+94886 | New Mexico Lobos vs. Wichita State Shockers | New Mexico Lobos 0.575, Wichita State Shockers 0.425 | 2026-11-21T19:00:00Z
+95025 | Bitcoin Up or Down - November 21, 1:00AM-2:00AM ET | Up 0.500, Down 0.500 | 2026-11-21T07:00:00Z
+94982 | Valorant: KeepBest Gaming vs Victory No Limits (BO3) - China National Tournament Split Omega: Pro Division Group A | KeepBest Gaming 0.635, Victory No Limits 0.365 | 2026-11-21T17:00:00Z
+94762 | Democratic 2028 presidential odds 66-68% on November 27? | Yes 0.485, No 0.515 | 2026-11-27T17:00:00Z
+94938 | Will Real Sociedad de Fútbol B win on 2026-11-21? | Yes 0.515, No 0.485 | 2026-11-21T15:15:00Z
+94885 | Big Bash League, Women: Sydney Sixers vs Perth Scorchers | Sydney Sixers 0.815, Perth Scorchers 0.185 | 2026-11-28T04:30:00Z
+95024 | Will Bitcoin reach $63,000 on November 21? | Yes 0.500, No 0.500 | 2026-11-22T05:00:00Z
+94900 | Counter-Strike: PVISION vs DENDELE CS (BO1) - PGL Major Singapore Stage 1 | PVISION 0.655, DENDELE CS 0.345 | 2026-11-24T12:00:00Z
+94754 | Will Trump or Melania say "Poultry" during the Thanksgiving Turkey Pardon on November 24? | Yes 0.305, No 0.695 | 2026-11-24T23:59:00Z
+94925 | Will CA Mineiro win on 2026-11-21? | Yes 0.235, No 0.765 | 2026-11-21T22:30:00Z
+94879 | Will SS Lazio vs. US Lecce end in a draw? | Yes 0.205, No 0.795 | 2026-11-21T14:00:00Z
+95002 | Will Ethereum dip to $1,500 on November 21? | Yes 0.540, No 0.460 | 2026-11-22T05:00:00Z
+94898 | Counter-Strike: Eternal Fire vs FlyQuest (BO1) - PGL Major Singapore Stage 1 | Eternal Fire 0.595, FlyQuest 0.405 | 2026-11-24T13:00:00Z
+94753 | Will Trump or Melania say "Border" during the Thanksgiving Turkey Pardon on November 24? | Yes 0.580, No 0.420 | 2026-11-24T23:59:00Z
+94837 | Will VfB Stuttgart win on 2026-11-21? | Yes 0.525, No 0.475 | 2026-11-21T17:30:00Z
+94824 | Charleston Southern Buccaneers vs. Mercer Bears | Charleston Southern Buccaneers 0.230, Mercer Bears 0.770 | 2026-11-22T00:00:00Z
+95001 | Will Ethereum reach $1,700 on November 21? | Yes 0.165, No 0.835 | 2026-11-22T05:00:00Z
+94883 | Dota 2: Team Spirit vs Xtreme Gaming (BO3) - BLAST Slam Group B | Team Spirit 0.825, Xtreme Gaming 0.175 | 2026-11-21T23:00:00Z
+94752 | Will Trump or Melania say "West Virginia" during the Thanksgiving Turkey Pardon on November 24? | Yes 0.790, No 0.210 | 2026-11-24T23:59:00Z
+94675 | Next Z.ai GLM (5.4+) released by November 25, 2026? | Yes 0.660, No 0.340 | 2026-11-26T04:59:00Z
+94813 | Will Deportivo Alavés vs. RC Deportivo A Coruña end in a draw? | Yes 0.285, No 0.715 | 2026-11-21T13:00:00Z
+94985 | Will Ethereum reach $1,650 on November 21? | Yes 0.370, No 0.630 | 2026-11-22T05:00:00Z
+94687 | Counter-Strike: BBL vs Sinners (BO3) - RUSH Brno Playoffs | BBL 0.385, Sinners 0.615 | 2026-11-21T22:00:00Z
+94751 | Will Trump or Melania say "Ballroom" during the Thanksgiving Turkey Pardon on November 24? | Yes 0.695, No 0.305 | 2026-11-24T23:59:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"type":"error","message":"Not signed in. To authenticate without a browser, run:\n  grok login --device-code\n\nAlternatively, set the XAI_API_KEY environment variable or run `grok login` on a machine with a browser."}
+Error: Not signed in. To authenticate without a browser, run:
+  grok login --device-code
+
+Alternatively, set the XAI_API_KEY environment variable or run `grok login` on a machine with a browser.

@@ -1,0 +1,46 @@
+$ claude -p <sweep prompt>
+--- prompt ---
+You are taking part in AgentpitBench's daily forecast sweep, a calibration benchmark run alongside three other AI agents.
+For each prediction market below, give your probability for every outcome. When the markets resolve you are scored with the Brier score (lower is better), and compared with the market price at the time of this sweep.
+You may research online. You have 15 minutes in total for all 30 markets: budget your time and answer every market.
+
+Markets (id | question | outcomes with current market price | closes):
+94966 | Will Middlesbrough FC win on 2026-11-21? | Yes 0.695, No 0.305 | 2026-11-21T15:00:00Z
+94949 | Will CE Sabadell FC vs. Granada CF end in a draw? | Yes 0.315, No 0.685 | 2026-11-21T13:00:00Z
+95028 | Will Bitcoin reach $62,000 on November 21? | Yes 0.500, No 0.500 | 2026-11-22T05:00:00Z
+95018 | Valorant: Young Gaming vs XJG (BO3) - China National Tournament Split Omega: Pro Division Group B | Young Gaming 0.705, XJG 0.295 | 2026-11-21T12:00:00Z
+94765 | Democratic 2028 presidential odds 64-66% on November 27? | Yes 0.375, No 0.625 | 2026-11-27T17:00:00Z
+94950 | Will CE Sabadell FC win on 2026-11-21? | Yes 0.405, No 0.595 | 2026-11-21T13:00:00Z
+94886 | New Mexico Lobos vs. Wichita State Shockers | New Mexico Lobos 0.575, Wichita State Shockers 0.425 | 2026-11-21T19:00:00Z
+95025 | Bitcoin Up or Down - November 21, 1:00AM-2:00AM ET | Up 0.500, Down 0.500 | 2026-11-21T07:00:00Z
+94982 | Valorant: KeepBest Gaming vs Victory No Limits (BO3) - China National Tournament Split Omega: Pro Division Group A | KeepBest Gaming 0.635, Victory No Limits 0.365 | 2026-11-21T17:00:00Z
+94762 | Democratic 2028 presidential odds 66-68% on November 27? | Yes 0.485, No 0.515 | 2026-11-27T17:00:00Z
+94938 | Will Real Sociedad de Fútbol B win on 2026-11-21? | Yes 0.515, No 0.485 | 2026-11-21T15:15:00Z
+94885 | Big Bash League, Women: Sydney Sixers vs Perth Scorchers | Sydney Sixers 0.815, Perth Scorchers 0.185 | 2026-11-28T04:30:00Z
+95024 | Will Bitcoin reach $63,000 on November 21? | Yes 0.500, No 0.500 | 2026-11-22T05:00:00Z
+94900 | Counter-Strike: PVISION vs DENDELE CS (BO1) - PGL Major Singapore Stage 1 | PVISION 0.655, DENDELE CS 0.345 | 2026-11-24T12:00:00Z
+94754 | Will Trump or Melania say "Poultry" during the Thanksgiving Turkey Pardon on November 24? | Yes 0.305, No 0.695 | 2026-11-24T23:59:00Z
+94925 | Will CA Mineiro win on 2026-11-21? | Yes 0.235, No 0.765 | 2026-11-21T22:30:00Z
+94879 | Will SS Lazio vs. US Lecce end in a draw? | Yes 0.205, No 0.795 | 2026-11-21T14:00:00Z
+95002 | Will Ethereum dip to $1,500 on November 21? | Yes 0.540, No 0.460 | 2026-11-22T05:00:00Z
+94898 | Counter-Strike: Eternal Fire vs FlyQuest (BO1) - PGL Major Singapore Stage 1 | Eternal Fire 0.595, FlyQuest 0.405 | 2026-11-24T13:00:00Z
+94753 | Will Trump or Melania say "Border" during the Thanksgiving Turkey Pardon on November 24? | Yes 0.580, No 0.420 | 2026-11-24T23:59:00Z
+94837 | Will VfB Stuttgart win on 2026-11-21? | Yes 0.525, No 0.475 | 2026-11-21T17:30:00Z
+94824 | Charleston Southern Buccaneers vs. Mercer Bears | Charleston Southern Buccaneers 0.230, Mercer Bears 0.770 | 2026-11-22T00:00:00Z
+95001 | Will Ethereum reach $1,700 on November 21? | Yes 0.165, No 0.835 | 2026-11-22T05:00:00Z
+94883 | Dota 2: Team Spirit vs Xtreme Gaming (BO3) - BLAST Slam Group B | Team Spirit 0.825, Xtreme Gaming 0.175 | 2026-11-21T23:00:00Z
+94752 | Will Trump or Melania say "West Virginia" during the Thanksgiving Turkey Pardon on November 24? | Yes 0.790, No 0.210 | 2026-11-24T23:59:00Z
+94675 | Next Z.ai GLM (5.4+) released by November 25, 2026? | Yes 0.660, No 0.340 | 2026-11-26T04:59:00Z
+94813 | Will Deportivo Alavés vs. RC Deportivo A Coruña end in a draw? | Yes 0.285, No 0.715 | 2026-11-21T13:00:00Z
+94985 | Will Ethereum reach $1,650 on November 21? | Yes 0.370, No 0.630 | 2026-11-22T05:00:00Z
+94687 | Counter-Strike: BBL vs Sinners (BO3) - RUSH Brno Playoffs | BBL 0.385, Sinners 0.615 | 2026-11-21T22:00:00Z
+94751 | Will Trump or Melania say "Ballroom" during the Thanksgiving Turkey Pardon on November 24? | Yes 0.695, No 0.305 | 2026-11-24T23:59:00Z
+
+Finish with ONLY one JSON object, nothing after it:
+{"forecasts": [{"id": "<market id>", "probabilities": {"<outcome>": <probability 0-1>, ...}}, ...]}
+Give every outcome of every market a probability; each market's probabilities should sum to 1.
+
+--- output ---
+{"type":"system","subtype":"init","cwd":"/tmp/apb-sweep-claude-kklq0x3b","session_id":"3d1eb546-644c-42b4-82fc-c23e1b2afde5","tools":["Task","Bash","CronCreate","CronDelete","CronList","DesignSync","Edit","EnterWorktree","ExitWorktree","ListAgents","Monitor","NotebookEdit","Read","ReportFindings","ScheduleWakeup","SendMessage","TaskStop","ToolSearch","WebFetch","WebSearch","Workflow","Write"],"mcp_servers":[],"model":"claude-fable-5-1","permissionMode":"bypassPermissions","slash_commands":[],"apiKeySource":"none","claude_code_version":"2.1.326","output_style":"default","agents":["claude","Explore","general-purpose","Plan","statusline-setup"],"skills":[],"plugins":[{"name":"cc-plugin-agents-md","path":"builtin","source":"cc-plugin-agents-md@builtin"},{"name":"cc-plugin-telemetry","path":"builtin","source":"cc-plugin-telemetry@builtin"},{"name":"cc-plugin-privacy","path":"builtin","source":"cc-plugin-privacy@builtin"},{"name":"cc-plugin-plugin-authoring","path":"builtin","source":"cc-plugin-plugin-authoring@builtin"}],"capabilities":["interrupt_receipt_v1","interrupt_cancel_queued_v1","interrupt_send_now_v1","interrupt_requeue_taken_v1","msg_lifecycle_v1","request_marker_lists_v1","ask_user_question_unanswered_v1","lifecycle_wakeup_source_v1","sdk_mcp_tools_list_changed","sdk_mcp_manifests","mcp_read_resource_v1","mcp_tool_ui_meta_v1","ui_surface_v1","mcp_call_result_not_for_model_v1","mcp_call_check_permissions_v1","voice_call_talk_line_v1","withdrawn_files_note_v2","ui_pane_widget_v1","reload_plugins_refuse_if_busy_v1","silent_resend_files_v1"],"analytics_disabled":false,"product_feedback_disabled":false,"uuid":"a2a64243-bca5-44dc-ae51-858185196973","memory_paths":{"auto":"/tmp/apbh-claude-kzpzxa3z/.claude/projects/-tmp-apb-sweep-claude-kklq0x3b/memory/"},"original_cwd":"/tmp/apb-sweep-claude-kklq0x3b","additional_directories":[],"fast_mode_state":"off","fast_mode_disabled_reason":"sdk_opt_in_required","per_turn_effort_active":true,"ultrathink_available":false,"ultrathink_typed_raises":false,"view_mode":"default"}
+{"type":"assistant","message":{"diagnostics":null,"id":"d5462be8-baf1-402e-8c79-108a95040a21","container":null,"model":"<synthetic>","role":"assistant","stop_details":null,"stop_reason":"stop_sequence","stop_sequence":"","type":"message","usage":{"output_tokens_details":null,"input_tokens":0,"output_tokens":0,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":null,"cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":0},"inference_geo":null,"iterations":null,"speed":null,"fallback_credit":null},"content":[{"type":"text","text":"Failed to authenticate: OAuth session expired and could not be refreshed"}],"context_management":null},"parent_tool_use_id":null,"session_id":"3d1eb546-644c-42b4-82fc-c23e1b2afde5","uuid":"07156914-dbf5-4c1f-965a-2cc81e18421d","timestamp":"2026-11-21T06:09:34.725Z","error":"authentication_failed","is_api_error_message":true}
+{"duration_api_ms":0,"stop_reason":"stop_sequence","session_id":"3d1eb546-644c-42b4-82fc-c23e1b2afde5","total_cost_usd":0,"usage":{"output_tokens_details":{"thinking_tokens":0},"input_tokens":0,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":0,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":0},"inference_geo":"","iterations":[],"speed":"standard","fallback_credit":null},"modelUsage":{},"permission_denials":[],"terminal_reason":"api_error","fast_mode_state":"off","fast_mode_disabled_reason":"sdk_opt_in_required","subagent_stats":{"spawned":0,"requested":{"background":0,"foreground":0,"unset":0},"started_in_background":0,"max_depth":0,"spawned_by_subagents":0,"completed":0,"failed":0,"killed":{"parent":0,"user":0,"system":0},"refused":{"depth_limit":0,"concurrency_limit":0,"budget":0},"by_type":{}},"safety_stops":0,"is_error":true,"num_turns":1,"subtype":"success","api_error_status":null,"result":"Failed to authenticate: OAuth session expired and could not be refreshed","type":"result","duration_ms":60,"uuid":"e9536750-955b-45a4-8a44-87ea19ae5bfa","queued_turn_count":0,"result_index":0,"model_usage_since_last_result":{}}
